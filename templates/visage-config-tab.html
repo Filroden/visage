@@ -1,0 +1,40 @@
+<p class="notes">Manage alternate images (visages) for this actor. The default portrait and token images are captured from the actor when visages are first saved.</p>
+<div class="visage-grid">
+    <div class="form-group visage-row">
+        <label>Default Portrait</label>
+        <div class="form-fields">
+            <img src="{{resolvedDefaultPortrait}}"/>
+        </div>
+    </div>
+    <div class="form-group visage-row">
+        <label>Default Token</label>
+        <div class="form-fields">
+            <img src="{{resolvedDefaultToken}}"/>
+        </div>
+    </div>
+</div>
+
+<fieldset>
+    <legend>Configure Alternative Visages</legend>
+    <ol class="visage-list">
+        {{#each visages as |visage index|}}
+        <li class="flexrow">
+            <input type="text" name="visage-key" value="{{visage.key}}" placeholder="Form Name" />
+            <div class="form-fields">
+                <input type="text" name="visage-path" value="{{visage.path}}" placeholder="Image Path" />
+                <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
+            </div>
+            <a class="visage-delete"><i class="fas fa-trash"></i></a>
+        </li>
+        {{/each}}
+    </ol>
+
+<button type="button" class="visage-add"><i class="fas fa-plus"></i> Add New Visage</button>
+
+<div class="form-group visage-save-group">
+    <button type="button" class="visage-save">
+        <i class="far fa-save"></i> Save Visages
+    </button>
+</div>
+
+</fieldset>

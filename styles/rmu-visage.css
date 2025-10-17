@@ -1,0 +1,288 @@
+/* styles/rmu-visage.css */
+
+/* Style for the Visages tab icon in Token Configuration */
+.sheet-tabs .visage-tab-icon {
+    display: inline-block;
+    vertical-align: middle;
+    width: 1em;
+    height: 1em;
+    margin-right: 5px;
+    line-height: 1;
+}
+
+.sheet-tabs .visage-tab-icon img {
+    width: 100%;
+    height: 100%;
+    vertical-align: top; /* Prevent extra space below image */
+}
+
+/* Visage Selector */
+.rmu-visage-selector-app .window-content {
+    padding: 5px;
+}
+
+.rmu-visage-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 5px;
+}
+
+.visage-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    padding: 2px;
+    cursor: pointer;
+}
+
+.visage-tile:hover, .visage-tile.active {
+    border-color: #ff6400;
+}
+
+.visage-tile img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: none;
+}
+
+.visage-tile span {
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+/* Token Config */
+.visage-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.visage-list .flexrow {
+    align-items: center;
+    gap: 5px;
+}
+
+.visage-list input {
+    flex: 1;
+}
+
+.visage-list .visage-delete {
+    margin-left: 5px;
+    flex: 0 0 20px;
+    text-align: center;
+}
+
+/* Styles for Visage Config Tab */
+.tab[data-tab="visages"] .form-fields img {
+    width: 64px;
+    height: 64px;
+    border: 1px solid #ccc;
+    flex: 0 0 64px;
+}
+
+.tab[data-tab="visages"] .form-fields span {
+    margin-left: 10px;
+}
+
+.tab[data-tab="visages"] .visage-list li .form-fields {
+    flex: 2;
+}
+
+.tab[data-tab="visages"] .visage-add {
+    margin-top: 10px;
+}
+
+.tab[data-tab="visages"] .visage-save-group {
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+/* Base Application Styling (Border, Transparency, Positioning) */
+.rmu-visage-selector-app .window-content {
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    background: none !important;
+    background: rgba(40, 40, 40, 0.85); 
+    border-radius: 12px;
+    z-index: 20;
+    transition: all 0.2s ease-out;
+}
+
+/* Hide the core Foundry VTT title bar */
+.rmu-visage-selector-app .window-header {
+    display: none;
+}
+
+/* Content Area Styling */
+.rmu-visage-selector-app .window-content {
+    padding: 10px;
+    color: #fff; /* White text for contrast */
+}
+
+/* Custom Header/Title */
+.rmu-visage-selector-header h3 {
+margin: 0 0 10px 0;
+    font-size: 1rem;
+    text-align: center;
+    text-transform: uppercase;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 5px;
+}
+
+/* Grid Layout (2 columns) */
+.rmu-visage-selector {
+    display: grid;
+    /* Fixed 2-column grid */
+    grid-template-columns: 1fr 1fr; 
+    gap: 8px; /* Increased gap for better visual separation */
+}
+
+/* Individual Tile Styling */
+.visage-tile {
+    position: relative; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: none; /* Goal 5: Remove tile container border */
+    border-radius: 4px;
+    padding: 4px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.05);
+    transition: background-color 0.1s;
+}
+
+.visage-tile:hover {
+    background-color: rgba(255, 100, 0, 0.2);
+}
+
+.visage-tile.active {
+    background-color: rgba(40, 167, 69, 0.2);
+}
+
+.visage-tile img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+.visage-tile span {
+    font-size: 11px;
+    text-align: center;
+    white-space: normal; /* Allow name wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    margin-top: 4px;
+    color: #ffffff;
+}
+
+/* --- ACTIVE CHIP STYLING --- */
+.visage-chip {
+    position: absolute;
+    top: -8px; /* Offset from the top right corner */
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #28a745; /* Green background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+}
+
+.visage-chip img {
+    width: 12px;
+    height: 12px;
+    /* Invert the check_circle.svg to white for visibility */
+    filter: invert(100%); 
+    border: none; /* Remove any image border */
+}
+
+/* Visages tab icon: size and alignment */
+.sheet-tabs a[data-tab="visages"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sheet-tabs a[data-tab="visages"] img,
+.sheet-tabs a[data-tab="visages"] svg,
+.sheet-tabs .visage-tab-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  vertical-align: middle;
+  line-height: 1;
+  filter: brightness(0) saturate(100%);
+}
+
+/* Visage config: 2 rows × 3 columns */
+.visage-grid {
+  display: grid;
+  grid-template-columns: 160px 64px minmax(0, 1fr); /* label | image | path */
+  gap: 8px 12px;
+  align-items: center;
+}
+
+/* Make each .form-group contribute its children directly to the grid */
+.visage-grid .form-group { display: contents; }
+
+/* Column 1: labels */
+.visage-grid label { grid-column: 1; }
+
+/* Column 2: image */
+.visage-grid img {
+  grid-column: 2;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* Column 3: path field — force wrapping */
+.visage-grid .v-col-path {
+  grid-column: 3;
+  white-space: normal;
+  overflow-wrap: anywhere;     /* modern */
+  word-break: break-word;      /* fallback */
+  line-height: 1.25;
+}
+
+/* Each visage row = 3 columns: label | image | path */
+.visage-row {
+  display: grid;
+  grid-template-columns: 160px 64px; /* label | image */
+  gap: 8px 12px;
+  align-items: center;
+}
+
+/* Flatten common Foundry wrappers so children land in the 3 columns */
+.visage-row .form-fields,
+.visage-row .flexrow,
+.visage-row .form-group,
+.visage-row .form-group .form-fields { display: contents; }
+
+/* Col 1: label */
+.visage-row label { grid-column: 1; }
+
+/* Col 2: image */
+.visage-row img {
+  grid-column: 2;
+  width: 48px; height: 48px;
+  object-fit: cover; border-radius: 4px;
+}
