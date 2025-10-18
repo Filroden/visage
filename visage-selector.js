@@ -1,6 +1,6 @@
 // visage-selector.js
 
-import { RMUVisage } from "./main.js";
+import { Visage } from "./main.js";
 
 /**
  * The application for selecting a visage.
@@ -17,10 +17,10 @@ export class VisageSelector extends Application {
      */
     static get defaultOptions() {
         return mergeObject(super.defaultOptions, {
-            template: `modules/rmu-visage/templates/visage-selector.html`,
+            template: `modules/visage/templates/visage-selector.html`,
             // --- UPDATED OPTIONS ---
             title: "Choose Visage", // New title
-            classes: ["rmu-visage-selector-app", "borderless"], // Added 'borderless' class
+            classes: ["visage-selector-app", "borderless"], // Added 'borderless' class
             popOut: true, // Must be true for Application class
             width: 250, // Adjusted width for 2-column grid
             height: "auto",
@@ -43,7 +43,7 @@ export class VisageSelector extends Application {
             return { forms: {} };
         }
 
-        const moduleData = actor.flags?.[RMUVisage.DATA_NAMESPACE] || {};
+        const moduleData = actor.flags?.[Visage.DATA_NAMESPACE] || {};
         const alternateImages = moduleData.alternateImages || {};
         const currentFormKey = moduleData.currentFormKey || "default";
 
@@ -77,7 +77,7 @@ export class VisageSelector extends Application {
 
         // Resolve wildcards for display and add key to each
         for (const form of orderedForms) {
-            form.resolvedPath = await RMUVisage.resolvePath(form.path);
+            form.resolvedPath = await Visage.resolvePath(form.path);
         }
 
         return { forms: orderedForms }; // Pass the ordered array
@@ -135,7 +135,7 @@ export class VisageSelector extends Application {
     async _onSelectVisage(event) {
         const formKey = event.currentTarget.dataset.formKey;
         if (formKey) {
-            await RMUVisage.setVisage(this.actorId, formKey, this.tokenId);
+            await Visage.setVisage(this.actorId, formKey, this.tokenId);
             this.close();
         }
     }

@@ -1,4 +1,5 @@
 {
+  "name": "visage",
   "type": "module",
   "scripts": {
     "pack": "node scripts/pack.mjs",
