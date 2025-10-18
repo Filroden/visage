@@ -3,7 +3,7 @@ name: Auto Release on Develop
 on:
   push:
     branches:
-      - feat-workflow
+      - main
 
 permissions:
   contents: write
