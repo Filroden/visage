@@ -1,14 +1,14 @@
-<div class="rmu-visage-selector-header">
+<div class="visage-selector-header">
     <h3>Choose Visage</h3>
 </div>
-<div class="rmu-visage-selector">
+<div class="visage-selector">
     {{#each forms}}
     <div class="visage-tile {{#if this.isActive}}active{{/if}}" data-form-key="{{this.key}}">
         <img src="{{this.resolvedPath}}" alt="{{this.name}}"/>
         <span>{{this.name}}</span>
         {{#if this.isActive}}
         <div class="visage-chip">
-            <img src="modules/rmu-visage/icons/check_circle.svg" alt="Active"/>
+            <img src="modules/visage/icons/check_circle.svg" alt="Active"/>
         </div>
         {{/if}}
     </div>

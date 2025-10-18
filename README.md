@@ -6,7 +6,7 @@ A FoundryVTT module that allows a token's owner (player or GM) to add additional
 
 The **Visage** module exposes a public API that allows other modules, system macros, or advanced users to programmatically interact with its core functionality, such as switching actor forms.
 
-The API is accessible via `game.modules.get('rmu-visage').api`.
+The API is accessible via `game.modules.get('visage').api`.
 
 -----
 
@@ -15,10 +15,10 @@ The API is accessible via `game.modules.get('rmu-visage').api`.
 To access any of the functions described below, you must first get a reference to the API object:
 
 ```javascript
-const visageAPI = game.modules.get('rmu-visage')?.api;
+const visageAPI = game.modules.get('visage')?.api;
 
 if (!visageAPI) {
-    console.error("RMU Visage API is not available.");
+    console.error("Visage API is not available.");
     return;
 }
 // Now you can call the functions, e.g., visageAPI.setVisage(...)

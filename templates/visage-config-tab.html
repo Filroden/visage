@@ -19,9 +19,9 @@
     <ol class="visage-list">
         {{#each visages as |visage index|}}
         <li class="flexrow">
-            <input type="text" name="visage-key" value="{{visage.key}}" placeholder="Form Name" />
+            <input type="text" name="visage-key" value="{{visage.key}}" placeholder="Visage Name (e.g. Wolf)" />
             <div class="form-fields">
-                <input type="text" name="visage-path" value="{{visage.path}}" placeholder="Image Path" />
+                <input type="text" name="visage-path" value="{{visage.path}}" placeholder="path/to/image.webp" />
                 <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
             </div>
             <a class="visage-delete"><i class="fas fa-trash"></i></a>

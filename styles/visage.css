@@ -17,11 +17,11 @@
 }
 
 /* Visage Selector */
-.rmu-visage-selector-app .window-content {
+.visage-selector-app .window-content {
     padding: 5px;
 }
 
-.rmu-visage-selector {
+.visage-selector {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
     gap: 5px;
@@ -109,7 +109,7 @@
 }
 
 /* Base Application Styling (Border, Transparency, Positioning) */
-.rmu-visage-selector-app .window-content {
+.visage-selector-app .window-content {
     border: none;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
     background: none !important;
@@ -120,18 +120,18 @@
 }
 
 /* Hide the core Foundry VTT title bar */
-.rmu-visage-selector-app .window-header {
+.visage-selector-app .window-header {
     display: none;
 }
 
 /* Content Area Styling */
-.rmu-visage-selector-app .window-content {
+.visage-selector-app .window-content {
     padding: 10px;
     color: #fff; /* White text for contrast */
 }
 
 /* Custom Header/Title */
-.rmu-visage-selector-header h3 {
+.visage-selector-header h3 {
 margin: 0 0 10px 0;
     font-size: 1rem;
     text-align: center;
@@ -142,7 +142,7 @@ margin: 0 0 10px 0;
 }
 
 /* Grid Layout (2 columns) */
-.rmu-visage-selector {
+.visage-selector {
     display: grid;
     /* Fixed 2-column grid */
     grid-template-columns: 1fr 1fr; 

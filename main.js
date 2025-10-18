@@ -1,23 +1,23 @@
 import { VisageSelector } from "./visage-selector.js";
 
 /**
- * Main class for the RMU Visage module.
+ * Main class for the Visage module.
  *
  * This class handles the initialization of the module, setting up the API,
  * and registering any necessary hooks.
  */
-export class RMUVisage {
+export class Visage {
     /**
      * The ID of the module.
      * @type {string}
      */
-    static MODULE_ID = "rmu-visage";
+    static MODULE_ID = "visage";
 
     /**
      * The developer's preferred namespace for storing module data.
      * @type {string}
      */
-    static DATA_NAMESPACE = "rmu-visage";
+    static DATA_NAMESPACE = "visage";
 
     /**
      * A helper for logging messages to the console.
@@ -65,7 +65,7 @@ export class RMUVisage {
      * Initializes the module and sets up the public API.
      */
     static initialize() {
-        this.log("Initializing RMU Visage");
+        this.log("Initializing Visage");
 
         // Expose the public API.
         game.modules.get(this.MODULE_ID).api = {
@@ -178,18 +178,18 @@ export class RMUVisage {
  * Hook to initialize the module once the game is ready.
  */
 Hooks.once("init", () => {
-    RMUVisage.initialize();
+    Visage.initialize();
 });
 
-// Add a static property to the RMUVisage class to track open apps.
-RMUVisage.apps = {};
+// Add a static property to the Visage class to track open apps.
+Visage.apps = {};
 
 /**
  * Hook to register the application when rendered.
  */
 Hooks.on("renderApplication", (app, html, data) => {
     if (app instanceof VisageSelector) {
-        RMUVisage.apps[app.options.id] = app;
+        Visage.apps[app.options.id] = app;
     }
 });
 
@@ -198,7 +198,7 @@ Hooks.on("renderApplication", (app, html, data) => {
  */
 Hooks.on("closeApplication", (app) => {
     if (app instanceof VisageSelector) {
-        delete RMUVisage.apps[app.options.id];
+        delete Visage.apps[app.options.id];
     }
 });
 
@@ -206,7 +206,7 @@ Hooks.on("closeApplication", (app) => {
 Hooks.on("updateActor", async (actor, changed) => {
   if (!actor?.isOwner) return;
 
-  const ns = RMUVisage.DATA_NAMESPACE;
+  const ns = Visage.DATA_NAMESPACE;
   const mod = actor.flags?.[ns] || {};
   const isDefault = (mod.currentFormKey ?? "default") === "default";
   if (!isDefault) return;
@@ -235,7 +235,7 @@ Hooks.on("renderTokenHUD", (app, html, data) => {
     if (!actor || !actor.isOwner) return;
 
     // Show button if there are any alternate forms OR if a default has been changed.
-    const moduleData = actor.flags?.[RMUVisage.DATA_NAMESPACE] || {};
+    const moduleData = actor.flags?.[Visage.DATA_NAMESPACE] || {};
     const hasAlternates = moduleData.alternateImages && Object.keys(moduleData.alternateImages).length > 0;
     const isNotDefault = moduleData.currentFormKey && moduleData.currentFormKey !== 'default';
 
@@ -246,17 +246,17 @@ Hooks.on("renderTokenHUD", (app, html, data) => {
 
     const button = $(
         `<div class="control-icon visage-button" title="Change Visage">
-            <img src="modules/rmu-visage/icons/switch_account.svg" alt="Change Visage" class="visage-icon">
+            <img src="modules/visage/icons/switch_account.svg" alt="Change Visage" class="visage-icon">
         </div>`
     );
 
     button.on("click", () => {
         const actorId = actor.id;
-        const selectorId = `rmu-visage-selector-${actorId}`; 
+        const selectorId = `visage-selector-${actorId}`; 
 
         // *** GUARD CHECK: If selector is already open for this actor, close it or return. ***
-        if (RMUVisage.apps[selectorId]) {
-            RMUVisage.apps[selectorId].close();
+        if (Visage.apps[selectorId]) {
+            Visage.apps[selectorId].close();
             return; 
         }
 
@@ -296,7 +296,7 @@ Hooks.on('renderTokenConfig', async (app, html, data) => {
     // Add the nav link if it doesn't exist
     const nav = jQueryHtml.find('nav.sheet-tabs');
     if (nav.find('a[data-tab="visages"]').length=== 0) {
-        nav.append('<a data-action="tab" data-tab="visages" data-group="sheet"><img src="modules/rmu-visage/icons/switch_account.svg" alt="Visages" class="visage-tab-icon"><span>Visages</span></a>');
+        nav.append('<a data-action="tab" data-tab="visages" data-group="sheet"><img src="modules/visage/icons/switch_account.svg" alt="Visages" class="visage-tab-icon"><span>Visages</span></a>');
         }
 
     // Find our tab content area. Foundry may have already created a placeholder.
@@ -307,24 +307,24 @@ Hooks.on('renderTokenConfig', async (app, html, data) => {
     }
 
     // Prepare data for the template
-    const moduleData = actor.flags?.[RMUVisage.DATA_NAMESPACE] || {};
+    const moduleData = actor.flags?.[Visage.DATA_NAMESPACE] || {};
     const forms = moduleData.alternateImages || {};
     const defaults = moduleData.defaults || { portrait: actor.img, token: actor.prototypeToken.texture.src };
 
     const visageEntries = await Promise.all(Object.entries(forms).map(async ([key, path]) => {
-        return { key, path, resolvedPath: await RMUVisage.resolvePath(path) };
+        return { key, path, resolvedPath: await Visage.resolvePath(path) };
     }));
 
     const templateData = {
         visages: visageEntries,
         defaultPortrait: defaults.portrait,
         defaultToken: defaults.token,
-        resolvedDefaultPortrait: await RMUVisage.resolvePath(defaults.portrait),
-        resolvedDefaultToken: await RMUVisage.resolvePath(defaults.token)
+        resolvedDefaultPortrait: await Visage.resolvePath(defaults.portrait),
+        resolvedDefaultToken: await Visage.resolvePath(defaults.token)
     };
 
     // Render the template and inject it into our tab pane
-    const tabHtml = await renderTemplate('modules/rmu-visage/templates/visage-config-tab.html', templateData);
+    const tabHtml = await renderTemplate('modules/visage/templates/visage-config-tab.html', templateData);
     tabContent.html(tabHtml);
 
     // --- Event Listeners for the new tab ---
@@ -334,9 +334,9 @@ Hooks.on('renderTokenConfig', async (app, html, data) => {
         const list = tabContent.find('.visage-list');
         const newRow = $(
             `<li class="flexrow">
-                <input type="text" name="visage-key" value="" placeholder="Form Name" />
+                <input type="text" name="visage-key" value="" placeholder="Visage Name (e.g. Wolf)" />
                 <div class="form-fields" style="flex: 2;">
-                    <input type="text" name="visage-path" value="" placeholder="Image Path" />
+                    <input type="text" name="visage-path" value="" placeholder="path/to/image.webp" />
                     <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
                 </div>
                 <a class="visage-delete"><i class="fas fa-trash"></i></a>
@@ -368,7 +368,56 @@ Hooks.on('renderTokenConfig', async (app, html, data) => {
     tabContent.find('.visage-save').on('click', async (event) => {
         event.preventDefault();
 
-        const moduleData = actor.flags?.[RMUVisage.DATA_NAMESPACE] || {};
+        const visageRows = tabContent.find('.visage-list li');
+        const keysInForm = new Set();
+        let validationFailed = false;
+        let newVisageCounter = 1;
+
+        // --- Validation Pass ---
+        for (const row of visageRows.get()) {
+            const jqRow = $(row);
+            const keyInput = jqRow.find('input[name="visage-key"]');
+            const pathInput = jqRow.find('input[name="visage-path"]');
+            let key = keyInput.val().trim();
+            const path = pathInput.val().trim();
+
+            // If both are empty, it's a blank row that will be skipped by the save logic.
+            if (!key && !path) continue;
+
+            // 1. Handle blank names
+            if (!key) {
+                let defaultKey;
+                // Find a unique default key that isn't already in the form
+                do {
+                    defaultKey = `Visage ${newVisageCounter++}`;
+                } while (keysInForm.has(defaultKey));
+                key = defaultKey;
+                keyInput.val(key); // Visually update the input for the user
+            }
+
+            // 2. Check for duplicate names
+            if (keysInForm.has(key)) {
+                ui.notifications.error(`Duplicate visage name found: "${key}". Please use unique names.`);
+                validationFailed = true;
+                break;
+            }
+
+            // 3. Check for empty file path
+            if (!path) {
+                ui.notifications.error(`Image path for "${key}" cannot be empty.`);
+                validationFailed = true;
+                break;
+            }
+
+            keysInForm.add(key);
+        }
+
+        if (validationFailed) {
+            return; // Halt the save if validation fails
+        }
+
+        // --- Save Pass (if validation succeeded) ---
+        const moduleData = actor.flags?.[Visage.DATA_NAMESPACE] || {};
         const originalForms = moduleData.alternateImages || {};
         const originalKeys = Object.keys(originalForms);
 
@@ -377,21 +426,21 @@ Hooks.on('renderTokenConfig', async (app, html, data) => {
 
         // Capture defaults if they don't exist
         if (!moduleData.defaults) {
-            updatePayload[`flags.${RMUVisage.DATA_NAMESPACE}.defaults`] = {
+            updatePayload[`flags.${Visage.DATA_NAMESPACE}.defaults`] = {
                 portrait: actor.img,
                 token: actor.prototypeToken.texture.src
             };
         }
 
-        // Get current forms from the DOM
-        const visageRows = tabContent.find('.visage-list li');
+        // Get current forms from the DOM (now that they are validated)
         visageRows.each((i, row) => {
-            const key = $(row).find('input[name="visage-key"]').val();
-            const path = $(row).find('input[name="visage-path"]').val();
+            const key = $(row).find('input[name="visage-key"]').val().trim();
+            const path = $(row).find('input[name="visage-path"]').val().trim();
+
             if (key && path) {
                 keysToKeep.add(key);
                 if (originalForms[key] !== path) {
-                    updatePayload[`flags.${RMUVisage.DATA_NAMESPACE}.alternateImages.${key}`] = path;
+                    updatePayload[`flags.${Visage.DATA_NAMESPACE}.alternateImages.${key}`] = path;
                 }
             }
         });
@@ -399,7 +448,7 @@ Hooks.on('renderTokenConfig', async (app, html, data) => {
         // Determine which keys were deleted
         for (const key of originalKeys) {
             if (!keysToKeep.has(key)) {
-                updatePayload[`flags.${RMUVisage.DATA_NAMESPACE}.alternateImages.-=${key}`] = null;
+                updatePayload[`flags.${Visage.DATA_NAMESPACE}.alternateImages.-=${key}`] = null;
             }
         }
 
