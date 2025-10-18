@@ -2,10 +2,10 @@
   "id": "rmu-visage",
   "title": "RMU Visage",
   "description": "Allow token art and actor portraits to be easily switched to alternative images.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "compatibility": { "minimum": "13", "verified": "13" },
   "authors": [{ "name": "Ken Dearman" }],
-  "esmodules": ["scripts/main.js", "scripts/visage-selector.js"],
+  "esmodules": ["main.js", "visage-selector.js"],
   "styles": ["styles/rmu-visage.css"],
   "relationships": { "systems": [{ "id": "rmu", "type": "system", "compatibility": {} }] },
   "manifestPlusVersion": 1
