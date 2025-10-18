@@ -69,42 +69,6 @@ The module must expose a public API under `game.modules.get('rmu-visage').api` t
     *   **Highlight:** The tile corresponding to the current `currentFormKey` must be visually highlighted.
 *   **Action:** Clicking any tile triggers the form-switching logic and automatically closes the dialog.
 
-## 6. Development Log
-
-### Session Summary (2025-10-17)
-
-This session focused on taking the module from a non-functional state to a feature-complete, stable version, while adhering to Foundry VTT development best practices.
-
-**Completed Work:**
-
-1.  **UI Refactoring:** The initial Token Configuration UI, which was non-functional, was completely rebuilt. It is now correctly implemented as a dedicated "Visages" tab within the `TokenConfig` window, in line with Foundry v13 standards.
-2.  **Data Storage:** On the advice of the system developer, all module data has been moved from the `actor.system` object to the correct `actor.flags` scope, preventing future conflicts with the game system. A cleanup script was provided to migrate existing worlds.
-3.  **Core Logic Overhaul:**
-    *   The logic for switching visages now correctly updates both the actor's main portrait and the specific token on the canvas.
-    *   A major data persistence bug was fixed, ensuring that adding, editing, and especially deleting visages is now saved correctly.
-4.  **Enhanced Default Image Handling:**
-    *   The data model was improved to save separate default images for the actor portrait and token image.
-    *   The module now automatically detects and updates these stored defaults if the user changes their base images through the standard actor or token sheets.
-5.  **Wildcard Path Support (Initial Attempt):** An initial attempt was made to fix a bug where token images using wildcard paths (`*`) would appear broken in the module's UI. The UI was updated to resolve and display these images using `foundry.utils.randomizeWildcard`, which was later found to be incorrect for Foundry VTT v13.
-6.  **Versioning:** The module version was updated to `0.2.0` to reflect the significant feature additions and breaking data changes.
-
-### Session Summary (2025-10-17 - Wildcard Fix Iteration)
-
-This session focused on correctly implementing wildcard path handling after previous attempts proved unsuccessful.
-
-**Completed Work:**
-
-1.  **Wildcard Resolution Debugging:** Identified that `foundry.utils.randomizeWildcard` and `TokenDocument#_getRandomizedImagePath` were not the correct APIs for Foundry VTT v13. Repeated attempts to find the correct API through documentation and web searches were unsuccessful.
-2.  **Learning from External Module:** Analyzed the `token-variants` module to understand its approach to wildcard resolution, which provided the key insight into using `FilePicker.implementation.browse`.
-3.  **Correct Wildcard Implementation:**
-    *   Implemented a static `RMUVisage.resolvePath` method that uses `foundry.applications.apps.FilePicker.implementation.browse` with the `wildcard: true` option to resolve wildcard paths to a single random image for UI previews.
-    *   Modified the `setVisage` function to store the raw wildcard path in `actor.prototypeToken.texture.src` and set `actor.prototypeToken.randomImg` to `true` (if the path is a wildcard). This leverages Foundry VTT's native wildcard randomization, fixing the "Invalid Asset" error on world load and ensuring correct behavior when reverting to default visages.
-    *   Updated the `renderTokenConfig` hook and `VisageSelector` to utilize the new `RMUVisage.resolvePath` for displaying resolved images in the UI.
-
-**Open Issue:**
-
-*   **Token Config Tab Rendering:** A minor, non-critical UI glitch remains. If the `Token Configuration` dialog is closed while the "Visages" tab is active, reopening it will result in a blank tab. The content appears correctly after clicking on another tab and back. This issue has been parked as it does not affect functionality.
-
 ## 6. Known Issues
 
 ### A. Token Config Tab Rendering
@@ -112,3 +76,10 @@ This session focused on correctly implementing wildcard path handling after prev
 *   **Symptom:** If the `Token Configuration` dialog is closed while the "Visages" tab is active, reopening the dialog will result in a blank tab content area.
 *   **Workaround:** Click on any other tab (e.g., "Identity") and then click back on the "Visages" tab. The content will then appear correctly.
 *   **Cause:** This is a race condition within the Foundry VTT V13 application rendering cycle. The application tries to render the "Visages" tab before the module script has had time to fully inject the tab's content, resulting in a blank panel. Attempts to programmatically fix this have been unreliable.
+
+## 7. Roadmap
+
+*   Add guards to the inputs - no blank names (or replace with default "Visage #"), no duplicate names, validate filepath
+*   Add placeholder text to inputs ("...visage name", "...image filepath")
+*   Consider adding settings to clear tokens and actors of visage data (tokens on scene, tokens on all scenes, tokens/actors in world)
+*   Improve styling of visage selector panel - strong border, consider placing label over bottom of image inside border, etc
