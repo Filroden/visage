@@ -1,0 +1,131 @@
+name: Auto Release on Develop
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      PUBLIC_REPO: Filroden/fvtt
+      PUBLIC_LATEST_RELEASE_TAG: visage-latest
+      PUBLIC_RELEASE_MSG: Latest Visage Module
+      MODULE_ZIP_NAME: visage.zip
+
+# IMPORTANT:
+# 1) ASSUMES PUBLIC_REPO_TOKEN is configured for this repo so that it has access to the release repo.concurrency:
+# 2) The module.json needs to ALSO reflect these env choices.
+#
+#  "manifest": "https://github.com/[ add PUBLIC_REPO ]/releases/download/[ add PUBLIC_LATEST_RELEASE_TAG ]/module.json",
+#  "download": " https://github.com/[ add PUBLIC_REPO ]/releases/download/[ add PUBLIC_LATEST_RELEASE_TAG ]/[ add MODULE_ZIP_NAME ]"
+#
+# Would become:
+#
+#  "manifest": "https://github.com/Filroden/fvtt/releases/download/visage-latest/module.json",
+#  "download": " https://github.com/Filroden/fvtt/releases/download/visage-latest/visage.zip"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run pack command
+        run: npm run pack
+
+      - name: Delete existing releases and tags
+        run: |
+          # Delete private repo release and tag
+          RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/releases/tags/latest \
+            | jq -r '.id // empty')
+          if [ ! -z "$RELEASE_ID" ]; then
+            curl -X DELETE \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID \
+              || echo "Failed to delete private repo release"
+          else
+            echo "No existing latest release to delete in private repo"
+          fi
+          
+          curl -X DELETE \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/git/refs/tags/latest \
+            || echo "No existing latest tag to delete"
+          
+          # Delete public repo release then tag  
+          PUBLIC_RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.PUBLIC_REPO_TOKEN }}" \
+            https://api.github.com/repos/${{ env.PUBLIC_REPO }}/releases/tags/${{ env.PUBLIC_LATEST_RELEASE_TAG }} \
+            | jq -r '.id // empty')
+          if [ ! -z "$PUBLIC_RELEASE_ID" ]; then
+            curl -X DELETE \
+              -H "Authorization: token ${{ secrets.PUBLIC_REPO_TOKEN }}" \
+              https://api.github.com/repos/${{ env.PUBLIC_REPO }}/releases/$PUBLIC_RELEASE_ID \
+              || echo "Failed to delete public repo release"
+          else
+            echo "No existing ${{ env.PUBLIC_LATEST_RELEASE_TAG }} release to delete in public repo"
+          fi
+          
+          curl -X DELETE \
+            -H "Authorization: token ${{ secrets.PUBLIC_REPO_TOKEN }}" \
+            https://api.github.com/repos/${{ env.PUBLIC_REPO }}/git/refs/tags/${{ env.PUBLIC_LATEST_RELEASE_TAG }} \
+            || echo "No existing ${{ env.PUBLIC_LATEST_RELEASE_TAG }} tag to delete in public repo"
+
+      - name: Create zip of all dist files
+        run: |
+          cd dist
+          zip -r ../${{ env.MODULE_ZIP_NAME }} .
+          cd ..
+
+      - name: Create Latest Release (Private Repo)
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: latest
+          name: "Latest"
+          body: |
+            **Latest Release**
+            
+            This release is automatically updated with each push to the main branch.
+            
+            **Build Details:**
+            - **Commit:** ${{ github.sha }}
+            - **Author:** ${{ github.actor }}
+
+          draft: false
+          prerelease: true
+          generate_release_notes: false
+          files: |
+            ${{ env.MODULE_ZIP_NAME }}
+            dist/module.json
+
+      - name: Create release in public repo
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
+        with:
+          repository: ${{ env.PUBLIC_REPO }}
+          tag_name: ${{ env.PUBLIC_LATEST_RELEASE_TAG }}
+          name: "${{ env.PUBLIC_LATEST_RELEASE_TAG }}"
+          body: |
+            ** ${{ env.PUBLIC_TITLE }} **
+          draft: false
+          prerelease: true
+          files: |
+            ${{ env.MODULE_ZIP_NAME }}
+            dist/module.json
