@@ -1,6 +1,6 @@
 // visage-selector.js
 
-import { Visage } from "./main.js";
+import { Visage } from "./visage.js";
 
 /**
  * The application for selecting a visage.
