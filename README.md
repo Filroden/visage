@@ -1,2 +1,2 @@
 # rmu-visage
-A FoundryVTT module for the RMU system that allows the owner of a linked Actor to instantly switch between multiple character images (visages) for the portrait and token via a custom, grid-based selector in the Token HUD.
+A FoundryVTT module that allows a token's owner (player or GM) to add additional token art to the token within the token's configuration dialogue and then, via the token's HUD, quickly change both the token art and the actor's portrait so you can apply disguises, illusions, shapeshift forms, etc. It will store the original image paths and provide a quick way to return to the default images. This is purely a visual change of token and portrait image.
