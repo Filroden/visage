@@ -3,9 +3,23 @@
   "title": "Visage",
   "description": "Allow token art and actor portraits to be easily switched to alternative images.",
   "version": "0.1.2",
-  "compatibility": { "minimum": "13", "verified": "13" },
-  "authors": [{ "name": "Ken Dearman" }],
-  "esmodules": ["main.js", "visage-selector.js"],
-  "styles": ["styles/visage.css"],
-  "manifestPlusVersion": 1
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "Ken Dearman"
+    }
+  ],
+  "esmodules": [
+    "main.js",
+    "visage-selector.js"
+  ],
+  "styles": [
+    "styles/visage.css"
+  ],
+  "manifestPlusVersion": 1,
+  "manifest": "https://github.com/Filroden/fvtt/releases/download/visage-latest/module.json",
+  "download": " https://github.com/Filroden/fvtt/releases/download/visage-latest/visage.zip"
 }
