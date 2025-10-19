@@ -5,6 +5,7 @@ Software and associated documentation files in this repository are covered by an
 
 | Version | Changes |
 | :--- | :--- |
+| **Version 0.2.3** | *  Under the covers code improvement<br>*  Improvements made to visage token configuration |
 | **Version 0.2.1** | Fix issue with reading data from tokens that were not linked to actors |
 | **Version 0.2.0** | Initial build |
 
