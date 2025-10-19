@@ -165,6 +165,14 @@ export async function handleTokenConfig(app, html) {
         if (Object.keys(updatePayload).length > 0) {
             await actor.update(updatePayload);
             ui.notifications.info("Visage data saved.");
+            
+            // D) Force the HUD to refresh (ensuring the UI catches up)
+            const canvasToken = canvas.tokens.get(tokenDocument.id);
+            if (canvasToken) {
+                canvasToken.refresh();
+            }
+            // ----------------------------------------------------------------------------------
+            
         } else {
             ui.notifications.info("No changes to save.");
         }

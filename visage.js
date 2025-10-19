@@ -83,15 +83,16 @@ export class Visage {
      */
     static async setVisage(actorId, tokenId, formKey) {
         this.log(`Setting visage for token ${tokenId} (actor ${actorId}) to ${formKey}`);
-        const actor = game.actors.get(actorId);
-        if (!actor) {
-            this.log(`Actor not found: ${actorId}`, true);
-            return false;
-        }
         
         const token = canvas.tokens.get(tokenId);
         if (!token) {
             this.log(`Token not found: ${tokenId}`, true);
+            return false;
+        }
+
+        const actor = token.actor;
+        if (!actor) {
+            this.log(`Actor not found for token: ${tokenId}`, true);
             return false;
         }
 
