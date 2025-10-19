@@ -1,23 +1,27 @@
 <div class="visage-config-pane">
-    <p class="visage-notes">Manage universal alternate visages for this actor. Defaults are specific to this token and can be edited below.</p>
+    <p class="visage-notes">
+        The default name and image are automatically managed. They are sourced from the token's primary settings in the <strong>Identity</strong> and <strong>Appearance</strong> tabs. If you manually change either the name or image on those tabs and update the token, the changes will be reflected below when you next view the token configuration.
+    </p>
 
-    <div class="form-group visage-config-defaults">
-        <label>Default Token Name</label>
-        <div class="form-fields">
-            <input type="text" name="visage-default-name" value="{{defaultTokenName}}" placeholder="The token's original name">
+    <div class="visage-defaults-grid">
+        <div class="form-group">
+            <label>Default Token Name</label>
+            <div class="form-fields">
+                <span class="visage-readonly-field">{{defaultTokenName}}</span>
+            </div>
         </div>
-    </div>
-    <div class="form-group visage-config-defaults">
-        <label>Default Token Image</label>
-        <div class="form-fields">
-            <input type="text" name="visage-default-token" value="{{defaultToken}}">
-            <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
+
+        <div class="form-group">
+            <label>Default Token Image</label>
+            <div class="form-fields">
+                <span class="visage-readonly-field">{{defaultToken}}</span>
+            </div>
         </div>
     </div>
     
     <fieldset class="visage-config-fieldset">
         <legend>Universal Alternate Visages</legend>
-        <p class="visage-notes">These visages are available to all tokens of this actor.</p>
+        <p class="visage-notes">If this token is linked to an actor then these visages will be available to all tokens of that actor.</p>
         <ol class="visage-list">
             {{#each visages}}
             <li class="flexrow">

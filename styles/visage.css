@@ -323,3 +323,31 @@
 .visage-config-button {
     margin-top: 1rem;
 }
+
+/* Read-only field style for the config tab */
+.visage-readonly-field {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    color: #4b4a44;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;;
+    white-space: normal;
+    min-width: 0;
+    width: 100%;
+}
+
+/* Grid layout for the default token info display */
+.visage-defaults-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    align-items: center;
+    gap: 5px 10px;
+    margin-bottom: 1rem;
+}
+
+.visage-defaults-grid .form-group,
+.visage-defaults-grid .form-group .form-fields {
+    display: contents;
+}

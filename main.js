@@ -42,3 +42,11 @@ Hooks.on("renderTokenHUD", handleTokenHUD);
  * Delegates all logic to the dedicated handler.
  */
 Hooks.on('renderTokenConfig', handleTokenConfig);
+
+/**
+ * Hook for pre-updating a Token.
+ * Delegates to the Visage class to handle default data updates.
+ */
+Hooks.on("preUpdateToken", (tokenDocument, change) => {
+    Visage.handleTokenUpdate(tokenDocument, change);
+});

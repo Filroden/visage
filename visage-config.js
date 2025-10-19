@@ -135,13 +135,7 @@ export async function handleTokenConfig(app, html) {
 
         const updatePayload = {};
 
-        // 1. Save Token-Specific Defaults
-        const newDefaultName = tabContent.find('[name="visage-default-name"]').val().trim();
-        const newDefaultToken = tabContent.find('[name="visage-default-token"]').val().trim();
-        updatePayload[`flags.${ns}.${tokenId}.defaults.name`] = newDefaultName;
-        updatePayload[`flags.${ns}.${tokenId}.defaults.token`] = newDefaultToken;
-
-        // 2. Save Universal Alternate Visages
+        // Save Universal Alternate Visages
         const keysToKeep = new Set();
         visageRows.each((i, row) => {
             const key = $(row).find('input[name="visage-key"]').val().trim();

@@ -75,6 +75,44 @@ export class Visage {
     }
 
     /**
+     * Hook handler for preUpdateToken.
+     *
+     * This function is registered to the 'preUpdateToken' hook and is responsible for
+     * automatically updating the module's default name and token image whenever the
+     * user saves changes on the main Token Configuration form.
+     *
+     * @param {TokenDocument} tokenDocument - The token document being updated.
+     * @param {object} change - The differential data that is being applied to the document.
+     */
+    static handleTokenUpdate(tokenDocument, change) {
+        const actor = tokenDocument.actor;
+        if (!actor) return;
+
+        const hasChangedName = "name" in change;
+        const hasChangedTexture = "texture" in change && "src" in change.texture;
+
+        if (hasChangedName || hasChangedTexture) {
+            const tokenId = tokenDocument.id;
+            const updateData = {};
+
+            if (hasChangedName) {
+                this.log(`Token ${tokenId} name changed to "${change.name}". Updating default.`);
+                updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.name`] = change.name;
+            }
+
+            if (hasChangedTexture) {
+                this.log(`Token ${tokenId} texture changed to "${change.texture.src}". Updating default.`);
+                updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.token`] = change.texture.src;
+            }
+
+            // Use a separate, awaited update to avoid race conditions with the main update
+            actor.update(updateData).then(() => {
+                this.log(`Default visage updated for token ${tokenId}.`);
+            });
+        }
+    }
+
+    /**
      * Switches the token to the specified form.
      * @param {string} actorId - The ID of the actor.
      * @param {string} tokenId - The ID of the specific token to update on the canvas.
