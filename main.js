@@ -31,28 +31,6 @@ Hooks.on("closeApplication", (app) => {
     }
 });
 
-// Keep stored defaults in sync with manual portrait/token changes
-Hooks.on("updateActor", async (actor, changed) => {
-  if (!actor?.isOwner) return;
-
-  const ns = Visage.DATA_NAMESPACE;
-  const mod = actor.flags?.[ns] || {};
-  const isDefault = (mod.currentFormKey ?? "default") === "default";
-  if (!isDefault) return;
-
-  const updates = {};
-  if (changed.img) {
-    updates[`flags.${ns}.defaults.portrait`] = actor.img;
-  }
-  if (foundry.utils.getProperty(changed, "prototypeToken.texture.src") !== undefined) {
-    updates[`flags.${ns}.defaults.token`] = actor.prototypeToken.texture.src;
-  }
-
-  if (Object.keys(updates).length) {
-    await actor.update(updates); // flags-only, no loop (we only react to img/prototypeToken changes)
-  }
-});
-
 /**
  * Hook for the Token HUD.
  * Delegates all logic to the dedicated handler.

@@ -1,40 +1,40 @@
-<p class="notes">Manage alternate images (visages) for this actor. The default portrait and token images are captured from the actor when visages are first saved.</p>
-<div class="visage-grid">
-    <div class="form-group visage-row">
-        <label>Default Portrait</label>
+<div class="visage-config-pane">
+    <p class="visage-notes">Manage universal alternate visages for this actor. Defaults are specific to this token and can be edited below.</p>
+
+    <div class="form-group visage-config-defaults">
+        <label>Default Token Name</label>
         <div class="form-fields">
-            <img src="{{resolvedDefaultPortrait}}"/>
+            <input type="text" name="visage-default-name" value="{{defaultTokenName}}" placeholder="The token's original name">
         </div>
     </div>
-    <div class="form-group visage-row">
-        <label>Default Token</label>
+    <div class="form-group visage-config-defaults">
+        <label>Default Token Image</label>
         <div class="form-fields">
-            <img src="{{resolvedDefaultToken}}"/>
+            <input type="text" name="visage-default-token" value="{{defaultToken}}">
+            <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
         </div>
     </div>
+    
+    <fieldset class="visage-config-fieldset">
+        <legend>Universal Alternate Visages</legend>
+        <p class="visage-notes">These visages are available to all tokens of this actor.</p>
+        <ol class="visage-list">
+            {{#each visages}}
+            <li class="flexrow">
+                <input type="text" name="visage-key" value="{{this.key}}" placeholder="Visage Name (e.g. Wolf)" />
+                <div class="form-fields" style="flex: 2;">
+                    <input type="text" name="visage-path" value="{{this.path}}" placeholder="path/to/image.webp" />
+                    <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
+                </div>
+                <a class="visage-delete"><i class="fas fa-trash"></i></a>
+            </li>
+            {{/each}}
+        </ol>
+
+        <div class="flexrow visage-config-button">
+            <button class="visage-add"><i class="fas fa-plus"></i> Add Visage</button>            
+        </div>
+        <div class="flexrow visage-config-button">
+            <button class="visage-save"><i class="fas fa-save"></i> Save Changes</button></div>
+    </fieldset>
 </div>
-
-<fieldset>
-    <legend>Configure Alternative Visages</legend>
-    <ol class="visage-list">
-        {{#each visages as |visage index|}}
-        <li class="flexrow">
-            <input type="text" name="visage-key" value="{{visage.key}}" placeholder="Visage Name (e.g. Wolf)" />
-            <div class="form-fields">
-                <input type="text" name="visage-path" value="{{visage.path}}" placeholder="path/to/image.webp" />
-                <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
-            </div>
-            <a class="visage-delete"><i class="fas fa-trash"></i></a>
-        </li>
-        {{/each}}
-    </ol>
-
-<button type="button" class="visage-add"><i class="fas fa-plus"></i> Add New Visage</button>
-
-<div class="form-group visage-save-group">
-    <button type="button" class="visage-save">
-        <i class="far fa-save"></i> Save Visages
-    </button>
-</div>
-
-</fieldset>

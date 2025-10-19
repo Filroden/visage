@@ -1,60 +1,65 @@
 import { Visage } from "./visage.js";
 
 export async function handleTokenConfig(app, html) {
-    const actor = app.document?.actor;
+    const tokenDocument = app.document;
+    const actor = tokenDocument?.actor;
     if (!actor) return;
 
+    const tokenId = tokenDocument.id;
     const jQueryHtml = $(html);
 
     // Add the nav link if it doesn't exist
     const nav = jQueryHtml.find('nav.sheet-tabs');
-    if (nav.find('a[data-tab="visages"]').length=== 0) {
+    if (nav.find('a[data-tab="visages"]').length === 0) {
         nav.append('<a data-action="tab" data-tab="visages" data-group="sheet"><img src="modules/visage/icons/switch_account.svg" alt="Visages" class="visage-tab-icon"><span>Visages</span></a>');
     }
 
-    // Find our tab content area. Foundry may have already created a placeholder.
+    // Find our tab content area
     let tabContent = jQueryHtml.find('div[data-tab="visages"]');
     if (tabContent.length === 0) {
         tabContent = $('<div class="tab" data-tab="visages" data-group="sheet"></div>');
         jQueryHtml.find('.tab').last().after(tabContent);
     }
 
-    // Prepare data for the template
+    // --- Prepare Data for the Template ---
     const moduleData = actor.flags?.[Visage.DATA_NAMESPACE] || {};
-    const forms = moduleData.alternateImages || {};
-    const defaults = moduleData.defaults || { portrait: actor.img, token: actor.prototypeToken.texture.src };
+    const alternateImages = moduleData.alternateImages || {};
+    
+    // Get token-specific defaults, or use the token's current data as a fallback
+    const tokenDefaults = moduleData[tokenId]?.defaults || {
+        name: tokenDocument.name,
+        token: tokenDocument.texture.src
+    };
 
-    const visageEntries = await Promise.all(Object.entries(forms).map(async ([key, path]) => {
+    const visageEntries = await Promise.all(Object.entries(alternateImages).map(async ([key, path]) => {
         return { key, path, resolvedPath: await Visage.resolvePath(path) };
     }));
 
     const templateData = {
         visages: visageEntries,
-        defaultPortrait: defaults.portrait,
-        defaultToken: defaults.token,
-        resolvedDefaultPortrait: await Visage.resolvePath(defaults.portrait),
-        resolvedDefaultToken: await Visage.resolvePath(defaults.token)
+        defaultTokenName: tokenDefaults.name,
+        defaultToken: tokenDefaults.token
     };
 
-    // Render the template and inject it into our tab pane
+    // Render the template and inject it
     const tabHtml = await renderTemplate('modules/visage/templates/visage-config-tab.html', templateData);
     tabContent.html(tabHtml);
 
-    // --- Event Listeners for the new tab ---
+    // --- Event Listeners ---
 
     tabContent.find('.visage-add').on('click', (event) => {
         event.preventDefault();
         const list = tabContent.find('.visage-list');
-        const newRow = $(
-            `<li class="flexrow">
+        const newRow = $(`
+            <li class="flexrow">
                 <input type="text" name="visage-key" value="" placeholder="Visage Name (e.g. Wolf)" />
                 <div class="form-fields" style="flex: 2;">
                     <input type="text" name="visage-path" value="" placeholder="path/to/image.webp" />
                     <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
                 </div>
                 <a class="visage-delete"><i class="fas fa-trash"></i></a>
-            </li>`
-        );
+            </li>
+        `);
         list.append(newRow);
         app.setPosition({ height: "auto" });
     });
@@ -86,7 +91,7 @@ export async function handleTokenConfig(app, html) {
         let validationFailed = false;
         let newVisageCounter = 1;
 
-        // --- Validation Pass ---
+        // --- Validation Pass for Alternate Visages ---
         for (const row of visageRows.get()) {
             const jqRow = $(row);
             const keyInput = jqRow.find('input[name="visage-key"]');
@@ -94,28 +99,23 @@ export async function handleTokenConfig(app, html) {
             let key = keyInput.val().trim();
             const path = pathInput.val().trim();
 
-            // If both are empty, it's a blank row that will be skipped by the save logic.
-            if (!key && !path) continue;
+            if (!key && !path) continue; // Skip blank rows
 
-            // 1. Handle blank names
             if (!key) {
                 let defaultKey;
-                // Find a unique default key that isn't already in the form
                 do {
                     defaultKey = `Visage ${newVisageCounter++}`;
                 } while (keysInForm.has(defaultKey));
                 key = defaultKey;
-                keyInput.val(key); // Visually update the input for the user
+                keyInput.val(key);
             }
 
-            // 2. Check for duplicate names
             if (keysInForm.has(key)) {
                 ui.notifications.error(`Duplicate visage name found: "${key}". Please use unique names.`);
                 validationFailed = true;
                 break;
             }
 
-            // 3. Check for empty file path
             if (!path) {
                 ui.notifications.error(`Image path for "${key}" cannot be empty.`);
                 validationFailed = true;
@@ -125,49 +125,46 @@ export async function handleTokenConfig(app, html) {
             keysInForm.add(key);
         }
 
-        if (validationFailed) {
-            return; // Halt the save if validation fails
-        }
+        if (validationFailed) return;
 
-        // --- Save Pass (if validation succeeded) ---
-        const moduleData = actor.flags?.[Visage.DATA_NAMESPACE] || {};
-        const originalForms = moduleData.alternateImages || {};
-        const originalKeys = Object.keys(originalForms);
+        // --- Save Pass ---
+        const ns = Visage.DATA_NAMESPACE;
+        const currentFlags = actor.flags?.[ns] || {};
+        const originalAlternates = currentFlags.alternateImages || {};
+        const originalKeys = Object.keys(originalAlternates);
 
         const updatePayload = {};
+
+        // 1. Save Token-Specific Defaults
+        const newDefaultName = tabContent.find('[name="visage-default-name"]').val().trim();
+        const newDefaultToken = tabContent.find('[name="visage-default-token"]').val().trim();
+        updatePayload[`flags.${ns}.${tokenId}.defaults.name`] = newDefaultName;
+        updatePayload[`flags.${ns}.${tokenId}.defaults.token`] = newDefaultToken;
+
+        // 2. Save Universal Alternate Visages
         const keysToKeep = new Set();
-
-        // Capture defaults if they don't exist
-        if (!moduleData.defaults) {
-            updatePayload[`flags.${Visage.DATA_NAMESPACE}.defaults`] = {
-                portrait: actor.img,
-                token: actor.prototypeToken.texture.src
-            };
-        }
-
-        // Get current forms from the DOM (now that they are validated)
         visageRows.each((i, row) => {
             const key = $(row).find('input[name="visage-key"]').val().trim();
             const path = $(row).find('input[name="visage-path"]').val().trim();
 
             if (key && path) {
                 keysToKeep.add(key);
-                if (originalForms[key] !== path) {
-                    updatePayload[`flags.${Visage.DATA_NAMESPACE}.alternateImages.${key}`] = path;
+                if (originalAlternates[key] !== path) {
+                    updatePayload[`flags.${ns}.alternateImages.${key}`] = path;
                 }
             }
         });
 
-        // Determine which keys were deleted
+        // Determine which alternate keys were deleted
         for (const key of originalKeys) {
             if (!keysToKeep.has(key)) {
-                updatePayload[`flags.${Visage.DATA_NAMESPACE}.alternateImages.-=${key}`] = null;
+                updatePayload[`flags.${ns}.alternateImages.-=${key}`] = null;
             }
         }
 
         if (Object.keys(updatePayload).length > 0) {
             await actor.update(updatePayload);
-            ui.notifications.info("Visage forms have been saved.");
+            ui.notifications.info("Visage data saved.");
         } else {
             ui.notifications.info("No changes to save.");
         }
