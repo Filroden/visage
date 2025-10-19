@@ -1,56 +1,69 @@
 import { Visage } from "./visage.js";
 import { VisageSelector } from "./visage-selector.js";
 
-export function handleTokenHUD(app, html, data) {
+export async function handleTokenHUD(app, html, data) {
     const jQueryHtml = $(html);
     if (jQueryHtml.find('.visage-button').length) return; // Prevent duplicate buttons
 
-    const actor = game.actors.get(data.actorId);
-    if (!actor || !actor.isOwner) return;
+    const token = app.object; // Get the token document from the HUD
+    if (!token?.actor?.isOwner) return;
 
-    // Show button if there are any alternate forms OR if a default has been changed.
-    const moduleData = actor.flags?.[Visage.DATA_NAMESPACE] || {};
+    const actor = token.actor;
+    const ns = Visage.DATA_NAMESPACE;
+
+    // --- Default Capture Logic ---
+    const tokenFlags = actor.flags?.[ns]?.[token.id];
+    if (!tokenFlags?.defaults) {
+        // If defaults for this specific token don't exist, create them.
+        const updates = {};
+        updates[`flags.${ns}.${token.id}.defaults`] = {
+            name: token.document.name,
+            token: token.document.texture.src
+        };
+        // Also initialize the current form key.
+        updates[`flags.${ns}.${token.id}.currentFormKey`] = 'default';
+        
+        // Defer the update to avoid race conditions with other modules' hooks.
+        setTimeout(() => actor.update(updates), 0);
+    }
+
+    // --- HUD Display Logic ---
+    const moduleData = actor.flags?.[ns] || {};
     const hasAlternates = moduleData.alternateImages && Object.keys(moduleData.alternateImages).length > 0;
-    const isNotDefault = moduleData.currentFormKey && moduleData.currentFormKey !== 'default';
+    const currentTokenKey = moduleData[token.id]?.currentFormKey ?? 'default';
+    const isNotDefault = currentTokenKey !== 'default';
 
+    // Show button if there are any alternate forms OR if this token is not in its default state.
     if (!hasAlternates && !isNotDefault) return;
 
-    const token = app.object; // Get the token document from the HUD
-    if (!token) return;
-
-    const button = $(
-        `<div class="control-icon visage-button" title="Change Visage">
+    const button = $(`
+        <div class="control-icon visage-button" title="Change Visage">
             <img src="modules/visage/icons/switch_account.svg" alt="Change Visage" class="visage-icon">
-        </div>`
-    );
+        </div>
+    `);
 
     button.on("click", () => {
         const actorId = actor.id;
-        const selectorId = `visage-selector-${actorId}`; 
+        const selectorId = `visage-selector-${actorId}-${token.id}`; // Make ID unique per token
 
-        // *** GUARD CHECK: If selector is already open for this actor, close it or return. ***
         if (Visage.apps[selectorId]) {
             Visage.apps[selectorId].close();
             return; 
         }
 
-        // Get button position and window size BEFORE rendering
         const buttonRect = button[0].getBoundingClientRect();
-        const selectorWidth = 250; 
+        const selectorWidth = 200; 
         const gap = 16;
         
-        // Calculate the desired position (to the left, aligned top)
         const top = buttonRect.top; 
         const left = buttonRect.left - selectorWidth - gap; 
 
-        // Create the application with the consistent ID and calculated position
         const selectorApp = new VisageSelector(actor.id, token.id, {
-            id: selectorId, // Pass the consistent ID here
+            id: selectorId,
             left: left,
             top: top
         });
         
-        // Render it
         selectorApp.render(true);
     });
 

@@ -1,5 +1,3 @@
-// visage-selector.js
-
 import { Visage } from "./visage.js";
 
 /**
@@ -18,18 +16,16 @@ export class VisageSelector extends Application {
     static get defaultOptions() {
         return mergeObject(super.defaultOptions, {
             template: `modules/visage/templates/visage-selector.html`,
-            // --- UPDATED OPTIONS ---
-            title: "Choose Visage", // New title
-            classes: ["visage-selector-app", "borderless"], // Added 'borderless' class
-            popOut: true, // Must be true for Application class
-            width: 250, // Adjusted width for 2-column grid
+            title: "Choose Visage",
+            classes: ["visage-selector-app", "borderless"],
+            popOut: true,
+            width: 200,
             height: "auto",
-            top: 0, // Initial positioning to be handled by CSS/Hooks
+            top: 0,
             left: 0,
             minimizable: false,
             resizable: false,
             closeOnUnfocus: false
-            // --- END UPDATED OPTIONS ---
         });
     }
 
@@ -40,25 +36,54 @@ export class VisageSelector extends Application {
         const actor = game.actors.get(this.actorId);
         if (!actor) {
             ui.notifications.error("VisageSelector: Could not find actor with ID " + this.actorId);
-            return { forms: {} };
+            return { forms: [] };
         }
 
-        const moduleData = actor.flags?.[Visage.DATA_NAMESPACE] || {};
-        const alternateImages = moduleData.alternateImages || {};
-        const currentFormKey = moduleData.currentFormKey || "default";
+        const ns = Visage.DATA_NAMESPACE;
+        const moduleData = actor.flags?.[ns] || {};
+        let tokenData = moduleData[this.tokenId] || {};
+        let defaults = tokenData.defaults;
 
-        // Separate default and alternatives for correct display order
+        // --- Self-Healing Default Creation ---
+        if (!defaults) {
+            const token = canvas.tokens.get(this.tokenId);
+            if (!token) {
+                ui.notifications.error(`VisageSelector: Could not find token with ID ${this.tokenId}`);
+                return { forms: [] };
+            }
+
+            const updates = {};
+            updates[`flags.${ns}.${this.tokenId}.defaults`] = {
+                name: token.document.name,
+                token: token.document.texture.src
+            };
+            updates[`flags.${ns}.${this.tokenId}.currentFormKey`] = 'default';
+            
+            await actor.update(updates);
+
+            // Re-fetch the data now that it should exist
+            defaults = actor.flags?.[ns]?.[this.tokenId]?.defaults;
+
+            if (!defaults) {
+                ui.notifications.error(`Visage defaults for token ${this.tokenId} could not be created.`);
+                return { forms: [] };
+            }
+        }
+
+        const alternateImages = moduleData.alternateImages || {};
+        const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
+
         const forms = {};
         
-        // 1. Add Default Visage
+        // 1. Add Default Visage from token-specific defaults
         forms["default"] = {
             key: "default",
-            name: "Default",
-            path: moduleData.defaults?.token || actor.prototypeToken.texture.src,
+            name: defaults.name || "Default",
+            path: defaults.token,
             isActive: currentFormKey === "default"
         };
         
-        // 2. Add Alternate Visages
+        // 2. Add Alternate Visages (Universal)
         for (const [key, path] of Object.entries(alternateImages)) {
             forms[key] = {
                 key: key,
@@ -68,6 +93,7 @@ export class VisageSelector extends Application {
             };
         }
 
+        // Create an ordered array for the template
         const orderedForms = [forms["default"]];
         for(const key in forms) {
             if (key !== "default") {
@@ -75,12 +101,12 @@ export class VisageSelector extends Application {
             }
         }
 
-        // Resolve wildcards for display and add key to each
+        // Resolve wildcards for display
         for (const form of orderedForms) {
             form.resolvedPath = await Visage.resolvePath(form.path);
         }
 
-        return { forms: orderedForms }; // Pass the ordered array
+        return { forms: orderedForms };
     }
 
     /**
@@ -92,40 +118,36 @@ export class VisageSelector extends Application {
         this._bindDismissListeners();
     }
 
-/**
-   * Close when clicking anywhere outside the app
-   */
-  _bindDismissListeners() {
-    this._onDocPointerDown = (ev) => {
-      const root = this.element?.[0];
-      if (!root) return;
+    /**
+     * Close when clicking anywhere outside the app
+     */
+    _bindDismissListeners() {
+        this._onDocPointerDown = (ev) => {
+            const root = this.element?.[0];
+            if (!root) return;
 
-      // Click inside the selector → ignore
-      if (root.contains(ev.target)) return;
+            if (root.contains(ev.target)) return;
 
-      // Click on the HUD button that spawned this → let its own handler run
-      const hudBtn = document.querySelector('.visage-button');
-      if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
+            const hudBtn = document.querySelector('.visage-button');
+            if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
 
-      // Otherwise, dismiss
-      this.close();
-    };
+            this.close();
+        };
 
-    // Capture phase to win against other handlers
-    document.addEventListener('pointerdown', this._onDocPointerDown, true);
-  }
-
-  _unbindDismissListeners() {
-    if (this._onDocPointerDown) {
-      document.removeEventListener('pointerdown', this._onDocPointerDown, true);
-      this._onDocPointerDown = null;
+        document.addEventListener('pointerdown', this._onDocPointerDown, true);
     }
-  }
 
-  async close(options) {
-    this._unbindDismissListeners();
-    return super.close(options);
-  }
+    _unbindDismissListeners() {
+        if (this._onDocPointerDown) {
+            document.removeEventListener('pointerdown', this._onDocPointerDown, true);
+            this._onDocPointerDown = null;
+        }
+    }
+
+    async close(options) {
+        this._unbindDismissListeners();
+        return super.close(options);
+    }
 
     /**
      * Handle the click event on a visage tile.
@@ -135,7 +157,8 @@ export class VisageSelector extends Application {
     async _onSelectVisage(event) {
         const formKey = event.currentTarget.dataset.formKey;
         if (formKey) {
-            await Visage.setVisage(this.actorId, formKey, this.tokenId);
+            // Note the updated argument order to match the new API
+            await Visage.setVisage(this.actorId, this.tokenId, formKey);
             this.close();
         }
     }

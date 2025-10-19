@@ -68,7 +68,6 @@ export class Visage {
         // Expose the public API.
         game.modules.get(this.MODULE_ID).api = {
             setVisage: this.setVisage.bind(this),
-            resetToDefault: this.resetToDefault.bind(this),
             getForms: this.getForms.bind(this),
             isFormActive: this.isFormActive.bind(this),
             resolvePath: this.resolvePath.bind(this)
@@ -76,31 +75,39 @@ export class Visage {
     }
 
     /**
-     * Switches the actor to the specified form.
-     * @param {string} actorId - The ID of the actor to update.
+     * Switches the token to the specified form.
+     * @param {string} actorId - The ID of the actor.
+     * @param {string} tokenId - The ID of the specific token to update on the canvas.
      * @param {string} formKey - The key of the form to switch to.
-     * @param {string|null} tokenId - The ID of the specific token to update on the canvas.
      * @returns {Promise<boolean>} - True on success, false otherwise.
      */
-    static async setVisage(actorId, formKey, tokenId = null) {
-        this.log(`Setting visage for actor ${actorId} to ${formKey}`);
+    static async setVisage(actorId, tokenId, formKey) {
+        this.log(`Setting visage for token ${tokenId} (actor ${actorId}) to ${formKey}`);
         const actor = game.actors.get(actorId);
         if (!actor) {
             this.log(`Actor not found: ${actorId}`, true);
             return false;
         }
+        
+        const token = canvas.tokens.get(tokenId);
+        if (!token) {
+            this.log(`Token not found: ${tokenId}`, true);
+            return false;
+        }
 
         const moduleData = actor.flags?.[this.DATA_NAMESPACE] || {};
-        let newPortraitPath;
+        const tokenData = moduleData[tokenId] || {};
+        
+        let newName;
         let newTokenPath;
 
         if (formKey === 'default') {
-            const defaults = moduleData.defaults;
+            const defaults = tokenData.defaults;
             if (!defaults) {
-                this.log(`Cannot reset to default; no defaults saved for actor ${actorId}.`, true);
+                this.log(`Cannot reset to default; no defaults saved for token ${tokenId}.`, true);
                 return false;
             }
-            newPortraitPath = defaults.portrait;
+            newName = defaults.name;
             newTokenPath = defaults.token;
         } else {
             const alternateImages = moduleData.alternateImages || {};
@@ -109,44 +116,28 @@ export class Visage {
                 this.log(`Form key "${formKey}" not found for actor ${actorId}`, true);
                 return false;
             }
-            newPortraitPath = imagePath;
+            newName = formKey;
             newTokenPath = imagePath;
         }
 
-        const isWildcard = newTokenPath && newTokenPath.includes('*');
-
         try {
-            await actor.update({
-                "img": newPortraitPath,
-                "prototypeToken.texture.src": newTokenPath,
-                "prototypeToken.randomImg": isWildcard,
-                [`flags.${this.DATA_NAMESPACE}.currentFormKey`]: formKey
+            // Update the token document on the scene
+            await token.document.update({
+                "name": newName,
+                "texture.src": newTokenPath
             });
 
-            if (tokenId) {
-                const token = canvas.tokens.get(tokenId);
-                if (token) {
-                    const resolvedTokenPath = await this.resolvePath(newTokenPath);
-                    await token.document.update({ "texture.src": resolvedTokenPath });
-                }
-            }
+            // Update the actor flags for this token
+            await actor.update({
+                [`flags.${this.DATA_NAMESPACE}.${tokenId}.currentFormKey`]: formKey
+            });
 
-            this.log(`Successfully updated actor ${actorId} to form ${formKey}`);
+            this.log(`Successfully updated token ${tokenId} to form ${formKey}`);
             return true;
         } catch (error) {
-            this.log(`Failed to update actor ${actorId}: ${error}`, true);
+            this.log(`Failed to update token ${tokenId}: ${error}`, true);
             return false;
         }
-    }
-
-    /**
-     * Switches the actor back to the default form.
-     * @param {string} actorId - The ID of the actor to update.
-     * @returns {Promise<boolean>} - True on success, false otherwise.
-     */
-    static async resetToDefault(actorId) {
-        this.log(`Resetting visage for actor ${actorId}`);
-        return await this.setVisage(actorId, "default");
     }
 
     /**
@@ -160,14 +151,17 @@ export class Visage {
     }
 
     /**
-     * Checks if the specified form is currently active on the actor.
+     * Checks if the specified form is currently active on the token.
      * @param {string} actorId - The ID of the actor.
+     * @param {string} tokenId - The ID of the token.
      * @param {string} formKey - The key of the form to check.
      * @returns {boolean} - True if the form is active, false otherwise.
      */
-    static isFormActive(actorId, formKey) {
+    static isFormActive(actorId, tokenId, formKey) {
         const actor = game.actors.get(actorId);
-        const currentFormKey = actor?.flags?.[this.DATA_NAMESPACE]?.currentFormKey;
+        const currentFormKey = actor?.flags?.[this.DATA_NAMESPACE]?.[tokenId]?.currentFormKey;
+        // If no key is stored, it's 'default'.
+        if (currentFormKey === undefined && formKey === 'default') return true;
         return currentFormKey === formKey;
     }
 }
