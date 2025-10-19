@@ -1,6 +1,7 @@
 # Visage
 Allows the owner of an Actor to instantly switch a Token's image and name between multiple pre-defined visages via a custom, grid-based selector in the Token HUD.
 
+Software and associated documentation files in this repository are covered by an [MIT License](LICENSE.md).
 
 # Visage Module: Public API Documentation
 
