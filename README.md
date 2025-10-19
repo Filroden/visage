@@ -3,13 +3,10 @@ Allows the owner of an Actor to instantly switch a Token's image and name betwee
 
 Software and associated documentation files in this repository are covered by an [MIT License](LICENSE.md).
 
-## Version History
-
-**Version 0.2.1**
-*   Fix issue with reading data from tokens that were not linked to actors
-
-**Version 0.2.0**
-*   Initial build
+| Version | Changes |
+| :--- | :--- |
+| **Version 0.2.1** | Fix issue with reading data from tokens that were not linked to actors |
+| **Version 0.2.0** | Initial build |
 
 # Visage Module: Public API Documentation
 
