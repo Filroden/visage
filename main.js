@@ -47,6 +47,6 @@ Hooks.on('renderTokenConfig', handleTokenConfig);
  * Hook for pre-updating a Token.
  * Delegates to the Visage class to handle default data updates.
  */
-Hooks.on("preUpdateToken", (tokenDocument, change) => {
-    Visage.handleTokenUpdate(tokenDocument, change);
+Hooks.on("preUpdateToken", (document, change, options, userId) => {
+    Visage.handleTokenUpdate(document, change, options, userId);
 });

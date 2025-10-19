@@ -6,19 +6,31 @@ export async function handleTokenConfig(app, html) {
     if (!actor) return;
 
     const tokenId = tokenDocument.id;
-    const jQueryHtml = $(html);
 
     // Add the nav link if it doesn't exist
-    const nav = jQueryHtml.find('nav.sheet-tabs');
-    if (nav.find('a[data-tab="visages"]').length === 0) {
-        nav.append('<a data-action="tab" data-tab="visages" data-group="sheet"><img src="modules/visage/icons/switch_account.svg" alt="Visages" class="visage-tab-icon"><span>Visages</span></a>');
+    const nav = html.querySelector('nav.sheet-tabs');
+    if (nav && !nav.querySelector('a[data-tab="visages"]')) {
+        nav.insertAdjacentHTML('beforeend', '<a data-action="tab" data-tab="visages" data-group="sheet"><img src="modules/visage/icons/switch_account.svg" alt="Visages" class="visage-tab-icon"><span>Visages</span></a>');
     }
 
     // Find our tab content area
-    let tabContent = jQueryHtml.find('div[data-tab="visages"]');
-    if (tabContent.length === 0) {
-        tabContent = $('<div class="tab" data-tab="visages" data-group="sheet"></div>');
-        jQueryHtml.find('.tab').last().after(tabContent);
+    let tabContent = html.querySelector('div[data-tab="visages"]');
+    if (!tabContent) {
+        const newTab = document.createElement('div');
+        newTab.classList.add('tab');
+        newTab.dataset.tab = 'visages';
+        newTab.dataset.group = 'sheet';
+        
+        const lastTab = html.querySelector('.tab:last-of-type');
+        if (lastTab) {
+            lastTab.after(newTab);
+        } else { // Fallback if no tabs exist
+            const sheetBody = html.querySelector('.sheet-body');
+            if (sheetBody) {
+                sheetBody.append(newTab);
+            }
+        }
+        tabContent = newTab;
     }
 
     // --- Prepare Data for the Template ---
@@ -43,61 +55,74 @@ export async function handleTokenConfig(app, html) {
 
     // Render the template and inject it
     const tabHtml = await renderTemplate('modules/visage/templates/visage-config-tab.html', templateData);
-    tabContent.html(tabHtml);
+    tabContent.innerHTML = tabHtml;
 
-    // --- Event Listeners ---
+    // --- Event Listeners (using event delegation) ---
+    tabContent.addEventListener('click', (event) => {
+        const addBtn = event.target.closest('.visage-add');
+        const deleteBtn = event.target.closest('.visage-delete');
+        const pickerBtn = event.target.closest('.file-picker-button');
 
-    tabContent.find('.visage-add').on('click', (event) => {
-        event.preventDefault();
-        const list = tabContent.find('.visage-list');
-        const newRow = $(`
-            <li class="flexrow">
-                <input type="text" name="visage-key" value="" placeholder="Visage Name (e.g. Wolf)" />
-                <div class="form-fields" style="flex: 2;">
-                    <input type="text" name="visage-path" value="" placeholder="path/to/image.webp" />
-                    <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
-                </div>
-                <a class="visage-delete"><i class="fas fa-trash"></i></a>
-            </li>
-        `);
-        list.append(newRow);
-        app.setPosition({ height: "auto" });
-    });
+        if (addBtn) {
+            event.preventDefault();
+            const list = tabContent.querySelector('.visage-list');
+            if (!list) return;
+            
+            const newRowHtml = `
+                <li class="flexrow">
+                    <input type="text" name="visage-key" value="" placeholder="Visage Name (e.g. Wolf)" />
+                    <div class="form-fields" style="flex: 2;">
+                        <input type="text" name="visage-path" value="" placeholder="path/to/image.webp" />
+                        <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
+                    </div>
+                    <a class="visage-delete"><i class="fas fa-trash"></i></a>
+                </li>
+            `;
+            list.insertAdjacentHTML('beforeend', newRowHtml);
+            app.setPosition({ height: "auto" });
+            return;
+        }
 
-    tabContent.on('click', '.visage-delete', (event) => {
-        event.preventDefault();
-        $(event.currentTarget).closest('li').remove();
-        app.setPosition({ height: "auto" });
-    });
-    
-    tabContent.on('click', '.file-picker-button', (event) => {
-        event.preventDefault();
-        const targetInput = $(event.currentTarget).closest('.form-fields').find('input[type="text"]');
-        new FilePicker({
-            type: "image",
-            current: targetInput.val(),
-            callback: (path) => {
-                targetInput.val(path);
-            }
-        }).browse(targetInput.val());
+        if (deleteBtn) {
+            event.preventDefault();
+            deleteBtn.closest('li')?.remove();
+            app.setPosition({ height: "auto" });
+            return;
+        }
+
+        if (pickerBtn) {
+            event.preventDefault();
+            const targetInput = pickerBtn.closest('.form-fields')?.querySelector('input[type="text"]');
+            if (!targetInput) return;
+
+            new FilePicker({
+                type: "image",
+                current: targetInput.value,
+                callback: (path) => {
+                    targetInput.value = path;
+                }
+            }).browse(targetInput.value);
+            return;
+        }
     });
 
     // --- Data Saving ---
-    tabContent.find('.visage-save').on('click', async (event) => {
+    tabContent.querySelector('.visage-save')?.addEventListener('click', async (event) => {
         event.preventDefault();
 
-        const visageRows = tabContent.find('.visage-list li');
+        const visageRows = tabContent.querySelectorAll('.visage-list li');
         const keysInForm = new Set();
         let validationFailed = false;
         let newVisageCounter = 1;
 
         // --- Validation Pass for Alternate Visages ---
-        for (const row of visageRows.get()) {
-            const jqRow = $(row);
-            const keyInput = jqRow.find('input[name="visage-key"]');
-            const pathInput = jqRow.find('input[name="visage-path"]');
-            let key = keyInput.val().trim();
-            const path = pathInput.val().trim();
+        for (const row of visageRows) {
+            const keyInput = row.querySelector('input[name="visage-key"]');
+            const pathInput = row.querySelector('input[name="visage-path"]');
+            if (!keyInput || !pathInput) continue;
+
+            let key = keyInput.value.trim();
+            const path = pathInput.value.trim();
 
             if (!key && !path) continue; // Skip blank rows
 
@@ -107,7 +132,7 @@ export async function handleTokenConfig(app, html) {
                     defaultKey = `Visage ${newVisageCounter++}`;
                 } while (keysInForm.has(defaultKey));
                 key = defaultKey;
-                keyInput.val(key);
+                keyInput.value = key;
             }
 
             if (keysInForm.has(key)) {
@@ -134,12 +159,12 @@ export async function handleTokenConfig(app, html) {
         const originalKeys = Object.keys(originalAlternates);
 
         const updatePayload = {};
+        const keysToKeep = new Set();
 
         // Save Universal Alternate Visages
-        const keysToKeep = new Set();
-        visageRows.each((i, row) => {
-            const key = $(row).find('input[name="visage-key"]').val().trim();
-            const path = $(row).find('input[name="visage-path"]').val().trim();
+        visageRows.forEach(row => {
+            const key = row.querySelector('input[name="visage-key"]')?.value.trim();
+            const path = row.querySelector('input[name="visage-path"]')?.value.trim();
 
             if (key && path) {
                 keysToKeep.add(key);
@@ -160,12 +185,10 @@ export async function handleTokenConfig(app, html) {
             await actor.update(updatePayload);
             ui.notifications.info("Visage data saved.");
             
-            // D) Force the HUD to refresh (ensuring the UI catches up)
             const canvasToken = canvas.tokens.get(tokenDocument.id);
             if (canvasToken) {
                 canvasToken.refresh();
             }
-            // ----------------------------------------------------------------------------------
             
         } else {
             ui.notifications.info("No changes to save.");
@@ -173,8 +196,8 @@ export async function handleTokenConfig(app, html) {
     });
     
     // --- Final UI Adjustments ---
-    if (app._tabs && app._tabs[0] && app._tabs[0].active === 'visages') {
-        tabContent.addClass('active');
+    if (app._tabs && app._tabs[0]?.active === 'visages') {
+        tabContent.classList.add('active');
     }
     app.setPosition({ height: "auto" });
 }

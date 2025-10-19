@@ -344,7 +344,7 @@
     grid-template-columns: max-content 1fr;
     align-items: center;
     gap: 5px 10px;
-    margin-bottom: 1rem;
+    margin: 0.5rem 1rem;
 }
 
 .visage-defaults-grid .form-group,
