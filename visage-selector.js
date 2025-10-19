@@ -33,9 +33,18 @@ export class VisageSelector extends Application {
      * @override
      */
     async getData(options = {}) {
-        const actor = game.actors.get(this.actorId);
+        // Find the specific token instance on the canvas
+        const token = canvas.tokens.get(this.tokenId);
+        if (!token) {
+            ui.notifications.error(`VisageSelector: Could not find token with ID ${this.tokenId}`);
+            return { forms: [] };
+        }
+        
+        // Use the token's actor, which correctly references the embedded data for unlinked tokens.
+        const actor = token.actor; 
+        
         if (!actor) {
-            ui.notifications.error("VisageSelector: Could not find actor with ID " + this.actorId);
+            ui.notifications.error("VisageSelector: Could not find actor for token " + this.tokenId);
             return { forms: [] };
         }
 
