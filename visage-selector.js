@@ -123,7 +123,7 @@ export class VisageSelector extends Application {
      */
     activateListeners(html) {
         super.activateListeners(html);
-        html.find('.visage-tile').on('click', this._onSelectVisage.bind(this));
+        html.on('click', '.visage-tile', this._onSelectVisage.bind(this));
         this._bindDismissListeners();
     }
 
@@ -132,11 +132,13 @@ export class VisageSelector extends Application {
      */
     _bindDismissListeners() {
         this._onDocPointerDown = (ev) => {
-            const root = this.element?.[0];
+            const root = this.element[0];
             if (!root) return;
 
+            // Do not close if the click is inside the application
             if (root.contains(ev.target)) return;
 
+            // Do not close if the click is on the HUD button that opened the app
             const hudBtn = document.querySelector('.visage-button');
             if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
 
@@ -155,6 +157,7 @@ export class VisageSelector extends Application {
 
     async close(options) {
         this._unbindDismissListeners();
+        // Since this is a popOut: true app, super.close() will handle element removal
         return super.close(options);
     }
 
@@ -164,9 +167,11 @@ export class VisageSelector extends Application {
      * @private
      */
     async _onSelectVisage(event) {
-        const formKey = event.currentTarget.dataset.formKey;
+        const tile = event.target.closest('.visage-tile');
+        if (!tile) return;
+
+        const formKey = tile.dataset.formKey;
         if (formKey) {
-            // Note the updated argument order to match the new API
             await Visage.setVisage(this.actorId, this.tokenId, formKey);
             this.close();
         }

@@ -83,8 +83,12 @@ export class Visage {
      *
      * @param {TokenDocument} tokenDocument - The token document being updated.
      * @param {object} change - The differential data that is being applied to the document.
+     * @param {object} options - Additional options which modify the update request.
      */
-    static handleTokenUpdate(tokenDocument, change) {
+    static handleTokenUpdate(tokenDocument, change, options) {
+        // If the update is coming from our own module, do not proceed.
+        if (options.visageUpdate) return;
+
         const actor = tokenDocument.actor;
         if (!actor) return;
 
@@ -160,11 +164,11 @@ export class Visage {
         }
 
         try {
-            // Update the token document on the scene
+            // Update the token document on the scene, passing a custom flag
             await token.document.update({
                 "name": newName,
                 "texture.src": newTokenPath
-            });
+            }, { visageUpdate: true });
 
             // Update the actor flags for this token
             await actor.update({
