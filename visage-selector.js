@@ -89,7 +89,8 @@ export class VisageSelector extends Application {
             key: "default",
             name: defaults.name || "Default",
             path: defaults.token,
-            isActive: currentFormKey === "default"
+            isActive: currentFormKey === "default",
+            isDefault: true
         };
         
         // 2. Add Alternate Visages (Universal)
@@ -98,7 +99,8 @@ export class VisageSelector extends Application {
                 key: key,
                 name: key, // Use key as name for alternates
                 path: path,
-                isActive: key === currentFormKey
+                isActive: key === currentFormKey,
+                isDefault: false
             };
         }
 
