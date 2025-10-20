@@ -12,6 +12,11 @@
                 <img src="modules/visage/icons/check_circle.svg" alt="Active"/>
             </div>
             {{/if}}
+            {{#if this.isDefault}}
+            <div class="visage-default-indicator">
+                <img src="modules/visage/icons/stars.svg" alt="Default"/>
+            </div>
+            {{/if}}
         </div>
         {{/each}}
     </div>
