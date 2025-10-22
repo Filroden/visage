@@ -5,7 +5,8 @@ Software and associated documentation files in this repository are covered by an
 
 | Version | Changes |
 | :--- | :--- |
-| **Version 0.3.0** | *  Add a token image scaling feature, including option to flip the image |
+| **Version 0.3.1** | Fix label in configuration tab |
+| **Version 0.3.0** | Add a token image scaling feature, including option to flip the image |
 | **Version 0.2.4** | *  Add module setting to remove visage data from tokens<br>*  Add star icon to default token tile in selector HUD<br>*  Add usage instructions to the README.md |
 | **Version 0.2.3** | *  Under the covers code improvement<br>*  Improvements made to visage token configuration |
 | **Version 0.2.1** | Fix issue with reading data from tokens that were not linked to actors |
