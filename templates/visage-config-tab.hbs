@@ -22,21 +22,41 @@
     <fieldset class="visage-config-fieldset">
         <legend>Universal Alternate Visages</legend>
         <p class="visage-notes">If this token is linked to an actor then these visages will be available to all tokens of that actor.</p>
+        
+        <div class="visage-list-header">
+            <span>Name</span>
+            <span>Image Filepath</span>
+            <span style="text-align: center;">Scale (%)</span>
+            <span style="text-align: center;">Flip X</span>
+            <span></span>
+        </div>
+        
         <ol class="visage-list">
             {{#each visages}}
-            <li class="flexrow">
+            <li class="visage-list-item">
                 <input type="text" name="visage-key" value="{{this.key}}" placeholder="Visage Name (e.g. Wolf)" />
-                <div class="form-fields" style="flex: 2;">
+                
+                <div class="visage-path-group form-fields">
                     <input type="text" name="visage-path" value="{{this.path}}" placeholder="path/to/image.webp" />
                     <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
                 </div>
+                
+                <div class="visage-scale-group">
+                    <input type="number" name="visage-scale" value="{{this.scale}}" placeholder="100" min="0" max="500" step="5" data-dtype="Number" class="visage-scale-input">
+                    <span class="visage-percent-sign">%</span>
+                </div>
+                
+                <label class="checkbox visage-flip-label">
+                    <input type="checkbox" name="visage-flip-x" {{checked this.isFlippedX}}> 
+                    </label>
+            
                 <a class="visage-delete"><i class="fas fa-trash"></i></a>
             </li>
             {{/each}}
         </ol>
 
         <div class="flexrow visage-config-button">
-            <button class="visage-add"><i class="fas fa-plus"></i> Add Visage</button>            
+            <button class="visage-add"><i class="fas fa-plus"></i> Add Visage</button>        
         </div>
         <div class="flexrow visage-config-button">
             <button class="visage-save"><i class="fas fa-save"></i> Save Changes</button></div>

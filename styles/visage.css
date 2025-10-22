@@ -1,6 +1,5 @@
-/* styles/rmu-visage.css */
+/* --- GENERAL STYLES --- */
 
-/* Style for the Visages tab icon in Token Configuration */
 .sheet-tabs .visage-tab-icon {
     display: inline-block;
     vertical-align: middle;
@@ -13,230 +12,9 @@
 .sheet-tabs .visage-tab-icon img {
     width: 100%;
     height: 100%;
-    vertical-align: top; /* Prevent extra space below image */
+    vertical-align: top;
 }
 
-/* Visage Selector */
-.visage-selector-app .window-content {
-    padding: 10px 5px;
-}
-
-.visage-selector {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-    gap: 5px;
-}
-
-/* .visage-tile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border: 2px solid #ccc;
-    border-radius: 4px;
-    padding: 2px;
-    cursor: pointer;
-}
-
-.visage-tile:hover {
-    border-color: #ff6400;
-}
-
-.visage-tile.active {
-    border: #2px solid #28a745;
-}
-
-.visage-tile img {
-    width: 64px;
-    height: 64px;
-    object-fit: cover;
-    border-radius: 2px;
-    border: none;
-}
-
-.visage-tile span {
-    font-size: 12px;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-} */
-
-/* Token Config */
-.visage-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.visage-list .flexrow {
-    align-items: center;
-    gap: 5px;
-}
-
-.visage-list input {
-    flex: 1;
-}
-
-.visage-list .visage-delete {
-    margin-left: 5px;
-    flex: 0 0 20px;
-    text-align: center;
-}
-
-/* Styles for Visage Config Tab */
-.tab[data-tab="visages"] .form-fields img {
-    width: 64px;
-    height: 64px;
-    border: 1px solid #ccc;
-    flex: 0 0 64px;
-}
-
-.tab[data-tab="visages"] .form-fields span {
-    margin-left: 10px;
-}
-
-.tab[data-tab="visages"] .visage-list li .form-fields {
-    flex: 2;
-}
-
-.tab[data-tab="visages"] .visage-add {
-    margin-top: 10px;
-}
-
-.tab[data-tab="visages"] .visage-save-group {
-    margin-top: 10px;
-    padding-top: 10px;
-}
-
-/* Base Application Styling (Border, Transparency, Positioning) */
-.visage-selector-app .window-content {
-    border: none;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
-    background: rgba(40, 40, 40, 0.85); 
-    border-radius: 12px;
-    z-index: 20;
-    transition: all 0.2s ease-out;
-    /* New Flexbox and Height constraints */
-    display: flex;
-    flex-direction: column;
-    max-height: 380px; /* Approx. header + 3 rows */
-    padding: 10px;
-}
-
-/* Hide the core Foundry VTT title bar */
-.visage-selector-app .window-header {
-    display: none;
-}
-
-/* Content Area Styling */
-.visage-selector-app .window-content {
-    color: #fff; /* White text for contrast */
-}
-
-/* Custom Header/Title */
-.visage-selector-header {
-    flex: none; /* Override Foundry's default flex-grow */
-}
-
-.visage-selector-header h3 {
-    margin: 0 0 10px 0;
-    font-size: 1rem;
-    text-align: center;
-    text-transform: uppercase;
-    color: #ffffff;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    padding-bottom: 5px;
-    flex-shrink: 0; /* Prevent header from shrinking */
-}
-
-/* New scrollable wrapper for the grid */
-.visage-selector-grid-wrapper {
-    overflow-y: auto;
-    flex-grow: 1; /* Allow wrapper to fill available space */
-    /* Add padding to prevent the offset 'active' chip from being clipped by overflow */
-    padding: 10px 8px 4px 8px;
-}
-
-/* Grid Layout (2 columns) */
-.visage-selector {
-    display: grid;
-    /* Fixed 2-column grid */
-    grid-template-columns: 1fr 1fr; 
-    gap: 8px; /* Increased gap for better visual separation */
-}
-
-/* Individual Tile Styling */
-.visage-tile {
-    position: relative; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* Consistent 2px border to prevent layout shift on hover/active */
-    border: 2px solid #8a782c; /* Subtler default color for 2px border */
-    border-radius: 4px;
-    padding: 4px;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.05);
-    transition: background-color 0.1s, border-color 0.1s;
-}
-
-.visage-tile:hover {
-    background-color: rgba(255, 100, 0, 0.2);
-    border-color: #CBB047; /* Change color only, not width */
-}
-
-.visage-tile.active {
-    background-color: rgba(40, 167, 69, 0.2);
-    border-color: #28a745; /* Change color only, not width */
-}
-
-.visage-tile img {
-    width: 64px;
-    height: 64px;
-    object-fit: cover;
-    border-radius: 2px;
-}
-
-.visage-tile span {
-    font-size: 11px;
-    text-align: center;
-    white-space: normal; /* Allow name wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-    margin-top: 4px;
-    color: #ffffff;
-}
-
-/* --- ACTIVE CHIP STYLING --- */
-.visage-chip {
-    position: absolute;
-    top: -8px; /* Offset from the top right corner */
-    right: -8px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: #28a745; /* Green background */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    z-index: 10;
-}
-
-.visage-chip img {
-    width: 12px;
-    height: 12px;
-    /* Invert the check_circle.svg to white for visibility */
-    filter: invert(100%); 
-    border: none; /* Remove any image border */
-}
-
-/* Visages tab icon: size and alignment */
 .sheet-tabs a[data-tab="visages"] {
   display: inline-flex;
   align-items: center;
@@ -254,77 +32,12 @@
   filter: brightness(0) saturate(100%);
 }
 
-/* Visage config: 2 rows × 3 columns */
-.visage-grid {
-  display: grid;
-  grid-template-columns: 160px 64px minmax(0, 1fr); /* label | image | path */
-  gap: 8px 12px;
-  align-items: center;
-}
-
-/* Make each .form-group contribute its children directly to the grid */
-.visage-grid .form-group { display: contents; }
-
-/* Column 1: labels */
-.visage-grid label { grid-column: 1; }
-
-/* Column 2: image */
-.visage-grid img {
-  grid-column: 2;
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-/* Column 3: path field — force wrapping */
-.visage-grid .v-col-path {
-  grid-column: 3;
-  white-space: normal;
-  overflow-wrap: anywhere;     /* modern */
-  word-break: break-word;      /* fallback */
-  line-height: 1.25;
-}
-
-/* Each visage row = 3 columns: label | image | path */
-.visage-row {
-  display: grid;
-  grid-template-columns: 160px 64px; /* label | image */
-  gap: 8px 12px;
-  align-items: center;
-}
-
-/* Flatten common Foundry wrappers so children land in the 3 columns */
-.visage-row .form-fields,
-.visage-row .flexrow,
-.visage-row .form-group,
-.visage-row .form-group .form-fields { display: contents; }
-
-/* Col 1: label */
-.visage-row label { grid-column: 1; }
-
-/* Col 2: image */
-.visage-row img {
-  grid-column: 2;
-  width: 48px; height: 48px;
-  object-fit: cover; border-radius: 4px;
-}
-
 .visage-config-fieldset {
     padding: 1rem;
     margin-top: 1rem;
     gap: 0.5rem;
 }
 
-.visage-config-defaults {
-    margin-bottom: 0.5rem;
-}
-
-.visage-config-button {
-    margin-top: 1rem;
-}
-
-/* Read-only field style for the config tab */
 .visage-readonly-field {
     margin: 0;
     padding: 0;
@@ -338,7 +51,6 @@
     width: 100%;
 }
 
-/* Grid layout for the default token info display */
 .visage-defaults-grid {
     display: grid;
     grid-template-columns: max-content 1fr;
@@ -352,7 +64,217 @@
     display: contents;
 }
 
-/* --- DEFAULT INDICATOR STYLING --- */
+/* --- LIST/GRID STYLES (NEW) --- */
+
+.visage-list-header,
+.visage-list .visage-list-item {
+    display: grid;
+    grid-template-columns: 
+        minmax(100px, 1.5fr)        /* Col 1: Name */
+        minmax(0, 3fr)              /* Col 2: Image Path Group */
+        minmax(70px, max-content)   /* COL 3: Scale + % */
+        minmax(30px, 30px)          /* Col 4: Flip Checkbox */
+        minmax(20px, 20px);         /* Col 5: Delete Button */
+    gap: 10px;
+    align-items: center;
+    padding: 2px 0;
+}
+
+.visage-list-header {
+    font-weight: bold;
+    border-bottom: 1px solid #c8c8c8;
+    margin-bottom: 5px;
+    padding: 0 0 4px 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #4b4a44;
+}
+
+.visage-list-header span:nth-child(1) { grid-column: 1; }                       /* Name */
+.visage-list-header span:nth-child(2) { grid-column: 2; }                       /* Image Filepath */
+.visage-list-header span:nth-child(3) { grid-column: 3; text-align: center; }   /* Scale */
+.visage-list-header span:nth-child(4) { grid-column: 4; text-align: center; }   /* Flip X */
+.visage-list-header span:nth-child(5) { grid-column: 5; }                       /* Delete Button */
+
+.visage-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.visage-list-item .visage-path-group {
+    grid-column: 2; 
+    display: flex;
+    align-items: center;
+    gap: 5px; 
+}
+
+.visage-scale-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    grid-column: 3;
+    gap: 4px;
+}
+
+.visage-scale-input {
+    width: 6ch; 
+    max-width: 6ch; 
+    min-width: 6ch;
+    text-align: right;
+    flex-grow: 0; 
+    flex-shrink: 0;
+    margin-right: 0;
+}
+
+.visage-percent-sign {
+    flex-shrink: 0;
+    line-height: 24px;
+    width: 1ch;
+}
+
+.visage-flip-label {
+    grid-column: 4;
+    justify-content: center;
+    align-items: center;
+    font-size: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.visage-flip-label input {
+    margin: 0;
+}
+
+.visage-list-item .visage-delete {
+    grid-column: 5;
+    text-align: center;
+    cursor: pointer;
+}
+
+/* --- VISAGE SELECTOR APP STYLES --- */
+
+.visage-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 5px;
+}
+
+.visage-selector-app .window-content {
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    background: rgba(40, 40, 40, 0.85); 
+    color: #fff;
+    border-radius: 12px;
+    z-index: 20;
+    transition: all 0.2s ease-out;
+    display: flex;
+    flex-direction: column;
+    max-height: 400px;
+    padding: 10px;
+}
+
+.visage-selector-app .window-header {
+    display: none;
+}
+
+.visage-selector-header {
+    flex: none;
+}
+
+.visage-selector-header h3 {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    text-align: center;
+    text-transform: uppercase;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 5px;
+    flex-shrink: 0;
+}
+
+.visage-selector-grid-wrapper {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 10px 18px 4px 8px;
+    scrollbar-width: initial !important; 
+    scrollbar-color: initial !important;
+}
+
+.visage-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 12px 8px;
+    width: 100%;
+}
+
+.visage-tile {
+    position: relative; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid #8a782c;
+    border-radius: 4px;
+    padding: 4px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.05);
+    transition: background-color 0.1s, border-color 0.1s;
+}
+
+.visage-tile:hover {
+    background-color: rgba(255, 100, 0, 0.2);
+    border-color: #CBB047;
+}
+
+.visage-tile.active {
+    background-color: rgba(40, 167, 69, 0.2);
+    border-color: #28a745;
+}
+
+.visage-tile img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: none;
+}
+
+.visage-tile-name {
+    font-size: 11px;
+    text-align: center;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    margin-top: 4px;
+    color: #ffffff;
+}
+
+.visage-chip {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #28a745;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+}
+
+.visage-chip img {
+    width: 12px;
+    height: 12px;
+    filter: invert(100%); 
+    border: none;
+}
+
 .visage-default-indicator {
     position: absolute;
     top: -8px;
@@ -360,7 +282,7 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background-color: #8a782c; /* A gold-ish color to match the border */
+    background-color: #8a782c;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -373,4 +295,62 @@
     height: 12px;
     filter: invert(100%);
     border: none;
+}
+
+.visage-data-chip {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 1px solid #a99335;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.visage-data-chip span {
+    margin-top: 0;
+    font-size: 8px;
+}
+
+.visage-data-chip .visage-flip-icon {
+    width: 10px;
+    height: 10px;
+    border: none;
+}
+
+.visage-scale-value {
+    white-space: nowrap;
+}
+
+/* --- CUSTOM SCROLLBAR STYLES --- */
+.visage-selector-grid-wrapper::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+}
+
+.visage-selector-grid-wrapper::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-radius: 10px !important;
+}
+
+.visage-selector-grid-wrapper::-webkit-scrollbar-thumb {
+    background-color: #a99335 !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(0, 0, 0, 0.6) !important;
+}
+
+.visage-selector-grid-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: #CBB047 !important;
+}
+
+.visage-selector-grid-wrapper::-webkit-scrollbar-button {
+    display: none;
 }

@@ -93,9 +93,10 @@ export class Visage {
         if (!actor) return;
 
         const hasChangedName = "name" in change;
-        const hasChangedTexture = "texture" in change && "src" in change.texture;
+        const hasChangedTextureSrc = "texture" in change && "src" in change.texture;
+        const hasChangedTextureScale = "texture" in change && ("scaleX" in change.texture || "scaleY" in change.texture);
 
-        if (hasChangedName || hasChangedTexture) {
+        if (hasChangedName || hasChangedTextureSrc || hasChangedTextureScale) {
             const tokenId = tokenDocument.id;
             const updateData = {};
 
@@ -104,15 +105,25 @@ export class Visage {
                 updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.name`] = change.name;
             }
 
-            if (hasChangedTexture) {
-                this.log(`Token ${tokenId} texture changed to "${change.texture.src}". Updating default.`);
+            if (hasChangedTextureSrc) {
+                this.log(`Token ${tokenId} texture src changed to "${change.texture.src}". Updating default.`);
                 updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.token`] = change.texture.src;
             }
 
+            if (hasChangedTextureScale) {
+                const newScale = change.texture.scaleX ?? change.texture.scaleY; // Assuming scaleX and scaleY are always linked
+                if (newScale !== undefined) {
+                    this.log(`Token ${tokenId} texture scale changed to "${newScale}". Updating default.`);
+                    updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.scale`] = newScale;
+                }
+            }
+
             // Use a separate, awaited update to avoid race conditions with the main update
-            actor.update(updateData).then(() => {
-                this.log(`Default visage updated for token ${tokenId}.`);
-            });
+            if (Object.keys(updateData).length > 0) {
+                actor.update(updateData).then(() => {
+                    this.log(`Default visage updated for token ${tokenId}.`);
+                });
+            }
         }
     }
 
@@ -143,6 +154,7 @@ export class Visage {
         
         let newName;
         let newTokenPath;
+        let newScale;
 
         if (formKey === 'default') {
             const defaults = tokenData.defaults;
@@ -152,22 +164,29 @@ export class Visage {
             }
             newName = defaults.name;
             newTokenPath = defaults.token;
+            newScale = defaults.scale ?? 1.0;
         } else {
             const alternateImages = moduleData.alternateImages || {};
-            const imagePath = alternateImages[formKey];
-            if (!imagePath) {
+            const visageData = alternateImages[formKey];
+            
+            if (!visageData) {
                 this.log(`Form key "${formKey}" not found for actor ${actorId}`, true);
                 return false;
             }
+
+            const isObject = typeof visageData === 'object' && visageData !== null;
             newName = formKey;
-            newTokenPath = imagePath;
+            newTokenPath = isObject ? visageData.path : visageData;
+            newScale = isObject ? (visageData.scale ?? 1.0) : 1.0;
         }
 
         try {
             // Update the token document on the scene, passing a custom flag
             await token.document.update({
                 "name": newName,
-                "texture.src": newTokenPath
+                "texture.src": newTokenPath,
+                "texture.scaleX": newScale,
+                "texture.scaleY": Math.abs(newScale)
             }, { visageUpdate: true });
 
             // Update the actor flags for this token
@@ -184,13 +203,33 @@ export class Visage {
     }
 
     /**
-     * Retrieves the stored alternateImages data for the actor.
+     * Retrieves a standardized array of visage objects for the actor.
+     * This function abstracts away the internal data structure and ensures a consistent output.
+     *
      * @param {string} actorId - The ID of the actor.
-     * @returns {object|null} - The alternate images data, or null if not found.
+     * @returns {Array<object>|null} - An array of visage objects, or null if not found.
+     * Each object has the structure: { key: string, name: string, path: string, scale: number }.
      */
     static getForms(actorId) {
         const actor = game.actors.get(actorId);
-        return actor?.flags?.[this.DATA_NAMESPACE]?.alternateImages || null;
+        const alternateImages = actor?.flags?.[this.DATA_NAMESPACE]?.alternateImages;
+
+        if (!alternateImages) {
+            return null;
+        }
+
+        return Object.entries(alternateImages).map(([key, data]) => {
+            const isObject = typeof data === 'object' && data !== null;
+            const path = isObject ? data.path : data;
+            const scale = isObject ? (data.scale ?? 1.0) : 1.0;
+            
+            return {
+                key: key,
+                name: key, // The name is the key in the current data model
+                path: path,
+                scale: scale
+            };
+        });
     }
 
     /**

@@ -6,7 +6,7 @@
         {{#each forms}}
         <div class="visage-tile {{#if this.isActive}}active{{/if}}" data-form-key="{{this.key}}">
             <img src="{{this.resolvedPath}}" alt="{{this.name}}"/>
-            <span>{{this.name}}</span>
+            <span class="visage-tile-name">{{this.name}}</span>
             {{#if this.isActive}}
             <div class="visage-chip">
                 <img src="modules/visage/icons/check_circle.svg" alt="Active"/>
@@ -15,6 +15,16 @@
             {{#if this.isDefault}}
             <div class="visage-default-indicator">
                 <img src="modules/visage/icons/stars.svg" alt="Default"/>
+            </div>
+            {{/if}}
+            {{#if this.showScaleChip}}
+            <div class="visage-data-chip">
+                {{#if this.isFlippedX}}
+                <img class="visage-flip-icon" src="modules/visage/icons/flip.svg" alt="Flipped"/>
+                {{/if}}
+                {{#if (ne this.absScale 1)}}
+                <span class="visage-scale-value">{{this.displayScale}}%</span>
+                {{/if}}
             </div>
             {{/if}}
         </div>

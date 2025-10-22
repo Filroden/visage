@@ -15,7 +15,7 @@ export class VisageSelector extends Application {
      */
     static get defaultOptions() {
         return mergeObject(super.defaultOptions, {
-            template: `modules/visage/templates/visage-selector.html`,
+            template: `modules/visage/templates/visage-selector.hbs`,
             title: "Choose Visage",
             classes: ["visage-selector-app", "borderless"],
             popOut: true,
@@ -85,22 +85,48 @@ export class VisageSelector extends Application {
         const forms = {};
         
         // 1. Add Default Visage from token-specific defaults
-        forms["default"] = {
-            key: "default",
-            name: defaults.name || "Default",
-            path: defaults.token,
-            isActive: currentFormKey === "default",
-            isDefault: true
-        };
+        {
+            const scale = 1.0; // Default scale for the default visage
+            const isFlippedX = scale < 0;
+            const absScale = Math.abs(scale);
+            const displayScale = Math.round(absScale * 100);
+            const showScaleChip = scale !== 1; // Chip shows if scale is not exactly 1
+
+            forms["default"] = {
+                key: "default",
+                name: defaults.name || "Default",
+                path: defaults.token,
+                isActive: currentFormKey === "default",
+                isDefault: true,
+                scale: scale,
+                isFlippedX: isFlippedX,
+                displayScale: displayScale,
+                showScaleChip: showScaleChip,
+                absScale: absScale
+            };
+        }
         
         // 2. Add Alternate Visages (Universal)
-        for (const [key, path] of Object.entries(alternateImages)) {
+        for (const [key, data] of Object.entries(alternateImages)) {
+            const isObject = typeof data === 'object' && data !== null;
+            const path = isObject ? data.path : data;
+            const scale = isObject ? (data.scale ?? 1.0) : 1.0;
+            const isFlippedX = scale < 0;
+            const absScale = Math.abs(scale);
+            const displayScale = Math.round(absScale * 100);
+            const showScaleChip = scale !== 1; // Chip shows if scale is not exactly 1
+
             forms[key] = {
                 key: key,
                 name: key, // Use key as name for alternates
                 path: path,
+                scale: scale,
                 isActive: key === currentFormKey,
-                isDefault: false
+                isDefault: false,
+                isFlippedX: isFlippedX,
+                displayScale: displayScale,
+                showScaleChip: showScaleChip,
+                absScale: absScale
             };
         }
 

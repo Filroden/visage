@@ -5,6 +5,7 @@ Software and associated documentation files in this repository are covered by an
 
 | Version | Changes |
 | :--- | :--- |
+| **Version 0.3.0** | *  Add a token image scaling feature, including option to flip the image |
 | **Version 0.2.4** | *  Add module setting to remove visage data from tokens<br>*  Add star icon to default token tile in selector HUD<br>*  Add usage instructions to the README.md |
 | **Version 0.2.3** | *  Under the covers code improvement<br>*  Improvements made to visage token configuration |
 | **Version 0.2.1** | Fix issue with reading data from tokens that were not linked to actors |
@@ -29,6 +30,7 @@ Before you can switch visages, you need to define them for an actor.
     *   For each alternate visage, you must provide:
         *   **Name**: A name for the visage (e.g., "Wolf Form", "Disguised", "Wounded", "Barrel"). This name will also be used for the token's name when this visage is active so remember this is what other players will see.
         *   **Image Path**: The path to the image file for this visage. You can use the folder icon to open the File Picker. Wildcards (`*`) are supported to select a random image from a folder.
+        *   **Scale**: A numerical scale factor (e.g., `1.0`, `0.8`, `1.5`). This will visually enlarge or shrink the token image on the canvas without changing its actual grid size. The default is `1.0` (no change).
     *   These alternate visages are stored on the actor and are available to all tokens of that actor.
 5.  **Delete Alternative Visages**: Click the trash can next to the alternative visage you want to delete.
 
@@ -115,7 +117,7 @@ visageAPI.setVisage("actor-id-12345", "token-id-67890", "Wolf");
 
 ### 2\. getForms
 
-Retrieves the universal `alternateImages` data object for the Actor.
+Retrieves a standardized array of all available alternate visages for a given Actor.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
@@ -124,18 +126,27 @@ Retrieves the universal `alternateImages` data object for the Actor.
 **Signature:**
 
 ```typescript
-(actorId: string): Object | null
+(actorId: string): Array<object> | null
 ```
 
 **Returns:**
 
-  * An `Object` where keys are the form names (e.g., `"Wolf"`) and values are the image file paths, or `null` if no forms are defined or the Actor is not found.
+*   An `Array` of visage objects, where each object has the following structure:
+    *   `key` (string): The internal key for the visage.
+    *   `name` (string): The display name of the visage.
+    *   `path` (string): The image file path for the visage.
+    *   `scale` (number): The configured scale for the visage (defaults to `1.0`).
+*   Returns `null` if no forms are defined or the Actor is not found.
 
 **Example:**
 
 ```javascript
 const forms = visageAPI.getForms("actor-id-12345");
-// forms might look like: { "Wolf": "path/to/wolf.webp", "Disguise": "path/to/mask.webp" }
+// forms might look like:
+// [
+//   { key: "Wolf", name: "Wolf", path: "path/to/wolf.webp", scale: 1.2 },
+//   { key: "Disguise", name: "Disguise", path: "path/to/mask.webp", scale: 1.0 }
+// ]
 ```
 
 \<hr\>
@@ -195,3 +206,20 @@ const wildcardPath = "path/to/images/*.webp";
 const resolved = await visageAPI.resolvePath(wildcardPath);
 // resolved might be: "path/to/images/wolf-03.webp"
 ```
+
+-----
+
+## Deprecation Notice
+
+**Upcoming Data Model Change:**
+
+In a future major version (tentatively v0.4.0), the internal data model for identifying visages will be updated. Currently, visages are keyed by their human-readable name (e.g., `"Wolf Form"`). This will be replaced by a stable, randomly generated **UUID** for each visage.
+
+**Reason for Change:** Using the visage name as a key is brittle; if a user renames a visage, it breaks any integrations that rely on that name. A stable UUID ensures that a visage can be reliably referenced even if its name changes.
+
+**Impact:**
+
+*   The `key` property in the objects returned by `getForms` will be a UUID.
+*   The `setVisage` function will require this UUID as the `formKey`.
+
+Modules or macros integrating with Visage should prepare for this change. While the current name-based system will be supported for a transition period, relying on the stable `key` property for future compatibility is strongly recommended.
