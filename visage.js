@@ -152,42 +152,50 @@ export class Visage {
         const moduleData = actor.flags?.[this.DATA_NAMESPACE] || {};
         const tokenData = moduleData[tokenId] || {};
         
-        let newName;
-        let newTokenPath;
-        let newScale;
+    let newName;
+    let newTokenPath;
+    let newScale;
 
-        if (formKey === 'default') {
-            const defaults = tokenData.defaults;
-            if (!defaults) {
-                this.log(`Cannot reset to default; no defaults saved for token ${tokenId}.`, true);
-                return false;
-            }
-            newName = defaults.name;
-            newTokenPath = defaults.token;
-            newScale = defaults.scale ?? 1.0;
-        } else {
-            const alternateImages = moduleData.alternateImages || {};
-            const visageData = alternateImages[formKey];
-            
-            if (!visageData) {
-                this.log(`Form key "${formKey}" not found for actor ${actorId}`, true);
-                return false;
-            }
-
-            const isObject = typeof visageData === 'object' && visageData !== null;
-            newName = formKey;
-            newTokenPath = isObject ? visageData.path : visageData;
-            newScale = isObject ? (visageData.scale ?? 1.0) : 1.0;
+    if (formKey === 'default') {
+        const defaults = tokenData.defaults;
+        if (!defaults) {
+            this.log(`Cannot reset to default; no defaults saved for token ${tokenId}.`, true);
+            return false;
         }
+        // FIX: Retrieve percentage and convert to factor
+        const defaultScaleFactor = (defaults.scale ?? 100) / 100;
+        
+        newName = defaults.name;
+        newTokenPath = defaults.token;
+        newScale = defaultScaleFactor;
 
-        try {
-            // Update the token document on the scene, passing a custom flag
-            await token.document.update({
-                "name": newName,
-                "texture.src": newTokenPath,
-                "texture.scaleX": newScale,
-                "texture.scaleY": Math.abs(newScale)
-            }, { visageUpdate: true });
+    } else {
+        const alternateImages = moduleData.alternateImages || {};
+        const visageData = alternateImages[formKey];
+        
+        if (!visageData) {
+            this.log(`Form key "${formKey}" not found for actor ${actorId}`, true);
+            return false;
+        }
+        
+        const isObject = typeof visageData === 'object' && visageData !== null;
+        // The key is the name in the current data model
+        newName = formKey; 
+        newTokenPath = isObject ? visageData.path : visageData;
+        newScale = isObject ? (visageData.scale ?? 1.0) : 1.0;
+    }
+
+    const finalTokenPath = await this.resolvePath(newTokenPath);
+
+    try {
+        // Update the token document on the scene
+        await token.document.update({
+            "name": newName,
+            "texture.src": finalTokenPath,
+            "texture.scaleX": newScale,
+            // FIX: Apply the factor equally to both axes.
+            "texture.scaleY": newScale 
+        }, { visageUpdate: true });
 
             // Update the actor flags for this token
             await actor.update({
