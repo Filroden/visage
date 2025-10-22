@@ -40,12 +40,37 @@ export async function handleTokenConfig(app, html) {
     // Get token-specific defaults, or use the token's current data as a fallback
     const tokenDefaults = moduleData[tokenId]?.defaults || {
         name: tokenDocument.name,
-        token: tokenDocument.texture.src
+        token: tokenDocument.texture.src,
+        scale: tokenDocument.texture.scaleX ?? 1.0,
+        isFlippedX: (tokenDocument.texture.scaleX ?? 1.0) < 0
     };
+    tokenDefaults.scale = Math.round(Math.abs(tokenDefaults.scale) * 100);
 
-    const visageEntries = await Promise.all(Object.entries(alternateImages).map(async ([key, path]) => {
-        return { key, path, resolvedPath: await Visage.resolvePath(path) };
+    const visageEntries = await Promise.all(Object.entries(alternateImages).map(async ([key, data]) => {
+        const isObject = typeof data === 'object' && data !== null;
+        const path = isObject ? data.path : data;
+        const scale = isObject ? (data.scale ?? 1.0) : 1.0;
+        const isFlippedX = scale < 0;
+        return {
+            key,
+            path,
+            scale: Math.round(Math.abs(scale) * 100),
+            isFlippedX,
+            resolvedPath: await Visage.resolvePath(path)
+        };
     }));
+
+    // If a new row was requested, add a temporary empty entry
+    if (app._visage_addNewRow) {
+        visageEntries.push({
+            key: "",
+            path: "",
+            scale: 100,
+            isFlippedX: false,
+            resolvedPath: ""
+        });
+        app._visage_addNewRow = false;
+    }
 
     const templateData = {
         visages: visageEntries,
@@ -54,7 +79,7 @@ export async function handleTokenConfig(app, html) {
     };
 
     // Render the template and inject it
-    const tabHtml = await renderTemplate('modules/visage/templates/visage-config-tab.html', templateData);
+    const tabHtml = await renderTemplate('modules/visage/templates/visage-config-tab.hbs', templateData);
     tabContent.innerHTML = tabHtml;
 
     // --- Event Listeners (using event delegation) ---
@@ -65,21 +90,8 @@ export async function handleTokenConfig(app, html) {
 
         if (addBtn) {
             event.preventDefault();
-            const list = tabContent.querySelector('.visage-list');
-            if (!list) return;
-            
-            const newRowHtml = `
-                <li class="flexrow">
-                    <input type="text" name="visage-key" value="" placeholder="Visage Name (e.g. Wolf)" />
-                    <div class="form-fields" style="flex: 2;">
-                        <input type="text" name="visage-path" value="" placeholder="path/to/image.webp" />
-                        <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
-                    </div>
-                    <a class="visage-delete"><i class="fas fa-trash"></i></a>
-                </li>
-            `;
-            list.insertAdjacentHTML('beforeend', newRowHtml);
-            app.setPosition({ height: "auto" });
+            app._visage_addNewRow = true;
+            app.render(true);
             return;
         }
 
@@ -165,11 +177,37 @@ export async function handleTokenConfig(app, html) {
         visageRows.forEach(row => {
             const key = row.querySelector('input[name="visage-key"]')?.value.trim();
             const path = row.querySelector('input[name="visage-path"]')?.value.trim();
+            const scaleInput = row.querySelector('input[name="visage-scale"]')?.value;
+            let scale = (scaleInput ? parseInt(scaleInput, 10) : 100) / 100;
+            const isFlippedX = row.querySelector('input[name="visage-flip-x"]')?.checked;
+
+            if (isFlippedX) {
+                scale = -Math.abs(scale); // Ensure scale is negative for flipping
+            } else {
+                scale = Math.abs(scale); // Ensure scale is positive if not flipped
+            }
 
             if (key && path) {
                 keysToKeep.add(key);
-                if (originalAlternates[key] !== path) {
-                    updatePayload[`flags.${ns}.alternateImages.${key}`] = path;
+                const currentData = originalAlternates[key];
+                const isObject = typeof currentData === 'object' && currentData !== null;
+                
+                // Default to the simplest version if data is old/missing
+                const currentPath = isObject ? currentData.path : currentData;
+                const currentScale = isObject ? (currentData.scale ?? 1.0) : 1.0;
+
+                // 1. Check for Path Change
+                const pathChanged = currentPath !== path;
+
+                // 2. Check for Scale/Flip Change (using tolerance)
+                const scaleTolerance = 0.0001;
+                // Check if the absolute difference between the current scale and the new scale 
+                // exceeds the small tolerance value. This accounts for float precision issues.
+                const scaleChanged = Math.abs(currentScale - scale) > scaleTolerance;
+
+                // If EITHER the path OR the scale/flip has changed, update the entire object.
+                if (pathChanged || scaleChanged) {
+                    updatePayload[`flags.${ns}.alternateImages.${key}`] = { path, scale };
                 }
             }
         });

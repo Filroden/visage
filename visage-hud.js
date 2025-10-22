@@ -17,7 +17,8 @@ export async function handleTokenHUD(app, html, data) {
         const updates = {};
         updates[`flags.${ns}.${token.id}.defaults`] = {
             name: token.document.name,
-            token: token.document.texture.src
+            token: token.document.texture.src,
+            scale: token.document.texture.scaleX ?? 1.0 // Add scale default
         };
         // Also initialize the current form key.
         updates[`flags.${ns}.${token.id}.currentFormKey`] = 'default';
