@@ -96,7 +96,7 @@ The core function to switch the specified Token to the specified form.
 | :--- | :--- | :--- |
 | `actorId` | `string` | The ID of the Actor document to update. |
 | `tokenId` | `string` | The ID of a specific Token on the canvas to update immediately. |
-| `formKey` | `string` | The key of the form to switch to. Use `"default"` to switch to the Token's default image and name. |
+| `formKey` | `string` | The key of the form to switch to. Use the string literal `"default"` to switch to the Token's default image, name and scale. |
 
 **Signature:**
 
@@ -114,8 +114,6 @@ The core function to switch the specified Token to the specified form.
 ```javascript
 visageAPI.setVisage("actor-id-12345", "token-id-67890", "Wolf");
 ```
-
-\<hr\>
 
 ### 2\. getForms
 
@@ -151,8 +149,6 @@ const forms = visageAPI.getForms("actor-id-12345");
 // ]
 ```
 
-\<hr\>
-
 ### 3\. isFormActive
 
 Checks if the specified form is currently active on a specific Token.
@@ -181,8 +177,6 @@ if (visageAPI.isFormActive("actor-id-12345", "token-id-67890", "default")) {
 }
 ```
 
-\<hr\>
-
 ### 4\. resolvePath
 
 A utility function to resolve a file path that may contain a Foundry VTT wildcard (`*`) into a single, concrete image path. This is primarily used for displaying a single image in UI previews.
@@ -207,6 +201,21 @@ A utility function to resolve a file path that may contain a Foundry VTT wildcar
 const wildcardPath = "path/to/images/*.webp";
 const resolved = await visageAPI.resolvePath(wildcardPath);
 // resolved might be: "path/to/images/wolf-03.webp"
+```
+
+-----
+
+## Note on Token vs. Actor IDs
+
+The Visage API methods require both an `actorId` and a `tokenId` because the custom visage configurations are stored on the **Actor Document**, but the visual changes must be applied to the specific **Token Document** on the canvas.
+
+To call these functions, you must first retrieve the `actorId` from the Token. In Foundry VTT, every Token on the canvas — even those **unlinked** from a source actor — has an embedded or temporary Actor Document accessible via the Token's API.
+
+You can reliably get both IDs from any selected Token instance (`token`) on the canvas using:
+
+```javascript
+const tokenId = token.id;
+const actorId = token.actor.id; // Works for both linked and unlinked tokens
 ```
 
 -----
