@@ -193,8 +193,7 @@ export class Visage {
             "name": newName,
             "texture.src": finalTokenPath,
             "texture.scaleX": newScale,
-            // FIX: Apply the factor equally to both axes.
-            "texture.scaleY": newScale 
+            "texture.scaleY": Math.abs(newScale) 
         }, { visageUpdate: true });
 
             // Update the actor flags for this token
