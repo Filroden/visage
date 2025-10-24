@@ -5,6 +5,7 @@ Software and associated documentation files in this repository are covered by an
 
 | Version | Changes |
 | :--- | :--- |
+| **Version 0.3.3** | *  Fix bug when restoring scale to default (again)<br>*  Fix how wildcard paths are resolved to prevent the mystery man appearing |
 | **Version 0.3.2** | Fix bug when restoring scale to default |
 | **Version 0.3.1** | Fix label in configuration tab |
 | **Version 0.3.0** | Add a token image scaling feature, including option to flip the image |
