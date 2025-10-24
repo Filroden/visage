@@ -5,6 +5,7 @@ Software and associated documentation files in this repository are covered by an
 
 | Version | Changes |
 | :--- | :--- |
+| **Version 0.4.0** | *  Significant re-write<br>*  Move the token configuration from the default token window where there was a rendering issue, to its own window, opened by clicking a setting cog in the Visage Selector HUD<br>*  Add styling to the "Save Changes" button if there are changes to be saved.<br>*  Match the new config window style to the Selector HUD style.<br>*  Sort Visage forms in the Selector HUD in alphabetical order with the default always first.<br>*  Add shuffle icon on any visage form that uses a wildcard within its filepath to show user they can select it again for a different random pick. |
 | **Version 0.3.4** | Fix flip option for token images |
 | **Version 0.3.3** | *  Fix bug when restoring scale to default (again)<br>*  Fix how wildcard paths are resolved to prevent the mystery man appearing |
 | **Version 0.3.2** | Fix bug when restoring scale to default |

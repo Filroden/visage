@@ -1,5 +1,8 @@
 <div class="visage-selector-header">
-    <h3>Choose Visage</h3>
+    <h3 class="visage-title">Choose Visage</h3>
+    <button type="button" class="visage-config-button" title="Configure Visages">
+        <img src="modules/visage/icons/settings.svg" alt="Settings"/>
+    </button>
 </div>
 <div class="visage-selector-grid-wrapper">
     <div class="visage-selector">
@@ -7,16 +10,19 @@
         <div class="visage-tile {{#if this.isActive}}active{{/if}}" data-form-key="{{this.key}}">
             <img src="{{this.resolvedPath}}" alt="{{this.name}}"/>
             <span class="visage-tile-name">{{this.name}}</span>
+            
             {{#if this.isActive}}
             <div class="visage-chip">
                 <img src="modules/visage/icons/check_circle.svg" alt="Active"/>
             </div>
             {{/if}}
+            
             {{#if this.isDefault}}
             <div class="visage-default-indicator">
                 <img src="modules/visage/icons/stars.svg" alt="Default"/>
             </div>
             {{/if}}
+            
             {{#if this.showScaleChip}}
             <div class="visage-data-chip">
                 {{#if this.isFlippedX}}
@@ -27,6 +33,14 @@
                 {{/if}}
             </div>
             {{/if}}
+
+            {{!-- *** NEW: Wildcard Indicator *** --}}
+            {{#if this.isWildcard}}
+            <div class="visage-wildcard-indicator" title="Wildcard Path (Random Image)">
+                <img src="modules/visage/icons/shuffle.svg" alt="Wildcard"/>
+            </div>
+            {{/if}}
+
         </div>
         {{/each}}
     </div>

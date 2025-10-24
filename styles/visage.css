@@ -1,37 +1,5 @@
 /* --- GENERAL STYLES --- */
 
-.sheet-tabs .visage-tab-icon {
-    display: inline-block;
-    vertical-align: middle;
-    width: 1em;
-    height: 1em;
-    margin-right: 5px;
-    line-height: 1;
-}
-
-.sheet-tabs .visage-tab-icon img {
-    width: 100%;
-    height: 100%;
-    vertical-align: top;
-}
-
-.sheet-tabs a[data-tab="visages"] {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.sheet-tabs a[data-tab="visages"] img,
-.sheet-tabs a[data-tab="visages"] svg,
-.sheet-tabs .visage-tab-icon {
-  width: 14px;
-  height: 14px;
-  flex: 0 0 14px;
-  vertical-align: middle;
-  line-height: 1;
-  filter: brightness(0) saturate(100%);
-}
-
 .visage-config-fieldset {
     padding: 1rem;
     margin-top: 1rem;
@@ -60,7 +28,7 @@
 }
 
 .visage-defaults-grid .form-group,
-.visage-defaults-grid .form-group .form-fields {
+.visage-defaults-grid .form-group .form-group-fields {
     display: contents;
 }
 
@@ -71,7 +39,7 @@
     display: grid;
     grid-template-columns: 
         minmax(100px, 1.5fr)        /* Col 1: Name */
-        minmax(0, 3fr)              /* Col 2: Image Path Group */
+        minmax(0, 4fr)              /* Col 2: Image Path Group */
         minmax(70px, max-content)   /* COL 3: Scale + % */
         minmax(30px, 30px)          /* Col 4: Flip Checkbox */
         minmax(20px, 20px);         /* Col 5: Delete Button */
@@ -90,11 +58,11 @@
     color: #4b4a44;
 }
 
-.visage-list-header span:nth-child(1) { grid-column: 1; }                       /* Name */
-.visage-list-header span:nth-child(2) { grid-column: 2; }                       /* Image Filepath */
-.visage-list-header span:nth-child(3) { grid-column: 3; text-align: center; }   /* Scale */
-.visage-list-header span:nth-child(4) { grid-column: 4; text-align: center; }   /* Flip X */
-.visage-list-header span:nth-child(5) { grid-column: 5; }                       /* Delete Button */
+.visage-list-header span:nth-child(1) { grid-column: 1; }                       
+.visage-list-header span:nth-child(2) { grid-column: 2; }                       
+.visage-list-header span:nth-child(3) { grid-column: 3; text-align: center; }   
+.visage-list-header span:nth-child(4) { grid-column: 4; text-align: center; }   
+.visage-list-header span:nth-child(5) { grid-column: 5; }                       
 
 .visage-list {
     list-style: none;
@@ -107,7 +75,8 @@
 
 .visage-list-item .visage-path-group {
     grid-column: 2; 
-    display: flex;
+    display: grid; 
+    grid-template-columns: 1fr auto; 
     align-items: center;
     gap: 5px; 
 }
@@ -124,10 +93,10 @@
     width: 6ch; 
     max-width: 6ch; 
     min-width: 6ch;
-    text-align: right;
     flex-grow: 0; 
     flex-shrink: 0;
     margin-right: 0;
+    text-align: center; 
 }
 
 .visage-percent-sign {
@@ -157,12 +126,6 @@
 
 /* --- VISAGE SELECTOR APP STYLES --- */
 
-.visage-selector {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-    gap: 5px;
-}
-
 .visage-selector-app .window-content {
     border: none;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
@@ -173,7 +136,6 @@
     transition: all 0.2s ease-out;
     display: flex;
     flex-direction: column;
-    max-height: 400px;
     padding: 10px;
 }
 
@@ -183,17 +145,43 @@
 
 .visage-selector-header {
     flex: none;
-}
-
-.visage-selector-header h3 {
-    margin: 0 0 10px 0;
-    font-size: 1rem;
-    text-align: center;
-    text-transform: uppercase;
-    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     padding-bottom: 5px;
-    flex-shrink: 0;
+}
+
+.visage-selector-header .visage-title {
+    margin: 0;
+    font-size: 1rem;
+    text-align: left; 
+    text-transform: uppercase;
+    color: #ffffff;
+    flex-grow: 1; 
+}
+
+.visage-config-button {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    padding: 0;
+    border: none;
+    background: none;
+    opacity: 0.8;
+    transition: opacity 0.1s ease;
+}
+
+.visage-config-button img {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.visage-config-button:hover {
+    opacity: 1;
 }
 
 .visage-selector-grid-wrapper {
@@ -202,6 +190,7 @@
     padding: 10px 18px 4px 8px;
     scrollbar-width: initial !important; 
     scrollbar-color: initial !important;
+    max-height: 400px; 
 }
 
 .visage-selector {
@@ -297,6 +286,30 @@
     border: none;
 }
 
+/* *** NEW: Wildcard Indicator Style *** */
+.visage-wildcard-indicator {
+    position: absolute;
+    bottom: -8px;
+    left: -8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #007bff; /* A distinct blue color */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+}
+
+.visage-wildcard-indicator img {
+    width: 12px;
+    height: 12px;
+    filter: invert(100%);
+    border: none;
+}
+
+
 .visage-data-chip {
     position: absolute;
     top: -8px;
@@ -330,14 +343,56 @@
     white-space: nowrap;
 }
 
+/* --- CONFIG APP STYLES --- */
+.visage-config-app .window-content {
+    display: flex;
+    flex-direction: column;
+    height: 100% !important; 
+    padding: 10px;
+    overflow: hidden; 
+    max-height: 70vh;
+}
+
+.visage-config-wrapper {
+    overflow-y: auto;
+    flex-grow: 1; 
+    scrollbar-width: initial !important; 
+    scrollbar-color: initial !important;
+    padding-right: 5px; 
+}
+
+.visage-config-pane {
+    display: flex;
+    flex-direction: column;
+}
+
+.visage-config-fieldset {
+    flex-grow: 1; 
+}
+
+.visage-add-wrapper {
+    margin-top: 10px;
+}
+
+.visage-config-footer {
+    flex: none; 
+    border-top: 1px solid #c9c7c1; 
+    padding-top: 10px;
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
 /* --- CUSTOM SCROLLBAR STYLES --- */
-.visage-selector-grid-wrapper::-webkit-scrollbar {
+.visage-selector-grid-wrapper::-webkit-scrollbar,
+.visage-config-wrapper::-webkit-scrollbar {
     width: 8px !important;
     height: 8px !important;
 }
 
-.visage-selector-grid-wrapper::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.4) !important;
+.visage-selector-grid-wrapper::-webkit-scrollbar-track,
+.visage-config-wrapper::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1) !important; 
     border-radius: 10px !important;
 }
 
@@ -346,11 +401,126 @@
     border-radius: 10px !important;
     border: 1px solid rgba(0, 0, 0, 0.6) !important;
 }
-
 .visage-selector-grid-wrapper::-webkit-scrollbar-thumb:hover {
     background-color: #CBB047 !important;
 }
 
-.visage-selector-grid-wrapper::-webkit-scrollbar-button {
+.visage-config-wrapper::-webkit-scrollbar-thumb {
+    background-color: #7a7971 !important;
+    border-radius: 10px !important;
+    border: 1px solid #c9c7c1 !important;
+}
+.visage-config-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: #4b4a44 !important;
+}
+
+
+.visage-selector-grid-wrapper::-webkit-scrollbar-button,
+.visage-config-wrapper::-webkit-scrollbar-button {
     display: none;
 }
+
+
+/* --- BEGIN NEW DARK THEME FOR CONFIG APP --- */
+
+.visage-dark-theme.visage-config-app .window-content {
+    background: #191813; /* Dark background */
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* --- Header / Footer --- */
+.visage-dark-theme .visage-config-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.visage-dark-theme .visage-list-header {
+    color: rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* --- General Text & Links --- */
+.visage-dark-theme .visage-notes,
+.visage-dark-theme label,
+.visage-dark-theme .visage-percent-sign {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.visage-dark-theme .visage-readonly-field {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.visage-dark-theme .visage-delete {
+    color: rgba(255, 255, 255, 0.6);
+    transition: color 0.1s ease;
+}
+.visage-dark-theme .visage-delete:hover {
+    color: #ff6400;
+}
+
+/* --- Fieldset --- */
+.visage-dark-theme .visage-config-fieldset {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+}
+.visage-dark-theme .visage-config-fieldset legend {
+    color: #a99335; /* Gold */
+    font-weight: bold;
+}
+
+/* --- Inputs --- */
+.visage-dark-theme input[type="text"],
+.visage-dark-theme input[type="number"] {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+}
+.visage-dark-theme input[type="text"]:focus,
+.visage-dark-theme input[type="number"]:focus {
+    border-color: #a99335;
+    box-shadow: 0 0 5px #a99335;
+}
+
+/* --- Buttons --- */
+.visage-dark-theme button,
+.visage-dark-theme .visage-delete {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+    transition: background-color 0.1s, border-color 0.1s;
+}
+
+.visage-dark-theme button:hover,
+.visage-dark-theme .visage-delete:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #a99335;
+    box-shadow: none; /* Your override */
+}
+
+/* --- Save Button Dirty State --- */
+.visage-dark-theme .visage-save.dirty {
+    background: #a99335;
+    border-color: #a99335;
+    color: #191813;
+    font-weight: bold;
+}
+.visage-dark-theme .visage-save.dirty:hover {
+    background: #CBB047;
+    border-color: #CBB047;
+    box-shadow: 0 0 8px #CBB047; /* Has its own shadow */
+}
+
+/* --- Dark Scrollbar --- */
+.visage-dark-theme .visage-config-wrapper::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+.visage-dark-theme .visage-config-wrapper::-webkit-scrollbar-thumb {
+    background-color: #a99335 !important;
+    border: 1px solid rgba(0, 0, 0, 0.6) !important;
+}
+.visage-dark-theme .visage-config-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: #CBB047 !important;
+}
+
+/* --- END DARK THEME --- */

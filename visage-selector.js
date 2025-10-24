@@ -1,13 +1,16 @@
 import { Visage } from "./visage.js";
+// Import the new config application
+import { VisageConfigApp } from "./visage-config.js";
 
 /**
  * The application for selecting a visage.
  */
 export class VisageSelector extends Application {
-    constructor(actorId, tokenId, options = {}) {
+    constructor(actorId, tokenId, sceneId, options = {}) {
         super(options);
         this.actorId = actorId;
         this.tokenId = tokenId;
+        this.sceneId = sceneId;
     }
 
     /**
@@ -33,16 +36,13 @@ export class VisageSelector extends Application {
      * @override
      */
     async getData(options = {}) {
-        // Find the specific token instance on the canvas
         const token = canvas.tokens.get(this.tokenId);
         if (!token) {
             ui.notifications.error(`VisageSelector: Could not find token with ID ${this.tokenId}`);
             return { forms: [] };
         }
         
-        // Use the token's actor, which correctly references the embedded data for unlinked tokens.
         const actor = token.actor; 
-        
         if (!actor) {
             ui.notifications.error("VisageSelector: Could not find actor for token " + this.tokenId);
             return { forms: [] };
@@ -53,7 +53,6 @@ export class VisageSelector extends Application {
         let tokenData = moduleData[this.tokenId] || {};
         let defaults = tokenData.defaults;
 
-        // --- Self-Healing Default Creation ---
         if (!defaults) {
             const token = canvas.tokens.get(this.tokenId);
             if (!token) {
@@ -69,8 +68,6 @@ export class VisageSelector extends Application {
             updates[`flags.${ns}.${this.tokenId}.currentFormKey`] = 'default';
             
             await actor.update(updates);
-
-            // Re-fetch the data now that it should exist
             defaults = actor.flags?.[ns]?.[this.tokenId]?.defaults;
 
             if (!defaults) {
@@ -84,41 +81,44 @@ export class VisageSelector extends Application {
 
         const forms = {};
         
-        // 1. Add Default Visage from token-specific defaults
+        // 1. Add Default Visage
         {
-            const scale = 1.0; // Default scale for the default visage
+            const scale = 1.0; 
             const isFlippedX = scale < 0;
             const absScale = Math.abs(scale);
             const displayScale = Math.round(absScale * 100);
-            const showScaleChip = scale !== 1; // Chip shows if scale is not exactly 1
+            const showScaleChip = scale !== 1;
+            const defaultPath = defaults.token || ""; // Ensure path is a string
 
             forms["default"] = {
                 key: "default",
                 name: defaults.name || "Default",
-                path: defaults.token,
+                path: defaultPath,
                 isActive: currentFormKey === "default",
                 isDefault: true,
                 scale: scale,
                 isFlippedX: isFlippedX,
                 displayScale: displayScale,
                 showScaleChip: showScaleChip,
-                absScale: absScale
+                absScale: absScale,
+                // *** NEW: Add wildcard check ***
+                isWildcard: defaultPath.includes('*')
             };
         }
         
-        // 2. Add Alternate Visages (Universal)
+        // 2. Add Alternate Visages
         for (const [key, data] of Object.entries(alternateImages)) {
             const isObject = typeof data === 'object' && data !== null;
-            const path = isObject ? data.path : data;
+            const path = isObject ? (data.path || "") : (data || ""); // Ensure path is a string
             const scale = isObject ? (data.scale ?? 1.0) : 1.0;
             const isFlippedX = scale < 0;
             const absScale = Math.abs(scale);
             const displayScale = Math.round(absScale * 100);
-            const showScaleChip = scale !== 1; // Chip shows if scale is not exactly 1
+            const showScaleChip = scale !== 1;
 
             forms[key] = {
                 key: key,
-                name: key, // Use key as name for alternates
+                name: key,
                 path: path,
                 scale: scale,
                 isActive: key === currentFormKey,
@@ -126,19 +126,18 @@ export class VisageSelector extends Application {
                 isFlippedX: isFlippedX,
                 displayScale: displayScale,
                 showScaleChip: showScaleChip,
-                absScale: absScale
+                absScale: absScale,
+                // *** NEW: Add wildcard check ***
+                isWildcard: path.includes('*')
             };
         }
 
-        // Create an ordered array for the template
         const orderedForms = [forms["default"]];
-        for(const key in forms) {
-            if (key !== "default") {
-                orderedForms.push(forms[key]);
-            }
+        const alternateKeys = Object.keys(forms).filter(k => k !== "default").sort();
+        for(const key of alternateKeys) {
+            orderedForms.push(forms[key]);
         }
 
-        // Resolve wildcards for display
         for (const form of orderedForms) {
             form.resolvedPath = await Visage.resolvePath(form.path);
         }
@@ -152,7 +151,25 @@ export class VisageSelector extends Application {
     activateListeners(html) {
         super.activateListeners(html);
         html.on('click', '.visage-tile', this._onSelectVisage.bind(this));
+        html.on('click', '.visage-config-button', this._onOpenConfig.bind(this));
         this._bindDismissListeners();
+    }
+
+    /**
+     * Handle opening the configuration window.
+     * @param {Event} event - The click event.
+     * @private
+     */
+    _onOpenConfig(event) {
+        event.preventDefault();
+        const configId = `visage-config-${this.actorId}-${this.tokenId}`;
+        if (Visage.apps[configId]) {
+            Visage.apps[configId].bringToTop();
+        } else {
+            const configApp = new VisageConfigApp(this.actorId, this.tokenId, this.sceneId, { id: configId });
+            configApp.render(true);
+        }
+        this.close();
     }
 
     /**
@@ -162,17 +179,13 @@ export class VisageSelector extends Application {
         this._onDocPointerDown = (ev) => {
             const root = this.element[0];
             if (!root) return;
-
-            // Do not close if the click is inside the application
             if (root.contains(ev.target)) return;
-
-            // Do not close if the click is on the HUD button that opened the app
             const hudBtn = document.querySelector('.visage-button');
             if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
-
+            const configApp = ev.target.closest('.visage-config-app');
+            if (configApp) return;
             this.close();
         };
-
         document.addEventListener('pointerdown', this._onDocPointerDown, true);
     }
 
@@ -185,7 +198,6 @@ export class VisageSelector extends Application {
 
     async close(options) {
         this._unbindDismissListeners();
-        // Since this is a popOut: true app, super.close() will handle element removal
         return super.close(options);
     }
 
@@ -205,3 +217,4 @@ export class VisageSelector extends Application {
         }
     }
 }
+
