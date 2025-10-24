@@ -1,6 +1,7 @@
 import { Visage } from "./visage.js";
 import { VisageSelector } from "./visage-selector.js";
-import { handleTokenConfig } from "./visage-config.js";
+// Import the new config app
+import { VisageConfigApp } from "./visage-config.js";
 import { handleTokenHUD } from "./visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./visage-cleanup.js";
 
@@ -64,7 +65,7 @@ Visage.apps = {};
  * Hook to register the application when rendered.
  */
 Hooks.on("renderApplication", (app, html, data) => {
-    if (app instanceof VisageSelector) {
+    if (app instanceof VisageSelector || app instanceof VisageConfigApp) {
         Visage.apps[app.options.id] = app;
     }
 });
@@ -73,7 +74,7 @@ Hooks.on("renderApplication", (app, html, data) => {
  * Hook to unregister the application when closed.
  */
 Hooks.on("closeApplication", (app) => {
-    if (app instanceof VisageSelector) {
+    if (app instanceof VisageSelector || app instanceof VisageConfigApp) {
         delete Visage.apps[app.options.id];
     }
 });
@@ -83,12 +84,6 @@ Hooks.on("closeApplication", (app) => {
  * Delegates all logic to the dedicated handler.
  */
 Hooks.on("renderTokenHUD", handleTokenHUD);
-
-/**
- * Hook for the Token Configuration.
- * Delegates all logic to the dedicated handler.
- */
-Hooks.on('renderTokenConfig', handleTokenConfig);
 
 /**
  * Hook for pre-updating a Token.

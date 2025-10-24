@@ -1,0 +1,73 @@
+{{!-- This file was renamed from visage-config-tab.hbs --}}
+
+<form>
+    <div class="visage-config-wrapper">
+        <div class="visage-config-pane">
+            <p class="visage-notes">
+                The default name and image are automatically managed. They are sourced from the token's primary settings. If you manually change either the name or image on the main Token Config window and update the token, the changes will be reflected below when you next view this config.
+            </p>
+
+            <div class="visage-defaults-grid">
+                <div class="form-group">
+                    <label>Default Token Name</label>
+                    <div class="form-fields">
+                        <span class="visage-readonly-field">{{defaultTokenName}}</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Default Token Image</label>
+                    <div class="form-fields">
+                        <span class="visage-readonly-field">{{defaultToken}}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <fieldset class="visage-config-fieldset">
+                <legend>Universal Alternate Visages</legend>
+                <p class="visage-notes">If this token is linked to an actor then these visages will be available to all tokens of that actor.</p>
+                
+                <div class="visage-list-header">
+                    <span>Name</span>
+                    <span>Image Filepath</span>
+                    <span style="text-align: center;">Scale (%)</span>
+                    <span style="text-align: center;">Flip</span>
+                    <span></span>
+                </div>
+                
+                <ol class="visage-list">
+                    {{#each visages}}
+                    <li class="visage-list-item">
+                        <input type="text" name="visage-key" value="{{this.key}}" placeholder="Visage Name (e.g. Wolf)" />
+                        
+                        <div class="visage-path-group form-fields">
+                            <input type="text" name="visage-path" value="{{this.path}}" placeholder="path/to/image.webp" />
+                            <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
+                        </div>
+                        
+                        <div class="visage-scale-group">
+                            <input type="number" name="visage-scale" value="{{this.scale}}" placeholder="100" min="0" max="500" step="5" data-dtype="Number" class="visage-scale-input">
+                            <span class="visage-percent-sign">%</span>
+                        </div>
+                        
+                        <label class="checkbox visage-flip-label">
+                            <input type="checkbox" name="visage-flip-x" {{checked this.isFlippedX}}> 
+                            </label>
+                    
+                        <a class="visage-delete"><i class="fas fa-trash"></i></a>
+                    </li>
+                    {{/each}}
+                </ol>
+
+                <div class="flexrow visage-add-wrapper">
+                    <button type="button" class="visage-add"><i class="fas fa-plus"></i> Add Visage</button>        
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <footer class="visage-config-footer">
+        {{!-- *** ADDED {{#if isDirty}}dirty{{/if}} *** --}}
+        <button type="button" class="visage-save {{#if isDirty}}dirty{{/if}}"><i class="fas fa-save"></i> Save Changes</button>
+    </footer>
+</form>

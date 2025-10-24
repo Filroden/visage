@@ -5,10 +5,13 @@ export async function handleTokenHUD(app, html, data) {
     if (html.querySelector('.visage-button')) return; // Prevent duplicate buttons
 
     const token = app.object; // Get the token document from the HUD
-    if (!token?.actor?.isOwner) return;
+    if (!token?.actor?.isOwner) return; // Still the correct guard
 
     const actor = token.actor;
     const ns = Visage.DATA_NAMESPACE;
+    
+    const sceneId = token.document.parent.id;
+    if (!sceneId) return; 
 
     // --- Default Capture Logic ---
     const tokenFlags = actor.flags?.[ns]?.[token.id];
@@ -18,23 +21,21 @@ export async function handleTokenHUD(app, html, data) {
         updates[`flags.${ns}.${token.id}.defaults`] = {
             name: token.document.name,
             token: token.document.texture.src,
-            scale: token.document.texture.scaleX ?? 1.0 // Add scale default
+            scale: token.document.texture.scaleX ?? 1.0 
         };
-        // Also initialize the current form key.
         updates[`flags.${ns}.${token.id}.currentFormKey`] = 'default';
         
-        // Defer the update to avoid race conditions with other modules' hooks.
         setTimeout(() => actor.update(updates), 0);
     }
 
     // --- HUD Display Logic ---
-    const moduleData = actor.flags?.[ns] || {};
-    const hasAlternates = moduleData.alternateImages && Object.keys(moduleData.alternateImages).length > 0;
-    const currentTokenKey = moduleData[token.id]?.currentFormKey ?? 'default';
-    const isNotDefault = currentTokenKey !== 'default';
-
-    // Show button if there are any alternate forms OR if this token is not in its default state.
-    if (!hasAlternates && !isNotDefault) return;
+    
+    // *** FIX: The lines below that checked for alternates have been REMOVED. ***
+    // const moduleData = actor.flags?.[ns] || {};
+    // const hasAlternates = moduleData.alternateImages && Object.keys(moduleData.alternateImages).length > 0;
+    // const currentTokenKey = moduleData[token.id]?.currentFormKey ?? 'default';
+    // const isNotDefault = currentTokenKey !== 'default';
+    // if (!hasAlternates && !isNotDefault) return; // <-- THIS IS GONE.
 
     const buttonHtml = `
         <div class="control-icon visage-button" title="Change Visage">
@@ -50,7 +51,7 @@ export async function handleTokenHUD(app, html, data) {
     if (button) {
         button.addEventListener("click", () => {
             const actorId = actor.id;
-            const selectorId = `visage-selector-${actorId}-${token.id}`; // Make ID unique per token
+            const selectorId = `visage-selector-${actorId}-${token.id}`; 
 
             if (Visage.apps[selectorId]) {
                 Visage.apps[selectorId].close();
@@ -64,7 +65,7 @@ export async function handleTokenHUD(app, html, data) {
             const top = buttonRect.top; 
             const left = buttonRect.left - selectorWidth - gap; 
 
-            const selectorApp = new VisageSelector(actor.id, token.id, {
+            const selectorApp = new VisageSelector(actor.id, token.id, sceneId, {
                 id: selectorId,
                 left: left,
                 top: top

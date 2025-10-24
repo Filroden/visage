@@ -162,7 +162,6 @@ export class Visage {
             this.log(`Cannot reset to default; no defaults saved for token ${tokenId}.`, true);
             return false;
         }
-        // FIX: Retrieve percentage and convert to factor
         const defaultScaleFactor = defaults.scale ?? 1.0;
         
         newName = defaults.name;
@@ -179,7 +178,6 @@ export class Visage {
         }
         
         const isObject = typeof visageData === 'object' && visageData !== null;
-        // The key is the name in the current data model
         newName = formKey; 
         newTokenPath = isObject ? visageData.path : visageData;
         newScale = isObject ? (visageData.scale ?? 1.0) : 1.0;
@@ -188,7 +186,6 @@ export class Visage {
     const finalTokenPath = await this.resolvePath(newTokenPath);
 
     try {
-        // Update the token document on the scene
         await token.document.update({
             "name": newName,
             "texture.src": finalTokenPath,
@@ -196,7 +193,6 @@ export class Visage {
             "texture.scaleY": Math.abs(newScale) 
         }, { visageUpdate: true });
 
-            // Update the actor flags for this token
             await actor.update({
                 [`flags.${this.DATA_NAMESPACE}.${tokenId}.currentFormKey`]: formKey
             });
@@ -211,11 +207,8 @@ export class Visage {
 
     /**
      * Retrieves a standardized array of visage objects for the actor.
-     * This function abstracts away the internal data structure and ensures a consistent output.
-     *
      * @param {string} actorId - The ID of the actor.
      * @returns {Array<object>|null} - An array of visage objects, or null if not found.
-     * Each object has the structure: { key: string, name: string, path: string, scale: number }.
      */
     static getForms(actorId) {
         const actor = game.actors.get(actorId);
@@ -232,7 +225,7 @@ export class Visage {
             
             return {
                 key: key,
-                name: key, // The name is the key in the current data model
+                name: key,
                 path: path,
                 scale: scale
             };
@@ -249,7 +242,6 @@ export class Visage {
     static isFormActive(actorId, tokenId, formKey) {
         const actor = game.actors.get(actorId);
         const currentFormKey = actor?.flags?.[this.DATA_NAMESPACE]?.[tokenId]?.currentFormKey;
-        // If no key is stored, it's 'default'.
         if (currentFormKey === undefined && formKey === 'default') return true;
         return currentFormKey === formKey;
     }
