@@ -2,7 +2,7 @@
   "id": "visage",
   "title": "Visage",
   "description": "Allow token art and actor portraits to be easily switched to alternative images, including image scaling.",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
