@@ -163,7 +163,7 @@ export class Visage {
             return false;
         }
         // FIX: Retrieve percentage and convert to factor
-        const defaultScaleFactor = (defaults.scale ?? 100) / 100;
+        const defaultScaleFactor = defaults.scale ?? 1.0;
         
         newName = defaults.name;
         newTokenPath = defaults.token;
