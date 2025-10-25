@@ -1,10 +1,9 @@
-{{!-- This file was renamed from visage-config-tab.hbs --}}
-
 <form>
     <div class="visage-config-wrapper">
         <div class="visage-config-pane">
             <p class="visage-notes">
-                The default name and image are automatically managed. They are sourced from the token's primary settings. If you manually change either the name or image on the main Token Config window and update the token, the changes will be reflected below when you next view this config.
+                The default name, image, image scale, and disposition are automatically managed.
+                They are sourced from the token's primary settings. If you manually change any of these in the main Token Config window and update the token, the changes will be reflected below when you next view this config.
             </p>
 
             <div class="visage-defaults-grid">
@@ -32,12 +31,14 @@
                     <span>Image Filepath</span>
                     <span style="text-align: center;">Scale (%)</span>
                     <span style="text-align: center;">Flip</span>
+                    <span style="text-align: center;">Disposition</span>
                     <span></span>
                 </div>
                 
                 <ol class="visage-list">
                     {{#each visages}}
-                    <li class="visage-list-item">
+                    <li class="visage-list-item" data-visage-key="{{this.key}}">
+                        
                         <input type="text" name="visage-key" value="{{this.key}}" placeholder="Visage Name (e.g. Wolf)" />
                         
                         <div class="visage-path-group form-fields">
@@ -49,11 +50,36 @@
                             <input type="number" name="visage-scale" value="{{this.scale}}" placeholder="100" min="0" max="500" step="5" data-dtype="Number" class="visage-scale-input">
                             <span class="visage-percent-sign">%</span>
                         </div>
-                        
+             
                         <label class="checkbox visage-flip-label">
                             <input type="checkbox" name="visage-flip-x" {{checked this.isFlippedX}}> 
-                            </label>
-                    
+                        </label>
+                   
+                        <div class="visage-disposition-cell">
+                            <button type="button" class="visage-disposition-button">
+                                {{this.dispositionButtonText}}
+                            </button>
+                            <div class="visage-disposition-popout" style="display: none;">
+                                <div class="form-group">
+                                    <input type="radio" name="visage-disposition-type-{{@index}}" value="none" {{checked (eq this.dispositionType "none")}} />
+                                    <label>Default (No Change)</label>
+                                </div>
+                                <div class="form-group">
+                                    <input type="radio" name="visage-disposition-type-{{@index}}" value="disguise" {{checked (eq this.dispositionType "disguise")}} />
+                                    <label>Disguise As:</label>
+                                    <select name="visage-disposition-value" {{disabled (neq this.dispositionType "disguise")}}>
+                                        <option value="1" {{selected (eq this.dispositionValue 1)}}>Friendly</option>
+                                        <option value="0" {{selected (eq this.dispositionValue 0)}}>Neutral</option>
+                                        <option value="-1" {{selected (eq this.dispositionValue -1)}}>Hostile</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <input type="radio" name="visage-disposition-type-{{@index}}" value="illusion" {{checked (eq this.dispositionType "illusion")}} />
+                                    <label>Illusion (Secret)</label>
+                                </div>
+                            </div>
+                        </div>
+
                         <a class="visage-delete"><i class="fas fa-trash"></i></a>
                     </li>
                     {{/each}}
@@ -67,7 +93,6 @@
     </div>
 
     <footer class="visage-config-footer">
-        {{!-- *** ADDED {{#if isDirty}}dirty{{/if}} *** --}}
         <button type="button" class="visage-save {{#if isDirty}}dirty{{/if}}"><i class="fas fa-save"></i> Save Changes</button>
     </footer>
 </form>
