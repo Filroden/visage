@@ -11,6 +11,7 @@
             <img src="{{this.resolvedPath}}" alt="{{this.name}}"/>
             <span class="visage-tile-name">{{this.name}}</span>
             
+     
             {{#if this.isActive}}
             <div class="visage-chip">
                 <img src="modules/visage/icons/check_circle.svg" alt="Active"/>
@@ -34,10 +35,15 @@
             </div>
             {{/if}}
 
-            {{!-- *** NEW: Wildcard Indicator *** --}}
             {{#if this.isWildcard}}
             <div class="visage-wildcard-indicator" title="Wildcard Path (Random Image)">
                 <img src="modules/visage/icons/shuffle.svg" alt="Wildcard"/>
+            </div>
+            {{/if}}
+
+            {{#if this.showDispositionChip}}
+            <div class="visage-disposition-chip {{this.dispositionClass}}">
+                <span>{{this.dispositionName}}</span>
             </div>
             {{/if}}
 

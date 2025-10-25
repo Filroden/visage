@@ -1,16 +1,32 @@
-/* --- GENERAL STYLES --- */
+/**
+ * Main stylesheet for the Visage module.
+ *
+ * This file contains all styles for:
+ * 1. The Visage Selector (the pop-up grid)
+ * 2. The Visage Configuration (the main settings window)
+ * 3. A dark theme for the configuration window
+ */
 
+/* --- GENERAL & SHARED STYLES --- */
+
+/**
+ * Basic styling for fieldset elements used in the config app.
+ */
 .visage-config-fieldset {
     padding: 1rem;
     margin-top: 1rem;
     gap: 0.5rem;
 }
 
+/**
+ * Styles for a "read-only" text field.
+ * Used to display the token's default name/path in the config app.
+ */
 .visage-readonly-field {
     margin: 0;
     padding: 0;
     background: transparent;
-    color: #4b4a44;
+    color: #4b4a44; /* Dark text for light theme */
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: break-word;;
@@ -19,6 +35,10 @@
     width: 100%;
 }
 
+/**
+ * A grid layout for the "Default" information section in the config app.
+ * Aligns labels and their read-only values.
+ */
 .visage-defaults-grid {
     display: grid;
     grid-template-columns: max-content 1fr;
@@ -27,27 +47,48 @@
     margin: 0.5rem 1rem;
 }
 
+/**
+ * A CSS trick to make Foundry's .form-group elements
+ * integrate seamlessly into our .visage-defaults-grid layout.
+ */
 .visage-defaults-grid .form-group,
 .visage-defaults-grid .form-group .form-group-fields {
     display: contents;
 }
 
-/* --- LIST/GRID STYLES (NEW) --- */
 
+/* --- CONFIG APP: VISAGE LIST STYLES --- */
+
+/**
+ * Defines the core grid layout for the list of visages in the config app.
+ * This rule applies to both the header row and each item row.
+ *
+ * Columns:
+ * 1: Name (1.5fr, min 100px)
+ * 2: Image Path (4fr, min 0)
+ * 3: Scale (max-content, min 70px)
+ * 4: Flip Checkbox (30px)
+ * 5: Disposition Button (1.2fr, min 100px)
+ * 6: Delete Button (20px)
+ */
 .visage-list-header,
 .visage-list .visage-list-item {
     display: grid;
-    grid-template-columns: 
+    grid-template-columns:
         minmax(100px, 1.5fr)        /* Col 1: Name */
         minmax(0, 4fr)              /* Col 2: Image Path Group */
         minmax(70px, max-content)   /* COL 3: Scale + % */
         minmax(30px, 30px)          /* Col 4: Flip Checkbox */
-        minmax(20px, 20px);         /* Col 5: Delete Button */
+        minmax(100px, 1.2fr)        /* Col 5: Disposition */
+        minmax(20px, 20px);         /* Col 6: Delete Button */
     gap: 10px;
     align-items: center;
     padding: 2px 0;
 }
 
+/**
+ * Styles for the header row (Name, Image Path, Scale, etc.).
+ */
 .visage-list-header {
     font-weight: bold;
     border-bottom: 1px solid #c8c8c8;
@@ -58,12 +99,19 @@
     color: #4b4a44;
 }
 
-.visage-list-header span:nth-child(1) { grid-column: 1; }                       
-.visage-list-header span:nth-child(2) { grid-column: 2; }                       
-.visage-list-header span:nth-child(3) { grid-column: 3; text-align: center; }   
-.visage-list-header span:nth-child(4) { grid-column: 4; text-align: center; }   
-.visage-list-header span:nth-child(5) { grid-column: 5; }                       
+/**
+ * Assigns each header label <span> to its correct grid column.
+ */
+.visage-list-header span:nth-child(1) { grid-column: 1; }
+.visage-list-header span:nth-child(2) { grid-column: 2; }
+.visage-list-header span:nth-child(3) { grid-column: 3; text-align: center; }
+.visage-list-header span:nth-child(4) { grid-column: 4; text-align: center; }
+.visage-list-header span:nth-child(5) { grid-column: 5; text-align: center; }
+.visage-list-header span:nth-child(6) { grid-column: 6; }
 
+/**
+ * Container for the list of <li> items.
+ */
 .visage-list {
     list-style: none;
     padding: 0;
@@ -73,14 +121,22 @@
     gap: 5px;
 }
 
+/**
+ * Defines a nested grid for the path input field and the file picker button,
+ * so they sit side-by-side within the larger grid's 2nd column.
+ */
 .visage-list-item .visage-path-group {
-    grid-column: 2; 
-    display: grid; 
-    grid-template-columns: 1fr auto; 
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
-    gap: 5px; 
+    gap: 5px;
 }
 
+/**
+ * A flex container for the scale <input> and the "%" sign.
+ * Placed in the 3rd grid column.
+ */
 .visage-scale-group {
     display: flex;
     align-items: center;
@@ -89,24 +145,34 @@
     gap: 4px;
 }
 
+/**
+ * Fixes the width of the scale input field to 6 characters.
+ */
 .visage-scale-input {
-    width: 6ch; 
-    max-width: 6ch; 
+    width: 6ch;
+    max-width: 6ch;
     min-width: 6ch;
-    flex-grow: 0; 
+    flex-grow: 0;
     flex-shrink: 0;
     margin-right: 0;
-    text-align: center; 
+    text-align: center;
 }
 
+/**
+ * Styles the "%" sign next to the scale input.
+ */
 .visage-percent-sign {
     flex-shrink: 0;
     line-height: 24px;
     width: 1ch;
 }
 
+/**
+ * Styles for the "Flip" checkbox label in the 4th grid column.
+ */
 .visage-flip-label {
     grid-column: 4;
+    display: flex;
     justify-content: center;
     align-items: center;
     font-size: 0;
@@ -118,18 +184,104 @@
     margin: 0;
 }
 
+/**
+ * Styles for the "Delete" (X) button in the 6th grid column.
+ */
 .visage-list-item .visage-delete {
-    grid-column: 5;
+    grid-column: 6;
     text-align: center;
     cursor: pointer;
 }
 
-/* --- VISAGE SELECTOR APP STYLES --- */
+/**
+ * Styles for the Disposition controls in the 5th grid column
+ */
+.visage-disposition-cell {
+    position: relative;
+    grid-column: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
+.visage-disposition-button {
+    width: 100%;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 4px 8px;
+}
+
+.visage-disposition-popout {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    min-width: 200px;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 100; /* Float above other rows */
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: #191813;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    align-items: flex-start;
+}
+
+/* Styles for controls inside the pop-out */
+.visage-disposition-popout .form-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    width: 100%;
+    padding: 4px;
+    border-radius: 3px;
+    transition: background-color 0.1s ease;
+    clear: none;
+}
+
+/* Hover effect for popout rows */
+.visage-disposition-popout .form-group:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.visage-disposition-popout .form-group label {
+    margin: 0;
+    white-space: nowrap;
+    flex: 0 0 auto; /* <<< Don't grow or shrink label */
+}
+.visage-disposition-popout .form-group select {
+    text-align: left;
+    flex: 0 1 auto; /* <<< Don't grow, allow shrink, auto basis */
+    width: auto; /* Let browser determine width */
+    min-width: 100px;
+}
+
+.visage-disposition-popout .form-group select option {
+    text-align: left;
+}
+
+.visage-disposition-popout .form-group input[type="radio"] {
+    margin: 0;
+    flex: 0 0 auto; /* <<< Don't grow or shrink radio */
+}
+
+/* --- VISAGE SELECTOR APP STYLES (POP-UP) --- */
+
+/**
+ * Main window content for the selector pop-up.
+ * Creates the dark, transparent, rounded-corner appearance.
+ */
 .visage-selector-app .window-content {
     border: none;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
-    background: rgba(40, 40, 40, 0.85); 
+    background: rgba(40, 40, 40, 0.85);
     color: #fff;
     border-radius: 12px;
     z-index: 20;
@@ -139,12 +291,19 @@
     padding: 10px;
 }
 
+/**
+ * Hides the default Foundry window header (title bar).
+ */
 .visage-selector-app .window-header {
     display: none;
 }
 
+/**
+ * Styles for the custom header *inside* the selector,
+ * containing the title and the config (gear) button.
+ */
 .visage-selector-header {
-    flex: none;
+    flex: none; /* Don't grow or shrink */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -156,12 +315,15 @@
 .visage-selector-header .visage-title {
     margin: 0;
     font-size: 1rem;
-    text-align: left; 
+    text-align: left;
     text-transform: uppercase;
     color: #ffffff;
-    flex-grow: 1; 
+    flex-grow: 1;
 }
 
+/**
+ * Styles for the config (gear) button in the selector header.
+ */
 .visage-config-button {
     flex: none;
     width: 20px;
@@ -184,28 +346,38 @@
     opacity: 1;
 }
 
+/**
+ * The scrollable container for the grid of visage tiles.
+ * Sets a max-height to prevent the pop-up from being too tall.
+ */
 .visage-selector-grid-wrapper {
     overflow-y: auto;
     flex-grow: 1;
-    padding: 10px 18px 4px 8px;
-    scrollbar-width: initial !important; 
+    padding: 10px 18px 12px 8px; /* Padding to make room for scrollbar */
+    scrollbar-width: initial !important;
     scrollbar-color: initial !important;
-    max-height: 400px; 
+    max-height: 400px;
 }
 
+/**
+ * Defines the 2-column grid layout for the visage tiles.
+ */
 .visage-selector {
     display: grid;
-    grid-template-columns: 1fr 1fr; 
-    gap: 12px 8px;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 12px;
     width: 100%;
 }
 
+/**
+ * Styles for an individual visage tile.
+ */
 .visage-tile {
-    position: relative; 
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 2px solid #8a782c;
+    border: 2px solid #8a782c; /* Gold border */
     border-radius: 4px;
     padding: 4px;
     cursor: pointer;
@@ -215,14 +387,20 @@
 
 .visage-tile:hover {
     background-color: rgba(255, 100, 0, 0.2);
-    border-color: #CBB047;
+    border-color: #CBB047; /* Brighter gold */
 }
 
+/**
+ * Style for the currently active visage tile.
+ */
 .visage-tile.active {
     background-color: rgba(40, 167, 69, 0.2);
     border-color: #28a745;
 }
 
+/**
+ * Styles for the image preview inside the tile.
+ */
 .visage-tile img {
     width: 64px;
     height: 64px;
@@ -231,6 +409,9 @@
     border: none;
 }
 
+/**
+ * Styles for the name displayed below the image preview.
+ */
 .visage-tile-name {
     font-size: 11px;
     text-align: center;
@@ -242,6 +423,43 @@
     color: #ffffff;
 }
 
+/**
+ * Disposition chip (bottom-center, colored)
+ */
+.visage-tile .visage-disposition-chip {
+position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 8px;
+    font-weight: bold;
+    color: #DDDDDD;
+    border: 1px solid #000;
+    z-index: 9;
+    white-space: nowrap;
+    background-color: #000;
+}
+
+.visage-disposition-chip.friendly {
+    border-color: #00ffff; /* Bold Cyan */
+}
+.visage-disposition-chip.neutral {
+    border-color: #ffff00; /* Bold Yellow */
+}
+.visage-disposition-chip.hostile {
+    border-color: #ff0000; /* Bold Red */
+}
+.visage-disposition-chip.secret {
+    border-color: #ff00ff; /* Bold Purple */
+}
+
+
+/**
+ * Base style for all circular "chips" (indicators) on a tile.
+ * Uses absolute positioning to sit on top of the tile.
+ */
 .visage-chip {
     position: absolute;
     top: -8px;
@@ -249,7 +467,7 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background-color: #28a745;
+    background-color: #28a745; /* Default: Active chip */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -260,10 +478,13 @@
 .visage-chip img {
     width: 12px;
     height: 12px;
-    filter: invert(100%); 
+    filter: invert(100%); /* Makes the icon white */
     border: none;
 }
 
+/**
+ * "Default" indicator chip (top-left, gold).
+ */
 .visage-default-indicator {
     position: absolute;
     top: -8px;
@@ -286,7 +507,9 @@
     border: none;
 }
 
-/* *** NEW: Wildcard Indicator Style *** */
+/**
+ * "Wildcard" indicator chip (bottom-left, blue).
+ */
 .visage-wildcard-indicator {
     position: absolute;
     bottom: -8px;
@@ -309,7 +532,9 @@
     border: none;
 }
 
-
+/**
+ * "Data" chip (top-center, dark) used to show scale/flip info.
+ */
 .visage-data-chip {
     position: absolute;
     top: -8px;
@@ -343,22 +568,31 @@
     white-space: nowrap;
 }
 
-/* --- CONFIG APP STYLES --- */
+/* --- CONFIG APP: MAIN LAYOUT --- */
+
+/**
+ * Main window content for the config app.
+ * Uses flex-column to create a header-content-footer layout.
+ * Overflow is hidden here; scrolling is handled by the wrapper.
+ */
 .visage-config-app .window-content {
     display: flex;
     flex-direction: column;
-    height: 100% !important; 
+    height: 100% !important;
     padding: 10px;
-    overflow: hidden; 
-    max-height: 70vh;
+    overflow: hidden;
+    max-height: 70vh; /* Prevent it from being too tall */
 }
 
+/**
+ * The main scrollable area within the config app window.
+ */
 .visage-config-wrapper {
     overflow-y: auto;
-    flex-grow: 1; 
-    scrollbar-width: initial !important; 
+    flex-grow: 1; /* Takes up all available space */
+    scrollbar-width: initial !important;
     scrollbar-color: initial !important;
-    padding-right: 5px; 
+    padding-right: 5px; /* Space for scrollbar */
 }
 
 .visage-config-pane {
@@ -367,16 +601,19 @@
 }
 
 .visage-config-fieldset {
-    flex-grow: 1; 
+    flex-grow: 1;
 }
 
 .visage-add-wrapper {
     margin-top: 10px;
 }
 
+/**
+ * The footer area containing the "Save Changes" button.
+ */
 .visage-config-footer {
-    flex: none; 
-    border-top: 1px solid #c9c7c1; 
+    flex: none; /* Don't grow or shrink */
+    border-top: 1px solid #c9c7c1; /* Light theme border */
     padding-top: 10px;
     margin-top: 10px;
     display: flex;
@@ -384,6 +621,8 @@
 }
 
 /* --- CUSTOM SCROLLBAR STYLES --- */
+
+/* --- Webkit scrollbar styles (Chrome, Safari, Edge) --- */
 .visage-selector-grid-wrapper::-webkit-scrollbar,
 .visage-config-wrapper::-webkit-scrollbar {
     width: 8px !important;
@@ -392,10 +631,11 @@
 
 .visage-selector-grid-wrapper::-webkit-scrollbar-track,
 .visage-config-wrapper::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1) !important; 
+    background: rgba(0, 0, 0, 0.1) !important;
     border-radius: 10px !important;
 }
 
+/* Scrollbar for Selector (Dark, Gold) */
 .visage-selector-grid-wrapper::-webkit-scrollbar-thumb {
     background-color: #a99335 !important;
     border-radius: 10px !important;
@@ -405,6 +645,7 @@
     background-color: #CBB047 !important;
 }
 
+/* Scrollbar for Config (Light, Grey) - Will be overridden by dark theme */
 .visage-config-wrapper::-webkit-scrollbar-thumb {
     background-color: #7a7971 !important;
     border-radius: 10px !important;
@@ -414,21 +655,37 @@
     background-color: #4b4a44 !important;
 }
 
-
+/* Hide scrollbar arrow buttons */
 .visage-selector-grid-wrapper::-webkit-scrollbar-button,
 .visage-config-wrapper::-webkit-scrollbar-button {
     display: none;
 }
 
 
-/* --- BEGIN NEW DARK THEME FOR CONFIG APP --- */
+/* --- CONFIG APP --- */
 
-.visage-dark-theme.visage-config-app .window-content {
-    background: #191813; /* Dark background */
+/* --- Base Styles --- */
+.visage-dark-theme.visage-config-app .window-content,
+.visage-dark-theme.visage-config-app .window-header {
+    background: #191813;
     color: rgba(255, 255, 255, 0.8);
 }
 
-/* --- Header / Footer --- */
+.visage-dark-theme.visage-config-app {
+    border-radius: 12px;
+    width: clamp(650px, 70vw, 1000px);
+}
+
+.visage-dark-theme.visage-config-app .window-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.visage-dark-theme.visage-config-app .window-header .window-title {
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+/* --- Dark Theme: Header / Footer --- */
 .visage-dark-theme .visage-config-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -438,7 +695,7 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* --- General Text & Links --- */
+/* --- Dark Theme: Text & Links --- */
 .visage-dark-theme .visage-notes,
 .visage-dark-theme label,
 .visage-dark-theme .visage-percent-sign {
@@ -454,10 +711,10 @@
     transition: color 0.1s ease;
 }
 .visage-dark-theme .visage-delete:hover {
-    color: #ff6400;
+    color: #ff6400; /* Orange-red */
 }
 
-/* --- Fieldset --- */
+/* --- Dark Theme: Fieldset --- */
 .visage-dark-theme .visage-config-fieldset {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 5px;
@@ -467,38 +724,67 @@
     font-weight: bold;
 }
 
-/* --- Inputs --- */
+/* --- Dark Theme: Inputs --- */
 .visage-dark-theme input[type="text"],
-.visage-dark-theme input[type="number"] {
+.visage-dark-theme input[type="number"],
+.visage-dark-theme select {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: rgba(255, 255, 255, 0.8);
     border-radius: 3px;
 }
 .visage-dark-theme input[type="text"]:focus,
-.visage-dark-theme input[type="number"]:focus {
+.visage-dark-theme input[type="number"]:focus,
+.visage-dark-theme select:focus {
     border-color: #a99335;
     box-shadow: 0 0 5px #a99335;
 }
 
-/* --- Buttons --- */
-.visage-dark-theme button,
-.visage-dark-theme .visage-delete {
+/* NEW: Style the dropdown options list */
+.visage-dark-theme select option {
+    background: #191813;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+
+/* NEW: Fix radio button/checkbox appearance */
+.visage-dark-theme input[type="radio"],
+.visage-dark-theme input[type="checkbox"] {
+    accent-color: #a99335; /* Gold */
+}
+
+
+/* --- Dark Theme: Buttons --- */
+.visage-dark-theme button {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: rgba(255, 255, 255, 0.8);
     border-radius: 3px;
-    transition: background-color 0.1s, border-color 0.1s;
+    transition: background-color 0.1s, border-color 0.1s, color 0.1s ease; /* Added color transition */
 }
 
-.visage-dark-theme button:hover,
-.visage-dark-theme .visage-delete:hover {
+.visage-dark-theme button:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: #a99335;
-    box-shadow: none; /* Your override */
+    border-color: #a99335; /* Gold border by default */
+    box-shadow: none; /* Override default button shadow */
 }
 
-/* --- Save Button Dirty State --- */
+.visage-dark-theme .visage-delete {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.visage-dark-theme .visage-delete:hover {
+    border-color: rgba(255, 255, 255, 0.2); /* Set border back to non-hover state */
+    color: #ff6400; /* Keep or reinforce the red text color on hover */
+    box-shadow: none;
+}
+
+/* --- Dark Theme: Save Button "Dirty" State --- */
+/**
+ * When the .visage-save button also has the .dirty class,
+ * make it gold to indicate changes are waiting to be saved.
+ */
 .visage-dark-theme .visage-save.dirty {
     background: #a99335;
     border-color: #a99335;
@@ -506,12 +792,12 @@
     font-weight: bold;
 }
 .visage-dark-theme .visage-save.dirty:hover {
-    background: #CBB047;
+    background: #CBB047; /* Brighter gold */
     border-color: #CBB047;
-    box-shadow: 0 0 8px #CBB047; /* Has its own shadow */
+    box-shadow: 0 0 8px #CBB047;
 }
 
-/* --- Dark Scrollbar --- */
+/* --- Dark Theme: Scrollbar --- */
 .visage-dark-theme .visage-config-wrapper::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.2) !important;
 }
@@ -522,5 +808,3 @@
 .visage-dark-theme .visage-config-wrapper::-webkit-scrollbar-thumb:hover {
     background-color: #CBB047 !important;
 }
-
-/* --- END DARK THEME --- */
