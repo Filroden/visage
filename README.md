@@ -236,7 +236,7 @@ const actorId = token.actor.id; // Works for both linked and unlinked tokens
 
 | Version | Changes |
 | :--- | :--- |
-| **Version 1.0.0** | **FULL RELEASE**<br>* Refactored internal data storage from name-keyed to UUID-keyed actor flags for improved data integrity<br>* Added one time migration for beta-testers<br>* Additional documentation improvements before public releaseAdditional documentation improvements before public release |
+| **Version 1.0.0** | **FULL RELEASE**<br>* Refactored internal data storage from name-keyed to UUID-keyed actor flags for improved data integrity<br>* Added one time migration for beta-testers<br>* Additional documentation improvements before public release |
 | **Version 0.5.0** | * Add feature to configure and apply token disposition (Friendly, Neutral, Hostile, Secret) with each visage, enabling disguise and illusion mechanics.<br>* Update styling for configuration window and selector HUD chip.<br>* Update documentation<br>* Small styling changes to Visage Configuration window |
 | **Version 0.4.0** | * Significant re-write<br>* Move the token configuration from the default token window where there was a rendering issue, to its own window, opened by clicking a setting cog in the Visage Selector HUD<br>* Add styling to the "Save Changes" button if there are changes to be saved<br>* Match the new config window style to the Selector HUD style<br>* Sort Visage forms in the Selector HUD in alphabetical order with the default always first<br>* Add shuffle icon on any visage form that uses a wildcard within its filepath to show user they can select it again for a different random pick |
 | **Version 0.3.4** | Fix flip option for token images |
