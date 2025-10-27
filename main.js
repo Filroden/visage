@@ -19,15 +19,43 @@ import { VisageConfigApp } from "./visage-config.js";
 // Dedicated handlers for specific hooks
 import { handleTokenHUD } from "./visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./visage-cleanup.js";
+import { migrateWorldData } from "./visage-migration.js";
 
-// --- Module Initialization ---
+// --- Module Initialisation ---
+
+/**
+ * Hooks into the 'ready' event to perform data migration if needed.
+ */
+Hooks.once("ready", () => {
+    // 1. Get the last version the module ran on this world.
+    // The module version is stored in the World's `core.json`.
+    const lastVersion = game.settings.get("visage", "worldVersion");
+    const currentVersion = game.modules.get("visage").version;
+
+    // 2. Check if the module version is newer than the stored version.
+    // This handles upgrades from any previous version (e.g., 0.5.0) to 1.0.0.
+    if (isNewerVersion(currentVersion, lastVersion)) {
+        
+        // Check specifically for migration-required versions
+        // If the *old* version was less than 1.0.0, we must migrate.
+        if (isNewerVersion("1.0.0", lastVersion)) {
+             Visage.log(`World migration needed: ${lastVersion} -> ${currentVersion}`, true);
+             // Call the migration function
+             migrateWorldData();
+        }
+        
+        // 3. IMPORTANT: Update the stored version *after* migration (or even if no migration was needed 
+        // for future proofing), so this block doesn't run again on reload.
+        game.settings.set("visage", "worldVersion", currentVersion);
+    }
+});
 
 /**
  * Registers the 'init' hook, which fires once the game is ready.
  * This is the primary setup function for the module.
  */
 Hooks.once("init", () => {
-    // Run the main initialization logic from the Visage class
+    // Run the main initialisation logic from the Visage class
     Visage.initialize();
 
     // --- Register Handlebars Helpers ---
@@ -86,6 +114,15 @@ Hooks.once("init", () => {
             }
         },
     });
+
+    game.settings.register("visage", "worldVersion", {
+        name: "World Data Version",
+        scope: "world",
+        config: false,       // Hidden setting
+        type: String,
+        default: "0.0.0"     // Starting version for new worlds
+    });
+
 });
 
 // --- Application Tracking ---
@@ -103,7 +140,7 @@ Visage.apps = {};
  * of Visage's UIs and adds it to the `Visage.apps` registry.
  */
 Hooks.on("renderApplication", (app, html, data) => {
-    // Check if the rendered app is an instance of our specific UI classes
+    // Check if the rendered app is an instance of specific UI classes
     if (app instanceof VisageSelector || app instanceof VisageConfigApp) {
         // Store the application instance, keyed by its unique app ID
         Visage.apps[app.options.id] = app;

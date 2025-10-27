@@ -46,11 +46,9 @@ export class VisageSelector extends Application {
      * @override
      */
     static get defaultOptions() {
-        return mergeObject(super.defaultOptions, {
-            // Path to the Handlebars template for this UI
+        return foundry.utils.mergeObject(super.defaultOptions, {
             template: `modules/visage/templates/visage-selector.hbs`,
             title: "Choose Visage",
-            // Use custom CSS classes for a borderless, pop-up feel
             classes: ["visage-selector-app", "borderless"],
             popOut: true,
             width: 200,
@@ -59,8 +57,8 @@ export class VisageSelector extends Application {
             left: 0,        // Will be positioned manually by visage-hud.js
             minimizable: false,
             resizable: false,
-            // We set this to false because we implement a custom "close on unfocus"
-            // logic in _bindDismissListeners to have more control.
+            // This is set to false because a custom "close on unfocus" logic is
+            // implemented in _bindDismissListeners to have more control.
             closeOnUnfocus: false
         });
     }
@@ -121,7 +119,7 @@ export class VisageSelector extends Application {
         }
 
         // --- Prepare Form Data for Template ---
-        const alternateImages = moduleData.alternateImages || {};
+        const alternateVisages = moduleData[Visage.ALTERNATE_FLAG_KEY] || {}; 
         const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
 
         const forms = {};
@@ -158,17 +156,14 @@ export class VisageSelector extends Application {
         }
 
         // 2. Add all configured alternate visages
-        for (const [key, data] of Object.entries(alternateImages)) {
+        // Loop over UUIDs and data
+        for (const [uuid, data] of Object.entries(alternateVisages)) {
             // Handle old string-only data format vs. new {path, scale} object
             const isObject = typeof data === 'object' && data !== null;
             const path = isObject ? (data.path || "") : (data || ""); // Ensure path
             const scale = isObject ? (data.scale ?? 1.0) : 1.0;
 
-            // Handle legacy disposition `2`
             let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
-            if (disposition === 2) {
-                disposition = -2;
-            }
 
             // Calculate display values
             const isFlippedX = scale < 0;
@@ -180,12 +175,12 @@ export class VisageSelector extends Application {
             // Disposition properties
             const dispositionInfo = (disposition !== null) ? this._dispositionMap[disposition] : null;
 
-            forms[key] = {
-                key: key,
-                name: key, // The display name is just the key
-                path: path,
-                scale: scale,
-                isActive: key === currentFormKey, // Check if it's active
+            forms[uuid] = {
+                key: uuid,
+                name: data.name,
+                path: data.path,
+                scale: data.scale,
+                isActive: uuid === currentFormKey, // Check against UUID
                 isDefault: false,
                 isFlippedX: isFlippedX,
                 displayScale: displayScale,
@@ -193,7 +188,6 @@ export class VisageSelector extends Application {
                 absScale: absScale,
                 // Check if the path is a wildcard
                 isWildcard: path.includes('*'),
-                // Disposition data
                 showDispositionChip: !!dispositionInfo,
                 dispositionName: dispositionInfo?.name || "",
                 dispositionClass: dispositionInfo?.class || ""
@@ -203,7 +197,9 @@ export class VisageSelector extends Application {
         // --- Sort and Resolve Paths ---
         // Create an ordered array: Default first, then all others alphabetically
         const orderedForms = [forms["default"]];
-        const alternateKeys = Object.keys(forms).filter(k => k !== "default").sort();
+        const alternateKeys = Object.keys(forms).filter(k => k !== "default").sort((a, b) => {
+            return forms[a].name.localeCompare(forms[b].name); // <- Sort by name
+        });
         for(const key of alternateKeys) {
             orderedForms.push(forms[key]);
         }
@@ -228,7 +224,7 @@ export class VisageSelector extends Application {
         html.on('click', '.visage-tile', this._onSelectVisage.bind(this));
         // Button: Open the full configuration window
         html.on('click', '.visage-config-button', this._onOpenConfig.bind(this));
-        // Activate our custom "close on unfocus" behavior
+        // Activate custom "close on unfocus" behavior
         this._bindDismissListeners();
     }
 
@@ -242,7 +238,7 @@ export class VisageSelector extends Application {
         // Create a unique ID for the config app
         const configId = `visage-config-${this.actorId}-${this.tokenId}`;
 
-        // Check our global app tracker (from main.js)
+        // Check global app tracker (from main.js)
         if (Visage.apps[configId]) {
             // If it's already open, just bring it to the front
             Visage.apps[configId].bringToTop();
@@ -297,7 +293,7 @@ export class VisageSelector extends Application {
     }
 
     /**
-     * Overrides the default close method to ensure our global
+     * Overrides the default close method to ensure global
      * listener is always cleaned up.
      * @override
      */
@@ -316,7 +312,7 @@ export class VisageSelector extends Application {
         if (!tile) return;
 
         // Get the form key from the tile's data- attribute
-        const formKey = tile.dataset.formKey;
+        const formKey = tile.dataset.formKey; // formKey is the UUID or "default"
         if (formKey) {
             // Call the main API to change the token's appearance
             await Visage.setVisage(this.actorId, this.tokenId, formKey);
