@@ -16,7 +16,7 @@ import { VisageSelector } from "./visage-selector.js";
  * @param {object} data - The data object for the token.
  */
 export async function handleTokenHUD(app, html, data) {
-    // If our button already exists, don't do anything.
+    // If button already exists, don't do anything.
     // This prevents duplicating the button on re-renders.
     if (html.querySelector('.visage-button')) return;
 
@@ -85,7 +85,7 @@ export async function handleTokenHUD(app, html, data) {
             // to allow multiple selectors to be open for different tokens.
             const selectorId = `visage-selector-${actorId}-${token.id}`; 
 
-            // Check if an app with this ID is already open (using our tracker)
+            // Check if an app with this ID is already open.
             if (Visage.apps[selectorId]) {
                 // If it is, close it instead of opening a new one.
                 Visage.apps[selectorId].close();
@@ -105,7 +105,7 @@ export async function handleTokenHUD(app, html, data) {
 
             // Create a new instance of the VisageSelector application
             const selectorApp = new VisageSelector(actor.id, token.id, sceneId, {
-                id: selectorId, // Assign our unique ID
+                id: selectorId, // Assign unique ID
                 left: left,
                 top: top
             });

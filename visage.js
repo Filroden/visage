@@ -18,6 +18,8 @@ export class Visage {
      * @type {string}
      */
     static DATA_NAMESPACE = "visage";
+    static ALTERNATE_FLAG_KEY = "alternateVisages";
+    static LEGACY_FLAG_KEY = "alternateImages";
 
     /**
      * A utility function for logging messages to the console.
@@ -81,7 +83,7 @@ export class Visage {
     }
 
     /**
-     * Initializes the module.
+     * Initialises the module.
      * This method is called once by the 'init' hook in main.js.
      * Its primary role is to set up the public API on `game.modules`.
      */
@@ -110,9 +112,8 @@ export class Visage {
      * @param {object} options - Additional options for the update.
      */
     static handleTokenUpdate(tokenDocument, change, options) {
-        // IMPORTANT: If the update is coming from our own `setVisage` function,
-        // (which sets `options.visageUpdate = true`), we must abort
-        // to prevent an infinite update loop.
+        // IMPORTANT: If the update is coming from this module's `setVisage` function,
+        // (which sets `options.visageUpdate = true`), abort to prevent an infinite update loop.
         if (options.visageUpdate) return;
 
         const actor = tokenDocument.actor;
@@ -124,7 +125,7 @@ export class Visage {
         const hasChangedTextureScale = "texture" in change && ("scaleX" in change.texture || "scaleY" in change.texture);
         const hasChangedDisposition = "disposition" in change;
 
-        // If nothing we care about changed, do nothing.
+        // If nothing relevant has changed, do nothing.
         if (hasChangedName || hasChangedTextureSrc || hasChangedTextureScale || hasChangedDisposition) {
             const tokenId = tokenDocument.id;
             const updateData = {};
@@ -155,7 +156,7 @@ export class Visage {
             }
 
             // Asynchronously update the actor's flags
-            // We do this in a non-blocking way to avoid holding up the original token update.
+            // Do this in a non-blocking way to avoid holding up the original token update.
             if (Object.keys(updateData).length > 0) {
                 actor.update(updateData).then(() => {
                     this.log(`Default visage updated for token ${tokenId}.`);
@@ -212,29 +213,19 @@ export class Visage {
 
         } else {
             // Case: Switching to an alternate form.
-            const alternateImages = moduleData.alternateImages || {};
-            const visageData = alternateImages[formKey];
+            const alternateVisages = moduleData[this.ALTERNATE_FLAG_KEY] || {};
+            const visageData = alternateVisages[formKey];
             
             if (!visageData) {
                 this.log(`Form key "${formKey}" not found for actor ${actorId}`, true);
                 return false;
             }
             
-            // Check if the data is stored as a complex object {path, scale} or just a simple string (path)
-            const isObject = typeof visageData === 'object' && visageData !== null;
-            
-            newName = formKey; // The form's name is its key
-            
-            if (isObject) {
-                newTokenPath = visageData.path;
-                newScale = visageData.scale ?? 1.0;
-                newDisposition = visageData.disposition; // This can be null
-            } else {
-                // Handle legacy string-only data
-                newTokenPath = visageData;
-                newScale = 1.0;
-                newDisposition = null; // No disposition data
-            }
+            // Extract the visage data
+            newName = visageData.name;
+            newTokenPath = visageData.path;
+            newScale = visageData.scale ?? 1.0;
+            newDisposition = visageData.disposition;
         }
 
         // Resolve the path (handles wildcards)
@@ -257,7 +248,7 @@ export class Visage {
         // --- Apply the updates ---
         try {
             // 1. Update the token document on the canvas
-            await token.document.update(updateData, { visageUpdate: true }); // Pass our custom option to prevent the hook loop
+            await token.document.update(updateData, { visageUpdate: true }); // Pass custom option to prevent the hook loop
 
             // 2. Update the actor's flags to store the new active form
             await actor.update({
@@ -284,22 +275,21 @@ export class Visage {
      */
     static getForms(actorId) {
         const actor = game.actors.get(actorId);
-        const alternateImages = actor?.flags?.[this.DATA_NAMESPACE]?.alternateImages;
+        const alternateVisages = actor?.flags?.[this.DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY];
 
         if (!alternateImages) {
             return null; // No forms configured
         }
 
-        // Map the stored object data into a standardized array format
-        return Object.entries(alternateImages).map(([key, data]) => {
-            const isObject = typeof data === 'object' && data !== null;
-            const path = isObject ? data.path : data;
-            const scale = isObject ? (data.scale ?? 1.0) : 1.0;
-            const disposition = isObject ? (data.disposition ?? null) : null;
+        // Map the stored UUID-keyed object data into a standardised array format
+        return Object.entries(alternateVisages).map(([uuid, data]) => {
+            const path = data.path;
+            const scale = data.scale ?? 1.0;
+            const disposition = data.disposition ?? null;
             
             return {
-                key: key,       // The internal key (e.g., "werewolf")
-                name: key,      // The display name (same as key for now)
+                key: uuid,
+                name: data.name,
                 path: path,
                 scale: scale,
                 disposition: disposition

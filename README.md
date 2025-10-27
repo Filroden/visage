@@ -1,66 +1,59 @@
 # Visage
 
-Allows the owner of an Actor to instantly switch a Token's image, name, scale, flip state, and mechanical disposition between multiple pre-defined visages via a custom, grid-based selector in the Token HUD.
+**Visage** allows players and GMs to instantly switch a token's appearance and disposition on the fly. Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes. Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, and apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state). The module also **supports wildcard filepaths** (e.g., path/to/wolves/*.webp), letting you select a random image from a folder every time the **Visage** is activated.
+
+This module makes it ideal for dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
+
+This is the perfect module for visually resolving common game mechanics across any system. Use **Visage** for quick application of **illusions** and **disguises** that change the token's appearance and name to fool opponents. Simplify **shapeshifting** abilities by visually swapping to another image with one click. It is also an excellent tool for showing visual effects, such as changing scale to represent the token getting smaller or larger.
+
+**Visage** increases immersion and table speed by placing powerful visual controls directly within the Token HUD, providing **one-click access to all your stored alternative forms**.
+
+## Licence
 
 Software and associated documentation files in this repository are covered by an [MIT License](LICENSE.md).
 
-| Version | Changes |
-| :--- | :--- |
-| **Version 0.5.0** | * Add feature to configure and apply token disposition (Friendly, Neutral, Hostile, Secret) with each visage, enabling disguise and illusion mechanics.<br>* Update styling for configuration window and selector HUD chip.<br>* Update documentation<br>* Small styling changes to Visage Configuration window |
-| **Version 0.4.0** | * Significant re-write<br>* Move the token configuration from the default token window where there was a rendering issue, to its own window, opened by clicking a setting cog in the Visage Selector HUD<br>* Add styling to the "Save Changes" button if there are changes to be saved<br>* Match the new config window style to the Selector HUD style<br>* Sort Visage forms in the Selector HUD in alphabetical order with the default always first<br>* Add shuffle icon on any visage form that uses a wildcard within its filepath to show user they can select it again for a different random pick |
-| **Version 0.3.4** | Fix flip option for token images |
-| **Version 0.3.3** | * Fix bug when restoring scale to default (again)<br>* Fix how wildcard paths are resolved to prevent the mystery man appearing |
-| **Version 0.3.2** | Fix bug when restoring scale to default |
-| **Version 0.3.1** | Fix label in configuration tab |
-| **Version 0.3.0** | Add a token image scaling feature, including option to flip the image |
-| **Version 0.2.4** | * Add module setting to remove visage data from tokens<br>* Add star icon to default token tile in selector HUD<br>* Add usage instructions to the README.md |
-| **Version 0.2.3** | * Under the covers code improvement<br>* Improvements made to visage token configuration |
-| **Version 0.2.1** | Fix issue with reading data from tokens that were not linked to actors |
-| **Version 0.2.0** | Initial build |
-
 ## How to Use Visage
 
-Visage makes it easy to switch a token's appearance, name, and mechanical state on the fly. Here’s how to set it up and use it.
+**Visage** makes it easy to switch a token's appearance, name, and mechanical state on the fly. Here’s how to set it up and use it.
 
 ### 1. Configuring Visages
 
-Before you can switch visages, you need to define them for a token.
+Before you can switch **Visages**, you need to define them for a token. These **Visages** are stored on the actor and are available to all tokens of that actor.
 
-1. **Open Visage Configuration**: Right-click on a token and choose the new Visage icon in the Token HUD (a "switch account" symbol) to open the Visage Selector HUD. In the top right corner, click the settings ("cog") icon to open the Visage Configuration window.
+1. **Open Visage Configuration**: Right-click on a token and choose the **Visage** icon in the Token HUD (a "switch account" symbol) to open the **Visage Selector HUD**. In the top right corner, click the settings ("cog") icon to open the **Visage Configuration** window.
 2. **Review Visage Defaults**:
-    * The Visage Configuration window shows the token's current default name and image path. These are the settings the token will have when its visage is set to "Default". **Note**: The token's *default disposition* is also captured automatically but not displayed here.
-    * By default, these are inherited from the actor's main settings. However, you can override them by changing the token name/image/disposition on the Token's main configuration window. Visage automatically tracks these changes.
+    * The **Visage Configuration** window shows the token's current default name and image path. These are the settings the token will have when its **Visage** is set to "Default".
+    * By default, these are inherited from the actor's main settings. However, you can override them by changing the token name/image/disposition on the Token's main configuration window. **Visage** automatically tracks these changes.
 3. **Add Alternate Visages**:
     * Click the "**Add Visage**" button to create a new alternate form.
-    * For each alternate visage, you must provide:
-        * **Name**: A name for the visage (e.g., "Wolf Form", "Disguised", "Wounded", "Barrel"). This name will also be used for the token's name when this visage is active so remember this is what other players will see.
-        * **Image Path**: The path to the image file for this visage. You can use the folder icon to open the File Picker. Wildcards (`*`) are supported to select a random image from a folder, e.g., 'path/to/images/wolf_*.webp'.
-        * **Scale**: A percentage scale factor (e.g., `100%`, `80%`, `150%`). This will visually enlarge or shrink the token image on the canvas without changing its actual grid size. The default is `100%` (no change).
+    * For each  **Visage**, you must provide:
+        * **Name**: A name for the **Visage** (e.g., "[Name] (Wolf Form)", "[Name] (Enlarged)", "Barrel"). This name will also be used for the token's name when this **Visage** is active so remember this is what other players will see.
+        * **Image Path**: The path to the image file for this **Visage**. You can use the folder icon to open the File Picker. Wildcards (`*`) are supported to select a random image from a folder, e.g., 'path/to/images/wolf_*.webp'.
+        * **Scale**: A percentage scale factor (e.g., `100%`, `80%`, `150%`). This will visually enlarge or shrink the token image on the canvas without changing its actual size. The default is `100%` (no change).
         * **Flip**: If ticked, the image will be flipped horizontally.
-        * **Disposition**: Controls the token's mechanical state (border color and interactability) when this visage is active. Next to the Flip checkbox, there's a **Disposition** button showing the current setting (e.g., 'Default', 'Disguise: Friendly', 'Illusion: Secret').
+        * **Disposition**: Controls the token's disposition (border colour and interactability) when this **Visage** is active. Next to the Flip checkbox, there's a **Disposition** button showing the current setting (e.g., 'Default', 'Disguise: Friendly', 'Illusion: Secret').
             * Clicking this button opens a pop-out where you can choose one of the following overrides:
-                * **Default (No Change)**: The visage won't affect the token's disposition. It will keep whatever disposition the token currently has or revert to its original default if switching back to the "Default" visage.
-                * **Disguise As**: Select **Friendly**, **Neutral**, or **Hostile**. This changes the token's border color and how other actors/systems might perceive it.
+                * **Default (No Change)**: The **Visage** won't affect the token's disposition. It will keep whatever disposition the token currently has or revert to its original default if switching back to the "Default" **Visage**.
+                * **Disguise As**: Select **Friendly**, **Neutral**, or **Hostile**. This changes the token's border colour and how others might perceive it.
                 * **Illusion (Secret)**: Sets the token to the **Secret** state (purple border for owner, non-interactive for others). This is mutually exclusive with Friendly/Neutral/Hostile.
-    * These alternate visages are stored on the actor and are available to all tokens of that actor.
-4. **Delete Alternative Visages**: Click the trash can next to delete the alternative visage.
-5. **Save Changes**: If you make any changes (add new visage form, change a value in an existing form, or delete a form), the "Save Changes" button will highlight. Clicking it will save the changes and close the Visage Configuration window.
+4. **Delete Alternative Visages**: Click the trash icon to delete the **Visage**.
+5. **Save Changes**: If you make any changes (add new **Visage**, change a value in an existing **Visage**, or delete a **Visage**), the "Save Changes" button will highlight. Clicking it will save the changes and close the **Visage Configuration** window.
 
 ![Visage Configuration with Disposition](images/visage_configuration.png)
 
 ### 2. Selecting a Visage
 
-Once configured, switching between visages is simple.
+Once configured, switching between **Visages** is simple.
 
 1. **Open the Token HUD**: Click on a token you have configured to bring up the Token HUD.
-2. **Click the Visage Icon**: You will see a new icon (a "switch account" symbol). Click this to open the Visage Selector.
-3. **Choose a Visage**: A grid will appear next to the token showing all the available Visages you configured:
-    * The token's specific "Default" look has a gold star icon in the top left corner.
-    * The currently active visage is highlighted with a green check icon in the top right corner.
-    * If a Visage has a scale that is not 100% or it has flip enabled, these will be shown in a **chip** on the top border.
-    * If a Visage uses a wildcard in its filepath, it will show a blue shuffle icon in the bottom left corner. Selecting it again will pick another random image.
-    * If a visage changes the token's disposition, a colored **chip** will appear at the bottom-center indicating the state (e.g., 'Friendly', 'Hostile', 'Secret'), matching Foundry's disposition colors.
-4. **Click to Switch**: Simply click on any of the Visages in the grid. The token's image, name, scale, flip, and disposition will instantly update to match your selection, and the selector will close.
+2. **Click the Visage Icon**: You will see an icon (a "switch account" symbol). Click this to open the **Visage Selector HUD**.
+3. **Choose a Visage**: A grid will appear next to the token showing all the available **Visages** you configured:
+    * The token's "Default" **Visage** has a gold star icon in the top left corner.
+    * The active **Visage** is highlighted with a green check icon in the top right corner.
+    * If a **Visage** has a scale that is not 100% or it has flip enabled, these will be shown in a chip on the top border.
+    * If a **Visage** uses a wildcard in its filepath, it will show a blue shuffle icon in the bottom left corner. Selecting it again will pick another random image.
+    * If a **Visage** changes the token's disposition, a coloured chip will appear at the bottom-center indicating the state (e.g., 'Friendly', 'Hostile', 'Secret'), matching Foundry's disposition colours.
+4. **Click to Switch**: Simply click on a **Visage** in the grid. The token's image, name, scale, flip, and disposition will instantly update to match your selection, and the selector will close.
 
 ![Visage Selector HUD with Disposition Chip](images/selector_hud.png)
 
@@ -68,13 +61,13 @@ Once configured, switching between visages is simple.
 
 To switch a token back to its original appearance:
 
-1. Open the Visage Selector from the Token HUD.
-2. Click on the Default tile (marked with a gold star in the top left corner).
-3. The token will revert to the default name, image, scale, flip state, and disposition that Visage automatically captured for it.
+1. Open the **Visage Selector HUD** from the Token HUD.
+2. Click on the Default **Visage** (marked with a gold star in the top left corner).
+3. The token will revert to the default name, image, scale, flip state, and disposition that **Visage** automatically captured for it.
 
-### 4. Deleting all visage-related data
+### 4. Deleting all Visage-related data
 
-For GMs, the module offers two settings that will remove all visage-related data from either all tokens on a scene or from all tokens on all scenes. Use this with caution as it cannot be undone.
+For GMs, the module offers two settings that will remove all Visage-related data from either all tokens on a scene or from all tokens on all scenes. Use this with caution as it cannot be undone.
 
 ## Visage Module: Public API Documentation
 
@@ -110,7 +103,7 @@ The core function to switch the specified Token to the specified appearance form
 | :-------- | :------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `actorId` | `string` | The ID of the Actor document associated with the token.                                                                                                                                    |
 | `tokenId` | `string` | The ID of a specific Token on the canvas to update immediately.                                                                                                                            |
-| `formKey` | `string` | The key of the appearance form to switch to (e.g., "Wolf Form"). Use the string literal `"default"` to switch to the Token's captured default image, name, scale, and disposition. |
+| `formKey` | `string` | The unique identifier (UUID) of the appearance form to switch to (e.g., "Wolf Form"). Use the string literal `"default"` to switch to the Token's captured default image, name, scale, and disposition.         |
 
 **Signature:**
 
@@ -130,12 +123,12 @@ This function updates the token's `name`, `texture.src`, `texture.scaleX`, `text
 **Example: Switch a specific token to a 'Wolf' form**
 
 ```javascript
-visageAPI.setVisage("actor-id-12345", "token-id-67890", "Wolf");
+visageAPI.setVisage("actor-id-12345", "token-id-67890", "a1b2c3d4e5f6g7h8");
 ```
 
 #### 2\. getForms
 
-Retrieves a standardized array of all available alternate visages for a given Actor.
+Retrieves a standardised array of all available alternate visages for a given Actor.
 
 | Parameter | Type     | Description                          |
 | :-------- | :------- | :----------------------------------- |
@@ -150,11 +143,11 @@ Retrieves a standardized array of all available alternate visages for a given Ac
 **Returns:**
 
 * An `Array` of visage objects, where each object has the following structure:
-  * `key` (string): The internal key (name) for the visage.
-  * `name` (string): The display name of the visage (currently same as key).
+  * `key` (string): The internal unique identifier (UUID) for the visage.
+  * `name` (string): The user-defined display name of the visage (e.g., "Wolf Form").
   * `path` (string): The image file path for the visage.
   * `scale` (number): The configured scale factor for the visage (e.g., `1.0`, `1.2`, `-0.8`).
-  * **`disposition` (number | null)**: The configured disposition override value (`1`: Friendly, `0`: Neutral, `-1`: Hostile, `-2`: Secret) or `null` if the visage is set to "Default (No Change)".
+  * `disposition` (number | null): The configured disposition override value (`1`: Friendly, `0`: Neutral, `-1`: Hostile, `-2`: Secret) or `null` if the visage is set to "Default (No Change)".
 * Returns `null` if no alternate forms are defined or the Actor is not found.
 
 **Example:**
@@ -163,10 +156,10 @@ Retrieves a standardized array of all available alternate visages for a given Ac
 const forms = visageAPI.getForms("actor-id-12345");
 // forms might look like:
 // [
-//   { key: "Wolf", name: "Wolf", path: "path/to/wolf.webp", scale: 1.2, disposition: -1 }, // Hostile wolf
-//   { key: "Disguise", name: "Disguise", path: "path/to/mask.webp", scale: 1.0, disposition: 1 }, // Friendly disguise
-//   { key: "Illusion", name: "Illusion", path: "path/to/illusion.webp", scale: 1.0, disposition: -2 }, // Secret illusion
-//   { key: "Wounded", name: "Wounded", path: "path/to/wounded.webp", scale: 1.0, disposition: null } // No disposition change
+//   { key: "a1b2c3d4e5f6g7h8", name: "Wolf", path: "path/to/wolf.webp", scale: 1.2, disposition: -1 }, // Hostile wolf
+//   { key: "i9j0k1l2m3n4o5p6", name: "Disguise", path: "path/to/mask.webp", scale: 1.0, disposition: 1 }, // Friendly disguise
+//   { key: "q7r8s9t0u1v2w3x4", name: "Illusion", path: "path/to/illusion.webp", scale: 1.0, disposition: -2 }, // Secret illusion
+//   { key: "y5z6a7b8c9d0e1f2", name: "Wounded", path: "path/to/wounded.webp", scale: 1.0, disposition: null } // No disposition change
 // ]
 ```
 
@@ -178,7 +171,7 @@ Checks if the specified appearance form is currently active on a specific Token.
 | :-------- | :------- | :-------------------------------------------------------------------------- |
 | `actorId` | `string` | The ID of the Actor document associated with the token.                     |
 | `tokenId` | `string` | The ID of the token on the canvas to check.                                 |
-| `formKey` | `string` | The key of the appearance form to check (e.g., `"default"`, `"Wolf"`). |
+| `formKey` | `string` | The unique identifier (UUID) of the appearance form to check (e.g., `"default"`, `"Wolf"`). |
 
 **Signature:**
 
@@ -193,7 +186,7 @@ Checks if the specified appearance form is currently active on a specific Token.
 **Example:**
 
 ```javascript
-if (visageAPI.isFormActive("actor-id-12345", "token-id-67890", "default")) {
+if (visageAPI.isFormActive("actor-id-12345", "token-id-67890", "a1b2c3d4e5f6g7h8")) {
     console.log("The token is in its default form.");
 }
 ```
@@ -228,7 +221,7 @@ const resolved = await visageAPI.resolvePath(wildcardPath);
 
 ## Note on Token vs. Actor IDs
 
-The Visage API methods generally require both an `actorId` and a `tokenId` because the custom visage configurations are stored on the **Actor Document**, but the visual changes (image, name, scale, **disposition**) must be applied to the specific **Token Document** on the canvas. The currently active form is also tracked per-token.
+The Visage API methods generally require both an `actorId` and a `tokenId` because the custom visage configurations are stored on the Actor Document, but the visual changes (image, name, scale, disposition) must be applied to the specific Token Document on the canvas. The currently active form is also tracked per-token.
 
 You can reliably get both IDs from any selected Token instance (`token`) on the canvas using:
 
@@ -236,3 +229,22 @@ You can reliably get both IDs from any selected Token instance (`token`) on the 
 const tokenId = token.id;
 const actorId = token.actor.id; // Works for both linked and unlinked tokens
 ```
+
+-----
+
+## Version History
+
+| Version | Changes |
+| :--- | :--- |
+| **Version 1.0.0** | **FULL RELEASE**<br>* Refactored internal data storage from name-keyed to UUID-keyed actor flags for improved data integrity<br>* Added one time migration for beta-testers<br>* Additional documentation improvements before public releaseAdditional documentation improvements before public release |
+| **Version 0.5.0** | * Add feature to configure and apply token disposition (Friendly, Neutral, Hostile, Secret) with each visage, enabling disguise and illusion mechanics.<br>* Update styling for configuration window and selector HUD chip.<br>* Update documentation<br>* Small styling changes to Visage Configuration window |
+| **Version 0.4.0** | * Significant re-write<br>* Move the token configuration from the default token window where there was a rendering issue, to its own window, opened by clicking a setting cog in the Visage Selector HUD<br>* Add styling to the "Save Changes" button if there are changes to be saved<br>* Match the new config window style to the Selector HUD style<br>* Sort Visage forms in the Selector HUD in alphabetical order with the default always first<br>* Add shuffle icon on any visage form that uses a wildcard within its filepath to show user they can select it again for a different random pick |
+| **Version 0.3.4** | Fix flip option for token images |
+| **Version 0.3.3** | * Fix bug when restoring scale to default (again)<br>* Fix how wildcard paths are resolved to prevent the mystery man appearing |
+| **Version 0.3.2** | Fix bug when restoring scale to default |
+| **Version 0.3.1** | Fix label in configuration tab |
+| **Version 0.3.0** | Add a token image scaling feature, including option to flip the image |
+| **Version 0.2.4** | * Add module setting to remove visage data from tokens<br>* Add star icon to default token tile in selector HUD<br>* Add usage instructions to the README.md |
+| **Version 0.2.3** | * Under the covers code improvement<br>* Improvements made to visage token configuration |
+| **Version 0.2.1** | Fix issue with reading data from tokens that were not linked to actors |
+| **Version 0.2.0** | **INITIAL BETA RELEASE** |

@@ -59,15 +59,13 @@ export class VisageConfigApp extends Application {
      * @override
      */
     static get defaultOptions() {
-        return mergeObject(super.defaultOptions, {
-            // Path to the Handlebars template file for this window
+        return foundry.utils.mergeObject(super.defaultOptions, {
             template: `modules/visage/templates/visage-config-app.hbs`,
             title: "Visage Configuration",
-            // CSS classes for styling, including a custom theme class
             classes: ["visage-config-app", "visage-dark-theme"], 
             popOut: true,
-            width: "auto", // Let CSS control the width
-            height: "auto", // Automatically adjust height based on content
+            width: "auto",
+            height: "auto",
             minimizable: false,
             resizable: true, 
             closeOnUnfocus: false // Prevents closing when clicking the FilePicker
@@ -83,7 +81,7 @@ export class VisageConfigApp extends Application {
     async getData(options = {}) {
         const actor = game.actors.get(this.actorId);
         
-        // We need the scene and token *document* to get the token's
+        // Need the scene and token *document* to get the token's
         // original, unmodified default data.
         const scene = game.scenes.get(this.sceneId);
         const tokenDocument = scene?.tokens.get(this.tokenId);
@@ -93,10 +91,9 @@ export class VisageConfigApp extends Application {
             return {};
         }
 
-        // --- Prepare Visage Data ---
         const moduleData = actor.flags?.[Visage.DATA_NAMESPACE] || {};
-        const alternateImages = moduleData.alternateImages || {};
-        
+
+        // --- Prepare Visage Data ---
         // Get the saved defaults for *this specific token*.
         // If they don't exist, create them from the token document itself.
         const tokenDefaults = moduleData[this.tokenId]?.defaults || {
@@ -109,20 +106,19 @@ export class VisageConfigApp extends Application {
         tokenDefaults.scale = Math.round(Math.abs(tokenDefaults.scale) * 100);
 
         // --- Process Alternate Visages ---
-        // Map the stored flag data into a standardized array for the template.
-        const visageEntries = await Promise.all(Object.entries(alternateImages).map(async ([key, data]) => {
+        // Use the new flag key
+        const alternateVisages = moduleData[Visage.ALTERNATE_FLAG_KEY] || {};
+        // Map the stored flag data into a standardised array for the template.
+        const visageEntries = await Promise.all(Object.entries(alternateVisages).map(async ([uuid, data]) => {
             // Handle old string-only data format vs. new {path, scale} object format
             const isObject = typeof data === 'object' && data !== null;
             const path = isObject ? data.path : data;
             const scale = isObject ? (data.scale ?? 1.0) : 1.0;
             const isFlippedX = scale < 0; // Check if the saved scale is negative
             
-            // Safely get disposition and handle legacy value `2`
+            // Get disposition
             let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
-            if (disposition === 2) {
-                disposition = -2; // Convert legacy value
-            }
-
+            
             // Determine disposition state for template
             let dispositionType, dispositionValue, dispositionButtonText;
             
@@ -148,10 +144,11 @@ export class VisageConfigApp extends Application {
             }
 
             return {
-                key, // The name/ID of the visage
-                path,
+                uuid: uuid,
+                key: data.name,
+                path: data.path,
                 scale: Math.round(Math.abs(scale) * 100), // Form input shows positive percentage
-                isFlippedX, // Checkbox state
+                isFlippedX,            // Checkbox state
                 dispositionType,       // 'none', 'disguise', 'illusion'
                 dispositionValue,      // -1, 0, 1, -2
                 dispositionButtonText, // "Default", "Disguise: Friendly", etc.
@@ -166,6 +163,7 @@ export class VisageConfigApp extends Application {
         // If the "Add New" button was clicked, push a blank entry
         if (this._visage_addNewRow) {
             visageEntries.push({
+                uuid: "",
                 key: "",
                 path: "",
                 scale: 100,
@@ -204,12 +202,13 @@ export class VisageConfigApp extends Application {
 
         // --- Button: Delete Row ---
         html.on('click', '.visage-delete', (event) => {
-            event.preventDefault();
-            // Find the closest parent <li> element and remove it
-            event.target.closest('li')?.remove();
-            this._onFormChange(); // Deleting a row is a change
-            // Reset height to auto to shrink the window if needed
-            this.setPosition({ height: "auto" }); 
+        const row = event.target.closest('li');
+            // If the row has a UUID, handle it as a deletion of existing data
+            if (row?.dataset?.uuid) {
+                this._onFormChange(); 
+            }
+            row?.remove();
+            this.setPosition({ height: "auto" });
         });
 
         // --- Button: File Picker ---
@@ -240,12 +239,12 @@ export class VisageConfigApp extends Application {
         // --- Button: Save Changes ---
         html.find('.visage-save')?.on('click', (event) => this._onSaveChanges(event, html));
 
-        // --- NEW: Disposition Pop-out Listeners ---
+        // --- Disposition Pop-out Listeners ---
 
         // Click on button to open pop-out
         html.on('click', '.visage-disposition-button', (event) => {
             event.preventDefault();
-            event.stopPropagation(); // Stop click from bubbling to our 'click-away' listener
+            event.stopPropagation(); // Stop click from bubbling to 'click-away' listener
             const button = event.currentTarget;
             const popout = button.nextElementSibling; // Get the .visage-disposition-popout
             if (!popout) return;
@@ -387,15 +386,20 @@ export class VisageConfigApp extends Application {
         // --- 2. SAVE PASS ---
         // If validation passed, build the update payload.
         const ns = Visage.DATA_NAMESPACE;
+        const alternateFlagKey = Visage.ALTERNATE_FLAG_KEY; // "alternateVisages"
+
         const currentFlags = actor.flags?.[ns] || {};
-        const originalAlternates = currentFlags.alternateImages || {};
-        const originalKeys = Object.keys(originalAlternates);
+        const originalAlternates = currentFlags[alternateFlagKey] || {}; // <- Use new flag key
 
         const updatePayload = {};
-        const keysToKeep = new Set(); // Track all keys that are still in the form
+        const keysToKeep = new Set(); 
+        let uuid;
 
         // Loop through all <li> rows again to build the update
         visageRows.each((i, row) => {
+            // Check for an existing UUID data attribute
+            uuid = row.dataset.uuid || null;
+
             const key = row.querySelector('input[name="visage-key"]')?.value.trim();
             const path = row.querySelector('input[name="visage-path"]')?.value.trim();
             const scaleInput = row.querySelector('input[name="visage-scale"]')?.value;
@@ -414,7 +418,7 @@ export class VisageConfigApp extends Application {
             let savedDisposition = null; // Default to 'null' (No Change)
             const dispoType = row.querySelector('input[name^="visage-disposition-type-"]:checked')?.value;
             if (dispoType === "illusion") {
-                savedDisposition = -2; // Use correct -2 value
+                savedDisposition = -2;
             } else if (dispoType === "disguise") {
                 const val = row.querySelector('select[name="visage-disposition-value"]')?.value;
                 savedDisposition = parseInt(val, 10); // -1, 0, or 1
@@ -422,46 +426,36 @@ export class VisageConfigApp extends Application {
 
             // Only process rows that have valid data
             if (key && path) {
-                keysToKeep.add(key);
-                
-                // --- Check for changes to avoid unnecessary updates ---
-                const currentData = originalAlternates[key];
-                const isObject = typeof currentData === 'object' && currentData !== null;
-                
-                const currentPath = isObject ? currentData.path : currentData;
-                const currentScale = isObject ? (currentData.scale ?? 1.0) : 1.0;
-                
-                // Also check for legacy '2' value
-                let currentDisposition = (isObject && currentData.disposition !== undefined) ? currentData.disposition : null;
-                if (currentDisposition === 2) {
-                    currentDisposition = -2;
-                }
+                    // If it's a new row, assign a UUID
+                    if (!uuid) {
+                        uuid = foundry.utils.randomID(16); // Generate a new UUID
+                    }
+                    keysToKeep.add(uuid);
 
-                const pathChanged = currentPath !== path;
-
-                // Compare floats with a small tolerance
-                const scaleTolerance = 0.0001;
-                const scaleChanged = Math.abs(currentScale - scale) > scaleTolerance;
-                const dispositionChanged = currentDisposition !== savedDisposition;
-
-                // If anything changed, add it to the payload
-                if (pathChanged || scaleChanged || dispositionChanged) {
-                    updatePayload[`flags.${ns}.alternateImages.${key}`] = { 
+                    // The data object to be saved
+                    const newVisageData = { 
+                        name: key,
                         path, 
                         scale,
                         disposition: savedDisposition
                     };
+                
+                // --- Check for changes ---
+                const currentData = originalAlternates[uuid];
+                // If it's a new entry OR if the JSON stringified data differs
+                if (!currentData || JSON.stringify(currentData) !== JSON.stringify(newVisageData)) {
+                    updatePayload[`flags.${ns}.${alternateFlagKey}.${uuid}`] = newVisageData;
                 }
             }
         });
 
         // --- Handle Deletions ---
-        // Loop through all keys that *used* to exist
-        for (const key of originalKeys) {
-            // If an old key is NOT in the new set, it was deleted
-            if (!keysToKeep.has(key)) {
+        const originalUUIDs = Object.keys(originalAlternates); // <- Use UUIDs
+        for (const originalUUID of originalUUIDs) {
+            // If an old UUID is NOT in the new set, it was deleted
+            if (!keysToKeep.has(originalUUID)) {
                 // Use Foundry's `.-=key` syntax to remove a key from an object
-                updatePayload[`flags.${ns}.alternateImages.-=${key}`] = null;
+                updatePayload[`flags.${ns}.${alternateFlagKey}.-=${originalUUID}`] = null;
             }
         }
 

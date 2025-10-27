@@ -1,8 +1,8 @@
 {
   "id": "visage",
   "title": "Visage",
-  "description": "Allow token art and actor portraits to be easily switched to alternative images, including image scaling.",
-  "version": "0.5.0",
+  "description": "Allows players and GMs to configure and store multiple alternate forms (Visages) for any Actor, providing one-click image changing, token scale adjustments, and disposition changes directly via the Token HUD.",
+  "version": "1.0.0",
   "compatibility": {
     "minimum": "13",
     "verified": "13"

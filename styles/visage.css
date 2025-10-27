@@ -2,7 +2,7 @@
  * Main stylesheet for the Visage module.
  *
  * This file contains all styles for:
- * 1. The Visage Selector (the pop-up grid)
+ * 1. The Visage Selector HUD (the pop-up grid)
  * 2. The Visage Configuration (the main settings window)
  * 3. A dark theme for the configuration window
  */
@@ -26,7 +26,7 @@
     margin: 0;
     padding: 0;
     background: transparent;
-    color: #4b4a44; /* Dark text for light theme */
+    color: #4b4a44;
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: break-word;;
@@ -49,7 +49,7 @@
 
 /**
  * A CSS trick to make Foundry's .form-group elements
- * integrate seamlessly into our .visage-defaults-grid layout.
+ * integrate seamlessly into .visage-defaults-grid layout.
  */
 .visage-defaults-grid .form-group,
 .visage-defaults-grid .form-group .form-group-fields {
@@ -185,7 +185,7 @@
 }
 
 /**
- * Styles for the "Delete" (X) button in the 6th grid column.
+ * Styles for the "Delete" button in the 6th grid column.
  */
 .visage-list-item .visage-delete {
     grid-column: 6;
@@ -424,7 +424,7 @@
 }
 
 /**
- * Disposition chip (bottom-center, colored)
+ * Disposition chip (bottom-center, coloured)
  */
 .visage-tile .visage-disposition-chip {
 position: absolute;
@@ -711,7 +711,7 @@ position: absolute;
     transition: color 0.1s ease;
 }
 .visage-dark-theme .visage-delete:hover {
-    color: #ff6400; /* Orange-red */
+    color: #ff6400;
 }
 
 /* --- Dark Theme: Fieldset --- */
@@ -720,7 +720,7 @@ position: absolute;
     border-radius: 5px;
 }
 .visage-dark-theme .visage-config-fieldset legend {
-    color: #a99335; /* Gold */
+    color: #a99335;
     font-weight: bold;
 }
 
@@ -740,19 +740,17 @@ position: absolute;
     box-shadow: 0 0 5px #a99335;
 }
 
-/* NEW: Style the dropdown options list */
+/* Style the dropdown options list */
 .visage-dark-theme select option {
     background: #191813;
     color: rgba(255, 255, 255, 0.8);
 }
 
-
-/* NEW: Fix radio button/checkbox appearance */
+/* Radio button/checkbox appearance */
 .visage-dark-theme input[type="radio"],
 .visage-dark-theme input[type="checkbox"] {
     accent-color: #a99335; /* Gold */
 }
-
 
 /* --- Dark Theme: Buttons --- */
 .visage-dark-theme button {
@@ -760,12 +758,12 @@ position: absolute;
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: rgba(255, 255, 255, 0.8);
     border-radius: 3px;
-    transition: background-color 0.1s, border-color 0.1s, color 0.1s ease; /* Added color transition */
+    transition: background-color 0.1s, border-color 0.1s, color 0.1s ease;
 }
 
 .visage-dark-theme button:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: #a99335; /* Gold border by default */
+    border-color: #a99335;
     box-shadow: none; /* Override default button shadow */
 }
 
@@ -776,7 +774,7 @@ position: absolute;
 
 .visage-dark-theme .visage-delete:hover {
     border-color: rgba(255, 255, 255, 0.2); /* Set border back to non-hover state */
-    color: #ff6400; /* Keep or reinforce the red text color on hover */
+    color: #ff6400; /* Keep the red text color on hover */
     box-shadow: none;
 }
 
