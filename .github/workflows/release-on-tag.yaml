@@ -61,9 +61,9 @@ jobs:
             echo "Changes since $PREVIOUS_TAG" >> changelog.md
             # Check if there are any commits in the range
             if git rev-list $PREVIOUS_TAG..${{ github.ref_name }} | grep -q '.'; then
-              git log --pretty=format:"* %s (%h)" $PREVIOUS_TAG..${{ github.ref_name }} >> changelog.md
+              git log --pretty=format:"* %s (%h)" $PREVIOUS_TAG..${{ github.ref_name }} | { grep -E -i '^\* (feat|fix):' || true; } >> changelog.md
             else
-              echo "* No changes since last release." >> changelog.md
+              echo "* No conventional commits found since last release." >> changelog.md
             fi
           fi
 
