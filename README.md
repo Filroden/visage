@@ -236,7 +236,7 @@ const actorId = token.actor.id; // Works for both linked and unlinked tokens
 
 | Version | Changes |
 | :--- | :--- |
-| **Version 1.0.2** | * Remove box-shadow on Visage Selector HUD setting icon |
+| **Version 1.0.5** | * Remove box-shadow on Visage Selector HUD setting icon |
 | **Version 1.0.1** | * Remove red bottom border on Visage Selector title<br>* Allow duplicate visage names |
 | **Version 1.0.0** | **FULL RELEASE**<br>* Refactored internal data storage from name-keyed to UUID-keyed actor flags for improved data integrity<br>* Added one time migration for beta-testers<br>* Additional documentation improvements before public release |
 | **Version 0.5.0** | * Add feature to configure and apply token disposition (Friendly, Neutral, Hostile, Secret) with each visage, enabling disguise and illusion mechanics.<br>* Update styling for configuration window and selector HUD chip.<br>* Update documentation<br>* Small styling changes to Visage Configuration window |
