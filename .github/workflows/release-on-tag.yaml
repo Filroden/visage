@@ -59,7 +59,12 @@ jobs:
           else
             # Otherwise, log commits between the previous v-tag and the current tag
             echo "Changes since $PREVIOUS_TAG" >> changelog.md
-            git log --pretty=format:"* %s (%h)" $PREVIOUS_TAG..${{ github.ref_name }} >> changelog.md
+            # Check if there are any commits in the range
+            if git rev-list $PREVIOUS_TAG..${{ github.ref_name }} | grep -q '.'; then
+              git log --pretty=format:"* %s (%h)" $PREVIOUS_TAG..${{ github.ref_name }} >> changelog.md
+            else
+              echo "* No changes since last release." >> changelog.md
+            fi
           fi
 
       - name: Create Release
