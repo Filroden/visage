@@ -319,6 +319,7 @@
     text-transform: uppercase;
     color: #ffffff;
     flex-grow: 1;
+    border: none;
 }
 
 /**

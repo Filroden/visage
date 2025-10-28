@@ -2,7 +2,7 @@
   "id": "visage",
   "title": "Visage",
   "description": "Allows players and GMs to configure and store multiple alternate forms (Visages) for any Actor, providing one-click image changing, token scale adjustments, and disposition changes directly via the Token HUD.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
