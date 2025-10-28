@@ -351,21 +351,10 @@ export class VisageConfigApp extends Application {
 
             if (!key && !path) continue; // Skip totally blank rows (e.g., an empty "new" row)
 
-            // If key is empty but path is not, auto-generate a key
+            // Auto-generate a key
             if (!key) {
-                let defaultKey;
-                do {
-                    defaultKey = `Visage ${newVisageCounter++}`;
-                } while (keysInForm.has(defaultKey)); // Ensure it's unique
-                key = defaultKey;
+                key = `Visage ${newVisageCounter++}`;
                 keyInput.value = key; // Update the form input field
-            }
-
-            // Check for duplicate keys
-            if (keysInForm.has(key)) {
-                ui.notifications.error(`Duplicate visage name found: "${key}". Please use unique names.`);
-                validationFailed = true;
-                break;
             }
 
             // Check for empty paths
@@ -374,8 +363,6 @@ export class VisageConfigApp extends Application {
                 validationFailed = true;
                 break;
             }
-
-            keysInForm.add(key);
         }
 
         if (validationFailed) {
