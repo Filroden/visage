@@ -19,6 +19,6 @@
     "styles/visage.css"
   ],
   "manifestPlusVersion": 1,
-  "manifest": "https://github.com/Filroden/fvtt/releases/download/visage-latest/module.json",
-  "download": " https://github.com/Filroden/fvtt/releases/download/visage-latest/visage.zip"
+  "manifest": "https://github.com/Filroden/visage/releases/download/latest/module.json",
+  "download": "https://github.com/Filroden/visage/releases/download/latest/visage.zip"
 }
