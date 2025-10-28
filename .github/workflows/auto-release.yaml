@@ -3,7 +3,7 @@ name: Auto Release on Develop
 on:
   push:
     branches:
-      - main
+      - no-more-fvtt
 
 permissions:
   contents: write
