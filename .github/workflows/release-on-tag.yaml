@@ -59,7 +59,7 @@ jobs:
           else
             # Otherwise, log commits between the previous v-tag and the current tag
             echo "Changes since $PREVIOUS_TAG" >> changelog.md
-            git log --pretty=format:"* %s (%h)" --no-merges $PREVIOUS_TAG..${{ github.ref_name }} | grep -E -i '^(feat|fix):' >> changelog.md
+            git log --pretty=format:"* %s (%h)" --no-merges $PREVIOUS_TAG..${{ github.ref_name }} | { grep -E -i '^(feat|fix):' || true; } >> changelog.md
           fi
 
       - name: Create Release
