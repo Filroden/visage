@@ -55,11 +55,11 @@ jobs:
           if [ -z "$PREVIOUS_TAG" ]; then
             # If no previous v-tag is found, log only the current commit's message
             echo "No previous v* tag found. Creating changelog from the current commit." >> changelog.md
-            git log -n 1 --pretty=format:"* %s (%h)" >> changelog.md
+            git log -n 1 --pretty=format:"* %s (%h)" --no-merges >> changelog.md
           else
             # Otherwise, log commits between the previous v-tag and the current tag
             echo "Changes since $PREVIOUS_TAG" >> changelog.md
-            git log --pretty=format:"* %s (%h)" $PREVIOUS_TAG..${{ github.ref_name }} >> changelog.md
+            git log --pretty=format:"* %s (%h)" --no-merges $PREVIOUS_TAG..${{ github.ref_name }} | grep -E -i '^(feat|fix):' >> changelog.md
           fi
 
       - name: Create Release
