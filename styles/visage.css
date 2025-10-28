@@ -345,6 +345,7 @@
 
 .visage-config-button:hover {
     opacity: 1;
+    box-shadow: none;
 }
 
 /**
