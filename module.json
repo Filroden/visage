@@ -2,7 +2,7 @@
   "id": "visage",
   "title": "Visage",
   "description": "Allows players and GMs to configure and store multiple alternate forms (Visages) for any Actor, providing one-click image changing, token scale adjustments, and disposition changes directly via the Token HUD.",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -18,7 +18,7 @@
   "styles": [
     "styles/visage.css"
   ],
-  "manifestPlusVersion": 1,
-  "manifest": "https://github.com/Filroden/visage/releases/download/latest/module.json",
+  "url": "https://github.com/Filroden/visage",
+  "manifest": "https://github.com/Filroden/visage/releases/latest/download/module.json",
   "download": "https://github.com/Filroden/visage/releases/download/v1.0.5/visage.zip"
 }
