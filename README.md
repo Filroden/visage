@@ -236,6 +236,8 @@ const actorId = token.actor.id; // Works for both linked and unlinked tokens
 
 | Version | Changes |
 | :--- | :--- |
+| **Version 1.0.7** | * Correct manifest link (for real this time) |
+| **Version 1.0.6** | * Correct manifest link |
 | **Version 1.0.5** | * Remove box-shadow on Visage Selector HUD setting icon |
 | **Version 1.0.1** | * Remove red bottom border on Visage Selector title<br>* Allow duplicate visage names |
 | **Version 1.0.0** | **FULL RELEASE**<br>* Refactored internal data storage from name-keyed to UUID-keyed actor flags for improved data integrity<br>* Added one time migration for beta-testers<br>* Additional documentation improvements before public release |
