@@ -198,7 +198,8 @@ export class VisageSelector extends Application {
         // Create an ordered array: Default first, then all others alphabetically
         const orderedForms = [forms["default"]];
         const alternateKeys = Object.keys(forms).filter(k => k !== "default").sort((a, b) => {
-            return forms[a].name.localeCompare(forms[b].name); // <- Sort by name
+            // Sort by name property, accessing the form data using the UUID (a and b)
+            return forms[a].name.localeCompare(forms[b].name); 
         });
         for(const key of alternateKeys) {
             orderedForms.push(forms[key]);

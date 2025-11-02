@@ -137,7 +137,7 @@ export class VisageConfigApp extends Application {
                 dispositionButtonText = `Disguise: ${this._dispositionMap[disposition].name}`;
             } else {
                 // Fallback for any other unknown value
-                Visage.log(`Found unknown disposition value: ${disposition} for visage "${key}". Resetting to Default.`);
+                Visage.log(`Found unknown disposition value: ${disposition} for visage "${data.name}". Resetting to Default.`);
                 dispositionType = "none";
                 dispositionValue = 0;
                 dispositionButtonText = "Default";
@@ -145,7 +145,7 @@ export class VisageConfigApp extends Application {
 
             return {
                 uuid: uuid,
-                key: data.name,
+                name: data.name, // Renamed 'key' to 'name' for the display name
                 path: data.path,
                 scale: Math.round(Math.abs(scale) * 100), // Form input shows positive percentage
                 isFlippedX,            // Checkbox state
@@ -157,14 +157,14 @@ export class VisageConfigApp extends Application {
             };
         }));
         
-        // Sort visages alphabetically by key for a consistent UI
-        visageEntries.sort((a, b) => a.key.localeCompare(b.key));
+        // Sort visages alphabetically by name for a consistent UI
+        visageEntries.sort((a, b) => a.name.localeCompare(b.name)); // Changed 'a.key' to 'a.name'
 
         // If the "Add New" button was clicked, push a blank entry
         if (this._visage_addNewRow) {
             visageEntries.push({
                 uuid: "",
-                key: "",
+                name: "", // Renamed 'key' to 'name'
                 path: "",
                 scale: 100,
                 isFlippedX: false,
@@ -335,31 +335,31 @@ export class VisageConfigApp extends Application {
         }
 
         const visageRows = html.find('.visage-list li');
-        const keysInForm = new Set();
+        const namesInForm = new Set(); // Changed from 'keysInForm'
         let validationFailed = false;
         let newVisageCounter = 1;
 
         // --- 1. VALIDATION PASS ---
         // First, loop through and validate all data before saving anything.
         for (const row of visageRows) {
-            const keyInput = row.querySelector('input[name="visage-key"]');
+            const nameInput = row.querySelector('input[name="visage-name"]'); // Changed to 'visage-name'
             const pathInput = row.querySelector('input[name="visage-path"]');
-            if (!keyInput || !pathInput) continue;
+            if (!nameInput || !pathInput) continue;
 
-            let key = keyInput.value.trim();
+            let name = nameInput.value.trim(); // Changed 'key' to 'name'
             const path = pathInput.value.trim();
 
-            if (!key && !path) continue; // Skip totally blank rows (e.g., an empty "new" row)
+            if (!name && !path) continue; // Skip totally blank rows (e.g., an empty "new" row)
 
-            // Auto-generate a key
-            if (!key) {
-                key = `Visage ${newVisageCounter++}`;
-                keyInput.value = key; // Update the form input field
+            // Auto-generate a name
+            if (!name) {
+                name = `Visage ${newVisageCounter++}`;
+                nameInput.value = name; // Update the form input field
             }
 
             // Check for empty paths
             if (!path) {
-                ui.notifications.error(`Image path for "${key}" cannot be empty.`);
+                ui.notifications.error(`Image path for "${name}" cannot be empty.`);
                 validationFailed = true;
                 break;
             }
@@ -379,7 +379,7 @@ export class VisageConfigApp extends Application {
         const originalAlternates = currentFlags[alternateFlagKey] || {}; // <- Use new flag key
 
         const updatePayload = {};
-        const keysToKeep = new Set(); 
+        const uuidsToKeep = new Set(); // Changed from 'keysToKeep'
         let uuid;
 
         // Loop through all <li> rows again to build the update
@@ -387,7 +387,7 @@ export class VisageConfigApp extends Application {
             // Check for an existing UUID data attribute
             uuid = row.dataset.uuid || null;
 
-            const key = row.querySelector('input[name="visage-key"]')?.value.trim();
+            const name = row.querySelector('input[name="visage-name"]')?.value.trim(); // Changed to 'visage-name' and 'name'
             const path = row.querySelector('input[name="visage-path"]')?.value.trim();
             const scaleInput = row.querySelector('input[name="visage-scale"]')?.value;
             // Convert percentage string back to a float (default to 100% -> 1.0)
@@ -412,16 +412,16 @@ export class VisageConfigApp extends Application {
             }
 
             // Only process rows that have valid data
-            if (key && path) {
+            if (name && path) { // Changed 'key' to 'name'
                     // If it's a new row, assign a UUID
                     if (!uuid) {
                         uuid = foundry.utils.randomID(16); // Generate a new UUID
                     }
-                    keysToKeep.add(uuid);
+                    uuidsToKeep.add(uuid); // Changed from 'keysToKeep'
 
                     // The data object to be saved
                     const newVisageData = { 
-                        name: key,
+                        name: name, // Uses the 'name' variable
                         path, 
                         scale,
                         disposition: savedDisposition
@@ -440,7 +440,7 @@ export class VisageConfigApp extends Application {
         const originalUUIDs = Object.keys(originalAlternates); // <- Use UUIDs
         for (const originalUUID of originalUUIDs) {
             // If an old UUID is NOT in the new set, it was deleted
-            if (!keysToKeep.has(originalUUID)) {
+            if (!uuidsToKeep.has(originalUUID)) { // Changed from 'keysToKeep'
                 // Use Foundry's `.-=key` syntax to remove a key from an object
                 updatePayload[`flags.${ns}.${alternateFlagKey}.-=${originalUUID}`] = null;
             }
