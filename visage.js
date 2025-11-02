@@ -56,7 +56,7 @@ export class Visage {
             let source = "data"; // Default source
 
             // Check for S3 paths
-            if (/\.s3\./.test(path)) {
+            if (/\.s3\./i.test(path)) {
                 source = 's3';
                 const { bucket, keyPrefix } = foundry.applications.apps.FilePicker.implementation.parseS3URL(path);
                 if (bucket) {
@@ -170,7 +170,7 @@ export class Visage {
      *
      * @param {string} actorId - The ID of the token's actor.
      * @param {string} tokenId - The ID of the specific token on the canvas to update.
-     * @param {string} formKey - The key of the form to switch to (e.g., "default", "Werewolf", etc.).
+     * @param {string} formKey - The key of the form to switch to (e.g., "default", "UUID", etc.).
      * @returns {Promise<boolean>} - True on success, false on failure.
      */
     static async setVisage(actorId, tokenId, formKey) {
@@ -214,7 +214,8 @@ export class Visage {
         } else {
             // Case: Switching to an alternate form.
             const alternateVisages = moduleData[this.ALTERNATE_FLAG_KEY] || {};
-            const visageData = alternateVisages[formKey];
+            // The formKey is the UUID
+            const visageData = alternateVisages[formKey]; 
             
             if (!visageData) {
                 this.log(`Form key "${formKey}" not found for actor ${actorId}`, true);
@@ -275,9 +276,10 @@ export class Visage {
      */
     static getForms(actorId) {
         const actor = game.actors.get(actorId);
+        // Note: alternateVisages is an object keyed by UUID
         const alternateVisages = actor?.flags?.[this.DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY];
 
-        if (!alternateImages) {
+        if (!alternateVisages) { // Corrected from 'alternateImages'
             return null; // No forms configured
         }
 
@@ -288,8 +290,8 @@ export class Visage {
             const disposition = data.disposition ?? null;
             
             return {
-                key: uuid,
-                name: data.name,
+                key: uuid,          // The unique identifier (UUID)
+                name: data.name,    // The display name
                 path: path,
                 scale: scale,
                 disposition: disposition
@@ -302,7 +304,7 @@ export class Visage {
      *
      * @param {string} actorId - The ID of the actor.
      * @param {string} tokenId - The ID of the token.
-     * @param {string} formKey - The key of the form to check.
+     * @param {string} formKey - The key of the form to check (UUID or "default").
      * @returns {boolean} - True if the form is active, false otherwise.
      */
     static isFormActive(actorId, tokenId, formKey) {
