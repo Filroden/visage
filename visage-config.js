@@ -387,21 +387,15 @@ export class VisageConfigApp extends Application {
             // Check for an existing UUID data attribute
             uuid = row.dataset.uuid || null;
 
-            const name = row.querySelector('input[name="visage-name"]')?.value.trim(); // Changed to 'visage-name' and 'name'
+            const name = row.querySelector('input[name="visage-name"]')?.value.trim();
             const path = row.querySelector('input[name="visage-path"]')?.value.trim();
+            
+            // --- Parse Scale ---
             const scaleInput = row.querySelector('input[name="visage-scale"]')?.value;
-            // Convert percentage string back to a float (default to 100% -> 1.0)
             let scale = (scaleInput ? parseInt(scaleInput, 10) : 100) / 100; 
             const isFlippedX = row.querySelector('input[name="visage-flip-x"]')?.checked;
-
-            // Apply flip: store scale as negative if flipped
-            if (isFlippedX) {
-                scale = -Math.abs(scale); 
-            } else {
-                scale = Math.abs(scale); 
-            }
-
-            // Get Disposition Value
+            
+            // --- Parse Disposition ---
             let savedDisposition = null; // Default to 'null' (No Change)
             const dispoType = row.querySelector('input[name^="visage-disposition-type-"]:checked')?.value;
             if (dispoType === "illusion") {
@@ -411,28 +405,45 @@ export class VisageConfigApp extends Application {
                 savedDisposition = parseInt(val, 10); // -1, 0, or 1
             }
 
-            // Only process rows that have valid data
-            if (name && path) { // Changed 'key' to 'name'
-                    // If it's a new row, assign a UUID
-                    if (!uuid) {
-                        uuid = foundry.utils.randomID(16); // Generate a new UUID
-                    }
-                    uuidsToKeep.add(uuid); // Changed from 'keysToKeep'
+            // --- Skip empty new rows ---
+            // A row is "empty" if it's new (no uuid) AND
+            // has no name, no path, a default 100% scale (not flipped),
+            // and no disposition change (null).
+            const isDefaultScale = (scale === 1.0 && !isFlippedX);
+            const isDefaultDispo = (savedDisposition === null);
 
-                    // The data object to be saved
-                    const newVisageData = { 
-                        name: name, // Uses the 'name' variable
-                        path, 
-                        scale,
-                        disposition: savedDisposition
-                    };
-                
-                // --- Check for changes ---
-                const currentData = originalAlternates[uuid];
-                // If it's a new entry OR if the JSON stringified data differs
-                if (!currentData || JSON.stringify(currentData) !== JSON.stringify(newVisageData)) {
-                    updatePayload[`flags.${ns}.${alternateFlagKey}.${uuid}`] = newVisageData;
-                }
+            if (!uuid && !name && !path && isDefaultScale && isDefaultDispo) {
+                return; // Skips this iteration (jQuery .each() equivalent of 'continue')
+            }
+            // --- End logic ---
+            
+            // Apply flip (this must be *after* the default check)
+            if (isFlippedX) {
+                scale = -Math.abs(scale); 
+            } else {
+                scale = Math.abs(scale); 
+            }
+
+            // --- Continue with original save logic (minus the 'if (name && path)') ---
+            
+            // If it's a new row, assign a UUID
+            if (!uuid) {
+                uuid = foundry.utils.randomID(16); // Generate a new UUID
+            }
+            uuidsToKeep.add(uuid);
+
+            // The data object to be saved
+            const newVisageData = { 
+                name: name, // Will be "" if empty
+                path: path, // Will be "" if empty
+                scale,
+                disposition: savedDisposition
+            };
+        
+            // Check for changes
+            const currentData = originalAlternates[uuid];
+            if (!currentData || JSON.stringify(currentData) !== JSON.stringify(newVisageData)) {
+                updatePayload[`flags.${ns}.${alternateFlagKey}.${uuid}`] = newVisageData;
             }
         });
 

@@ -214,17 +214,23 @@ export class Visage {
         } else {
             // Case: Switching to an alternate form.
             const alternateVisages = moduleData[this.ALTERNATE_FLAG_KEY] || {};
-            // The formKey is the UUID
-            const visageData = alternateVisages[formKey]; 
+            const visageData = alternateVisages[formKey];
             
             if (!visageData) {
                 this.log(`Form key "${formKey}" not found for actor ${actorId}`, true);
                 return false;
             }
+
+            // Get the defaults to use as fallbacks
+            const defaults = tokenData.defaults;
+            if (!defaults) {
+                this.log(`Cannot set visage; no defaults saved for token ${tokenId}.`, true);
+                return false;
+            }
             
-            // Extract the visage data
-            newName = visageData.name;
-            newTokenPath = visageData.path;
+            // Extract the visage data, falling back to defaults if empty
+            newName = visageData.name || defaults.name;
+            newTokenPath = visageData.path || defaults.token;
             newScale = visageData.scale ?? 1.0;
             newDisposition = visageData.disposition;
         }
@@ -267,31 +273,56 @@ export class Visage {
     /**
      * API function to retrieve all configured alternate forms for an actor.
      *
-     * This is a helper function, primarily used to populate UI elements
-     * like the VisageSelector.
+     * Empty names or paths will be resolved using default data.
+     * If a `tokenId` is provided, it uses that token's specific defaults.
+     * If not, it falls back to the Actor's prototype token data.
      *
      * @param {string} actorId - The ID of the actor.
-     * @returns {Array<object>|null} - An array of visage objects, or null if none are configured.
-     * Each object has the shape: { key, name, path, scale, disposition }
+     * @param {string} [tokenId=null] - (Optional) The ID of a token to use for default fallbacks.
+     * @returns {Array<object>|null} - An array of visage objects.
      */
-    static getForms(actorId) {
+    static getForms(actorId, tokenId = null) {
         const actor = game.actors.get(actorId);
-        // Note: alternateVisages is an object keyed by UUID
+        if (!actor) {
+            this.log(`getForms: Actor not found with ID ${actorId}`, true);
+            return null;
+        }
+
+        let defaults;
+
+        // 1. Try to get token-specific defaults if a tokenId is provided
+        if (tokenId) {
+            defaults = actor.flags?.[this.DATA_NAMESPACE]?.[tokenId]?.defaults;
+        }
+
+        // 2. If no token ID was given, or no defaults were found for that token,
+        //    use the actor's prototype token data as the fallback.
+        if (!defaults) {
+            const proto = actor.prototypeToken;
+            defaults = {
+                name: proto.name,
+                token: proto.texture.src // Map to match the 'token' key from token-specific defaults
+            };
+        }
+
+        // 3. Get the raw alternate visages
         const alternateVisages = actor?.flags?.[this.DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY];
 
-        if (!alternateVisages) { // Corrected from 'alternateImages'
+        if (!alternateVisages) {
             return null; // No forms configured
         }
 
-        // Map the stored UUID-keyed object data into a standardised array format
+        // 4. Map the results, using the resolved defaults
         return Object.entries(alternateVisages).map(([uuid, data]) => {
-            const path = data.path;
+            // Use the determined defaults as fallback for empty strings
+            const name = data.name || defaults.name;
+            const path = data.path || defaults.token; // Use .token to match our defaults object
             const scale = data.scale ?? 1.0;
             const disposition = data.disposition ?? null;
             
             return {
-                key: uuid,          // The unique identifier (UUID)
-                name: data.name,    // The display name
+                key: uuid,
+                name: name,
                 path: path,
                 scale: scale,
                 disposition: disposition
