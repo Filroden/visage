@@ -339,38 +339,7 @@ export class VisageConfigApp extends Application {
         let validationFailed = false;
         let newVisageCounter = 1;
 
-        // --- 1. VALIDATION PASS ---
-        // First, loop through and validate all data before saving anything.
-        for (const row of visageRows) {
-            const nameInput = row.querySelector('input[name="visage-name"]'); // Changed to 'visage-name'
-            const pathInput = row.querySelector('input[name="visage-path"]');
-            if (!nameInput || !pathInput) continue;
-
-            let name = nameInput.value.trim(); // Changed 'key' to 'name'
-            const path = pathInput.value.trim();
-
-            if (!name && !path) continue; // Skip totally blank rows (e.g., an empty "new" row)
-
-            // Auto-generate a name
-            if (!name) {
-                name = `Visage ${newVisageCounter++}`;
-                nameInput.value = name; // Update the form input field
-            }
-
-            // Check for empty paths
-            if (!path) {
-                ui.notifications.error(`Image path for "${name}" cannot be empty.`);
-                validationFailed = true;
-                break;
-            }
-        }
-
-        if (validationFailed) {
-            this.isDirty = true; // Re-set dirty state since save failed
-            return;
-        }
-
-        // --- 2. SAVE PASS ---
+        // --- SAVE PASS ---
         // If validation passed, build the update payload.
         const ns = Visage.DATA_NAMESPACE;
         const alternateFlagKey = Visage.ALTERNATE_FLAG_KEY; // "alternateVisages"
