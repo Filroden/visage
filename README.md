@@ -57,7 +57,7 @@ Before you can switch **Visages**, you need to define them for a token. These **
 4. **Delete Alternative Visages**: Click the trash icon to delete the **Visage**.
 5. **Save Changes**: If you make any changes (add new **Visage**, change a value in an existing **Visage**, or delete a **Visage**), the "Save Changes" button will highlight. Clicking it will save the changes and close the **Visage Configuration** window.
 
-![Visage Configuration with Disposition](images/visage_configuration.png)
+<img src="images/visage_configuration.png" alt="Visage Configuration with Disposition" width="500" style="display: block; margin: 0 auto;">
 
 ### 2. Selecting a Visage
 
@@ -73,7 +73,7 @@ Once configured, switching between **Visages** is simple.
     * If a **Visage** changes the token's disposition, a coloured chip will appear at the bottom-center indicating the state (e.g., 'Friendly', 'Hostile', 'Secret'), matching Foundry's disposition colours.
 4. **Click to Switch**: Simply click on a **Visage** in the grid. The token's image, name, scale, flip, and disposition will instantly update to match your selection, and the selector will close.
 
-![Visage Selector HUD with Disposition Chip](images/selector_hud.png)
+<img src="images/selector_hud.png" alt="Visage Selector HUD with Disposition Chip" height="500" style="display: block; margin: 0 auto;">
 
 ### 3. Restoring the Default
 
