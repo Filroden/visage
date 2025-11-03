@@ -160,34 +160,33 @@ export class VisageSelector extends Application {
         for (const [uuid, data] of Object.entries(alternateVisages)) {
             // Handle old string-only data format vs. new {path, scale} object
             const isObject = typeof data === 'object' && data !== null;
-            const path = isObject ? (data.path || "") : (data || ""); // Ensure path
+            
+            // Use defaults as fallback for empty name or path
+            const name = data.name || defaults.name;
+            const path = (isObject ? data.path : data) || defaults.token; // Handles old format & empty
+            
             const scale = isObject ? (data.scale ?? 1.0) : 1.0;
-
             let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
 
             // Calculate display values
             const isFlippedX = scale < 0;
             const absScale = Math.abs(scale);
             const displayScale = Math.round(absScale * 100);
-            // Only show the scale chip if it's not 100%
             const showScaleChip = scale !== 1;
-
-            // Disposition properties
             const dispositionInfo = (disposition !== null) ? this._dispositionMap[disposition] : null;
 
             forms[uuid] = {
                 key: uuid,
-                name: data.name,
-                path: data.path,
-                scale: data.scale,
-                isActive: uuid === currentFormKey, // Check against UUID
+                name: name, // Use fallback-inclusive name
+                path: path, // Use fallback-inclusive path
+                scale: scale, // Use calculated scale
+                isActive: uuid === currentFormKey,
                 isDefault: false,
                 isFlippedX: isFlippedX,
                 displayScale: displayScale,
                 showScaleChip: showScaleChip,
                 absScale: absScale,
-                // Check if the path is a wildcard
-                isWildcard: path.includes('*'),
+                isWildcard: path.includes('*'), // Use fallback-inclusive path
                 showDispositionChip: !!dispositionInfo,
                 dispositionName: dispositionInfo?.name || "",
                 dispositionClass: dispositionInfo?.class || ""

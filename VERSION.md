@@ -2,6 +2,7 @@
 
 | Version | Changes |
 | :--- | :--- |
+| **Version 1.1.0** | * Visages can now be saved with blank Name or Image Path fields to create "partial" visages, inheriting the token's default name/image as needed.<br>* Upgraded the getForms API to accept an optional tokenId to intelligently resolve these partial visages using either token-specific defaults or (if no ID is provided) the actor's prototype token defaults. |
 | **Version 1.0.8** | * Internal changes (rename misleading name-key and UUID-key variables) |
 | **Version 1.0.7** | * Correct manifest link (for real this time) |
 | **Version 1.0.6** | * Correct manifest link |

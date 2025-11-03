@@ -16,9 +16,15 @@ Software and associated documentation files in this repository are covered by an
 
 ## Roadmap
 
-* [Short term] Allow blank values to be used for name and path, so that if only token image scale or disposition are changed, the visage retains the default name and path.
-* [Long term] Add the ability to create and use a global directory of visages, so certain effects can be applied quickly to any token (e.g., enlarge/reduce effects).
-* [Long term] Move to ApplicationV2.
+[Short term]
+
+* None yet.
+
+[Long term]
+
+* Add the ability to create and use a global directory of visages, so certain effects can be applied quickly to any token (e.g., enlarge/reduce effects).
+* Move to ApplicationV2.
+* Test module against FoundryVTT v14.
 
 ## How to Use Visage
 
@@ -35,8 +41,12 @@ Before you can switch **Visages**, you need to define them for a token. These **
 3. **Add Alternate Visages**:
     * Click the "**Add Visage**" button to create a new alternate form.
     * For each  **Visage**, you must provide:
-        * **Name**: A name for the **Visage** (e.g., "[Name] (Wolf Form)", "[Name] (Enlarged)", "Barrel"). This name will also be used for the token's name when this **Visage** is active so remember this is what other players will see.
-        * **Image Path**: The path to the image file for this **Visage**. You can use the folder icon to open the File Picker. Wildcards (`*`) are supported to select a random image from a folder, e.g., 'path/to/images/wolf_*.webp'.
+        * **Name**: A name for the **Visage** (e.g., "[Name] (Wolf Form)", "[Name] (Enlarged)", "Barrel"). This name will also be used for the token's name when this **Visage** is active so remember this is what other players will see. **This is optional**.
+            * If you leave this field blank, the Visage will use the token's current default name when applied.
+            * If you provide a name, it will override the token's name as usual.
+        * **Image Path**: The path to the image file for this **Visage**. **This is optional**.
+            * If you leave this field blank, the Visage will use the token's current default image when applied.
+            * You can use the folder icon to open the File Picker. Wildcards (`*`) are supported (e.g., 'path/to/images/wolf_*.webp').
         * **Scale**: A percentage scale factor (e.g., `100%`, `80%`, `150%`). This will visually enlarge or shrink the token image on the canvas without changing its actual size. The default is `100%` (no change).
         * **Flip**: If ticked, the image will be flipped horizontally.
         * **Disposition**: Controls the token's disposition (border colour and interactability) when this **Visage** is active. Next to the Flip checkbox, there's a **Disposition** button showing the current setting (e.g., 'Default', 'Disguise: Friendly', 'Illusion: Secret').
@@ -47,7 +57,7 @@ Before you can switch **Visages**, you need to define them for a token. These **
 4. **Delete Alternative Visages**: Click the trash icon to delete the **Visage**.
 5. **Save Changes**: If you make any changes (add new **Visage**, change a value in an existing **Visage**, or delete a **Visage**), the "Save Changes" button will highlight. Clicking it will save the changes and close the **Visage Configuration** window.
 
-![Visage Configuration with Disposition](images/visage_configuration.png)
+<img src="images/visage_configuration.png" alt="Visage Configuration with Disposition" width="500" style="display: block; margin: 0 auto;">
 
 ### 2. Selecting a Visage
 
@@ -63,7 +73,7 @@ Once configured, switching between **Visages** is simple.
     * If a **Visage** changes the token's disposition, a coloured chip will appear at the bottom-center indicating the state (e.g., 'Friendly', 'Hostile', 'Secret'), matching Foundry's disposition colours.
 4. **Click to Switch**: Simply click on a **Visage** in the grid. The token's image, name, scale, flip, and disposition will instantly update to match your selection, and the selector will close.
 
-![Visage Selector HUD with Disposition Chip](images/selector_hud.png)
+<img src="images/selector_hud.png" alt="Visage Selector HUD with Disposition Chip" height="500" style="display: block; margin: 0 auto;">
 
 ### 3. Restoring the Default
 
@@ -126,7 +136,7 @@ The core function to switch the specified Token to the specified appearance form
 
 **Details:**
 
-This function updates the token's `name`, `texture.src`, `texture.scaleX`, `texture.scaleY`, **and `disposition`** based on the data saved for the specified `formKey`. If the `formKey` is `"default"`, it restores the values captured automatically by Visage. If the configured disposition for the form is set to "Default (No Change)" (`null` internally), the token's disposition will *not* be modified by this call when switching to that form.
+This function updates the token's `name`, `texture.src`, `texture.scaleX`, `texture.scaleY`, and `disposition` based on the data saved for the specified `formKey`. If the `formKey` is `"default"`, it restores the values captured automatically by Visage. If the configured disposition for the form is set to `"Default (No Change)"` (`null` internally), the token's disposition will *not* be modified by this call when switching to that form. If the saved visage has a blank name or image path, this function will automatically use the token's captured default name/image instead.
 
 **Example:** Switch a specific token to a 'Wolf' form
 
@@ -141,34 +151,36 @@ Retrieves a standardised array of all available alternate visages for a given Ac
 | Parameter | Type     | Description                          |
 | :-------- | :------- | :----------------------------------- |
 | `actorId` | `string` | The ID of the Actor document to query. |
+| `tokenId` | `string` (optional) | The ID of a specific Token. If provided, its defaults will be used for fallbacks. If omitted, the Actor's prototype token data will be used instead. |
 
 **Signature:**
 
 ```typescript
-(actorId: string): Array<object> | null
+(actorId: string, tokenId?: string): Array<object> | null
 ```
 
 **Returns:**
 
 * An `Array` of visage objects, where each object has the following structure:
   * `key` (string): The internal unique identifier (UUID) for the visage.
-  * `name` (string): The user-defined display name of the visage (e.g., "Wolf Form").
-  * `path` (string): The image file path for the visage.
+  * `name` (string): The resolved display name. If the visage had a blank name, this will be the default name (either from the token or the prototype).
+  * `path` (string): The resolved image file path. If the visage had a blank path, this will be the default image path.
   * `scale` (number): The configured scale factor for the visage (e.g., `1.0`, `1.2`, `-0.8`).
   * `disposition` (number | null): The configured disposition override value (`1`: Friendly, `0`: Neutral, `-1`: Hostile, `-2`: Secret) or `null` if the visage is set to "Default (No Change)".
 * Returns `null` if no alternate forms are defined or the Actor is not found.
 
-**Example:**
+**Example 1: Using only an Actor ID**
 
 ```javascript
+// This will use the actor's prototype token for fallbacks
 const forms = visageAPI.getForms("actor-id-12345");
+
 // forms might look like:
-// [
-//   { key: "a1b2c3d4e5f6g7h8", name: "Wolf", path: "path/to/wolf.webp", scale: 1.2, disposition: -1 }, // Hostile wolf
-//   { key: "i9j0k1l2m3n4o5p6", name: "Disguise", path: "path/to/mask.webp", scale: 1.0, disposition: 1 }, // Friendly disguise
-//   { key: "q7r8s9t0u1v2w3x4", name: "Illusion", path: "path/to/illusion.webp", scale: 1.0, disposition: -2 }, // Secret illusion
-//   { key: "y5z6a7b8c9d0e1f2", name: "Wounded", path: "path/to/wounded.webp", scale: 1.0, disposition: null } // No disposition change
+// [ 
+//   { key: "a1...", name: "Wolf", path: "path/to/wolf.webp", scale: 1.2, disposition: -1 }, 
+//   { key: "b2...", name: "Token's Default Name", path: "path/to/enlarge.webp", scale: 1.5, disposition: null } 
 // ]
+
 ```
 
 #### 3\. isFormActive
@@ -230,6 +242,8 @@ const resolved = await visageAPI.resolvePath(wildcardPath);
 ## Note on Token vs. Actor IDs
 
 The Visage API methods generally require both an `actorId` and a `tokenId` because the custom visage configurations are stored on the Actor Document, but the visual changes (image, name, scale, disposition) must be applied to the specific Token Document on the canvas. The currently active form is also tracked per-token.
+
+The Visage API methods like `setVisage` and `isFormActive` require both an `actorId` and a `tokenId` because the custom visage configurations are stored on the Actor Document, but the visual changes (image, name, scale, disposition) must be applied to the specific Token Document on the canvas. The currently active form is also tracked per-token. The `getForms` method is an exception, as it can function with just an `actorId` (falling back to prototype token data), but providing a `tokenId` will yield more accurate results for default values.
 
 You can reliably get both IDs from any selected Token instance (`token`) on the canvas using:
 

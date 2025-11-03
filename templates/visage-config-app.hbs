@@ -39,10 +39,10 @@
                     {{#each visages}}
                     <li class="visage-list-item" data-uuid="{{this.uuid}}">
                         
-                        <input type="text" name="visage-name" value="{{this.name}}" placeholder="Visage Name (e.g. Wolf)" />
+                    <input type="text" name="visage-name" value="{{this.name}}" placeholder="{{../defaultTokenName}}" />
                         
                         <div class="visage-path-group form-fields">
-                            <input type="text" name="visage-path" value="{{this.path}}" placeholder="path/to/image.webp" />
+                            <input type="text" name="visage-path" value="{{this.path}}" placeholder="{{../defaultToken}}" />
                             <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
                         </div>
                         
