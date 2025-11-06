@@ -196,8 +196,29 @@ export class VisageConfigApp extends Application {
         // --- Button: Add New Row ---
         html.on('click', '.visage-add', (event) => {
             event.preventDefault();
-            this._visage_addNewRow = true; // Set the flag
-            this.render(true); // Re-render the app to show the new row
+
+            // 1. Find the template element in the DOM
+            const template = html.find('#visage-row-template');
+
+            // 2. Clone its content
+            const newRow = $(template.html()); // .html() gets the <li> inside the <template>
+
+            // 3. Generate a unique ID for the radio buttons
+            const newId = foundry.utils.randomID(16);
+
+            // 4. Find all radio buttons in the new row and update their 'name' attribute
+            newRow.find('input[type="radio"]').each((i, radio) => {
+                radio.name = `visage-disposition-type-${newId}`;
+            });
+
+            // 5. Append the new row to the list
+            html.find('.visage-list').append(newRow);
+
+            // 6. Mark the form as dirty
+            this._onFormChange();
+
+            // 7. Adjust the app height
+            this.setPosition({ height: "auto" });
         });
 
         // --- Button: Delete Row ---

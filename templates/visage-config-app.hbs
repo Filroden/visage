@@ -88,6 +88,53 @@
                 <div class="flexrow visage-add-wrapper">
                     <button type="button" class="visage-add"><i class="fas fa-plus"></i> Add Visage</button>        
                 </div>
+
+                <template id="visage-row-template">
+                    <li class="visage-list-item" data-uuid="">
+                        <input type="text" name="visage-name" value="" placeholder="{{defaultTokenName}}" />
+                        
+                        <div class="visage-path-group form-fields">
+                            <input type="text" name="visage-path" value="" placeholder="{{defaultToken}}" />
+                            <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
+                        </div>
+                        
+                        <div class="visage-scale-group">
+                            <input type="number" name="visage-scale" value="100" placeholder="100" min="0" max="500" step="5" data-dtype="Number" class="visage-scale-input">
+                            <span class="visage-percent-sign">%</span>
+                        </div>
+                        
+                        <label class="checkbox visage-flip-label">
+                            <input type="checkbox" name="visage-flip-x">
+                        </label>
+                        
+                        <div class="visage-disposition-cell">
+                            <button type="button" class="visage-disposition-button">Default</button>
+                            <div class="visage-disposition-popout" style="display: none;">
+                                <div class="form-group">
+                                    {{!-- The name attribute will be set by JavaScript --}}
+                                    <input type="radio" name="visage-disposition-type-NEWID" value="none" checked />
+                                    <label>Default (No Change)</label>
+                                </div>
+                                <div class="form-group">
+                                    <input type="radio" name="visage-disposition-type-NEWID" value="disguise" />
+                                    <label>Disguise As:</label>
+                                    <select name="visage-disposition-value" disabled>
+                                        <option value="1">Friendly</option>
+                                        <option value="0" selected>Neutral</option>
+                                        <option value="-1">Hostile</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <input type="radio" name="visage-disposition-type-NEWID" value="illusion" />
+                                    <label>Illusion (Secret)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a class="visage-delete"><i class="fas fa-trash"></i></a>
+                    </li>
+                </template>
+
             </fieldset>
         </div>
     </div>
