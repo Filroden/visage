@@ -104,10 +104,16 @@ export async function handleTokenHUD(app, html, data) {
             const left = buttonRect.left - selectorWidth - gap; 
 
             // Create a new instance of the VisageSelector application
-            const selectorApp = new VisageSelector(actor.id, token.id, sceneId, {
-                id: selectorId, // Assign unique ID
-                left: left,
-                top: top
+            // V2 uses a single options object for constructor parameters
+            const selectorApp = new VisageSelector({
+                actorId: actor.id, 
+                tokenId: token.id, 
+                sceneId: sceneId,
+                id: selectorId, // Assign our unique ID
+                position: { // V2 position object
+                    left: left,
+                    top: top
+                }
             });
             
             // Render the new application window.

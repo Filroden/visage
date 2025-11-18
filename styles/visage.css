@@ -7,6 +7,14 @@
  * 3. A dark theme for the configuration window
  */
 
+/* Mandatory positioning for AppV2 with frame: false */
+.visage-selector-app {
+    position: fixed; 
+    display: block;
+    width: 200px !important; 
+    max-height: 460px; 
+}
+
 /* --- GENERAL & SHARED STYLES --- */
 
 /**
@@ -353,11 +361,12 @@
  * Sets a max-height to prevent the pop-up from being too tall.
  */
 .visage-selector-grid-wrapper {
-    overflow-y: auto;
+overflow-y: auto;
+    overflow-x: hidden; 
     flex-grow: 1;
-    padding: 10px 18px 12px 8px; /* Padding to make room for scrollbar */
-    scrollbar-width: initial !important;
-    scrollbar-color: initial !important;
+    padding: 10px 8px 16px 8px; 
+    scrollbar-width: thin; 
+    scrollbar-color: #a99335 rgba(0, 0, 0, 0.5);
     max-height: 400px;
 }
 
@@ -365,9 +374,9 @@
  * Defines the 2-column grid layout for the visage tiles.
  */
 .visage-selector {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px 12px;
+display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 10px; 
     width: 100%;
 }
 
@@ -375,13 +384,13 @@
  * Styles for an individual visage tile.
  */
 .visage-tile {
-    position: relative;
+position: relative; 
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 2px solid #8a782c; /* Gold border */
+    border: 2px solid #8a782c; 
     border-radius: 4px;
-    padding: 4px;
+    padding: 4px 4px 12px 4px; 
     cursor: pointer;
     background: rgba(255, 255, 255, 0.05);
     transition: background-color 0.1s, border-color 0.1s;
@@ -417,9 +426,9 @@
 .visage-tile-name {
     font-size: 11px;
     text-align: center;
-    white-space: normal;
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis; /* Truncate long names with ... */
     width: 100%;
     margin-top: 4px;
     color: #ffffff;

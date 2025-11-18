@@ -24,33 +24,6 @@ import { migrateWorldData } from "./visage-migration.js";
 // --- Module Initialisation ---
 
 /**
- * Hooks into the 'ready' event to perform data migration if needed.
- */
-Hooks.once("ready", () => {
-    // 1. Get the last version the module ran on this world.
-    // The module version is stored in the World's `core.json`.
-    const lastVersion = game.settings.get("visage", "worldVersion");
-    const currentVersion = game.modules.get("visage").version;
-
-    // 2. Check if the module version is newer than the stored version.
-    // This handles upgrades from any previous version (e.g., 0.5.0) to 1.0.0.
-    if (isNewerVersion(currentVersion, lastVersion)) {
-        
-        // Check specifically for migration-required versions
-        // If the *old* version was less than 1.0.0, we must migrate.
-        if (isNewerVersion("1.0.0", lastVersion)) {
-             Visage.log(`World migration needed: ${lastVersion} -> ${currentVersion}`, true);
-             // Call the migration function
-             migrateWorldData();
-        }
-        
-        // 3. IMPORTANT: Update the stored version *after* migration (or even if no migration was needed 
-        // for future proofing), so this block doesn't run again on reload.
-        game.settings.set("visage", "worldVersion", currentVersion);
-    }
-});
-
-/**
  * Registers the 'init' hook, which fires once the game is ready.
  * This is the primary setup function for the module.
  */
@@ -125,6 +98,33 @@ Hooks.once("init", () => {
 
 });
 
+/**
+ * Hooks into the 'ready' event to perform data migration if needed.
+ */
+Hooks.once("ready", () => {
+    // 1. Get the last version the module ran on this world.
+    // The module version is stored in the World's `core.json`.
+    const lastVersion = game.settings.get("visage", "worldVersion");
+    const currentVersion = game.modules.get("visage").version;
+
+    // 2. Check if the module version is newer than the stored version.
+    // This handles upgrades from any previous version (e.g., 0.5.0) to 1.0.0.
+    if (isNewerVersion(currentVersion, lastVersion)) {
+        
+        // Check specifically for migration-required versions
+        // If the *old* version was less than 1.0.0, we must migrate.
+        if (isNewerVersion("1.2.0", lastVersion)) {
+             Visage.log(`World migration needed (Deep Scan): ${lastVersion} -> ${currentVersion}`, true);
+             // Call the migration function
+             migrateWorldData();
+        }
+        
+        // 3. IMPORTANT: Update the stored version *after* migration (or even if no migration was needed 
+        // for future proofing), so this block doesn't run again on reload.
+        game.settings.set("visage", "worldVersion", currentVersion);
+    }
+});
+
 // --- Application Tracking ---
 
 /**
@@ -142,8 +142,13 @@ Visage.apps = {};
 Hooks.on("renderApplication", (app, html, data) => {
     // Check if the rendered app is an instance of specific UI classes
     if (app instanceof VisageSelector || app instanceof VisageConfigApp) {
-        // Store the application instance, keyed by its unique app ID
-        Visage.apps[app.options.id] = app;
+        // Store the application instance.
+        // For AppV2 (VisageSelector), the ID is directly on the instance: app.id
+        // For AppV1 (VisageConfigApp), the ID is in options: app.options.id
+        const appId = app.id || app.options?.id;
+        if (appId) {
+            Visage.apps[appId] = app;
+        }
     }
 });
 
@@ -154,8 +159,11 @@ Hooks.on("renderApplication", (app, html, data) => {
  */
 Hooks.on("closeApplication", (app) => {
     if (app instanceof VisageSelector || app instanceof VisageConfigApp) {
-        // Remove the application instance from the registry
-        delete Visage.apps[app.options.id];
+        // Determine ID based on API version logic
+        const appId = app.id || app.options?.id;
+        if (appId && Visage.apps[appId]) {
+            delete Visage.apps[appId];
+        }
     }
 });
 
