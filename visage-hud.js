@@ -1,19 +1,23 @@
 /**
- * This file contains the logic for interacting with Foundry's Token HUD.
- * Its primary responsibility is to add the "Change Visage" button to the HUD
- * and handle what happens when that button is clicked.
+ * @file visage-hud.js
+ * @description Handles the integration with the Foundry VTT Token HUD.
+ * This module injects a button into the HUD to allow users to open the Visage Selector.
+ * It also handles the automatic capture of default token data when the HUD is first opened.
+ * @module visage
  */
 
 import { Visage } from "./visage.js";
 import { VisageSelector } from "./visage-selector.js";
 
 /**
- * The hook handler for 'renderTokenHUD'.
+ * Hook handler for 'renderTokenHUD'.
  * This function is called every time the Token HUD is rendered.
+ * It injects the "Change Visage" button and sets up the default data capture logic.
  *
  * @param {TokenHUD} app - The TokenHUD application instance.
- * @param {jQuery} html - The jQuery-wrapped HTML of the HUD.
- * @param {object} data - The data object for the token.
+ * @param {HTMLElement} html - The HTML content of the HUD (DOM Element).
+ * @param {object} data - The data object associated with the token.
+ * @returns {Promise<void>}
  */
 export async function handleTokenHUD(app, html, data) {
     // If button already exists, don't do anything.

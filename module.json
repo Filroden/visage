@@ -16,6 +16,7 @@
     "main.js"
   ],
   "styles": [
+    "styles/filroden-theme.css",
     "styles/visage.css"
   ],
   "url": "https://github.com/Filroden/visage",

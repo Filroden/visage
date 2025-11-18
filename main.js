@@ -1,69 +1,88 @@
 /**
- * Main entry point for the Visage module.
- *
- * This file is responsible for:
- * 1. Importing all core module components (classes, UI apps, handlers).
- * 2. Registering the primary 'init' hook to set up the module.
- * 3. Registering module settings, including data cleanup utilities.
- * 4. Setting up hooks to track the module's open application windows.
- * 5. Registering hooks for core Foundry VTT events like 'renderTokenHUD' and 'preUpdateToken',
- * delegating the logic to dedicated handler functions.
+ * @file main.js
+ * @description Main entry point for the Visage module.
+ * This file handles initialization, setting registration, application window tracking,
+ * and the registration of core Foundry VTT hooks.
+ * @module visage
  */
 
 // --- Imports ---
+
 // Core module class
 import { Visage } from "./visage.js";
+
 // UI Application classes
 import { VisageSelector } from "./visage-selector.js";
 import { VisageConfigApp } from "./visage-config.js";
+
 // Dedicated handlers for specific hooks
 import { handleTokenHUD } from "./visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./visage-cleanup.js";
 import { migrateWorldData } from "./visage-migration.js";
 
-// --- Module Initialisation ---
+// --- Module Initialization ---
 
 /**
- * Registers the 'init' hook, which fires once the game is ready.
- * This is the primary setup function for the module.
+ * Initialization Hook.
+ * Invoked when the Foundry VTT game world begins initialization.
+ * Registers module settings, Handlebars helpers, and initializes the core API.
  */
 Hooks.once("init", () => {
-    // Run the main initialisation logic from the Visage class
+    // Run the main initialization logic from the Visage class
     Visage.initialize();
 
     // --- Register Handlebars Helpers ---
+    
+    /**
+     * Helper: neq (Not Equal)
+     * @param {any} a - First value.
+     * @param {any} b - Second value.
+     * @returns {boolean} True if a is not equal to b.
+     */
     Handlebars.registerHelper("neq", (a, b) => a !== b);
+
+    /**
+     * Helper: selected
+     * Returns the string "selected" if the condition is true, for use in HTML select options.
+     * @param {boolean} condition - The condition to check.
+     * @returns {string} "selected" or an empty string.
+     */
     Handlebars.registerHelper("selected", (condition) => condition ? "selected" : "");
 
-    // Register a 'trigger' setting for cleansing data from the current scene.
-    // This setting is a Boolean that, when checked, executes an action.
+    // --- Register Module Settings ---
+
+    /**
+     * Setting: Cleanse Scene Tokens (Trigger)
+     * Allows the GM to remove Visage data from all tokens on the current scene.
+     */
     game.settings.register("visage", "cleanseScene", {
         name: "[GM Only] Remove all Visage-related data from tokens on current scene",
         hint: "When you check this box and save, you will be asked for confirmation to remove Visage data from tokens in the current scene. This action cannot be undone.",
         scope: "world",
-        config: true,       // Show this in the module settings menu
-        restricted: true,   // Only GMs can see and use this
+        config: true,
+        restricted: true,
         type: Boolean,
         default: false,
         onChange: (value) => {
-            // Only fire if the box is checked (set to true)
             if (value) {
                 Dialog.confirm({
                     title: "Confirm Data Cleanse",
                     content: "<p>Are you sure you want to remove all Visage data from tokens on the <strong>current scene</strong>? This action cannot be undone.</p>",
-                    yes: () => cleanseSceneTokens(), // Call the cleanup function if confirmed
+                    yes: () => cleanseSceneTokens(),
                     no: () => ui.notifications.warn("Visage | Data cleanse cancelled."),
                     defaultYes: false
                 }).finally(() => {
-                    // IMPORTANT: Reset the setting to false immediately after.
-                    // This makes it a one-time button rather than a persistent toggle.
+                    // Reset the setting to false immediately so it acts as a button
                     game.settings.set("visage", "cleanseScene", false);
                 });
             }
         },
     });
 
-    // Register a 'trigger' setting for cleansing data from ALL scenes.
+    /**
+     * Setting: Cleanse All Tokens (Trigger)
+     * Allows the GM to remove Visage data from all tokens in the entire world.
+     */
     game.settings.register("visage", "cleanseAll", {
         name: "[GM Only] Remove all Visage-related data from tokens in all scenes",
         hint: "When you check this box and save, you will be asked for confirmation to remove Visage data from tokens in ALL scenes. This action cannot be undone.",
@@ -77,17 +96,20 @@ Hooks.once("init", () => {
                 Dialog.confirm({
                     title: "Confirm Data Cleanse",
                     content: "<p>Are you sure you want to remove all Visage data from tokens in <strong>all scenes</strong>? This action cannot be undone.</p>",
-                    yes: () => cleanseAllTokens(), // Call the global cleanup function
+                    yes: () => cleanseAllTokens(),
                     no: () => ui.notifications.warn("Visage | Data cleanse cancelled."),
                     defaultYes: false
                 }).finally(() => {
-                    // Reset the setting to false to act as a button
                     game.settings.set("visage", "cleanseAll", false);
                 });
             }
         },
     });
 
+    /**
+     * Setting: World Data Version (Internal)
+     * Tracks the version of the module last used in this world to trigger migrations.
+     */
     game.settings.register("visage", "worldVersion", {
         name: "World Data Version",
         scope: "world",
@@ -95,32 +117,29 @@ Hooks.once("init", () => {
         type: String,
         default: "0.0.0"     // Starting version for new worlds
     });
-
 });
 
 /**
- * Hooks into the 'ready' event to perform data migration if needed.
+ * Ready Hook.
+ * Invoked when the Foundry VTT game world is fully ready.
+ * Checks if the module has been updated and triggers data migration if necessary.
  */
 Hooks.once("ready", () => {
     // 1. Get the last version the module ran on this world.
-    // The module version is stored in the World's `core.json`.
     const lastVersion = game.settings.get("visage", "worldVersion");
     const currentVersion = game.modules.get("visage").version;
 
     // 2. Check if the module version is newer than the stored version.
-    // This handles upgrades from any previous version (e.g., 0.5.0) to 1.0.0.
     if (isNewerVersion(currentVersion, lastVersion)) {
         
-        // Check specifically for migration-required versions
-        // If the *old* version was less than 1.0.0, we must migrate.
+        // 3. Check specific migration thresholds.
+        // Deep Scan migration required for versions older than 1.2.0.
         if (isNewerVersion("1.2.0", lastVersion)) {
              Visage.log(`World migration needed (Deep Scan): ${lastVersion} -> ${currentVersion}`, true);
-             // Call the migration function
              migrateWorldData();
         }
         
-        // 3. IMPORTANT: Update the stored version *after* migration (or even if no migration was needed 
-        // for future proofing), so this block doesn't run again on reload.
+        // 4. Update the stored version to prevent re-running migration on reload.
         game.settings.set("visage", "worldVersion", currentVersion);
     }
 });
@@ -128,23 +147,22 @@ Hooks.once("ready", () => {
 // --- Application Tracking ---
 
 /**
- * Adds a static 'apps' object to the Visage class.
- * This will serve as a simple registry to track all open instances
- * of this module's application windows.
+ * Global registry of open Visage application instances.
+ * Used to prevent duplicate windows and manage focus.
+ * @type {Object<string, Application>}
  */
 Visage.apps = {};
 
 /**
- * Hooks into the 'renderApplication' event.
- * When any application window is rendered, this checks if it's one
- * of Visage's UIs and adds it to the `Visage.apps` registry.
+ * Hook: renderApplication
+ * Tracks open Visage applications in the Visage.apps registry.
+ * @param {Application} app - The application instance being rendered.
+ * @param {jQuery} html - The rendered HTML.
+ * @param {object} data - The data used to render the application.
  */
 Hooks.on("renderApplication", (app, html, data) => {
-    // Check if the rendered app is an instance of specific UI classes
     if (app instanceof VisageSelector || app instanceof VisageConfigApp) {
-        // Store the application instance.
-        // For AppV2 (VisageSelector), the ID is directly on the instance: app.id
-        // For AppV1 (VisageConfigApp), the ID is in options: app.options.id
+        // Support both AppV2 (app.id) and AppV1 legacy (app.options.id)
         const appId = app.id || app.options?.id;
         if (appId) {
             Visage.apps[appId] = app;
@@ -153,13 +171,12 @@ Hooks.on("renderApplication", (app, html, data) => {
 });
 
 /**
- * Hooks into the 'closeApplication' event.
- * When a Visage application window is closed, this removes it from
- * the `Visage.apps` registry to prevent memory leaks.
+ * Hook: closeApplication
+ * Removes closed Visage applications from the registry to prevent memory leaks.
+ * @param {Application} app - The application instance being closed.
  */
 Hooks.on("closeApplication", (app) => {
     if (app instanceof VisageSelector || app instanceof VisageConfigApp) {
-        // Determine ID based on API version logic
         const appId = app.id || app.options?.id;
         if (appId && Visage.apps[appId]) {
             delete Visage.apps[appId];
@@ -170,17 +187,19 @@ Hooks.on("closeApplication", (app) => {
 // --- Core Event Hooks ---
 
 /**
- * Hooks into the 'renderTokenHUD' event.
- * This fires whenever the Token HUD (the circular menu) is displayed.
- * It delegates all logic to the imported `handleTokenHUD` function.
+ * Hook: renderTokenHUD
+ * Delegates logic to add the "Change Visage" button to the Token HUD.
+ * @type {Function}
  */
 Hooks.on("renderTokenHUD", handleTokenHUD);
 
 /**
- * Hooks into the 'preUpdateToken' event.
- * This fires *before* any changes to a Token document are saved.
- * It delegates logic to the `Visage.handleTokenUpdate` static method,
- * which likely manages how Visage-related data is persisted on the token.
+ * Hook: preUpdateToken
+ * Intercepts token updates to sync changes (Name, Image, Scale) with Visage's defaults.
+ * @param {TokenDocument} document - The token document being updated.
+ * @param {object} change - The differential data object being applied.
+ * @param {object} options - Options for the update operation.
+ * @param {string} userId - The ID of the user triggering the update.
  */
 Hooks.on("preUpdateToken", (document, change, options, userId) => {
     Visage.handleTokenUpdate(document, change, options, userId);

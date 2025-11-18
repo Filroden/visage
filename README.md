@@ -23,7 +23,6 @@ Software and associated documentation files in this repository are covered by an
 [Long term]
 
 * Add the ability to create and use a global directory of visages, so certain effects can be applied quickly to any token (e.g., enlarge/reduce effects).
-* Move to ApplicationV2.
 * Test module against FoundryVTT v14.
 
 ## How to Use Visage
@@ -121,7 +120,7 @@ The core function to switch the specified Token to the specified appearance form
 | :-------- | :------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `actorId` | `string` | The ID of the Actor document associated with the token. |
 | `tokenId` | `string` | The ID of a specific Token on the canvas to update immediately. |
-| `formKey` | `string` | The unique identifier (UUID) of the appearance form to switch to (e.g., "Wolf Form"). Use the string literal `"default"` to switch to the Token's captured default image, name, scale, and disposition. |
+| `formKey` | `string` | The unique identifier (UUID) of the appearance form to switch to (e.g., `"a1b2c3d4e5f6g7h8"`). Use the string literal `"default"` to switch to the Token's captured default image, name, scale, and disposition. |
 
 **Signature:**
 
@@ -191,7 +190,7 @@ Checks if the specified appearance form is currently active on a specific Token.
 | :-------- | :------- | :-------------------------------------------------------------------------- |
 | `actorId` | `string` | The ID of the Actor document associated with the token.                     |
 | `tokenId` | `string` | The ID of the token on the canvas to check.                                 |
-| `formKey` | `string` | The unique identifier (UUID) of the appearance form to check (e.g., `"default"`, `"Wolf"`). |
+| `formKey` | `string` | The unique identifier (UUID) of the appearance form to check (e.g., `"default"`, `"a1b2c3..."`, etc). |
 
 **Signature:**
 

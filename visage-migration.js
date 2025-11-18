@@ -1,15 +1,23 @@
 /**
- * Migration script for Visage data.
- * Migrates alternate visages from a name-keyed object (old) 
- * to a UUID-keyed object with the name as a property (new).
- * * UPDATED: Now performs a "Deep Scan" to include unlinked tokens on scenes.
+ * @file visage-migration.js
+ * @description Handles data migration logic for the Visage module.
+ * This script is responsible for upgrading legacy data structures (name-keyed objects)
+ * to the modern UUID-keyed format (`alternateVisages`). It performs a comprehensive
+ * scan of both World Actors and Unlinked Tokens on all scenes to ensure no data is left behind.
+ * @module visage
  */
+
 import { Visage } from "./visage.js";
 
 /**
  * Performs a global migration of all Visage data across all Actors and Tokens.
- * This is an idempotent function designed to run once per world update.
- * @returns {Promise<void>}
+ * * This function is idempotent (safe to run multiple times) and performs a "Deep Scan"
+ * to catch both:
+ * 1. Linked Actors (World Actors).
+ * 2. Unlinked Actors (Synthetic Actors) residing on tokens across all scenes.
+ * * It migrates data from the legacy `alternateImages` flag to the new `alternateVisages` flag,
+ * normalizing properties like disposition and scale along the way.
+ * * @returns {Promise<void>} A promise that resolves when the migration is complete.
  */
 export async function migrateWorldData() {
     Visage.log("Starting Visage Data Migration...");
@@ -20,6 +28,7 @@ export async function migrateWorldData() {
     
     // Use a Map to store unique actors to update.
     // Key: Actor UUID, Value: Actor Document
+    // Using a Map handles deduplication automatically if an actor appears in multiple contexts.
     const actorsToUpdate = new Map();
 
     // 1. Check World Actors (Sidebar)
@@ -31,6 +40,7 @@ export async function migrateWorldData() {
     }
 
     // 2. Check Unlinked Tokens on All Scenes
+    // Unlinked tokens have their own isolated "synthetic" actors which are not in game.actors.
     for (const scene of game.scenes) {
         for (const token of scene.tokens) {
             if (!token.actorLink && token.actor) {
@@ -50,10 +60,7 @@ export async function migrateWorldData() {
     Visage.log(`Found ${actorsToUpdate.size} unique actors/tokens with legacy data. Migrating...`);
 
     // 3. Build the array of update operations
-    // Note: We process updates sequentially or in batches to be safe, 
-    // though Actor.updateDocuments handles world actors well. 
-    // Synthetic actors must be updated individually or via their token.
-    
+    // We iterate through the unique set of actors found in the Deep Scan.
     for (const actor of actorsToUpdate.values()) {
         const legacyVisages = actor.getFlag(ns, legacyKey);
         const newVisages = actor.getFlag(ns, newKey) || {}; // Preserve existing new data if any
@@ -78,7 +85,7 @@ export async function migrateWorldData() {
             const path = isObject ? (data.path || data) : data;
             const scale = isObject ? (data.scale ?? 1.0) : 1.0;
             
-            // Fix Disposition: 2 -> -2
+            // Fix Disposition: 2 (Legacy Secret) -> -2 (Core Secret)
             let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
             if (disposition === 2) disposition = -2;
 
@@ -87,7 +94,7 @@ export async function migrateWorldData() {
             
             // Build the new object structure
             newVisages[uuid] = {
-                name: isObject && data.name ? data.name : key, // Use old key as name
+                name: isObject && data.name ? data.name : key, // Use old key as name if needed
                 path: path,
                 scale: scale,
                 disposition: disposition,
@@ -95,11 +102,11 @@ export async function migrateWorldData() {
             };
 
             // Update active form on tokens if they reference the old name
-            // Check the token-specific flags on this actor
+            // Check the token-specific flags on this actor to ensure current selections don't break.
             const actorFlags = actor.flags[ns];
             if (actorFlags) {
                 for (const [flagKey, flagValue] of Object.entries(actorFlags)) {
-                    // If this flag key is a token ID (16 chars) and has a currentFormKey
+                    // If this flag key looks like a token ID (16 chars) and has a currentFormKey
                     if (flagKey.length === 16 && flagValue?.currentFormKey === key) {
                         updates[`flags.${ns}.${flagKey}.currentFormKey`] = uuid;
                     }

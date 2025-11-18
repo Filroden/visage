@@ -1,9 +1,9 @@
-<form>
+<div class="visage-config-container"> 
     <div class="visage-config-wrapper">
         <div class="visage-config-pane">
             <p class="visage-notes">
-                The default name, image, image scale, and disposition are automatically managed.
-                They are sourced from the token's primary settings. If you manually change any of these in the main Token Config window and update the token, the changes will be reflected below when you next view this config.
+                The default name and image are automatically managed.
+                They are sourced from the token's primary settings. If you manually change either the name or image on the main Token Config window and update the token, the changes will be reflected below when you next view this config.
             </p>
 
             <div class="visage-defaults-grid">
@@ -37,109 +37,72 @@
                 
                 <ol class="visage-list">
                     {{#each visages}}
-                    <li class="visage-list-item" data-uuid="{{this.uuid}}">
-                        
-                    <input type="text" name="visage-name" value="{{this.name}}" placeholder="{{../defaultTokenName}}" />
-                        
+                    <li class="visage-list-item" data-id="{{this.id}}">
+                        <input type="hidden" name="visages.{{@index}}.id" value="{{this.id}}">
+                        <input type="text" name="visages.{{@index}}.name" value="{{this.name}}" placeholder="Visage Name" />
                         <div class="visage-path-group form-fields">
-                            <input type="text" name="visage-path" value="{{this.path}}" placeholder="{{../defaultToken}}" />
-                            <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
+                            <input type="text" name="visages.{{@index}}.path" value="{{this.path}}" placeholder="path/to/image.webp" />
+                            <button type="button" class="file-picker-button" data-action="openFilePicker"><i class="fas fa-file-import fa-fw"></i></button>
                         </div>
-                        
                         <div class="visage-scale-group">
-                            <input type="number" name="visage-scale" value="{{this.scale}}" placeholder="100" min="0" max="500" step="5" data-dtype="Number" class="visage-scale-input">
+                            <input type="number" name="visages.{{@index}}.scale" value="{{this.scale}}" placeholder="100" min="0" max="500" step="5" class="visage-scale-input">
                             <span class="visage-percent-sign">%</span>
                         </div>
-             
                         <label class="checkbox visage-flip-label">
-                            <input type="checkbox" name="visage-flip-x" {{checked this.isFlippedX}}> 
+                            <input type="checkbox" name="visages.{{@index}}.isFlippedX" {{checked this.isFlippedX}}> 
                         </label>
-                   
+                    
+                        {{!-- UPDATED DISPOSITION CELL --}}
                         <div class="visage-disposition-cell">
-                            <button type="button" class="visage-disposition-button">
+                            <button type="button" class="visage-disposition-button" data-action="toggleDisposition">
                                 {{this.dispositionButtonText}}
                             </button>
-                            <div class="visage-disposition-popout" style="display: none;">
+                            
+                            <div class="visage-disposition-popout">
+                                
+                                {{!-- Option 1: Default --}}
                                 <div class="form-group">
-                                    <input type="radio" name="visage-disposition-type-{{@index}}" value="none" {{checked (eq this.dispositionType "none")}} />
+                                    <input type="radio" name="visages.{{@index}}.dispositionType" value="none" 
+                                        {{checked (eq this.dispositionType "none")}} data-action="changeDispositionType" />
                                     <label>Default (No Change)</label>
                                 </div>
+
+                                {{!-- Option 2: Disguise (with Select) --}}
                                 <div class="form-group">
-                                    <input type="radio" name="visage-disposition-type-{{@index}}" value="disguise" {{checked (eq this.dispositionType "disguise")}} />
+                                    <input type="radio" name="visages.{{@index}}.dispositionType" value="disguise" 
+                                        {{checked (eq this.dispositionType "disguise")}} data-action="changeDispositionType" />
                                     <label>Disguise As:</label>
-                                    <select name="visage-disposition-value" {{disabled (neq this.dispositionType "disguise")}}>
+                                    <select name="visages.{{@index}}.dispositionValue" 
+                                        {{disabled (neq this.dispositionType "disguise")}} data-action="changeDispositionValue">
                                         <option value="1" {{selected (eq this.dispositionValue 1)}}>Friendly</option>
                                         <option value="0" {{selected (eq this.dispositionValue 0)}}>Neutral</option>
                                         <option value="-1" {{selected (eq this.dispositionValue -1)}}>Hostile</option>
                                     </select>
                                 </div>
+
+                                {{!-- Option 3: Illusion --}}
                                 <div class="form-group">
-                                    <input type="radio" name="visage-disposition-type-{{@index}}" value="illusion" {{checked (eq this.dispositionType "illusion")}} />
+                                    <input type="radio" name="visages.{{@index}}.dispositionType" value="illusion" 
+                                        {{checked (eq this.dispositionType "illusion")}} data-action="changeDispositionType" />
                                     <label>Illusion (Secret)</label>
                                 </div>
+
                             </div>
                         </div>
 
-                        <a class="visage-delete"><i class="fas fa-trash"></i></a>
+                        <a class="visage-delete" data-action="deleteVisage"><i class="fas fa-trash"></i></a>
                     </li>
                     {{/each}}
                 </ol>
 
                 <div class="flexrow visage-add-wrapper">
-                    <button type="button" class="visage-add"><i class="fas fa-plus"></i> Add Visage</button>        
+                    <button type="button" class="visage-add" data-action="addVisage"><i class="fas fa-plus"></i> Add Visage</button>        
                 </div>
-
-                <template id="visage-row-template">
-                    <li class="visage-list-item" data-uuid="">
-                        <input type="text" name="visage-name" value="" placeholder="{{defaultTokenName}}" />
-                        
-                        <div class="visage-path-group form-fields">
-                            <input type="text" name="visage-path" value="" placeholder="{{defaultToken}}" />
-                            <button type="button" class="file-picker-button"><i class="fas fa-file-import fa-fw"></i></button>
-                        </div>
-                        
-                        <div class="visage-scale-group">
-                            <input type="number" name="visage-scale" value="100" placeholder="100" min="0" max="500" step="5" data-dtype="Number" class="visage-scale-input">
-                            <span class="visage-percent-sign">%</span>
-                        </div>
-                        
-                        <label class="checkbox visage-flip-label">
-                            <input type="checkbox" name="visage-flip-x">
-                        </label>
-                        
-                        <div class="visage-disposition-cell">
-                            <button type="button" class="visage-disposition-button">Default</button>
-                            <div class="visage-disposition-popout" style="display: none;">
-                                <div class="form-group">
-                                    {{!-- The name attribute will be set by JavaScript --}}
-                                    <input type="radio" name="visage-disposition-type-NEWID" value="none" checked />
-                                    <label>Default (No Change)</label>
-                                </div>
-                                <div class="form-group">
-                                    <input type="radio" name="visage-disposition-type-NEWID" value="disguise" />
-                                    <label>Disguise As:</label>
-                                    <select name="visage-disposition-value" disabled>
-                                        <option value="1">Friendly</option>
-                                        <option value="0" selected>Neutral</option>
-                                        <option value="-1">Hostile</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <input type="radio" name="visage-disposition-type-NEWID" value="illusion" />
-                                    <label>Illusion (Secret)</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <a class="visage-delete"><i class="fas fa-trash"></i></a>
-                    </li>
-                </template>
-
             </fieldset>
         </div>
     </div>
 
     <footer class="visage-config-footer">
-        <button type="button" class="visage-save {{#if isDirty}}dirty{{/if}}"><i class="fas fa-save"></i> Save Changes</button>
+        <button type="submit" class="visage-save {{#if isDirty}}dirty{{/if}}" data-action="save"><i class="fas fa-save"></i> Save Changes</button>
     </footer>
-</form>
+</div>

@@ -1,4 +1,12 @@
 /**
+ * @file visage.js
+ * @description The core logic class for the Visage module.
+ * This class acts as the central controller for managing data, handling hooks,
+ * and providing the public API for changing token appearances.
+ * @module visage
+ */
+
+/**
  * The primary class for the Visage module.
  *
  * This class acts as the main controller and data manager for the module.
@@ -18,7 +26,17 @@ export class Visage {
      * @type {string}
      */
     static DATA_NAMESPACE = "visage";
+
+    /**
+     * The key used in actor flags to store the new UUID-based alternate visage data.
+     * @type {string}
+     */
     static ALTERNATE_FLAG_KEY = "alternateVisages";
+
+    /**
+     * The key used in actor flags to store the legacy name-based alternate image data.
+     * @type {string}
+     */
     static LEGACY_FLAG_KEY = "alternateImages";
 
     /**
@@ -45,7 +63,7 @@ export class Visage {
      * file from the list of matches.
      *
      * @param {string} path - The path to resolve (e.g., "path/to/image.png" or "path/to/folder/*").
-     * @returns {Promise<string>} - The resolved, concrete file path.
+     * @returns {Promise<string>} - The resolved, concrete file path. If resolution fails, returns the original path.
      */
     static async resolvePath(path) {
         // If no path or no wildcard, return the path as-is.
@@ -83,7 +101,7 @@ export class Visage {
     }
 
     /**
-     * Initialises the module.
+     * Initializes the module.
      * This method is called once by the 'init' hook in main.js.
      * Its primary role is to set up the public API on `game.modules`.
      */
@@ -104,7 +122,7 @@ export class Visage {
      *
      * This function automatically syncs changes from the standard Token
      * Configuration window to this module's "default" form data.
-     * If a user changes the token's name, image, or scale normally,
+     * If a user changes the token's name, image, scale, or disposition normally,
      * this function updates the saved default visage to match.
      *
      * @param {TokenDocument} tokenDocument - The token document being updated.
@@ -167,10 +185,11 @@ export class Visage {
 
     /**
      * The core API function to change a token's visage to a specified form.
+     * This updates the token's name, image, scale, and disposition.
      *
      * @param {string} actorId - The ID of the token's actor.
      * @param {string} tokenId - The ID of the specific token on the canvas to update.
-     * @param {string} formKey - The key of the form to switch to (e.g., "default", "UUID", etc.).
+     * @param {string} formKey - The key of the form to switch to (e.g., "default", "UUID").
      * @returns {Promise<boolean>} - True on success, false on failure.
      */
     static async setVisage(actorId, tokenId, formKey) {
@@ -273,13 +292,13 @@ export class Visage {
     /**
      * API function to retrieve all configured alternate forms for an actor.
      *
-     * Empty names or paths will be resolved using default data.
+     * This method resolves smart defaults for empty names/paths.
      * If a `tokenId` is provided, it uses that token's specific defaults.
      * If not, it falls back to the Actor's prototype token data.
      *
      * @param {string} actorId - The ID of the actor.
-     * @param {string} [tokenId=null] - (Optional) The ID of a token to use for default fallbacks.
-     * @returns {Array<object>|null} - An array of visage objects.
+     * @param {string|null} [tokenId=null] - (Optional) The ID of a token to use for resolving default fallbacks.
+     * @returns {Array<object>|null} - An array of visage objects, or null if no forms are configured.
      */
     static getForms(actorId, tokenId = null) {
         const actor = game.actors.get(actorId);
@@ -336,7 +355,7 @@ export class Visage {
      * @param {string} actorId - The ID of the actor.
      * @param {string} tokenId - The ID of the token.
      * @param {string} formKey - The key of the form to check (UUID or "default").
-     * @returns {boolean} - True if the form is active, false otherwise.
+     * @returns {boolean} - True if the token's current form key matches the one provided, otherwise false.
      */
     static isFormActive(actorId, tokenId, formKey) {
         const actor = game.actors.get(actorId);
