@@ -86,7 +86,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         let defaults = tokenData.defaults;
 
         // --- Failsafe: Create Default Data ---
-        // If no defaults exist for this token, capture current state now.
         if (!defaults) {
             const currentToken = canvas.tokens.get(this.tokenId);
             if (!currentToken) return { forms: [] };
@@ -96,8 +95,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 name: currentToken.document.name,
                 token: currentToken.document.texture.src,
                 scale: currentToken.document.texture.scaleX ?? 1.0,
-                disposition: currentToken.document.disposition ?? 0,
-                secret: currentToken.document.secret ?? false
+                disposition: currentToken.document.disposition ?? 0
             };
             updates[`flags.${ns}.${this.tokenId}.currentFormKey`] = 'default';
             
@@ -106,26 +104,19 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             if (!defaults) return { forms: [] };
         }
 
-        // --- Determine Which Data Source to Use ---
-        // 1. Try New Structure (alternateVisages)
-        // 2. Fallback to Old Structure (alternateImages)
-        const rawVisages = moduleData.alternateVisages || moduleData.alternateImages || {};
-        
         const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
         const forms = {};
         
-        // 1. Default visage setup
+        // 1. Default visage
         {
-            const scale = 1.0; 
             const defaultPath = defaults.token || "";
-
             forms["default"] = {
                 key: "default",
                 name: defaults.name || "Default",
                 path: defaultPath,
                 isActive: currentFormKey === "default",
                 isDefault: true,
-                scale: scale,
+                scale: 1.0,
                 isFlippedX: false,
                 displayScale: 100,
                 showScaleChip: false,
@@ -136,68 +127,43 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
         
-        // 2. Alternate visages processing
-        for (const [key, data] of Object.entries(rawVisages)) {
-            const isObject = typeof data === 'object' && data !== null;
-            
-            // DATA NORMALIZATION: Handle New vs Old Structure
-            let name = key; // Default to key (Old structure behavior)
-            let path = data; // Default to data string (Old legacy behavior)
-            let scale = 1.0;
-            let disposition = null;
-            let secret = false;
+        // 2. Alternate visages (Using Centralized Normalization)
+        const normalizedData = Visage.getVisages(actor);
 
-            if (isObject) {
-                // If it's an object, extract properties safely
-                // New Structure: has .name property
-                // Old Structure: key IS the name
-                name = data.name || key; 
-                path = data.path || "";
-                scale = data.scale ?? 1.0;
-                
-                // Handle legacy disposition `2` mapping
-                disposition = (data.disposition !== undefined) ? data.disposition : null;
-                if (disposition === 2) disposition = -2;
-                
-                secret = (data.secret === true);
-            }
-
-            const isFlippedX = scale < 0;
-            const absScale = Math.abs(scale);
+        for (const data of normalizedData) {
+            const isFlippedX = data.scale < 0;
+            const absScale = Math.abs(data.scale);
             const displayScale = Math.round(absScale * 100);
-            const showScaleChip = scale !== 1;
-            const dispositionInfo = (disposition !== null) ? this._dispositionMap[disposition] : null;
+            const showScaleChip = data.scale !== 1;
+            const dispositionInfo = (data.disposition !== null) ? this._dispositionMap[data.disposition] : null;
 
-            forms[key] = {
-                key: key, // This is the ID used for saving/loading
-                name: name,
-                path: path,
-                scale: scale,
-                isActive: key === currentFormKey,
+            forms[data.id] = {
+                key: data.id,
+                name: data.name,
+                path: data.path,
+                scale: data.scale,
+                isActive: data.id === currentFormKey,
                 isDefault: false,
                 isFlippedX: isFlippedX,
                 displayScale: displayScale,
                 showScaleChip: showScaleChip,
                 absScale: absScale,
-                isWildcard: path.includes('*'),
+                isWildcard: data.path.includes('*'),
                 showDispositionChip: !!dispositionInfo,
                 dispositionName: dispositionInfo?.name || "",
                 dispositionClass: dispositionInfo?.class || "",
-                isSecret: secret
+                isSecret: (data.disposition === -2)
             };
         }
 
-        // Sorting: Default first, then alphabetical by NAME (not key)
+        // Array construction (Default first, then sorted alternates)
         const orderedForms = [forms["default"]];
-        const alternateKeys = Object.keys(forms)
-            .filter(k => k !== "default")
-            .sort((a, b) => forms[a].name.localeCompare(forms[b].name));
-            
-        for(const key of alternateKeys) {
-            orderedForms.push(forms[key]);
+        // normalizedData is already sorted by name from Visage.getVisages
+        for(const data of normalizedData) {
+            orderedForms.push(forms[data.id]);
         }
 
-        // Path resolution for wildcard support
+        // Path resolution
         for (const form of orderedForms) {
             form.resolvedPath = await Visage.resolvePath(form.path);
         }

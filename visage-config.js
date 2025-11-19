@@ -98,10 +98,8 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @returns {Promise<object>} The data context.
      */
     async _prepareContext(options) {
-        // Retrieve Token first to support Unlinked/Synthetic actors
         const scene = game.scenes.get(this.sceneId);
         const tokenDocument = scene?.tokens.get(this.tokenId);
-        // Fallback to game.actors.get only if token lookup implies a linked actor not on scene
         const actor = tokenDocument?.actor ?? game.actors.get(this.actorId);
 
         if (!actor || !tokenDocument) return {};
@@ -116,29 +114,23 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         
         let visages = [];
         
-        // If we have unsaved changes in memory, use those. Otherwise, load from flags.
         if (this._tempVisages) {
             visages = this._tempVisages;
         } else {
-            // Look for data in new key first, fallback to old
-            const sourceData = moduleData.alternateVisages || moduleData.alternateImages || {};
+            // USE CENTRALIZED NORMALIZATION
+            const normalizedData = Visage.getVisages(actor);
             
-            visages = await Promise.all(Object.entries(sourceData).map(async ([key, data]) => {
-                const isObject = typeof data === 'object' && data !== null;
-                // Ensure UUID key
-                const uuid = (key.length === 16) ? key : foundry.utils.randomID(16);
-                const name = (isObject && data.name) ? data.name : key;
-                const path = isObject ? (data.path || "") : (data || "");
-                const scale = isObject ? (data.scale ?? 1.0) : 1.0;
-                
-                // Legacy disposition fix (2 -> -2)
-                let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
-                if (disposition === 2) disposition = -2;
-
-                return this._processVisageEntry(uuid, name, path, scale, false, disposition);
+            // Add UI-specific properties for the config form
+            visages = await Promise.all(normalizedData.map(async (data) => {
+                return this._processVisageEntry(
+                    data.id, 
+                    data.name, 
+                    data.path, 
+                    data.scale, 
+                    false, // isFlippedX logic handled inside _processVisageEntry using scale
+                    data.disposition
+                );
             }));
-            
-            visages.sort((a, b) => a.name.localeCompare(b.name));
         }
 
         return {
