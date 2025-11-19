@@ -6,6 +6,8 @@
  * @module visage
  */
 
+import { Visage } from "./visage.js";
+
 /**
  * Removes all Visage-related data from actors associated with tokens
  * on the *currently active scene*.
@@ -27,10 +29,11 @@ export async function cleanseSceneTokens() {
   
   for (const token of canvas.scene.tokens) {
     const actor = token.actor;
-    // Check for legacy 'alternateImages' AND new 'alternateVisages' AND 'defaults'
-    // Checking the root 'visage' flag covers all of them.
-    if (actor?.flags?.visage) {
-        const updateData = { _id: actor.id, "flags.-=visage": null };
+    // Check for Visage data using the strict namespace constant
+    if (actor?.flags?.[Visage.DATA_NAMESPACE]) {
+        // Construct the deletion key dynamically
+        const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
+        const updateData = { _id: actor.id, [deleteKey]: null };
         
         if (token.actorLink) {
             // Linked: Add to bulk update list (deduplicated by Actor ID)
@@ -40,7 +43,7 @@ export async function cleanseSceneTokens() {
             }
         } else {
             // Unlinked: Must update the synthetic actor instance directly
-            unlinkedPromises.push(actor.update({ "flags.-=visage": null }));
+            unlinkedPromises.push(actor.update({ [deleteKey]: null }));
             count++;
         }
     }
@@ -80,8 +83,9 @@ export async function cleanseAllTokens() {
     for (const token of scene.tokens) {
         const actor = token.actor;
         
-        if (actor?.flags?.visage) {
-            const updateData = { _id: actor.id, "flags.-=visage": null };
+        if (actor?.flags?.[Visage.DATA_NAMESPACE]) {
+            const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
+            const updateData = { _id: actor.id, [deleteKey]: null };
 
             if (token.actorLink) {
                 // Linked: Add to bulk list (deduplicated)
@@ -91,8 +95,7 @@ export async function cleanseAllTokens() {
                 }
             } else {
                 // Unlinked: Update direct instance
-                // Note: We must use the actor instance retrieved from the token document
-                unlinkedPromises.push(actor.update({ "flags.-=visage": null }));
+                unlinkedPromises.push(actor.update({ [deleteKey]: null }));
                 count++;
             }
         }

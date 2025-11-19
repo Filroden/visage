@@ -55,7 +55,7 @@ Hooks.once("init", () => {
      * Setting: Cleanse Scene Tokens (Trigger)
      * Allows the GM to remove Visage data from all tokens on the current scene.
      */
-    game.settings.register("visage", "cleanseScene", {
+    game.settings.register(Visage.MODULE_ID, "cleanseScene", {
         name: "[GM Only] Remove all Visage-related data from tokens on current scene",
         hint: "When you check this box and save, you will be asked for confirmation to remove Visage data from tokens in the current scene. This action cannot be undone.",
         scope: "world",
@@ -73,7 +73,7 @@ Hooks.once("init", () => {
                     defaultYes: false
                 }).finally(() => {
                     // Reset the setting to false immediately so it acts as a button
-                    game.settings.set("visage", "cleanseScene", false);
+                    game.settings.set(Visage.MODULE_ID, "cleanseScene", false);
                 });
             }
         },
@@ -83,7 +83,7 @@ Hooks.once("init", () => {
      * Setting: Cleanse All Tokens (Trigger)
      * Allows the GM to remove Visage data from all tokens in the entire world.
      */
-    game.settings.register("visage", "cleanseAll", {
+    game.settings.register(Visage.MODULE_ID, "cleanseAll", {
         name: "[GM Only] Remove all Visage-related data from tokens in all scenes",
         hint: "When you check this box and save, you will be asked for confirmation to remove Visage data from tokens in ALL scenes. This action cannot be undone.",
         scope: "world",
@@ -100,7 +100,7 @@ Hooks.once("init", () => {
                     no: () => ui.notifications.warn("Visage | Data cleanse cancelled."),
                     defaultYes: false
                 }).finally(() => {
-                    game.settings.set("visage", "cleanseAll", false);
+                    game.settings.set(Visage.MODULE_ID, "cleanseAll", false);
                 });
             }
         },
@@ -110,7 +110,7 @@ Hooks.once("init", () => {
      * Setting: World Data Version (Internal)
      * Tracks the version of the module last used in this world to trigger migrations.
      */
-    game.settings.register("visage", "worldVersion", {
+    game.settings.register(Visage.MODULE_ID, "worldVersion", {
         name: "World Data Version",
         scope: "world",
         config: false,       // Hidden setting
@@ -126,8 +126,8 @@ Hooks.once("init", () => {
  */
 Hooks.once("ready", () => {
     // 1. Get the last version the module ran on this world.
-    const lastVersion = game.settings.get("visage", "worldVersion");
-    const currentVersion = game.modules.get("visage").version;
+    const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
+    const currentVersion = game.modules.get(Visage.MODULE_ID).version;
 
     // 2. Check if the module version is newer than the stored version.
     if (isNewerVersion(currentVersion, lastVersion)) {
@@ -140,7 +140,7 @@ Hooks.once("ready", () => {
         }
         
         // 4. Update the stored version to prevent re-running migration on reload.
-        game.settings.set("visage", "worldVersion", currentVersion);
+        game.settings.set(Visage.MODULE_ID, "worldVersion", currentVersion);
     }
 });
 
