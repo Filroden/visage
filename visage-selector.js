@@ -1,301 +1,266 @@
 /**
- * This file defines the VisageSelector class.
- * This class is a small, temporary Application window that pops up
- * next to the Token HUD, allowing the user to quickly select a
- * pre-configured visage (appearance) for their token.
+ * @file visage-selector.js
+ * @description Defines the VisageSelector application.
+ * This class renders the grid of available visage options in a pop-out window
+ * next to the token HUD, allowing users to select and apply them.
+ * @module visage
  */
 
-// Import the main Visage class for its API (setVisage, resolvePath)
 import { Visage } from "./visage.js";
-// Import the configuration app to open it from this selector
 import { VisageConfigApp } from "./visage-config.js";
 
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 /**
- * The VisageSelector Application.
+ * The VisageSelector Application (V2).
  * Renders a small, borderless window with a grid of available visages.
+ * @extends {HandlebarsApplicationMixin(ApplicationV2)}
  */
-export class VisageSelector extends Application {
+export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     /**
-     * @param {string} actorId - The ID of the Actor this token represents.
-     * @param {string} tokenId - The ID of the specific Token on the canvas.
-     * @param {string} sceneId - The ID of the Scene the token is on.
-     * @param {object} [options={}] - Standard Application options.
+     * @param {object} options - Application options.
+     * @param {string} options.actorId - The ID of the Actor associated with the token.
+     * @param {string} options.tokenId - The ID of the Token being modified.
+     * @param {string} options.sceneId - The ID of the Scene containing the token.
      */
-    constructor(actorId, tokenId, sceneId, options = {}) {
+    constructor(options = {}) {
         super(options);
-        this.actorId = actorId;
-        this.tokenId = tokenId;
-        this.sceneId = sceneId;
+        
+        /**
+         * The ID of the Actor associated with the token.
+         * @type {string}
+         */
+        this.actorId = options.actorId;
 
         /**
-         * Helper map for disposition names and classes
-         * @type {object}
+         * The ID of the Token being modified.
+         * @type {string}
+         */
+        this.tokenId = options.tokenId;
+
+        /**
+         * The ID of the Scene containing the token.
+         * @type {string}
+         */
+        this.sceneId = options.sceneId;
+
+        /**
+         * Mapping of internal disposition integers to localized display names and CSS classes.
+         * Used to render the status chips on visage tiles.
+         * @type {Object<number, {name: string, class: string}>}
          * @private
          */
         this._dispositionMap = {
-            [-2]: { name: "Secret",   class: "secret"   },
-            [-1]: { name: "Hostile",  class: "hostile"  },
-            [0]:  { name: "Neutral",  class: "neutral"  },
-            [1]:  { name: "Friendly", class: "friendly" }
+            [-2]: { name: game.i18n.localize("VISAGE.Disposition.Secret"),   class: "secret"   },
+            [-1]: { name: game.i18n.localize("VISAGE.Disposition.Hostile"),  class: "hostile"  },
+            [0]:  { name: game.i18n.localize("VISAGE.Disposition.Neutral"),  class: "neutral"  },
+            [1]:  { name: game.i18n.localize("VISAGE.Disposition.Friendly"), class: "friendly" }
         };
     }
 
     /**
-     * Defines the default options for this application window.
-     * @returns {object}
+     * Default Application options.
+     * Configures the window to be frameless, positioned near the HUD, and defines actions.
      * @override
+     * @type {object}
      */
-    static get defaultOptions() {
-        return foundry.utils.mergeObject(super.defaultOptions, {
-            template: `modules/visage/templates/visage-selector.hbs`,
-            title: "Choose Visage",
-            classes: ["visage-selector-app", "borderless"],
-            popOut: true,
-            width: 200,
-            height: "auto", // Automatically size height based on content
-            top: 0,         // Will be positioned manually by visage-hud.js
-            left: 0,        // Will be positioned manually by visage-hud.js
-            minimizable: false,
-            resizable: false,
-            // This is set to false because a custom "close on unfocus" logic is
-            // implemented in _bindDismissListeners to have more control.
-            closeOnUnfocus: false
-        });
-    }
+    static DEFAULT_OPTIONS = {
+        tag: "div",
+        id: "visage-selector",
+        classes: ["visage-selector-app", "borderless"],
+        position: {
+            width: 200, // This sets the inline style width
+            height: "auto" 
+        },
+        window: {
+            frame: false,
+            positioned: true
+        },
+        actions: {
+            selectVisage: VisageSelector.prototype._onSelectVisage,
+            openConfig: VisageSelector.prototype._onOpenConfig
+        }
+    };
 
     /**
-     * Gathers all data needed to render the selector tiles.
-     * @param {object} [options={}] - Options passed during rendering.
-     * @returns {Promise<object>} The data object for the template.
+     * Configuration for rendering parts (templates).
      * @override
+     * @type {object}
      */
-    async getData(options = {}) {
+    static PARTS = {
+        form: {
+            template: "modules/visage/templates/visage-selector.hbs",
+            scrollable: [".visage-selector-grid-wrapper"] 
+        }
+    };
+
+    /**
+     * Prepares the data context for rendering the Handlebars template.
+     * Fetches the token/actor data, handles default data creation if missing,
+     * and normalizes legacy vs. new data structures via Visage.getVisages.
+     * * @override
+     * @param {object} options - Render options.
+     * @returns {Promise<object>} The data object for the template.
+     */
+    async _prepareContext(options) {
         const token = canvas.tokens.get(this.tokenId);
-        if (!token) {
-            ui.notifications.error(`VisageSelector: Could not find token with ID ${this.tokenId}`);
-            return { forms: [] };
-        }
-
-        const actor = token.actor;
-        if (!actor) {
-            ui.notifications.error("VisageSelector: Could not find actor for token " + this.tokenId);
-            return { forms: [] };
-        }
-
+        if (!token || !token.actor) return { forms: [] };
+        
+        const actor = token.actor; 
         const ns = Visage.DATA_NAMESPACE;
         const moduleData = actor.flags?.[ns] || {};
         let tokenData = moduleData[this.tokenId] || {};
         let defaults = tokenData.defaults;
 
         // --- Failsafe: Create Default Data ---
-        // This logic acts as a fallback in case the 'handleTokenHUD'
-        // function didn't get to run and create the initial default data.
+        // If no defaults exist for this token (e.g. first use), capture current state now.
         if (!defaults) {
-            // Re-fetch token just in case
             const currentToken = canvas.tokens.get(this.tokenId);
-            if (!currentToken) {
-                ui.notifications.error(`VisageSelector: Could not find token with ID ${this.tokenId}`);
-                return { forms: [] };
-            }
+            if (!currentToken) return { forms: [] };
 
-            // Prepare the flag updates
             const updates = {};
             updates[`flags.${ns}.${this.tokenId}.defaults`] = {
                 name: currentToken.document.name,
                 token: currentToken.document.texture.src,
                 scale: currentToken.document.texture.scaleX ?? 1.0,
-                disposition: currentToken.document.disposition ?? 0
+                disposition: currentToken.document.disposition ?? 0,
+                secret: currentToken.document.secret ?? false
             };
             updates[`flags.${ns}.${this.tokenId}.currentFormKey`] = 'default';
-
-            // Update the actor and re-fetch the defaults
+            
             await actor.update(updates);
             defaults = actor.flags?.[ns]?.[this.tokenId]?.defaults;
 
             if (!defaults) {
-                ui.notifications.error(`Visage defaults for token ${this.tokenId} could not be created.`);
+                ui.notifications.error(game.i18n.format("VISAGE.Notifications.ErrorDefaultsFailed", { id: this.tokenId }));
                 return { forms: [] };
             }
         }
 
-        // --- Prepare Form Data for Template ---
-        const alternateVisages = moduleData[Visage.ALTERNATE_FLAG_KEY] || {}; 
         const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
-
         const forms = {};
-
-        // 1. Manually add the "Default" visage as the first option
+        
+        // 1. Default visage setup
         {
-            // Note: Default form scale is assumed to be 1.0 for this preview.
-            // The *actual* default scale is stored but not used for this tile's chip.
-            const scale = 1.0;
-            const isFlippedX = scale < 0;
-            const absScale = Math.abs(scale);
-            const displayScale = Math.round(absScale * 100);
-            const showScaleChip = scale !== 1;
-            const defaultPath = defaults.token || ""; // Ensure path is a string
-
+            const defaultPath = defaults.token || "";
             forms["default"] = {
                 key: "default",
-                name: defaults.name || "Default", // Use saved default name
+                name: defaults.name || game.i18n.localize("VISAGE.Selector.Default"),
                 path: defaultPath,
-                isActive: currentFormKey === "default", // Check if it's active
+                isActive: currentFormKey === "default",
                 isDefault: true,
-                scale: scale,
-                isFlippedX: isFlippedX,
-                displayScale: displayScale,
-                showScaleChip: showScaleChip,
-                absScale: absScale,
-                // Check if the path is a wildcard, used to show an icon
+                scale: 1.0,
+                isFlippedX: false,
+                displayScale: 100,
+                showScaleChip: false,
+                absScale: 1,
                 isWildcard: defaultPath.includes('*'),
-                // Disposition properties (always false for default tile)
                 showDispositionChip: false,
-                dispositionName: "",
-                dispositionClass: ""
+                isSecret: false
             };
         }
+        
+        // 2. Alternate visages processing (Using Centralized Normalization)
+        // This handles legacy data conversion and sorting automatically.
+        const normalizedData = Visage.getVisages(actor);
 
-        // 2. Add all configured alternate visages
-        // Loop over UUIDs and data
-        for (const [uuid, data] of Object.entries(alternateVisages)) {
-            // Handle old string-only data format vs. new {path, scale} object
-            const isObject = typeof data === 'object' && data !== null;
-            
-            // Use defaults as fallback for empty name or path
-            const name = data.name || defaults.name;
-            const path = (isObject ? data.path : data) || defaults.token; // Handles old format & empty
-            
-            const scale = isObject ? (data.scale ?? 1.0) : 1.0;
-            let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
-
-            // Calculate display values
-            const isFlippedX = scale < 0;
-            const absScale = Math.abs(scale);
+        for (const data of normalizedData) {
+            const isFlippedX = data.scale < 0;
+            const absScale = Math.abs(data.scale);
             const displayScale = Math.round(absScale * 100);
-            const showScaleChip = scale !== 1;
-            const dispositionInfo = (disposition !== null) ? this._dispositionMap[disposition] : null;
+            const showScaleChip = data.scale !== 1;
+            const dispositionInfo = (data.disposition !== null) ? this._dispositionMap[data.disposition] : null;
 
-            forms[uuid] = {
-                key: uuid,
-                name: name, // Use fallback-inclusive name
-                path: path, // Use fallback-inclusive path
-                scale: scale, // Use calculated scale
-                isActive: uuid === currentFormKey,
+            forms[data.id] = {
+                key: data.id,
+                name: data.name,
+                path: data.path,
+                scale: data.scale,
+                isActive: data.id === currentFormKey,
+                
                 isDefault: false,
                 isFlippedX: isFlippedX,
                 displayScale: displayScale,
                 showScaleChip: showScaleChip,
                 absScale: absScale,
-                isWildcard: path.includes('*'), // Use fallback-inclusive path
+                isWildcard: data.path.includes('*'),
                 showDispositionChip: !!dispositionInfo,
                 dispositionName: dispositionInfo?.name || "",
                 dispositionClass: dispositionInfo?.class || ""
             };
         }
 
-        // --- Sort and Resolve Paths ---
-        // Create an ordered array: Default first, then all others alphabetically
+        // Array construction (Default first, then sorted alternates)
         const orderedForms = [forms["default"]];
-        const alternateKeys = Object.keys(forms).filter(k => k !== "default").sort((a, b) => {
-            // Sort by name property, accessing the form data using the UUID (a and b)
-            return forms[a].name.localeCompare(forms[b].name); 
-        });
-        for(const key of alternateKeys) {
-            orderedForms.push(forms[key]);
+        // normalizedData is already sorted by name from Visage.getVisages
+        for(const data of normalizedData) {
+            orderedForms.push(forms[data.id]);
         }
 
-        // Asynchronously resolve all paths (handles wildcards for previews)
+        // Path resolution for wildcard support
         for (const form of orderedForms) {
             form.resolvedPath = await Visage.resolvePath(form.path);
         }
 
-        // Return the final, ordered list of forms to the template
         return { forms: orderedForms };
     }
-
+    
     /**
-     * Attaches event listeners to the application's HTML.
-     * @param {jQuery} html - The jQuery-wrapped HTML of the application.
-     * @override
+     * Action Handler: Select Visage.
+     * Triggered when a visage tile is clicked via [data-action="selectVisage"].
+     * Calls the main API to apply the selected visage to the token.
+     * * @param {PointerEvent} event - The click event.
+     * @param {HTMLElement} target - The element with the data-action attribute.
      */
-    activateListeners(html) {
-        super.activateListeners(html);
-        // Main action: Click a tile to change the visage
-        html.on('click', '.visage-tile', this._onSelectVisage.bind(this));
-        // Button: Open the full configuration window
-        html.on('click', '.visage-config-button', this._onOpenConfig.bind(this));
-        // Activate custom "close on unfocus" behavior
-        this._bindDismissListeners();
+    async _onSelectVisage(event, target) {
+        const formKey = target.dataset.formKey;
+        if (formKey) {
+            await Visage.setVisage(this.actorId, this.tokenId, formKey);
+            this.close();
+        }
     }
 
     /**
-     * Handles opening the full VisageConfigApp window.
-     * @param {Event} event - The click event.
-     * @private
+     * Action Handler: Open Configuration.
+     * Triggered by [data-action="openConfig"].
+     * Opens the VisageConfigApp to allow editing of the actor's visages.
+     * * @param {PointerEvent} event - The click event.
+     * @param {HTMLElement} target - The element with the data-action attribute.
      */
-    _onOpenConfig(event) {
-        event.preventDefault();
-        // Create a unique ID for the config app
+    _onOpenConfig(event, target) {
         const configId = `visage-config-${this.actorId}-${this.tokenId}`;
-
-        // Check global app tracker (from main.js)
         if (Visage.apps[configId]) {
-            // If it's already open, just bring it to the front
             Visage.apps[configId].bringToTop();
         } else {
-            // Otherwise, create and render a new config app
-            const configApp = new VisageConfigApp(this.actorId, this.tokenId, this.sceneId, { id: configId });
+            const configApp = new VisageConfigApp({ 
+                actorId: this.actorId, 
+                tokenId: this.tokenId, 
+                sceneId: this.sceneId, 
+                id: configId 
+            });
             configApp.render(true);
         }
-
-        // Close this selector window
         this.close();
     }
 
     /**
-     * Binds a global 'pointerdown' event listener to handle closing
-     * the window when the user clicks outside of it.
-     * @private
-     */
-    _bindDismissListeners() {
-        this._onDocPointerDown = (ev) => {
-            const root = this.element[0];
-            if (!root) return; // App is gone
-
-            // 1. Don't close if clicking *inside* this app
-            if (root.contains(ev.target)) return;
-
-            // 2. Don't close if clicking the HUD button that opened this
-            // (Let the HUD button's own logic handle toggling)
-            const hudBtn = document.querySelector('.visage-button');
-            if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
-
-            // 3. Don't close if clicking *inside* the config app
-            const configApp = ev.target.closest('.visage-config-app');
-            if (configApp) return;
-
-            // If none of the above, close the app
-            this.close();
-        };
-        // Add the listener to the whole document, in the capture phase
-        document.addEventListener('pointerdown', this._onDocPointerDown, true);
-    }
-
-    /**
-     * Removes the global 'pointerdown' listener to prevent memory leaks.
-     * @private
-     */
-    _unbindDismissListeners() {
-        if (this._onDocPointerDown) {
-            document.removeEventListener('pointerdown', this._onDocPointerDown, true);
-            this._onDocPointerDown = null;
-        }
-    }
-
-    /**
-     * Overrides the default close method to ensure global
-     * listener is always cleaned up.
+     * Post-render hook.
+     * Re-binds the global dismiss listener whenever the application renders.
      * @override
+     * @param {object} context - The prepared context data.
+     * @param {object} options - The render options.
+     */
+    _onRender(context, options) {
+        this._unbindDismissListeners();
+        this._bindDismissListeners();
+    }
+
+    /**
+     * Closes the application.
+     * Ensures the global dismiss listener is removed to prevent memory leaks.
+     * @override
+     * @param {object} options - Options which modify how the application is closed.
+     * @returns {Promise<void>}
      */
     async close(options) {
         this._unbindDismissListeners();
@@ -303,21 +268,40 @@ export class VisageSelector extends Application {
     }
 
     /**
-     * Handles the click event on a visage tile to select it.
-     * @param {Event} event - The click event.
+     * Binds a document-level pointerdown listener to close the window 
+     * if the user clicks outside of it.
      * @private
      */
-    async _onSelectVisage(event) {
-        const tile = event.target.closest('.visage-tile');
-        if (!tile) return;
+    _bindDismissListeners() {
+        this._onDocPointerDown = (ev) => {
+            const root = this.element;
+            if (!root) return;
+            
+            // Don't close if clicking inside the selector itself
+            if (root.contains(ev.target)) return;
+            
+            // Don't close if clicking the HUD button that opened this window
+            const hudBtn = document.querySelector('.visage-button');
+            if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
+            
+            // Don't close if clicking inside the config app (if open)
+            const configApp = ev.target.closest('.visage-config-app');
+            if (configApp) return;
 
-        // Get the form key from the tile's data- attribute
-        const formKey = tile.dataset.formKey; // formKey is the UUID or "default"
-        if (formKey) {
-            // Call the main API to change the token's appearance
-            await Visage.setVisage(this.actorId, this.tokenId, formKey);
-            // Close this selector window
             this.close();
+        };
+        // Use 'true' for capture phase to ensure we catch the event early
+        document.addEventListener('pointerdown', this._onDocPointerDown, true);
+    }
+
+    /**
+     * Removes the document-level dismiss listener.
+     * @private
+     */
+    _unbindDismissListeners() {
+        if (this._onDocPointerDown) {
+            document.removeEventListener('pointerdown', this._onDocPointerDown, true);
+            this._onDocPointerDown = null;
         }
     }
 }

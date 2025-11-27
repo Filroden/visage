@@ -1,18 +1,21 @@
 /**
- * This file contains utility functions for data cleanup.
- * These functions are triggered from the module settings menu and allow
- * a GM to remove all data stored by Visage from actor flags.
- * This is intended as a "hard reset" or uninstallation tool.
+ * @file visage-cleanup.js
+ * @description Utility functions for data cleanup.
+ * These functions allow GMs to perform a "hard reset" by removing all
+ * Visage-related flags from actors within specific scopes (Scene or World).
+ * @module visage
  */
+
+import { Visage } from "./visage.js";
 
 /**
  * Removes all Visage-related data from actors associated with tokens
  * on the *currently active scene*.
  *
  * This is a destructive action and cannot be undone.
- * It's triggered by a setting in the module configuration.
+ * It is triggered by a setting in the module configuration.
  *
- * @returns {Promise<void>}
+ * @returns {Promise<void>} A promise that resolves when the update operation is complete.
  */
 export async function cleanseSceneTokens() {
   if (!canvas.scene) {
@@ -20,29 +23,42 @@ export async function cleanseSceneTokens() {
     return;
   }
 
-  // Use a Map to store the actors that need updating.
-  // This ensures we only update each actor once, even if they have
-  // multiple tokens on the scene.
-  const actorsToUpdate = new Map();
+  const worldUpdates = new Map();
+  const unlinkedPromises = [];
+  let count = 0;
   
   for (const token of canvas.scene.tokens) {
     const actor = token.actor;
-
-    // Check if the actor has any Visage data (using 'alternateImages' as a proxy)
-    // and if we haven't already added this actor to our update list.
-    if (actor?.getFlag("visage", "alternateImages") && !actorsToUpdate.has(actor.id)) {
-      // Add the actor to the map with the update payload.
-      // `flags.-=visage` is Foundry syntax to remove the entire 'visage' object
-      // from the actor's flags.
-      actorsToUpdate.set(actor.id, { _id: actor.id, "flags.-=visage": null });
+    // Check for Visage data using the strict namespace constant
+    if (actor?.flags?.[Visage.DATA_NAMESPACE]) {
+        // Construct the deletion key dynamically
+        const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
+        const updateData = { _id: actor.id, [deleteKey]: null };
+        
+        if (token.actorLink) {
+            // Linked: Add to bulk update list (deduplicated by Actor ID)
+            if (!worldUpdates.has(actor.id)) {
+                worldUpdates.set(actor.id, updateData);
+                count++;
+            }
+        } else {
+            // Unlinked: Must update the synthetic actor instance directly
+            unlinkedPromises.push(actor.update({ [deleteKey]: null }));
+            count++;
+        }
     }
   }
 
-  if (actorsToUpdate.size > 0) {
-    // Perform a single bulk update on all collected actors for efficiency.
-    const updates = Array.from(actorsToUpdate.values());
-    await Actor.updateDocuments(updates);
-    ui.notifications.info(`Visage | Cleansed data from ${updates.length} actor(s) on scene "${canvas.scene.name}".`);
+  if (count > 0) {
+    // Execute updates
+    if (worldUpdates.size > 0) {
+        await Actor.updateDocuments(Array.from(worldUpdates.values()));
+    }
+    if (unlinkedPromises.length > 0) {
+        await Promise.all(unlinkedPromises);
+    }
+    
+    ui.notifications.info(`Visage | Cleansed data from ${count} actor(s)/token(s) on scene "${canvas.scene.name}".`);
   } else {
     ui.notifications.info("Visage | No data found on tokens in the current scene.");
   }
@@ -52,13 +68,14 @@ export async function cleanseSceneTokens() {
  * Removes all Visage-related data from *all* actors in *all* scenes.
  *
  * This is a global, destructive action and cannot be undone.
- * It's triggered by a setting in the module configuration.
+ * It is triggered by a setting in the module configuration.
  *
- * @returns {Promise<void>}
+ * @returns {Promise<void>} A promise that resolves when the update operation is complete.
  */
 export async function cleanseAllTokens() {
-  // Use a Map to collect unique actors from all scenes.
-  const actorsToUpdate = new Map();
+  const worldUpdates = new Map();
+  const unlinkedPromises = [];
+  let count = 0;
 
   // Iterate over every scene in the game
   for (const scene of game.scenes) {
@@ -66,20 +83,35 @@ export async function cleanseAllTokens() {
     for (const token of scene.tokens) {
         const actor = token.actor;
         
-        // Same check as the scene-specific function:
-        // If the actor has data and isn't already in our map, add it.
-        if (actor?.getFlag("visage", "alternateImages") && !actorsToUpdate.has(actor.id)) {
-            // `flags.-=visage` removes the entire 'visage' namespace
-            actorsToUpdate.set(actor.id, { _id: actor.id, "flags.-=visage": null });
+        if (actor?.flags?.[Visage.DATA_NAMESPACE]) {
+            const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
+            const updateData = { _id: actor.id, [deleteKey]: null };
+
+            if (token.actorLink) {
+                // Linked: Add to bulk list (deduplicated)
+                if (!worldUpdates.has(actor.id)) {
+                    worldUpdates.set(actor.id, updateData);
+                    count++;
+                }
+            } else {
+                // Unlinked: Update direct instance
+                unlinkedPromises.push(actor.update({ [deleteKey]: null }));
+                count++;
+            }
         }
     }
   }
 
-  if (actorsToUpdate.size > 0) {
-    // Perform a single bulk update on all collected actors.
-    const updates = Array.from(actorsToUpdate.values());
-    await Actor.updateDocuments(updates);
-    ui.notifications.info(`Visage | Cleansed data from ${updates.length} actor(s) across all scenes.`);
+  if (count > 0) {
+    // Execute updates
+    if (worldUpdates.size > 0) {
+        await Actor.updateDocuments(Array.from(worldUpdates.values()));
+    }
+    if (unlinkedPromises.length > 0) {
+        await Promise.all(unlinkedPromises);
+    }
+
+    ui.notifications.info(`Visage | Cleansed data from ${count} actor(s)/token(s) across all scenes.`);
   } else {
     ui.notifications.info("Visage | No data found on tokens in any scene.");
   }

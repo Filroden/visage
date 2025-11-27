@@ -1,469 +1,512 @@
 /**
- * This file defines the VisageConfigApp class.
- * This class is a standalone Application window used to configure
- * the "visages" (alternate token appearances) for a specific actor.
+ * @file visage-config.js
+ * @description Defines the VisageConfigApp class.
+ * This application provides the form interface for configuring alternate visages
+ * on a specific Actor/Token. It handles data creation, modification, and deletion,
+ * as well as the assignment of dispositions (disguises/illusions).
+ * @module visage
  */
 
 import { Visage } from "./visage.js";
 
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 /**
- * The Visage Configuration Application.
- *
+ * The Visage Configuration Application (V2).
  * This window allows a user to add, edit, and remove alternate visages
- * for an actor. It is opened from the VisageSelector (the HUD) and
- * edits the data stored in the actor's flags.
+ * for an actor. It enforces data integrity (UUIDs) and handles the 
+ * "smart default" logic when saving.
+ * @extends {HandlebarsApplicationMixin(ApplicationV2)}
  */
-export class VisageConfigApp extends Application {
+export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
+    
     /**
-     * @param {string} actorId - The ID of the Actor being configured.
-     * @param {string} tokenId - The ID of the Token this config was opened from.
-     * @param {string} sceneId - The ID of the Scene the token is on.
-     * @param {object} [options={}] - Standard Application options.
+     * @param {object} options - Application options.
+     * @param {string} options.actorId - The ID of the Actor being configured.
+     * @param {string} options.tokenId - The ID of the Token this config was opened from.
+     * @param {string} options.sceneId - The ID of the Scene the token is on.
      */
-    constructor(actorId, tokenId, sceneId, options = {}) {
+    constructor(options = {}) {
         super(options);
-        this.actorId = actorId;
-        this.tokenId = tokenId;
-        this.sceneId = sceneId; 
+        
+        /**
+         * The ID of the Actor being configured.
+         * @type {string}
+         */
+        this.actorId = options.actorId;
 
         /**
-         * A temporary flag to track if the "Add New" button was clicked,
-         * which signals `getData` to add a blank row to the form.
-         * @type {boolean}
+         * The ID of the Token this config was opened from.
+         * @type {string}
+         */
+        this.tokenId = options.tokenId;
+
+        /**
+         * The ID of the Scene the token is on.
+         * @type {string}
+         */
+        this.sceneId = options.sceneId;
+
+        /**
+         * Internal state to hold form data during edits (prevents data loss on re-render).
+         * @type {Array<object>|null}
          * @private
          */
-        this._visage_addNewRow = false;
-
+        this._tempVisages = null;
+        
         /**
-         * Tracks whether the form has unsaved changes.
-         * @type {boolean}
-         */
-        this.isDirty = false;
-
-        /**
-         * Helper map for disposition names
-         * @type {object}
+         * Map for readable disposition names used in the UI.
+         * @type {Object<number, {name: string}>}
          * @private
          */
         this._dispositionMap = {
-            [-2]: { name: "Secret"   },
-            [-1]: { name: "Hostile"  },
-            [0]:  { name: "Neutral"  },
-            [1]:  { name: "Friendly" }
+            [-2]: { name: game.i18n.localize("VISAGE.Disposition.Secret")   },
+            [-1]: { name: game.i18n.localize("VISAGE.Disposition.Hostile")  },
+            [0]:  { name: game.i18n.localize("VISAGE.Disposition.Neutral")  },
+            [1]:  { name: game.i18n.localize("VISAGE.Disposition.Friendly") }
         };
     }
 
-    /**
-     * Defines the default options for this application window.
-     * @returns {object}
+    /** * Default Application options.
      * @override
+     * @type {object}
      */
-    static get defaultOptions() {
-        return foundry.utils.mergeObject(super.defaultOptions, {
-            template: `modules/visage/templates/visage-config-app.hbs`,
-            title: "Visage Configuration",
-            classes: ["visage-config-app", "visage-dark-theme"], 
-            popOut: true,
-            width: "auto",
-            height: "auto",
-            minimizable: false,
-            resizable: true, 
-            closeOnUnfocus: false // Prevents closing when clicking the FilePicker
-        });
+    static DEFAULT_OPTIONS = {
+        tag: "form",
+        id: "visage-config",
+        classes: ["visage-config-app", "visage-dark-theme"],
+        window: {
+            title: "VISAGE.Config.Title", // Localization Key
+            // Use custom CSS class for the icon mask
+            icon: "visage-header-icon", 
+            resizable: true,
+            minimizable: true,
+            contentClasses: ["standard-form"]
+        },
+        position: {
+            width: 780,
+            height: "auto"
+        },
+        actions: {
+            addVisage: VisageConfigApp.prototype._onAddVisage,
+            deleteVisage: VisageConfigApp.prototype._onDeleteVisage,
+            save: VisageConfigApp.prototype._onSave,
+            toggleDisposition: VisageConfigApp.prototype._onToggleDisposition,
+            changeDispositionType: VisageConfigApp.prototype._onChangeDispositionType,
+            changeDispositionValue: VisageConfigApp.prototype._onChangeDispositionValue,
+            openFilePicker: VisageConfigApp.prototype._onOpenFilePicker
+        }
+    };
+
+    /** * Configuration for rendering parts (templates).
+     * @override
+     * @type {object}
+     */
+    static PARTS = {
+        form: {
+            template: "modules/visage/templates/visage-config-app.hbs",
+            scrollable: [".visage-config-wrapper"] 
+        }
+    };
+
+    /** * Getter to ensure the window title is localized dynamically.
+     * @returns {string} The localized title.
+     */
+    get title() {
+        return game.i18n.localize(this.options.window.title);
     }
 
-    /**
-     * Prepares all data needed to render the application's template.
-     * @param {object} [options={}] - Options passed during rendering.
-     * @returns {Promise<object>} The data object for the template.
-     * @override
+    /** * Prepares the data context for the Handlebars template.
+     * Handles fetching the correct Actor (Linked vs Unlinked), normalizing data,
+     * and preparing the view model.
+     * * @override
+     * @param {object} options - Render options.
+     * @returns {Promise<object>} The data context.
      */
-    async getData(options = {}) {
-        const actor = game.actors.get(this.actorId);
-        
-        // Need the scene and token *document* to get the token's
-        // original, unmodified default data.
+    async _prepareContext(options) {
+        // Retrieve Token first to support Unlinked/Synthetic actors
         const scene = game.scenes.get(this.sceneId);
         const tokenDocument = scene?.tokens.get(this.tokenId);
+        // Fallback to game.actors.get only if token lookup implies a linked actor not on scene
+        const actor = tokenDocument?.actor ?? game.actors.get(this.actorId);
 
-        if (!actor || !tokenDocument) {
-            ui.notifications.error("Visage | Could not find Actor or Token Document for config.");
-            return {};
-        }
+        if (!actor || !tokenDocument) return {};
 
-        const moduleData = actor.flags?.[Visage.DATA_NAMESPACE] || {};
-
-        // --- Prepare Visage Data ---
-        // Get the saved defaults for *this specific token*.
-        // If they don't exist, create them from the token document itself.
+        const ns = Visage.DATA_NAMESPACE;
+        const moduleData = actor.flags?.[ns] || {};
         const tokenDefaults = moduleData[this.tokenId]?.defaults || {
             name: tokenDocument.name,
             token: tokenDocument.texture.src,
-            scale: tokenDocument.texture.scaleX ?? 1.0,
-            disposition: tokenDocument.disposition ?? 0
+            scale: tokenDocument.texture.scaleX ?? 1.0
         };
-        // Convert scale (e.g., 1.0) to a percentage (e.g., 100) for the form input
-        tokenDefaults.scale = Math.round(Math.abs(tokenDefaults.scale) * 100);
-
-        // --- Process Alternate Visages ---
-        // Use the new flag key
-        const alternateVisages = moduleData[Visage.ALTERNATE_FLAG_KEY] || {};
-        // Map the stored flag data into a standardised array for the template.
-        const visageEntries = await Promise.all(Object.entries(alternateVisages).map(async ([uuid, data]) => {
-            // Handle old string-only data format vs. new {path, scale} object format
-            const isObject = typeof data === 'object' && data !== null;
-            const path = isObject ? data.path : data;
-            const scale = isObject ? (data.scale ?? 1.0) : 1.0;
-            const isFlippedX = scale < 0; // Check if the saved scale is negative
-            
-            // Get disposition
-            let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
-            
-            // Determine disposition state for template
-            let dispositionType, dispositionValue, dispositionButtonText;
-            
-            if (disposition === null || disposition === undefined) {
-                dispositionType = "none";
-                dispositionValue = 0; // Default select to neutral
-                dispositionButtonText = "Default";
-            } else if (disposition === -2) {
-                dispositionType = "illusion";
-                dispositionValue = -2; 
-                dispositionButtonText = "Illusion (Secret)";
-            } else if (this._dispositionMap[disposition]) {
-                // Safely check if the key exists (handles -1, 0, 1)
-                dispositionType = "disguise";
-                dispositionValue = disposition; 
-                dispositionButtonText = `Disguise: ${this._dispositionMap[disposition].name}`;
-            } else {
-                // Fallback for any other unknown value
-                Visage.log(`Found unknown disposition value: ${disposition} for visage "${data.name}". Resetting to Default.`);
-                dispositionType = "none";
-                dispositionValue = 0;
-                dispositionButtonText = "Default";
-            }
-
-            return {
-                uuid: uuid,
-                name: data.name, // Renamed 'key' to 'name' for the display name
-                path: data.path,
-                scale: Math.round(Math.abs(scale) * 100), // Form input shows positive percentage
-                isFlippedX,            // Checkbox state
-                dispositionType,       // 'none', 'disguise', 'illusion'
-                dispositionValue,      // -1, 0, 1, -2
-                dispositionButtonText, // "Default", "Disguise: Friendly", etc.
-                // Resolve the path (for wildcards) to show a preview image
-                resolvedPath: await Visage.resolvePath(path) 
-            };
-        }));
         
-        // Sort visages alphabetically by name for a consistent UI
-        visageEntries.sort((a, b) => a.name.localeCompare(b.name)); // Changed 'a.key' to 'a.name'
-
-        // If the "Add New" button was clicked, push a blank entry
-        if (this._visage_addNewRow) {
-            visageEntries.push({
-                uuid: "",
-                name: "", // Renamed 'key' to 'name'
-                path: "",
-                scale: 100,
-                isFlippedX: false,
-                dispositionType: "none",
-                dispositionValue: 0,
-                dispositionButtonText: "Default",
-                resolvedPath: ""
-            });
-            this._visage_addNewRow = false; // Reset the flag
+        let visages = [];
+        
+        // If we have unsaved changes in memory, use those. Otherwise, load from flags.
+        if (this._tempVisages) {
+            visages = this._tempVisages;
+        } else {
+            // USE CENTRALIZED NORMALIZATION from visage.js
+            // This handles legacy data, UUIDs, and disposition fixes automatically.
+            const normalizedData = Visage.getVisages(actor);
+            
+            // Add UI-specific properties for the config form
+            visages = await Promise.all(normalizedData.map(async (data) => {
+                return this._processVisageEntry(
+                    data.id, 
+                    data.name, 
+                    data.path, 
+                    data.scale, 
+                    false, // isFlippedX logic is handled inside _processVisageEntry based on scale sign
+                    data.disposition
+                );
+            }));
         }
 
-        // Data that will be passed to the .hbs template
         return {
-            visages: visageEntries,
+            visages,
             defaultTokenName: tokenDefaults.name,
             defaultToken: tokenDefaults.token,
-            isDirty: this.isDirty // Pass dirty state to show/hide save button state
+            isDirty: this._isDirty || false
         };
     }
 
-    /**
-     * Attaches event listeners to the application's HTML.
-     * @param {jQuery} html - The jQuery-wrapped HTML of the application.
-     * @override
+    /** * Helper to process raw data into the format required by the handlebars template.
+     * Calculates display text for buttons and resolves disposition logic.
+     * * @param {string} id - The UUID of the visage.
+     * @param {string} name - The name of the visage.
+     * @param {string} path - The file path.
+     * @param {number} scale - The scale multiplier (e.g. 1.0).
+     * @param {boolean} isFlippedX - Whether the image is flipped horizontally.
+     * @param {number|null} disposition - The disposition override value.
+     * @returns {Promise<object>} The formatted visage object ready for the UI.
      */
-    activateListeners(html) {
-        super.activateListeners(html);
+    async _processVisageEntry(id, name, path, scale, isFlippedX, disposition) {
+        let dispositionType = "none";
+        let dispositionValue = 0; // Default select value (Neutral)
+        let buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Default");
 
-        // --- Button: Add New Row ---
-        html.on('click', '.visage-add', (event) => {
-            event.preventDefault();
+        if (disposition === -2) {
+            // Case: Illusion (Secret)
+            dispositionType = "illusion";
+            buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Illusion");
+        } else if (disposition !== null && disposition !== undefined) {
+            // Case: Disguise (Friendly/Neutral/Hostile)
+            dispositionType = "disguise";
+            dispositionValue = disposition;
+            const dispoName = this._dispositionMap[disposition]?.name || "";
+            buttonText = game.i18n.format("VISAGE.Config.Disposition.Button.Disguise", { name: dispoName });
+        } else {
+            // Case: Default (null/undefined)
+            dispositionType = "none";
+            buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Default");
+        }
 
-            // 1. Find the template element in the DOM
-            const template = html.find('#visage-row-template');
+        return {
+            id,
+            name,
+            path,
+            scale: Math.round(Math.abs(scale) * 100), // Convert to percentage for display
+            isFlippedX: (scale < 0) || isFlippedX,
+            dispositionType,
+            dispositionValue,
+            dispositionButtonText: buttonText,
+            resolvedPath: await Visage.resolvePath(path)
+        };
+    }
 
-            // 2. Clone its content
-            const newRow = $(template.html()); // .html() gets the <li> inside the <template>
 
-            // 3. Generate a unique ID for the radio buttons
-            const newId = foundry.utils.randomID(16);
+    /* -------------------------------------------- */
+    /* Actions                                     */
+    /* -------------------------------------------- */
 
-            // 4. Find all radio buttons in the new row and update their 'name' attribute
-            newRow.find('input[type="radio"]').each((i, radio) => {
-                radio.name = `visage-disposition-type-${newId}`;
-            });
-
-            // 5. Append the new row to the list
-            html.find('.visage-list').append(newRow);
-
-            // 6. Mark the form as dirty
-            this._onFormChange();
-
-            // 7. Adjust the app height
-            this.setPosition({ height: "auto" });
-        });
-
-        // --- Button: Delete Row ---
-        html.on('click', '.visage-delete', (event) => {
-        const row = event.target.closest('li');
-            // If the row has a UUID, handle it as a deletion of existing data
-            if (row?.dataset?.uuid) {
-                this._onFormChange(); 
-            }
-            row?.remove();
-            this.setPosition({ height: "auto" });
-        });
-
-        // --- Button: File Picker ---
-        html.on('click', '.file-picker-button', (event) => {
-            event.preventDefault();
-            // Find the text input field associated with this button
-            const targetInput = event.target.closest('.form-fields')?.querySelector('input[type="text"]');
-            if (!targetInput) return;
-
-            new FilePicker({
-                type: "image",
-                current: targetInput.value,
-                // When a file is selected, update the input's value
-                callback: (path) => {
-                    targetInput.value = path;
-                    // Manually trigger a 'change' event to update the app's dirty state
-                    targetInput.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            }).browse(targetInput.value);
-        });
-
-        // --- Form Dirty State ---
-        // Listen for any change on inputs or selects to mark the form as "dirty"
-        html.on('input change', 'input, select', () => {
-            this._onFormChange();
-        });
-
-        // --- Button: Save Changes ---
-        html.find('.visage-save')?.on('click', (event) => this._onSaveChanges(event, html));
-
-        // --- Disposition Pop-out Listeners ---
-
-        // Click on button to open pop-out
-        html.on('click', '.visage-disposition-button', (event) => {
-            event.preventDefault();
-            event.stopPropagation(); // Stop click from bubbling to 'click-away' listener
-            const button = event.currentTarget;
-            const popout = button.nextElementSibling; // Get the .visage-disposition-popout
-            if (!popout) return;
-
-            // Close all other open pop-outs
-            html.find('.visage-disposition-popout').not(popout).hide();
-            // Toggle this one
-            $(popout).toggle();
-        });
-
-        // Click-away to close (namespaced to this app instance)
-        $(document).on(`click.visageConfig.${this.appId}`, (event) => {
-            const target = event.target;
-            // If click is outside the config app, or *not* on a button/pop-out, close all
-            if (!target.closest('.visage-config-app') || 
-                (!target.closest('.visage-disposition-button') && !target.closest('.visage-disposition-popout'))) {
-                html.find('.visage-disposition-popout').hide();
-            }
-        });
-
-        // Change controls inside the pop-out
-        html.on('change', '.visage-disposition-popout input[type="radio"], .visage-disposition-popout select', (event) => {
-            event.preventDefault();
-            this._onFormChange(); // Mark as dirty
-
-            const popout = event.target.closest('.visage-disposition-popout');
-            if (!popout) return;
-
-            const button = popout.previousElementSibling; // Get the button
-            const disguiseSelect = popout.querySelector('select[name="visage-disposition-value"]');
-            
-            // Get selected radio value
-            const type = popout.querySelector('input[type="radio"]:checked').value;
-            let buttonText = "Error";
-
-            if (type === "none") {
-                disguiseSelect.disabled = true;
-                buttonText = "Default";
-            } else if (type === "illusion") {
-                disguiseSelect.disabled = true;
-                buttonText = "Illusion (Secret)";
-            } else if (type === "disguise") {
-                disguiseSelect.disabled = false;
-                const selectedVal = disguiseSelect.value;
-                buttonText = `Disguise: ${this._dispositionMap[selectedVal].name}`;
-            }
-
-            button.textContent = buttonText;
-        });
+    /**
+     * Action: Add Visage.
+     * Adds a new, blank visage row to the list.
+     * @param {PointerEvent} event - The click event.
+     * @param {HTMLElement} target - The button element.
+     */
+    async _onAddVisage(event, target) {
+        this._tempVisages = await this._readFormData(this.element);
+        
+        const newEntry = await this._processVisageEntry(
+            foundry.utils.randomID(16), 
+            "", "", 1.0, false, null // Default disposition is null
+        );
+        this._tempVisages.push(newEntry);
+        
+        this._isDirty = true;
+        this.render();
     }
 
     /**
-     * Overrides the default close method to clean up global listeners.
-     * @override
+     * Action: Delete Visage.
+     * Removes a visage row from the list based on its data-id.
+     * @param {PointerEvent} event - The click event.
+     * @param {HTMLElement} target - The delete button element.
      */
-    async close(options) {
-        // Unbind the global click listener namespaced to this app
-        $(document).off(`click.visageConfig.${this.appId}`);
-        return super.close(options);
+    async _onDeleteVisage(event, target) {
+        const row = target.closest(".visage-list-item");
+        const idToDelete = row.dataset.id;
+
+        this._tempVisages = await this._readFormData(this.element);
+        this._tempVisages = this._tempVisages.filter(v => v.id !== idToDelete);
+        
+        this._isDirty = true;
+        this.render();
+    }
+
+    /**
+     * Action: Toggle Disposition Popout.
+     * Shows/Hides the disposition configuration popout for a specific row.
+     * @param {PointerEvent} event - The click event.
+     * @param {HTMLElement} target - The toggle button.
+     */
+    _onToggleDisposition(event, target) {
+        const row = target.closest(".visage-disposition-cell");
+        const popout = row.querySelector(".visage-disposition-popout");
+        
+        // Close all others first
+        this.element.querySelectorAll(".visage-disposition-popout").forEach(el => {
+            if (el !== popout) el.classList.remove("active");
+        });
+
+        popout.classList.toggle("active");
+    }
+
+    /**
+     * Internal helper to update the text on the disposition button when inputs change.
+     * This provides immediate visual feedback without a full re-render.
+     * @param {HTMLElement} popout - The popout container element.
+     */
+    _updateButtonText(popout) {
+        const cell = popout.closest(".visage-disposition-cell");
+        const button = cell.querySelector(".visage-disposition-button");
+        
+        // Safely check inputs
+        const dispoInput = popout.querySelector('input[name$=".dispositionType"]:checked');
+        if (!dispoInput) return;
+        
+        const dispoType = dispoInput.value;
+        const select = popout.querySelector('select');
+        let buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Default");
+        
+        if (dispoType === "disguise") {
+            select.disabled = false;
+            const val = parseInt(select.value);
+            const dispoName = this._dispositionMap[val]?.name || "";
+            buttonText = game.i18n.format("VISAGE.Config.Disposition.Button.Disguise", { name: dispoName });
+        } else {
+            select.disabled = true;
+            if (dispoType === "illusion") {
+                buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Illusion");
+            }
+        }
+
+        button.textContent = buttonText;
+        this._markDirty();
     }
     
+    _onChangeDispositionType(event, target) { this._updateButtonText(target.closest(".visage-disposition-popout")); }
+    _onChangeDispositionValue(event, target) { this._updateButtonText(target.closest(".visage-disposition-popout")); }
+
     /**
-     * A helper function called when any form field changes.
-     * It sets the `isDirty` flag and updates the save button's CSS.
-     * @private
+     * Action: Open File Picker.
+     * Opens the Foundry FilePicker to select an image for a specific row.
+     * @param {PointerEvent} event - The click event.
+     * @param {HTMLElement} target - The file picker button.
      */
-    _onFormChange() {
-        if (this.isDirty) return; // Already.
-        this.isDirty = true;
-        // Add a 'dirty' class to the save button (e.g., to make it glow)
-        this.element.find('.visage-save').addClass('dirty');
+    _onOpenFilePicker(event, target) {
+        const group = target.closest(".visage-path-group");
+        const input = group.querySelector("input");
+        
+        const fp = new FilePicker({
+            type: "image",
+            current: input.value,
+            callback: (path) => {
+                input.value = path;
+                this._markDirty();
+                // Manually trigger change so FormData picks it up
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+        fp.browse();
     }
 
     /**
-     * Handles the logic for validating and saving all form data.
-     * @param {Event} event - The click event from the save button.
-     * @param {jQuery} html - The application's HTML.
+     * Marks the application as dirty and updates the save button style.
      * @private
      */
-    async _onSaveChanges(event, html) {
-        event.preventDefault();
-        this.isDirty = false; // Reset dirty state immediately
+    _markDirty() {
+        this._isDirty = true;
+        const btn = this.element.querySelector(".visage-save");
+        if (btn) btn.classList.add("dirty");
+    }
 
-        const actor = game.actors.get(this.actorId);
-        if (!actor) {
-            ui.notifications.error("Visage | Actor not found. Cannot save changes.");
-            return;
+    /**
+     * Action: Save Changes.
+     * Validates data, constructs the update object, handles "smart defaults", 
+     * and saves to the Actor's flags. Also handles legacy data cleanup.
+     * @param {PointerEvent} event - The click/submit event.
+     * @param {HTMLElement} target - The save button.
+     */
+    async _onSave(event, target) {
+        event.preventDefault();
+
+        const scene = game.scenes.get(this.sceneId);
+        const tokenDocument = scene?.tokens.get(this.tokenId);
+        const actor = tokenDocument?.actor ?? game.actors.get(this.actorId);
+        
+        if (!actor) return;
+        
+        // 1. Fetch Token Defaults for fallback (Smart Defaults)
+        const ns = Visage.DATA_NAMESPACE;
+        const moduleData = actor.flags?.[ns] || {};
+        
+        const tokenDefaults = moduleData[this.tokenId]?.defaults || {
+            name: tokenDocument?.name,
+            token: tokenDocument?.texture.src
+        };
+
+        // 2. Read Data from DOM
+        const currentVisages = await this._readFormData(this.element);
+        
+        // 3. Validate & Apply Defaults
+        const newKeys = new Set(); 
+        const visagesToSave = [];
+
+        for (const v of currentVisages) {
+            // Apply Smart Defaults: If empty, use token's current state
+            const finalPath = v.path ? v.path.trim() : (tokenDefaults.token || "");
+            const finalName = v.name ? v.name.trim() : (tokenDefaults.name || "Visage");
+
+            if (!finalPath) {
+                return ui.notifications.error(game.i18n.format("VISAGE.Notifications.NoPath", { name: finalName }));
+            }
+            
+            newKeys.add(v.id); 
+            
+            // Add valid entry to save list
+            visagesToSave.push({ ...v, name: finalName, path: finalPath });
         }
 
-        const visageRows = html.find('.visage-list li');
-        const namesInForm = new Set(); // Changed from 'keysInForm'
-        let validationFailed = false;
-        let newVisageCounter = 1;
+        // 4. Construct Update Object (Standardizing on new structure)
+        const newVisages = {};
+        for (const v of visagesToSave) {
+            let scale = v.scale / 100;
+            if (v.isFlippedX) scale = -Math.abs(scale);
+            else scale = Math.abs(scale);
 
-        // --- SAVE PASS ---
-        // If validation passed, build the update payload.
-        const ns = Visage.DATA_NAMESPACE;
-        const alternateFlagKey = Visage.ALTERNATE_FLAG_KEY; // "alternateVisages"
-
-        const currentFlags = actor.flags?.[ns] || {};
-        const originalAlternates = currentFlags[alternateFlagKey] || {}; // <- Use new flag key
-
-        const updatePayload = {};
-        const uuidsToKeep = new Set(); // Changed from 'keysToKeep'
-        let uuid;
-
-        // Loop through all <li> rows again to build the update
-        visageRows.each((i, row) => {
-            // Check for an existing UUID data attribute
-            uuid = row.dataset.uuid || null;
-
-            const name = row.querySelector('input[name="visage-name"]')?.value.trim();
-            const path = row.querySelector('input[name="visage-path"]')?.value.trim();
-            
-            // --- Parse Scale ---
-            const scaleInput = row.querySelector('input[name="visage-scale"]')?.value;
-            let scale = (scaleInput ? parseInt(scaleInput, 10) : 100) / 100; 
-            const isFlippedX = row.querySelector('input[name="visage-flip-x"]')?.checked;
-            
-            // --- Parse Disposition ---
-            let savedDisposition = null; // Default to 'null' (No Change)
-            const dispoType = row.querySelector('input[name^="visage-disposition-type-"]:checked')?.value;
-            if (dispoType === "illusion") {
-                savedDisposition = -2;
-            } else if (dispoType === "disguise") {
-                const val = row.querySelector('select[name="visage-disposition-value"]')?.value;
-                savedDisposition = parseInt(val, 10); // -1, 0, or 1
+            let disposition = null;
+            if (v.dispositionType === "illusion") {
+                disposition = -2;
+            } else if (v.dispositionType === "disguise") {
+                disposition = parseInt(v.dispositionValue);
             }
 
-            // --- Skip empty new rows ---
-            // A row is "empty" if it's new (no uuid) AND
-            // has no name, no path, a default 100% scale (not flipped),
-            // and no disposition change (null).
-            const isDefaultScale = (scale === 1.0 && !isFlippedX);
-            const isDefaultDispo = (savedDisposition === null);
-
-            if (!uuid && !name && !path && isDefaultScale && isDefaultDispo) {
-                return; // Skips this iteration (jQuery .each() equivalent of 'continue')
-            }
-            // --- End logic ---
-            
-            // Apply flip (this must be *after* the default check)
-            if (isFlippedX) {
-                scale = -Math.abs(scale); 
-            } else {
-                scale = Math.abs(scale); 
-            }
-
-            // --- Continue with original save logic (minus the 'if (name && path)') ---
-            
-            // If it's a new row, assign a UUID
-            if (!uuid) {
-                uuid = foundry.utils.randomID(16); // Generate a new UUID
-            }
-            uuidsToKeep.add(uuid);
-
-            // The data object to be saved
-            const newVisageData = { 
-                name: name, // Will be "" if empty
-                path: path, // Will be "" if empty
-                scale,
-                disposition: savedDisposition
+            newVisages[v.id] = {
+                name: v.name,
+                path: v.path,
+                scale: scale,
+                disposition: disposition 
             };
+        }
+
+        const updates = {
+            [`flags.${ns}.alternateVisages`]: newVisages,
+            [`flags.${ns}.-=alternateImages`]: null // Clean up legacy key
+        };
+
+        // 5. Handle Explicit Deletions of keys that exist on Actor but not in form
+        const currentFlags = actor.flags[ns]?.alternateVisages || {};
+        for (const existingKey of Object.keys(currentFlags)) {
+            if (!newKeys.has(existingKey)) {
+                updates[`flags.${ns}.alternateVisages.-=${existingKey}`] = null;
+            }
+        }
+
+        await actor.update(updates);
         
-            // Check for changes
-            const currentData = originalAlternates[uuid];
-            if (!currentData || JSON.stringify(currentData) !== JSON.stringify(newVisageData)) {
-                updatePayload[`flags.${ns}.${alternateFlagKey}.${uuid}`] = newVisageData;
+        this._isDirty = false;
+        this._tempVisages = null;
+        this.render();
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.Saved"));
+        
+        // Refresh the token on canvas
+        if (tokenDocument?.object) {
+            tokenDocument.object.refresh();
+        }
+        
+        this.close();
+    }
+
+    /**
+     * Helper to scrape the HTML form into a structured Array of Objects.
+     * Uses FormDataExtended to read values and regex to reconstruct the array.
+     * * @param {HTMLElement} formElement - The form element to read.
+     * @returns {Promise<Array<object>>} The parsed visage data.
+     */
+    async _readFormData(formElement) {
+        // Use namespaced FormDataExtended (V13+)
+        const formData = new foundry.applications.ux.FormDataExtended(formElement).object;
+        const visages = [];
+        
+        // Extract unique indices from the flat FormData keys (e.g., "visages.0.name")
+        const indices = new Set();
+        for (const key of Object.keys(formData)) {
+            const match = key.match(/^visages\.(\d+)\./);
+            if (match) indices.add(parseInt(match[1]));
+        }
+
+        for (const i of Array.from(indices).sort((a,b) => a - b)) {
+            const id = formData[`visages.${i}.id`];
+            const name = formData[`visages.${i}.name`];
+            const path = formData[`visages.${i}.path`];
+            
+            // Convert string percentage back to number
+            const rawScale = formData[`visages.${i}.scale`];
+            const scale = (rawScale ? parseFloat(rawScale) : 100) / 100;
+
+            const isFlippedX = formData[`visages.${i}.isFlippedX`] || false;
+            
+            const dispositionType = formData[`visages.${i}.dispositionType`];
+            const dispositionValue = formData[`visages.${i}.dispositionValue`];
+
+            let disposition = null;
+            if (dispositionType === "illusion") {
+                disposition = -2;
+            } else if (dispositionType === "disguise") {
+                disposition = parseInt(dispositionValue);
+            }
+
+            visages.push(await this._processVisageEntry(
+                id, name, path, scale, isFlippedX, disposition
+            ));
+        }
+        return visages;
+    }
+
+    /** * Post-render hooks.
+     * Binds change listeners to inputs for 'dirty' state tracking and
+     * sets up the click-away listener for popouts.
+     * @override
+     * @param {object} context - The prepared context.
+     * @param {object} options - The render options.
+     */
+    _onRender(context, options) {
+        const inputs = this.element.querySelectorAll("input, select");
+        inputs.forEach(i => i.addEventListener("change", () => this._markDirty()));
+        
+        this.element.addEventListener('click', (event) => {
+            // Check if click is OUTSIDE popout and OUTSIDE toggle button
+            if (!event.target.closest('.visage-disposition-popout') && 
+                !event.target.closest('.visage-disposition-button')) {
+                
+                // Close all open popouts
+                this.element.querySelectorAll('.visage-disposition-popout.active').forEach(el => {
+                    el.classList.remove('active');
+                });
             }
         });
-
-        // --- Handle Deletions ---
-        const originalUUIDs = Object.keys(originalAlternates); // <- Use UUIDs
-        for (const originalUUID of originalUUIDs) {
-            // If an old UUID is NOT in the new set, it was deleted
-            if (!uuidsToKeep.has(originalUUID)) { // Changed from 'keysToKeep'
-                // Use Foundry's `.-=key` syntax to remove a key from an object
-                updatePayload[`flags.${ns}.${alternateFlagKey}.-=${originalUUID}`] = null;
-            }
-        }
-
-        // --- Final Actor Update ---
-        if (Object.keys(updatePayload).length > 0) {
-            await actor.update(updatePayload);
-            ui.notifications.info("Visage data saved.");
-            
-            // Refresh the token this app was opened from, in case its
-            // active visage was one that just got edited or deleted.
-            const canvasToken = canvas.tokens.get(this.tokenId);
-            if (canvasToken) {
-                canvasToken.refresh();
-            }
-            
-        } else {
-            ui.notifications.info("No changes to save.");
-        }
-
-        // Close the config window
-        this.close();
     }
 }

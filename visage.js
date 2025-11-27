@@ -1,96 +1,49 @@
 /**
- * The primary class for the Visage module.
- *
- * This class acts as the main controller and data manager for the module.
- * It provides a public API for other modules and macros, handles data
- * synchronization hooks, and contains the core logic for changing a token's
- * appearance ("visage").
+ * @file visage.js
+ * @description The core logic class for the Visage module.
+ * @module visage
  */
-export class Visage {
-    /**
-     * The official module ID, used for settings, flags, and API access.
-     * @type {string}
-     */
-    static MODULE_ID = "visage";
 
-    /**
-     * The namespace used for storing all module-related data within actor flags.
-     * @type {string}
-     */
+export class Visage {
+    static MODULE_ID = "visage";
     static DATA_NAMESPACE = "visage";
     static ALTERNATE_FLAG_KEY = "alternateVisages";
     static LEGACY_FLAG_KEY = "alternateImages";
 
-    /**
-     * A utility function for logging messages to the console.
-     * It respects the "Debug Mode" setting from the 'lib-dev-mode' (dev-mode)
-     * module if it is active, otherwise, it logs only if 'force' is true.
-     *
-     * @param {string} message - The message to log.
-     * @param {boolean} [force=false] - Whether to force the log, ignoring debug settings.
-     */
     static log(message, force = false) {
-        // Check if dev-mode is active and has debug enabled for this module
         const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(this.MODULE_ID);
         if (shouldLog) {
             console.log(`${this.MODULE_ID} | ${message}`);
         }
     }
 
-    /**
-     * Resolves a file path, with special handling for wildcards ('*').
-     *
-     * If a path contains a wildcard, this method will browse the file system
-     * (handling Data, S3, and public 'icons' paths) and randomly select one
-     * file from the list of matches.
-     *
-     * @param {string} path - The path to resolve (e.g., "path/to/image.png" or "path/to/folder/*").
-     * @returns {Promise<string>} - The resolved, concrete file path.
-     */
     static async resolvePath(path) {
-        // If no path or no wildcard, return the path as-is.
         if (!path || !path.includes('*')) return path;
-
         try {
             const browseOptions = { wildcard: true };
-            let source = "data"; // Default source
-
-            // Check for S3 paths
+            let source = "data";
             if (/\.s3\./i.test(path)) {
                 source = 's3';
                 const { bucket, keyPrefix } = foundry.applications.apps.FilePicker.implementation.parseS3URL(path);
                 if (bucket) {
                     browseOptions.bucket = bucket;
-                    path = keyPrefix; // The path for browsing is just the key
+                    path = keyPrefix;
                 }
             } else if (path.startsWith('icons/')) {
-                // Check for core 'icons' paths
                 source = 'public';
             }
-
-            // Asynchronously browse for files matching the wildcard
             const content = await foundry.applications.apps.FilePicker.implementation.browse(source, path, browseOptions);
-            
-            // If files are found, pick one at random
             if (content.files.length) {
                 return content.files[Math.floor(Math.random() * content.files.length)];
             }
         } catch (err) {
             this.log(`Error resolving wildcard path: ${path} | ${err}`, true);
         }
-        // Fallback: return the original path if resolution fails
         return path;
     }
 
-    /**
-     * Initialises the module.
-     * This method is called once by the 'init' hook in main.js.
-     * Its primary role is to set up the public API on `game.modules`.
-     */
     static initialize() {
         this.log("Initializing Visage");
-
-        // Expose the public API for macros and other modules
         game.modules.get(this.MODULE_ID).api = {
             setVisage: this.setVisage.bind(this),
             getForms: this.getForms.bind(this),
@@ -100,169 +53,151 @@ export class Visage {
     }
 
     /**
-     * Hook handler for the 'preUpdateToken' event.
-     *
-     * This function automatically syncs changes from the standard Token
-     * Configuration window to this module's "default" form data.
-     * If a user changes the token's name, image, or scale normally,
-     * this function updates the saved default visage to match.
-     *
-     * @param {TokenDocument} tokenDocument - The token document being updated.
-     * @param {object} change - The differential data being applied.
-     * @param {object} options - Additional options for the update.
+     * Centralized Data Normalization.
+     * Retrieves, sanitizes, and standardizes all visage data for an actor.
+     * * @param {Actor} actor - The actor to retrieve data from.
+     * @returns {Array<object>} An array of normalized visage objects.
      */
-    static handleTokenUpdate(tokenDocument, change, options) {
-        // IMPORTANT: If the update is coming from this module's `setVisage` function,
-        // (which sets `options.visageUpdate = true`), abort to prevent an infinite update loop.
-        if (options.visageUpdate) return;
+    static getVisages(actor) {
+        if (!actor) return [];
 
+        const ns = this.DATA_NAMESPACE;
+        const flags = actor.flags?.[ns] || {};
+        // 1. Prefer new key, fallback to old
+        const sourceData = flags[this.ALTERNATE_FLAG_KEY] || flags[this.LEGACY_FLAG_KEY] || {};
+
+        const results = [];
+
+        for (const [key, data] of Object.entries(sourceData)) {
+            // 2. Normalize Data Structure (Object vs String)
+            const isObject = typeof data === 'object' && data !== null;
+            
+            // 3. Normalize ID (Legacy Name vs UUID)
+            // If key is not a UUID (16 chars), generate a temporary one for UI stability
+            const id = (key.length === 16) ? key : foundry.utils.randomID(16);
+            
+            const name = (isObject && data.name) ? data.name : key;
+            const path = isObject ? (data.path || "") : (data || "");
+            const scale = isObject ? (data.scale ?? 1.0) : 1.0;
+
+            // 4. Normalize Disposition
+            let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
+            
+            // Fix legacy '2' value
+            if (disposition === 2) disposition = -2;
+            
+            // Fix legacy 'secret' boolean (merge into disposition)
+            if (isObject && data.secret === true) disposition = -2;
+
+            results.push({
+                id,
+                name,
+                path,
+                scale,
+                disposition
+            });
+        }
+
+        // 5. Sort Alphabetically
+        return results.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    static handleTokenUpdate(tokenDocument, change, options) {
+        if (options.visageUpdate) return;
         const actor = tokenDocument.actor;
         if (!actor) return;
 
-        // Check if the relevant properties have changed
         const hasChangedName = "name" in change;
         const hasChangedTextureSrc = "texture" in change && "src" in change.texture;
         const hasChangedTextureScale = "texture" in change && ("scaleX" in change.texture || "scaleY" in change.texture);
         const hasChangedDisposition = "disposition" in change;
 
-        // If nothing relevant has changed, do nothing.
         if (hasChangedName || hasChangedTextureSrc || hasChangedTextureScale || hasChangedDisposition) {
             const tokenId = tokenDocument.id;
             const updateData = {};
 
-            // Prepare the flag updates
-            if (hasChangedName) {
-                this.log(`Token ${tokenId} name changed to "${change.name}". Updating default.`);
-                updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.name`] = change.name;
-            }
-
-            if (hasChangedTextureSrc) {
-                this.log(`Token ${tokenId} texture src changed to "${change.texture.src}". Updating default.`);
-                updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.token`] = change.texture.src;
-            }
-
+            if (hasChangedName) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.name`] = change.name;
+            if (hasChangedTextureSrc) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.token`] = change.texture.src;
             if (hasChangedTextureScale) {
-                // Assume scaleX and scaleY are linked (or use scaleX as the primary)
                 const newScale = change.texture.scaleX ?? change.texture.scaleY; 
-                if (newScale !== undefined) {
-                    this.log(`Token ${tokenId} texture scale changed to "${newScale}". Updating default.`);
-                    updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.scale`] = newScale;
-                }
+                if (newScale !== undefined) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.scale`] = newScale;
             }
+            if (hasChangedDisposition) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.disposition`] = change.disposition;
 
-            if (hasChangedDisposition) {
-                this.log(`Token ${tokenId} disposition changed to "${change.disposition}". Updating default.`);
-                updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.disposition`] = change.disposition;
-            }
-
-            // Asynchronously update the actor's flags
-            // Do this in a non-blocking way to avoid holding up the original token update.
             if (Object.keys(updateData).length > 0) {
-                actor.update(updateData).then(() => {
-                    this.log(`Default visage updated for token ${tokenId}.`);
-                });
+                actor.update(updateData).then(() => this.log(`Default visage updated for token ${tokenId}.`));
             }
         }
     }
 
-    /**
-     * The core API function to change a token's visage to a specified form.
-     *
-     * @param {string} actorId - The ID of the token's actor.
-     * @param {string} tokenId - The ID of the specific token on the canvas to update.
-     * @param {string} formKey - The key of the form to switch to (e.g., "default", "UUID", etc.).
-     * @returns {Promise<boolean>} - True on success, false on failure.
-     */
     static async setVisage(actorId, tokenId, formKey) {
-        this.log(`Setting visage for token ${tokenId} (actor ${actorId}) to ${formKey}`);
-        
         const token = canvas.tokens.get(tokenId);
-        if (!token) {
-            this.log(`Token not found: ${tokenId}`, true);
-            return false;
-        }
-
+        if (!token?.actor) return false;
         const actor = token.actor;
-        if (!actor) {
-            this.log(`Actor not found for token: ${tokenId}`, true);
-            return false;
-        }
 
-        // Get the module's data from the actor's flags
         const moduleData = actor.flags?.[this.DATA_NAMESPACE] || {};
         const tokenData = moduleData[tokenId] || {};
         
-        let newName;
-        let newTokenPath;
-        let newScale;
-        let newDisposition;
+        let newName, newTokenPath, newScale, newDisposition;
 
-        // --- Determine the new token data based on the formKey ---
         if (formKey === 'default') {
-            // Special case: "default" reverts to the saved default data.
             const defaults = tokenData.defaults;
-            if (!defaults) {
-                this.log(`Cannot reset to default; no defaults saved for token ${tokenId}.`, true);
-                return false;
-            }
+            if (!defaults) return false;
             
             newName = defaults.name;
             newTokenPath = defaults.token;
             newScale = defaults.scale ?? 1.0;
-            newDisposition = defaults.disposition ?? 0; // Restore default disposition (or 0 if unset)
-
+            newDisposition = defaults.disposition ?? 0; 
         } else {
-            // Case: Switching to an alternate form.
-            const alternateVisages = moduleData[this.ALTERNATE_FLAG_KEY] || {};
-            const visageData = alternateVisages[formKey];
+            // USE THE NEW HELPER to find the correct entry
+            const allVisages = this.getVisages(actor);
+            const visageData = allVisages.find(v => v.id === formKey);
             
             if (!visageData) {
-                this.log(`Form key "${formKey}" not found for actor ${actorId}`, true);
-                return false;
+                this.log(`Form key "${formKey}" not found via getVisages`, true);
+                // Fallback: Try direct lookup in case the key was legacy name
+                const rawData = (moduleData[this.ALTERNATE_FLAG_KEY] || moduleData[this.LEGACY_FLAG_KEY] || {})[formKey];
+                if (!rawData) return false;
+                
+                // If fallback worked, it means the user passed a legacy name-key via macro
+                // We construct a temp object to proceed
+                const isObject = typeof rawData === 'object';
+                visageData = {
+                    name: isObject ? (rawData.name || formKey) : formKey,
+                    path: isObject ? (rawData.path || "") : rawData,
+                    scale: isObject ? (rawData.scale ?? 1.0) : 1.0,
+                    disposition: isObject ? rawData.disposition : null
+                };
+                if (visageData.disposition === 2) visageData.disposition = -2;
             }
 
-            // Get the defaults to use as fallbacks
             const defaults = tokenData.defaults;
-            if (!defaults) {
-                this.log(`Cannot set visage; no defaults saved for token ${tokenId}.`, true);
-                return false;
-            }
+            if (!defaults) return false;
             
-            // Extract the visage data, falling back to defaults if empty
             newName = visageData.name || defaults.name;
             newTokenPath = visageData.path || defaults.token;
             newScale = visageData.scale ?? 1.0;
             newDisposition = visageData.disposition;
         }
 
-        // Resolve the path (handles wildcards)
         const finalTokenPath = await this.resolvePath(newTokenPath);
 
-        // --- Prepare Update Payload ---
         const updateData = {
             "name": newName,
             "texture.src": finalTokenPath,
-            "texture.scaleX": newScale, // Negative scale handles flip
-            "texture.scaleY": Math.abs(newScale) // Ensure scaleY is positive
+            "texture.scaleX": newScale,
+            "texture.scaleY": Math.abs(newScale)
         };
 
-        // Only add disposition to the update if it's not null/undefined
-        // (null means "No Change" for alternate forms)
         if (newDisposition !== null && newDisposition !== undefined) {
             updateData.disposition = newDisposition;
         }
 
-        // --- Apply the updates ---
         try {
-            // 1. Update the token document on the canvas
-            await token.document.update(updateData, { visageUpdate: true }); // Pass custom option to prevent the hook loop
-
-            // 2. Update the actor's flags to store the new active form
+            await token.document.update(updateData, { visageUpdate: true });
             await actor.update({
                 [`flags.${this.DATA_NAMESPACE}.${tokenId}.currentFormKey`]: formKey
             });
-
-            this.log(`Successfully updated token ${tokenId} to form ${formKey}`);
             return true;
         } catch (error) {
             this.log(`Failed to update token ${tokenId}: ${error}`, true);
@@ -270,83 +205,37 @@ export class Visage {
         }
     }
 
-    /**
-     * API function to retrieve all configured alternate forms for an actor.
-     *
-     * Empty names or paths will be resolved using default data.
-     * If a `tokenId` is provided, it uses that token's specific defaults.
-     * If not, it falls back to the Actor's prototype token data.
-     *
-     * @param {string} actorId - The ID of the actor.
-     * @param {string} [tokenId=null] - (Optional) The ID of a token to use for default fallbacks.
-     * @returns {Array<object>|null} - An array of visage objects.
-     */
     static getForms(actorId, tokenId = null) {
         const actor = game.actors.get(actorId);
-        if (!actor) {
-            this.log(`getForms: Actor not found with ID ${actorId}`, true);
-            return null;
-        }
+        if (!actor) return null;
 
         let defaults;
-
-        // 1. Try to get token-specific defaults if a tokenId is provided
-        if (tokenId) {
-            defaults = actor.flags?.[this.DATA_NAMESPACE]?.[tokenId]?.defaults;
-        }
-
-        // 2. If no token ID was given, or no defaults were found for that token,
-        //    use the actor's prototype token data as the fallback.
+        if (tokenId) defaults = actor.flags?.[this.DATA_NAMESPACE]?.[tokenId]?.defaults;
+        
         if (!defaults) {
             const proto = actor.prototypeToken;
-            defaults = {
-                name: proto.name,
-                token: proto.texture.src // Map to match the 'token' key from token-specific defaults
-            };
+            defaults = { name: proto.name, token: proto.texture.src };
         }
 
-        // 3. Get the raw alternate visages
-        const alternateVisages = actor?.flags?.[this.DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY];
+        // USE THE NEW HELPER
+        const normalizedVisages = this.getVisages(actor);
+        if (!normalizedVisages.length) return null;
 
-        if (!alternateVisages) {
-            return null; // No forms configured
-        }
-
-        // 4. Map the results, using the resolved defaults
-        return Object.entries(alternateVisages).map(([uuid, data]) => {
-            // Use the determined defaults as fallback for empty strings
-            const name = data.name || defaults.name;
-            const path = data.path || defaults.token; // Use .token to match our defaults object
-            const scale = data.scale ?? 1.0;
-            const disposition = data.disposition ?? null;
-            
+        return normalizedVisages.map(data => {
             return {
-                key: uuid,
-                name: name,
-                path: path,
-                scale: scale,
-                disposition: disposition
+                key: data.id,
+                name: data.name || defaults.name,
+                path: data.path || defaults.token,
+                scale: data.scale,
+                disposition: data.disposition
             };
         });
     }
 
-    /**
-     * API function to check if a specific form is currently active on a token.
-     *
-     * @param {string} actorId - The ID of the actor.
-     * @param {string} tokenId - The ID of the token.
-     * @param {string} formKey - The key of the form to check (UUID or "default").
-     * @returns {boolean} - True if the form is active, false otherwise.
-     */
     static isFormActive(actorId, tokenId, formKey) {
         const actor = game.actors.get(actorId);
-        // Get the currently saved form key from the flags
         const currentFormKey = actor?.flags?.[this.DATA_NAMESPACE]?.[tokenId]?.currentFormKey;
-        
-        // If no form key is set, the token is considered to be in its "default" state.
         if (currentFormKey === undefined && formKey === 'default') return true;
-        
-        // Otherwise, do a direct comparison.
         return currentFormKey === formKey;
     }
 }
