@@ -1,7 +1,7 @@
 <div class="window-content">
     <div class="visage-selector-header">
-        <h3 class="visage-title">Choose Visage</h3>
-        <button type="button" class="visage-config-button" title="Configure Visages" data-action="openConfig">
+        <h3 class="visage-title">{{localize "VISAGE.Selector.Title"}}</h3>
+        <button type="button" class="visage-config-button" title="{{localize 'VISAGE.Selector.Configure'}}" data-action="openConfig">
             <img src="modules/visage/icons/settings.svg" alt="Settings"/>
         </button>
     </div>
@@ -10,26 +10,24 @@
             {{#each forms}}
             <div class="visage-tile {{#if this.isActive}}active{{/if}}" data-action="selectVisage" data-form-key="{{this.key}}">
                 <img src="{{this.resolvedPath}}" alt="{{this.name}}"/>
-                
-                {{!-- UPDATED LINE BELOW: Added data-tooltip --}}
                 <span class="visage-tile-name" data-tooltip="{{this.name}}">{{this.name}}</span>
                 
                 {{#if this.isActive}}
-                <div class="visage-chip">
-                    <img src="modules/visage/icons/check_circle.svg" alt="Active"/>
+                <div class="visage-chip" title="{{localize 'VISAGE.Selector.Active'}}">
+                    <img src="modules/visage/icons/check_circle.svg" alt="{{localize 'VISAGE.Selector.Active'}}"/>
                 </div>
                 {{/if}}
                 
                 {{#if this.isDefault}}
-                <div class="visage-default-indicator">
-                    <img src="modules/visage/icons/stars.svg" alt="Default"/>
+                <div class="visage-default-indicator" title="{{localize 'VISAGE.Selector.Default'}}">
+                    <img src="modules/visage/icons/stars.svg" alt="{{localize 'VISAGE.Selector.Default'}}"/>
                 </div>
                 {{/if}}
                 
                 {{#if this.showScaleChip}}
                 <div class="visage-data-chip">
                     {{#if this.isFlippedX}}
-                    <img class="visage-flip-icon" src="modules/visage/icons/flip.svg" alt="Flipped"/>
+                    <img class="visage-flip-icon" src="modules/visage/icons/flip.svg" alt="{{localize 'VISAGE.Selector.Flipped'}}" title="{{localize 'VISAGE.Selector.Flipped'}}"/>
                     {{/if}}
                     {{#if (ne this.absScale 1)}}
                     <span class="visage-scale-value">{{this.displayScale}}%</span>
@@ -38,20 +36,14 @@
                 {{/if}}
 
                 {{#if this.isWildcard}}
-                <div class="visage-wildcard-indicator" title="Wildcard Path (Random Image)">
-                    <img src="modules/visage/icons/shuffle.svg" alt="Wildcard"/>
+                <div class="visage-wildcard-indicator" title="{{localize 'VISAGE.Selector.Wildcard'}}">
+                    <img src="modules/visage/icons/shuffle.svg" alt="{{localize 'VISAGE.Selector.WildcardAlt'}}"/>
                 </div>
                 {{/if}}
 
                 {{#if this.showDispositionChip}}
                 <div class="visage-disposition-chip {{this.dispositionClass}}">
                     <span>{{this.dispositionName}}</span>
-                </div>
-                {{/if}}
-
-                {{#if this.isSecret}}
-                <div class="visage-secret-indicator" title="Illusion (Secret)">
-                    <img src="modules/visage/icons/visibility_off.svg" alt="Secret"/>
                 </div>
                 {{/if}}
 

@@ -2,7 +2,7 @@
 
 | Version | Changes |
 | :--- | :--- |
-| **Version 1.2.0** | * Internal: Move module to ApplicationV2 in preparation for implementing a global Visage directory.<br>* Internal: Add data normalisation helper.<br> * Update migration script as it missed unlinked tokens.|
+| **Version 1.2.0** | * Internal: Move module to ApplicationV2 in preparation for implementing a global Visage directory.<br>* Internal: Add data normalisation helper.<br>* Added internationalision.<br> * Update migration script as it missed unlinked tokens.|
 | **Version 1.1.1** | * Fix bug that prevented multiple Visages being created at the same time. |
 | **Version 1.1.0** | * Visages can now be saved with blank Name or Image Path fields to create "partial" visages, inheriting the token's default name/image as needed.<br>* Upgraded the getForms API to accept an optional tokenId to intelligently resolve these partial visages using either token-specific defaults or (if no ID is provided) the actor's prototype token defaults. |
 | **Version 1.0.8** | * Internal: Rename misleading name-key and UUID-key variables. |

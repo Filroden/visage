@@ -480,19 +480,19 @@
  * Note: Specific Colors kept hardcoded as they relate to Foundry Dispositions
  */
 .visage-tile .visage-disposition-chip {
-    position: absolute;
+position: absolute;
     bottom: -8px;
     left: 50%;
     transform: translateX(-50%);
     padding: 1px 6px;
     border-radius: 8px;
+    background-color: var(--filroden-color-bg-medium-solid); 
     font-size: var(--filroden-font-size-xxs);
     font-weight: var(--filroden-font-weight-bold);
-    border: 1px solid #000;
+    color: var(--filroden-color-text-main);
+    border: 1px solid #000; /* Base border, overridden by specific classes */
     z-index: 9;
     white-space: nowrap;
-    background-color: var(--filroden-color-bg-medium); /* Was #000 */
-    color: var(--filroden-color-text-main);
 }
 
 .visage-disposition-chip.friendly {
@@ -593,7 +593,7 @@
     left: 50%;
     transform: translateX(-50%);
     width: max-content;
-    background-color: var(--filroden-color-bg-medium);
+    background-color: var(--filroden-color-bg-medium-solid);
     color: var(--filroden-color-text-main);
     padding: 2px 6px;
     border-radius: 8px;

@@ -67,9 +67,11 @@ export async function handleTokenHUD(app, html, data) {
     // visages are configured. This allows the user to open the config
     // from the button even for a new token.
 
+    const title = game.i18n.localize("VISAGE.HUD.ChangeVisage");
+
     const buttonHtml = `
-        <div class="control-icon visage-button" title="Change Visage">
-            <img src="modules/visage/icons/switch_account.svg" alt="Change Visage" class="visage-icon">
+        <div class="control-icon visage-button" title="${title}">
+            <img src="modules/visage/icons/switch_account.svg" alt="${title}" class="visage-icon">
         </div>
     `;
     
