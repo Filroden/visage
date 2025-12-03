@@ -61,23 +61,22 @@
                             </button>
                             
                             <div class="visage-disposition-popout">
-                                
                                 <div class="form-group">
                                     <input type="radio" name="visages.{{@index}}.dispositionType" value="none" 
-                                        {{checked (eq this.dispositionType "none")}} data-action="changeDispositionType" />
+                                      {{checked (eq this.dispositionType "none")}} data-action="changeDispositionType" />
                                     <label>{{localize "VISAGE.Config.Disposition.Label.Default"}}</label>
                                 </div>
 
                                 <div class="form-group">
                                     <input type="radio" name="visages.{{@index}}.dispositionType" value="disguise" 
-                                        {{checked (eq this.dispositionType "disguise")}} data-action="changeDispositionType" />
+                                         {{checked (eq this.dispositionType "disguise")}} data-action="changeDispositionType" />
                                     <label>{{localize "VISAGE.Config.Disposition.Label.Disguise"}}</label>
                                     <select name="visages.{{@index}}.dispositionValue" 
                                         {{disabled (neq this.dispositionType "disguise")}} data-action="changeDispositionValue">
                                         <option value="1" {{selected (eq this.dispositionValue 1)}}>{{localize "VISAGE.Disposition.Friendly"}}</option>
                                         <option value="0" {{selected (eq this.dispositionValue 0)}}>{{localize "VISAGE.Disposition.Neutral"}}</option>
                                         <option value="-1" {{selected (eq this.dispositionValue -1)}}>{{localize "VISAGE.Disposition.Hostile"}}</option>
-                                    </select>
+                                     </select>
                                 </div>
 
                                 <div class="form-group">
@@ -85,11 +84,15 @@
                                         {{checked (eq this.dispositionType "illusion")}} data-action="changeDispositionType" />
                                     <label>{{localize "VISAGE.Config.Disposition.Label.Illusion"}}</label>
                                 </div>
-
                             </div>
                         </div>
 
-                        <a class="visage-delete" data-action="deleteVisage"><i class="fas fa-trash"></i></a>
+                        <a class="visage-delete" data-action="deleteVisage" data-tooltip="VISAGE.Config.Tooltips.Delete"><i class="fas fa-trash"></i></a>
+                    </li>
+                    {{else}}
+                    <li class="visage-empty-state">
+                        <p>{{localize "VISAGE.Config.EmptyState.Title"}}</p>
+                        <span>{{localize "VISAGE.Config.EmptyState.Hint"}}</span>
                     </li>
                     {{/each}}
                 </ol>

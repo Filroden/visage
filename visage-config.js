@@ -84,7 +84,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             contentClasses: ["standard-form"]
         },
         position: {
-            width: 780,
+            width: "auto", // Width set in CSS
             height: "auto"
         },
         actions: {
@@ -493,7 +493,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @param {object} context - The prepared context.
      * @param {object} options - The render options.
      */
-    _onRender(context, options) {
+    _onRender(context, options) {       
         const inputs = this.element.querySelectorAll("input, select");
         inputs.forEach(i => i.addEventListener("change", () => this._markDirty()));
         

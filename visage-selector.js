@@ -69,7 +69,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "visage-selector",
         classes: ["visage-selector-app", "borderless"],
         position: {
-            width: 200, // This sets the inline style width
+            width: null, // Width set in CSS
             height: "auto" 
         },
         window: {

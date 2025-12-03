@@ -101,12 +101,18 @@ export async function handleTokenHUD(app, html, data) {
             // --- Positioning Logic ---
             // Calculate where to place the new VisageSelector window.
             const buttonRect = button.getBoundingClientRect();
-            const selectorWidth = 200; // Expected width of the selector app
+
+            // Dynamic Width Calculation:
+            // Get the current root font size in pixels (e.g., 16px, 18px, etc.)
+            const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+            // Calculate width based on the CSS variable/setting (13rem)
+            const selectorWidth = 13 * rootFontSize; 
+            
             const gap = 16; // Space between the HUD and the app
             
             // Position it aligned with the top of the button...
             const top = buttonRect.top; 
-            // ...and to the left of the button, accounting for app width and gap.
+            // ...and to the left of the button, accounting for dynamic app width and gap.
             const left = buttonRect.left - selectorWidth - gap; 
 
             // Create a new instance of the VisageSelector application
