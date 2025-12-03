@@ -38,6 +38,10 @@
   "VISAGE.Config.Disposition.Label.Default": "Default (No Change)",
   "VISAGE.Config.Disposition.Label.Disguise": "Disguise As:",
   "VISAGE.Config.Disposition.Label.Illusion": "Illusion (Secret)",
+
+  "VISAGE.Config.Tooltips.Delete": "Delete Visage",
+  "VISAGE.Config.EmptyState.Title": "No Alternate Visages Configured",
+  "VISAGE.Config.EmptyState.Hint": "Click the 'Add Visage' button below to create one.",
   
   "VISAGE.Config.Button.Add": "Add Visage",
   "VISAGE.Config.Button.Save": "Save Changes",
@@ -71,4 +75,6 @@
   "VISAGE.Dialog.CleanseScene.Content": "<p>Are you sure you want to remove all Visage data from tokens on the <strong>current scene</strong>? This action cannot be undone.</p>",
   "VISAGE.Dialog.CleanseAll.Content": "<p>Are you sure you want to remove all Visage data from tokens in <strong>all scenes</strong>? This action cannot be undone.</p>",
   "VISAGE.Dialog.Cleanse.Cancelled": "Data cleanse cancelled."
+
+
 }

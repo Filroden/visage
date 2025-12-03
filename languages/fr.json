@@ -38,6 +38,10 @@
   "VISAGE.Config.Disposition.Label.Default": "Défaut (Aucun Changement)",
   "VISAGE.Config.Disposition.Label.Disguise": "Se Déguiser en :",
   "VISAGE.Config.Disposition.Label.Illusion": "Illusion (Secret)",
+
+  "VISAGE.Config.Tooltips.Delete": "Supprimer le Visage",
+  "VISAGE.Config.EmptyState.Title": "Aucun Visage Alternatif Configuré",
+  "VISAGE.Config.EmptyState.Hint": "Cliquez sur le bouton 'Ajouter un Visage' ci-dessous pour en créer un.",
   
   "VISAGE.Config.Button.Add": "Ajouter un Visage",
   "VISAGE.Config.Button.Save": "Sauvegarder les Changements",
