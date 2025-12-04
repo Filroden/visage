@@ -1,6 +1,6 @@
 # Visage
 
-**Visage** allows players and GMs to instantly switch a token's appearance and disposition on the fly. Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes. Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, and apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state). The module also **supports wildcard filepaths** (e.g., path/to/wolves/*.webp), letting you select a random image from a folder every time the **Visage** is activated.
+**Visage** allows players and GMs to instantly switch a token's appearance, disposition, and Dynamic Token Ring configuration on the fly. Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes. Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state) and completely reconfigure its Dynamic Token Ring settings (colours, effects, subject texture). The module also **supports wildcard filepaths** (e.g., path/to/wolves/*.webp), letting you select a random image from a folder every time the **Visage** is activated.
 
 This module makes it ideal for dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
 
@@ -53,10 +53,17 @@ Before you can switch **Visages**, you need to define them for a token. These **
                 * **Default (No Change)**: The **Visage** won't affect the token's disposition. It will keep whatever disposition the token currently has or revert to its original default if switching back to the "Default" **Visage**.
                 * **Disguise As**: Select **Friendly**, **Neutral**, or **Hostile**. This changes the token's border colour and how others might perceive it.
                 * **Illusion (Secret)**: Sets the token to the **Secret** state (purple border for owner, non-interactive for others). This is mutually exclusive with Friendly/Neutral/Hostile.
+        * **Dynamic Ring**: Click the Target Icon button to open the Ring Editor.
+            * **Enable Ring Override**: Check this to force specific ring settings for this visage. If unchecked, the visage will inherit the token's current ring settings.
+            * **Subject**: You can override the texture used inside the ring (leave blank to use the main Visage image) and adjust the subject scale correction independently.
+            * **Colours**: Define the Ring Colour and Background Colour.
+            * **Effects**: Enable special ring animations like Pulse, Gradient, Wave, or Invisibility.
 4. **Delete Alternative Visages**: Click the trash icon to delete the **Visage**.
 5. **Save Changes**: If you make any changes (add new **Visage**, change a value in an existing **Visage**, or delete a **Visage**), the "Save Changes" button will highlight. Clicking it will save the changes and close the **Visage Configuration** window.
 
-<img src="images/visage_configuration.png" alt="Visage Configuration with Disposition" width="500" style="display: block; margin: 0 auto;">
+<img src="images/visage_configuration.png" alt="Visage Configuration window" width="500" style="display: block; margin: 0 auto;">
+<br>
+<img src="images/ring_editor.png" alt="Visage Dynamic Ring Editor" height="500" style="display: block; margin: 0 auto;">
 
 ### 2. Selecting a Visage
 
@@ -70,9 +77,10 @@ Once configured, switching between **Visages** is simple.
     * If a **Visage** has a scale that is not 100% or it has flip enabled, these will be shown in a chip on the top border.
     * If a **Visage** uses a wildcard in its filepath, it will show a blue shuffle icon in the bottom left corner. Selecting it again will pick another random image.
     * If a **Visage** changes the token's disposition, a coloured chip will appear at the bottom-center indicating the state (e.g., 'Friendly', 'Hostile', 'Secret'), matching Foundry's disposition colours.
+    * If a **Visage** uses a Dynamic Token Ring, the **Visage** will show the ring with your configured colours, background style and any animation effects, giving you an immediate preview of the effect.
 4. **Click to Switch**: Simply click on a **Visage** in the grid. The token's image, name, scale, flip, and disposition will instantly update to match your selection, and the selector will close.
 
-<img src="images/selector_hud.png" alt="Visage Selector HUD with Disposition Chip" height="500" style="display: block; margin: 0 auto;">
+<img src="images/selector_hud.png" alt="Visage Selector HUD showing available Visages and their saved changes" height="500" style="display: block; margin: 0 auto;">
 
 ### 3. Restoring the Default
 
@@ -166,6 +174,7 @@ Retrieves a standardised array of all available alternate visages for a given Ac
   * `path` (string): The resolved image file path. If the visage had a blank path, this will be the default image path.
   * `scale` (number): The configured scale factor for the visage (e.g., `1.0`, `1.2`, `-0.8`).
   * `disposition` (number | null): The configured disposition override value (`1`: Friendly, `0`: Neutral, `-1`: Hostile, `-2`: Secret) or `null` if the visage is set to "Default (No Change)".
+  * `ring` (object | null): The Dynamic Ring configuration object. Contains { `enabled`, `subject`, `colors`, `effects` }. Returns null or an empty object if no ring overrides are set.
 * Returns `null` if no alternate forms are defined or the Actor is not found.
 
 **Example 1: Using only an Actor ID**
@@ -176,8 +185,26 @@ const forms = visageAPI.getForms("actor-id-12345");
 
 // forms might look like:
 // [ 
-//   { key: "a1...", name: "Wolf", path: "path/to/wolf.webp", scale: 1.2, disposition: -1 }, 
-//   { key: "b2...", name: "Token's Default Name", path: "path/to/enlarge.webp", scale: 1.5, disposition: null } 
+//   { 
+//     key: "a1...", 
+//     name: "Wolf", 
+//     path: "path/to/wolf.webp", 
+//     scale: 1.2, 
+//     disposition: -1,
+//     ring: { enabled: false } // Ring explicitly disabled
+//   }, 
+//   { 
+//     key: "b2...", 
+//     name: "Spectral Form", 
+//     path: "path/to/ghost.webp", 
+//     scale: 1.0, 
+//     disposition: -2, // Secret
+//     ring: { 
+//        enabled: true, 
+//        colors: { ring: "#00FF00", background: "#000000" }, 
+//        effects: 2 // Pulse
+//     } 
+//   } 
 // ]
 
 ```

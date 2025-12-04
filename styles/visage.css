@@ -9,6 +9,10 @@
     --filroden-font-size-xxs: 0.5rem;
 }
 
+.visage-dark-theme {
+    font-size: var(--filroden-font-size-s);
+}
+
 /**
  * Basic styling for fieldset elements used in the config app.
  */
@@ -63,16 +67,17 @@
 .visage-list-header,
 .visage-list .visage-list-item {
     display: grid;
-    grid-template-columns:
+    grid-template-columns: 
         minmax(100px, 1.5fr)        /* Col 1: Name */
-        minmax(0, 4fr)              /* Col 2: Image Path Group */
-        minmax(70px, max-content)   /* COL 3: Scale + % */
-        minmax(30px, 30px)          /* Col 4: Flip Checkbox */
-        minmax(160px, 1.2fr)        /* Col 5: Disposition */
-        minmax(20px, 20px);         /* Col 6: Delete Button */
-    gap: var(--filroden-space-m);
+        minmax(0, 4fr)              /* Col 2: Image */
+        minmax(70px, max-content)   /* Col 3: Scale */
+        minmax(30px, 30px)          /* Col 4: Flip */
+        minmax(160px, 1.5fr)        /* Col 5: Disposition */
+        minmax(40px, 40px)          /* Col 6: Ring (NEW) */
+        minmax(20px, 20px);         /* Col 7: Delete */
+    gap: 10px;
     align-items: center;
-    padding: var(--filroden-space-xxs) 0;
+    padding: 2px 0;
 }
 
 /**
@@ -96,7 +101,8 @@
 .visage-list-header span:nth-child(3) { grid-column: 3; text-align: center; }
 .visage-list-header span:nth-child(4) { grid-column: 4; text-align: center; }
 .visage-list-header span:nth-child(5) { grid-column: 5; text-align: center; }
-.visage-list-header span:nth-child(6) { grid-column: 6; }
+.visage-list-header span:nth-child(6) { grid-column: 6; text-align: center; }
+.visage-list-header span:nth-child(7) { grid-column: 7; }
 
 /**
  * Container for the list of <li> items.
@@ -119,6 +125,28 @@
     grid-template-columns: 1fr auto;
     align-items: center;
     gap: var(--filroden-space-xs);
+}
+
+/* --- DEFAULT ROW STYLES --- */
+
+.visage-list-item.default-row {
+    border-radius: var(--filroden-radius-small);
+    opacity: 0.9;
+}
+
+/* Style disabled inputs to look cleaner (less "greyed out", more "read only") */
+.visage-list-item.default-row input[disabled],
+.visage-list-item.default-row button[disabled] {
+    border: none;
+    background: transparent;
+    color: var(--filroden-color-text-muted-solid);
+    cursor: default;
+    opacity: 1; /* Override browser default */
+}
+
+/* Hide the checkbox border/background for cleaner look */
+.visage-list-item.default-row input[type="checkbox"][disabled] {
+    filter: grayscale(1) opacity(0.5);
 }
 
 /**
@@ -193,11 +221,15 @@
     all: unset !important;
 }
 
+.visage-ring-cell {
+    grid-column: 6;
+}
+
 /**
  * Styles for the "Delete" button.
  */
 .visage-list-item .visage-delete {
-    grid-column: 6;
+    grid-column: 7;
     text-align: center;
     cursor: pointer;
 }
@@ -330,7 +362,7 @@
 .visage-selector-app {
     position: fixed; 
     display: block;
-    width: 13rem !important; 
+    width: 14rem !important; 
     max-height: 460px; 
 }
 
@@ -371,7 +403,6 @@
     margin: 0;
     font-size: var(--filroden-font-size-m);
     text-align: left;
-    text-transform: uppercase;
     color: var(--filroden-color-text-main-solid);
     flex-grow: 1;
     border: none;
@@ -422,7 +453,7 @@
 .visage-selector {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: max(24px, 1.5rem) var(--filroden-space-m); 
+    gap: max(24px, 1.5rem) var(--filroden-space-l); 
     width: 100%;
 }
 
@@ -436,7 +467,7 @@
     align-items: center;
     border: 2px solid var(--filroden-color-text-accent);
     border-radius: var(--filroden-radius-medium);
-    padding: var(--filroden-space-xs) var(--filroden-space-xs) var(--filroden-space-m) var(--filroden-space-xs);
+    padding: 4px 4px 12px 4px; 
     cursor: pointer;
     background: var(--filroden-color-bg-medium-solid);
     transition: background-color 0.1s, border-color 0.1s;
@@ -455,15 +486,144 @@
     border-color: var(--filroden-color-success);
 }
 
-/**
- * Styles for the image preview inside the tile.
- */
-.visage-tile img {
-    width: 4rem;
+/* --- Image Wrapper & Ring Preview --- */
+
+/* Container to hold image + ring layers */
+.visage-image-wrapper {
+    position: relative;
+    width: 4rem;  
     height: 4rem;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The actual token image */
+.visage-image-wrapper img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     border-radius: var(--filroden-radius-small);
     border: none;
+    position: relative;
+    z-index: 1;
+}
+
+/* If a ring is active, force the image to be circular to match */
+.visage-image-wrapper img.circular {
+    border-radius: 50%;
+}
+
+/* The colored ring background */
+.visage-ring-preview {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    z-index: 0; 
+    border: 2px solid var(--ring-color);
+    box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--ring-color);
+    background: radial-gradient(
+        circle, 
+        var(--ring-bkg) 0%,
+        black 100%
+    );
+    transform: scale(0.9);
+    overflow: hidden;
+}
+
+/* --- ANIMATIONS --- */
+
+/* 1. Pulse Effect (Ring Color <-> Black) */
+@keyframes visage-ring-pulse {
+    0%, 100% { 
+        border-color: var(--ring-color);
+        box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--ring-color); 
+    }
+    50% { 
+        border-color: #000; 
+        box-shadow: 0 0 0 2px #000, 0 0 0 4px #000;
+    }
+}
+
+.visage-ring-preview.pulse {
+    animation: visage-ring-pulse 3s ease-in-out infinite;
+}
+
+/* 2. Gradient Effect (Ring Color <-> Background Color) */
+@keyframes visage-ring-gradient {
+    0%, 100% { 
+        border-color: var(--ring-color); 
+        box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--ring-color);
+    }
+    50% { 
+        border-color: var(--ring-bkg); 
+        box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--ring-bkg);
+    }
+}
+
+.visage-ring-preview.gradient {
+    animation: visage-ring-gradient 4s linear infinite;
+}
+
+/* 3. Wave Background Effect (Ripples) --- */
+
+/* Uses a pseudo-element to create the ripples so they overlay the background
+   but sit *under* the token image (because z-index 0 is parent context). 
+*/
+.visage-ring-preview.wave::after {
+    content: "";
+    position: absolute;
+    inset: -50%; /* Make it larger than container so we can scale it */
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    
+    /* Create concentric rings: Background Color -> Black -> Background Color */
+    background: repeating-radial-gradient(
+        circle,
+        var(--ring-bkg),
+        var(--ring-bkg) 6px,
+        #000 10px,
+        #000 16px
+    );
+    
+    opacity: 0;
+    border-radius: 50%;
+    z-index: 1;
+    animation: visage-ring-wave 4s linear infinite;
+}
+
+@keyframes visage-ring-wave {
+    0% {
+        transform: scale(0.3);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+/* 4. Invisibility Effect (Ghostly) --- */
+
+/* Apply opacity ONLY to the subject image.
+   The wrapper stays fully opaque so the ring/background remain visible and distinct.
+*/
+.visage-image-wrapper.invisible img {
+    opacity: 0.6; /* Significant fade to show "invisible" state */
+    transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+/* Restore visibility on hover so user can clearly identify the token */
+.visage-tile:hover .visage-image-wrapper.invisible img {
+    opacity: 0.9;
+}
+
+/* Ensure the wrapper itself has no opacity applied */
+.visage-image-wrapper.invisible {
+    opacity: 1 !important;
 }
 
 /**
@@ -635,8 +795,6 @@ position: absolute;
     height: auto !important;
     display: flex;
     align-items: center;
-    padding-top: max(2px, var(--filroden-space-xxs));
-    padding-bottom: max(2px, var(--filroden-space-xxs));
 }
 
 .visage-dark-theme.visage-config-app .window-header .window-title {
@@ -650,9 +808,16 @@ position: absolute;
     display: flex;
     flex-direction: column;
     height: 100% !important;
-    padding: 10px;
+    padding: var(--filroden-space-l);
     overflow: hidden;
     max-height: 70vh;
+}
+
+.visage-config-app input::placeholder,
+.visage-ring-editor input::placeholder {
+    color: var(--filroden-color-text-placeholder-solid);
+    opacity: 1;
+    font-style: italic;
 }
 
 /**
@@ -685,7 +850,7 @@ position: absolute;
 .visage-config-footer {
     flex: none;
     padding-top: var(--filroden-space-m);
-    margin-top: var(--filroden-space-m);
+    margin-top: var(--filroden-space-l);
     display: flex;
     justify-content: flex-end;
 }
@@ -745,7 +910,7 @@ position: absolute;
     background: var(--filroden-color-bg-darkest);
     color: var(--filroden-color-text-main-solid);
     border-radius: var(--filroden-radius-large);
-    width: 48rem;        
+    width: 54rem;        
     max-width: 1000px;
     height: auto;
     max-height: 80vh;
@@ -780,9 +945,9 @@ position: absolute;
 }
 
 
-.visage-dark-theme.visage-config-app .window-header .window-title {
-    font-size: var(--filroden-font-size-m);
-    text-transform: uppercase;
+.visage-dark-theme.visage-config-app .window-header .window-title,
+.visage-dark-theme.visage-ring-editor .window-header .window-title {
+    font-size: var(--filroden-font-size-s);
 }
 
 /* --- EMPTY STATE STYLES --- */
@@ -819,6 +984,7 @@ position: absolute;
 .visage-dark-theme label,
 .visage-dark-theme .visage-percent-sign {
     color: var(--filroden-color-text-muted-solid);
+    font-size: var(--filroden-font-size-s);
 }
 
 .visage-dark-theme .visage-readonly-field {
@@ -935,4 +1101,227 @@ position: absolute;
     background-color: currentColor; 
     background-image: none !important;
     content: "";
+}
+
+/* ==========================================
+   --- RING EDITOR APPLICATION STYLES ---
+   ========================================== */
+
+.visage-ring-editor {
+    background: var(--filroden-color-bg-darkest) !important;
+    border: 1px solid var(--filroden-color-border);
+    box-shadow: var(--filroden-shadow-popout);
+    border-radius: var(--filroden-radius-large);
+    font-size: var(--filroden-font-size-s);
+    display: flex;
+    flex-direction: column;
+    color: var(--filroden-color-text-main) !important;
+    width: 28rem;
+}
+
+.visage-ring-editor .window-header {
+    background: var(--filroden-color-bg-darkest);
+    color: var(--filroden-color-text-main-solid);
+    flex: 0 0 auto !important; 
+    min-height: 30px; 
+    height: auto !important;
+    display: flex;
+    align-items: center;
+}
+
+/* Inner Content Area */
+.visage-ring-editor .window-content {
+    background: transparent !important;
+    padding: 0 !important; /* Reset default padding */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Let wrapper handle scroll */
+}
+
+/* The main scrollable form area */
+.visage-ring-editor .visage-config-wrapper {
+    padding: var(--filroden-space-l);
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* --- FIELDSETS & FORM LAYOUT --- */
+
+.visage-ring-fieldset {
+    border: 1px solid var(--filroden-color-border);
+    border-radius: var(--filroden-radius-medium);
+    padding: var(--filroden-space-m);
+    margin-top: var(--filroden-space-m);
+    background: rgba(255, 255, 255, 0.02);
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: var(--filroden-space-s) var(--filroden-space-m);
+    align-items: center;
+}
+
+.visage-ring-fieldset legend {
+    color: var(--filroden-color-text-accent);
+    font-weight: var(--filroden-font-weight-bold);
+    padding: 0 var(--filroden-space-xs);
+}
+
+/* Form Groups inside Fieldsets (Grid Items) */
+.visage-ring-editor .form-group {
+    display: contents; /* Let children (label, fields) participate in the parent Grid */
+}
+
+/* If a form group is NOT in a fieldset (like the Enabled toggle), use Flex */
+.visage-ring-editor .visage-config-wrapper > .form-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--filroden-space-s);
+}
+
+/* Labels */
+.visage-ring-editor label {
+    white-space: nowrap;
+    color: var(--filroden-color-text-muted-solid);
+}
+
+/* Input Containers */
+.visage-ring-editor .form-fields {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--filroden-space-s);
+    width: 100%;
+}
+
+/* --- SPECIFIC INPUT STYLES --- */
+
+/* Checkboxes (Native Reset) */
+.visage-ring-editor input[type="checkbox"] {
+    appearance: auto;
+    -webkit-appearance: auto;
+    accent-color: var(--filroden-color-text-accent);
+    margin: 0;
+    width: var(--filroden-font-size-m);
+    height: var(--filroden-font-size-m);
+    cursor: pointer;
+}
+/* Kill Foundry pseudo-elements for checkboxes */
+.visage-ring-editor input[type="checkbox"]::before,
+.visage-ring-editor input[type="checkbox"]::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Color Pickers */
+.visage-ring-editor .color-group .form-fields {
+    justify-content: flex-end; 
+}
+/* Make color input text box smaller */
+.visage-ring-editor .color-group input[type="text"] {
+    text-align: center;
+}
+
+/* Selects */
+.visage-ring-editor select {
+    width: 100%;
+    background: var(--filroden-color-bg-medium-solid);
+    color: var(--filroden-color-text-main-solid);
+    border: 1px solid var(--filroden-color-border);
+    border-radius: var(--filroden-radius-small);
+}
+
+/* --- EFFECTS (STACKED) --- */
+
+/* The "Stacked" group needs to span both columns of the grid */
+.visage-ring-editor .form-group.stacked {
+    display: block; /* Break out of "contents" behavior */
+    grid-column: 1 / -1; /* Span full width */
+}
+
+.visage-ring-editor .form-group.stacked label.group-label {
+    display: block;
+    margin-bottom: var(--filroden-space-xs);
+    color: var(--filroden-color-text-accent); /* Highlight this header */
+}
+
+.visage-ring-editor .form-group.stacked .form-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 columns of checkboxes */
+    gap: var(--filroden-space-xs);
+}
+
+.visage-ring-editor .form-group.stacked .checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    justify-content: flex-start;
+    cursor: pointer;
+}
+
+/* --- FOOTER --- */
+
+.visage-ring-footer {
+    flex: 0 0 auto;
+    margin: var(--filroden-space-l);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.visage-ring-footer button {
+    background: var(--filroden-color-bg-medium-solid);
+    border: 1px solid var(--filroden-color-border);
+    color: var(--filroden-color-text-main);
+    padding: var(--filroden-space-xs) var(--filroden-space-m);
+    width: auto; /* Don't stretch */
+}
+
+.visage-ring-footer button:hover {
+    background: var(--filroden-color-bg-hover);
+    border-color: var(--filroden-color-text-accent);
+    color: var(--filroden-color-text-accent);
+    box-shadow: 0 0 5px var(--filroden-color-text-accent);
+}
+
+/* --- Ring Button in Config List --- */
+
+.visage-ring-button {
+    background: none !important;
+    border: none !important;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--filroden-color-text-muted-solid);
+    transition: color 150ms ease, text-shadow 150ms ease;
+    overflow: visible; 
+    position: relative; 
+}
+
+.visage-ring-button:hover {
+    color: var(--filroden-color-text-main-solid);
+}
+
+.visage-ring-button.ring-active {
+    color: var(--filroden-color-text-accent);
+}
+
+.visage-ring-button.ring-active:hover {
+    color: var(--filroden-color-text-accent-hover);
+    text-shadow: 0 0 5px var(--filroden-color-text-accent);
+}
+
+.visage-ring-button.ring-dirty::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--filroden-color-warning);
+    border: 1px solid var(--filroden-color-bg-darkest);
+    box-shadow: 0 0 2px #000;
+    pointer-events: none;
 }

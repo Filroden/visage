@@ -1,64 +1,25 @@
 /**
  * @file visage-config.js
  * @description Defines the VisageConfigApp class.
- * This application provides the form interface for configuring alternate visages
- * on a specific Actor/Token. It handles data creation, modification, and deletion,
- * as well as the assignment of dispositions (disguises/illusions).
  * @module visage
  */
 
 import { Visage } from "./visage.js";
+import { VisageRingEditor } from "./visage-ring-editor.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-/**
- * The Visage Configuration Application (V2).
- * This window allows a user to add, edit, and remove alternate visages
- * for an actor. It enforces data integrity (UUIDs) and handles the 
- * "smart default" logic when saving.
- * @extends {HandlebarsApplicationMixin(ApplicationV2)}
- */
 export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     
-    /**
-     * @param {object} options - Application options.
-     * @param {string} options.actorId - The ID of the Actor being configured.
-     * @param {string} options.tokenId - The ID of the Token this config was opened from.
-     * @param {string} options.sceneId - The ID of the Scene the token is on.
-     */
     constructor(options = {}) {
         super(options);
-        
-        /**
-         * The ID of the Actor being configured.
-         * @type {string}
-         */
         this.actorId = options.actorId;
-
-        /**
-         * The ID of the Token this config was opened from.
-         * @type {string}
-         */
         this.tokenId = options.tokenId;
-
-        /**
-         * The ID of the Scene the token is on.
-         * @type {string}
-         */
         this.sceneId = options.sceneId;
 
-        /**
-         * Internal state to hold form data during edits (prevents data loss on re-render).
-         * @type {Array<object>|null}
-         * @private
-         */
         this._tempVisages = null;
+        this.childApps = new Set();
         
-        /**
-         * Map for readable disposition names used in the UI.
-         * @type {Object<number, {name: string}>}
-         * @private
-         */
         this._dispositionMap = {
             [-2]: { name: game.i18n.localize("VISAGE.Disposition.Secret")   },
             [-1]: { name: game.i18n.localize("VISAGE.Disposition.Hostile")  },
@@ -67,24 +28,20 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
-    /** * Default Application options.
-     * @override
-     * @type {object}
-     */
+    /** @override */
     static DEFAULT_OPTIONS = {
         tag: "form",
         id: "visage-config",
         classes: ["visage-config-app", "visage-dark-theme"],
         window: {
-            title: "VISAGE.Config.Title", // Localization Key
-            // Use custom CSS class for the icon mask
+            title: "VISAGE.Config.Title",
             icon: "visage-header-icon", 
             resizable: true,
             minimizable: true,
             contentClasses: ["standard-form"]
         },
         position: {
-            width: "auto", // Width set in CSS
+            width: "auto",
             height: "auto"
         },
         actions: {
@@ -94,14 +51,12 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleDisposition: VisageConfigApp.prototype._onToggleDisposition,
             changeDispositionType: VisageConfigApp.prototype._onChangeDispositionType,
             changeDispositionValue: VisageConfigApp.prototype._onChangeDispositionValue,
-            openFilePicker: VisageConfigApp.prototype._onOpenFilePicker
+            openFilePicker: VisageConfigApp.prototype._onOpenFilePicker,
+            openRingEditor: VisageConfigApp.prototype._onOpenRingEditor
         }
     };
 
-    /** * Configuration for rendering parts (templates).
-     * @override
-     * @type {object}
-     */
+    /** @override */
     static PARTS = {
         form: {
             template: "modules/visage/templates/visage-config-app.hbs",
@@ -109,129 +64,150 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
-    /** * Getter to ensure the window title is localized dynamically.
-     * @returns {string} The localized title.
-     */
     get title() {
         return game.i18n.localize(this.options.window.title);
     }
 
-    /** * Prepares the data context for the Handlebars template.
-     * Handles fetching the correct Actor (Linked vs Unlinked), normalizing data,
-     * and preparing the view model.
-     * * @override
-     * @param {object} options - Render options.
-     * @returns {Promise<object>} The data context.
-     */
+    /** @override */
     async _prepareContext(options) {
-        // Retrieve Token first to support Unlinked/Synthetic actors
+        // ... (Actor/Token retrieval remains same) ...
         const scene = game.scenes.get(this.sceneId);
         const tokenDocument = scene?.tokens.get(this.tokenId);
-        // Fallback to game.actors.get only if token lookup implies a linked actor not on scene
         const actor = tokenDocument?.actor ?? game.actors.get(this.actorId);
-
         if (!actor || !tokenDocument) return {};
 
         const ns = Visage.DATA_NAMESPACE;
         const moduleData = actor.flags?.[ns] || {};
+        
+        // 1. Fetch Defaults
         const tokenDefaults = moduleData[this.tokenId]?.defaults || {
             name: tokenDocument.name,
             token: tokenDocument.texture.src,
-            scale: tokenDocument.texture.scaleX ?? 1.0
+            scale: tokenDocument.texture.scaleX ?? 1.0,
+            disposition: tokenDocument.disposition ?? 0,
+            ring: tokenDocument.ring?.toObject() ?? {}
         };
         
-        let visages = [];
-        
-        // If we have unsaved changes in memory, use those. Otherwise, load from flags.
-        if (this._tempVisages) {
-            visages = this._tempVisages;
+        // 2. Process Default Visage (Read-Only Row)
+        const defaultVisage = await this._processVisageEntry(
+            "default", 
+            tokenDefaults.name, 
+            tokenDefaults.token, 
+            tokenDefaults.scale || 1.0, 
+            false, // isFlipped derived from scale inside function
+            tokenDefaults.disposition, 
+            tokenDefaults.ring,
+            false
+        );
+
+        // 3. Build Informative Tooltip for Default Ring
+        if (defaultVisage.hasRing) {
+            const r = tokenDefaults.ring;
+            const parts = [game.i18n.localize("VISAGE.RingConfig.Title")];
+            if (r.subject?.texture) parts.push(`${game.i18n.localize("VISAGE.RingConfig.SubjectTexture")}: ${r.subject.texture}`);
+            if (r.subject?.scale) parts.push(`${game.i18n.localize("VISAGE.RingConfig.SubjectScale")}: ${r.subject.scale}`);
+            if (r.colors?.ring) parts.push(`${game.i18n.localize("VISAGE.RingConfig.RingColor")}: ${r.colors.ring}`);
+            if (r.colors?.background) parts.push(`${game.i18n.localize("VISAGE.RingConfig.BackgroundColor")}: ${r.colors.background}`);
+            
+            defaultVisage.ringTooltip = parts.join("<br>");
         } else {
-            // USE CENTRALIZED NORMALIZATION from visage.js
-            // This handles legacy data, UUIDs, and disposition fixes automatically.
+            defaultVisage.ringTooltip = game.i18n.localize("VISAGE.RingConfig.RingDisabled");
+        }
+
+        // 4. Process Alternates (Existing Logic)
+        let visages = [];
+        if (this._tempVisages) {
+             visages = this._tempVisages;
+        } else {
+            const sourceData = moduleData.alternateVisages || moduleData.alternateImages || {};
             const normalizedData = Visage.getVisages(actor);
             
-            // Add UI-specific properties for the config form
             visages = await Promise.all(normalizedData.map(async (data) => {
                 return this._processVisageEntry(
-                    data.id, 
-                    data.name, 
-                    data.path, 
-                    data.scale, 
-                    false, // isFlippedX logic is handled inside _processVisageEntry based on scale sign
-                    data.disposition
+                    data.id, data.name, data.path, data.scale, false, data.disposition, data.ring, false
                 );
             }));
         }
+        
+        // ... (Dirty Check Logic for Alternates remains same) ...
+        const sourceData = moduleData.alternateVisages || moduleData.alternateImages || {};
+        const normalizedSource = Visage.getVisages(actor);
+        
+        const processedVisages = await Promise.all(visages.map(async (v) => {
+            const original = normalizedSource.find(s => s.id === v.id);
+            const originalRing = original ? (original.ring || {}) : {};
+            const currentRing = v.ring || {};
+            const currentEmpty = foundry.utils.isEmpty(currentRing);
+            const originalEmpty = foundry.utils.isEmpty(originalRing);
+            
+            let isRingDirty = false;
+            if (currentEmpty && originalEmpty) isRingDirty = false;
+            else isRingDirty = !foundry.utils.objectsEqual(currentRing, originalRing);
+            
+            v.ringClass = (v.hasRing ? "ring-active" : "") + (isRingDirty ? " ring-dirty" : "");
+            return v;
+        }));
 
         return {
-            visages,
-            defaultTokenName: tokenDefaults.name,
-            defaultToken: tokenDefaults.token,
+            visages: processedVisages,
+            // NEW: Pass the full object instead of individual fields
+            defaultVisage: defaultVisage, 
             isDirty: this._isDirty || false
         };
     }
 
-    /** * Helper to process raw data into the format required by the handlebars template.
-     * Calculates display text for buttons and resolves disposition logic.
-     * * @param {string} id - The UUID of the visage.
-     * @param {string} name - The name of the visage.
-     * @param {string} path - The file path.
-     * @param {number} scale - The scale multiplier (e.g. 1.0).
-     * @param {boolean} isFlippedX - Whether the image is flipped horizontally.
-     * @param {number|null} disposition - The disposition override value.
-     * @returns {Promise<object>} The formatted visage object ready for the UI.
-     */
-    async _processVisageEntry(id, name, path, scale, isFlippedX, disposition) {
+    async _processVisageEntry(id, name, path, scale, isFlippedX, disposition, ring, originalRing = {}) {
         let dispositionType = "none";
-        let dispositionValue = 0; // Default select value (Neutral)
+        let dispositionValue = 0; 
         let buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Default");
 
         if (disposition === -2) {
-            // Case: Illusion (Secret)
             dispositionType = "illusion";
             buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Illusion");
         } else if (disposition !== null && disposition !== undefined) {
-            // Case: Disguise (Friendly/Neutral/Hostile)
             dispositionType = "disguise";
             dispositionValue = disposition;
             const dispoName = this._dispositionMap[disposition]?.name || "";
             buttonText = game.i18n.format("VISAGE.Config.Disposition.Button.Disguise", { name: dispoName });
         } else {
-            // Case: Default (null/undefined)
             dispositionType = "none";
             buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Default");
         }
+
+        // Ensure ring is null if empty to keep logic consistent
+        const cleanRing = (ring && !foundry.utils.isEmpty(ring)) ? ring : null;
+        const hasRing = !!(cleanRing && cleanRing.enabled);
+        
+        const ringIcon = hasRing ? "fas fa-bullseye" : "far fa-circle";
+        let ringClass = hasRing ? "ring-active" : "";
+        
+        const ringTooltip = hasRing ? "Dynamic Ring Configured" : "Configure Dynamic Ring";
 
         return {
             id,
             name,
             path,
-            scale: Math.round(Math.abs(scale) * 100), // Convert to percentage for display
+            scale: Math.round(Math.abs(scale) * 100),
             isFlippedX: (scale < 0) || isFlippedX,
             dispositionType,
             dispositionValue,
             dispositionButtonText: buttonText,
-            resolvedPath: await Visage.resolvePath(path)
+            resolvedPath: await Visage.resolvePath(path),
+            
+            ring: cleanRing || {}, // Pass object for form/JSON serialization
+            hasRing,
+            ringIcon,
+            ringClass,
+            ringTooltip
         };
     }
 
-
-    /* -------------------------------------------- */
-    /* Actions                                     */
-    /* -------------------------------------------- */
-
-    /**
-     * Action: Add Visage.
-     * Adds a new, blank visage row to the list.
-     * @param {PointerEvent} event - The click event.
-     * @param {HTMLElement} target - The button element.
-     */
     async _onAddVisage(event, target) {
         this._tempVisages = await this._readFormData(this.element);
         
         const newEntry = await this._processVisageEntry(
             foundry.utils.randomID(16), 
-            "", "", 1.0, false, null // Default disposition is null
+            "", "", 1.0, false, null, null
         );
         this._tempVisages.push(newEntry);
         
@@ -239,12 +215,6 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
-    /**
-     * Action: Delete Visage.
-     * Removes a visage row from the list based on its data-id.
-     * @param {PointerEvent} event - The click event.
-     * @param {HTMLElement} target - The delete button element.
-     */
     async _onDeleteVisage(event, target) {
         const row = target.closest(".visage-list-item");
         const idToDelete = row.dataset.id;
@@ -256,41 +226,58 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
-    /**
-     * Action: Toggle Disposition Popout.
-     * Shows/Hides the disposition configuration popout for a specific row.
-     * @param {PointerEvent} event - The click event.
-     * @param {HTMLElement} target - The toggle button.
-     */
+    _onOpenRingEditor(event, target) {
+        this._readFormData(this.element).then(currentData => {
+            this._tempVisages = currentData;
+            
+            const row = target.closest(".visage-list-item");
+            const index = parseInt(row.dataset.index);
+            const visageData = this._tempVisages[index];
+
+            const editorId = `visage-ring-editor-${this.actorId}-${this.tokenId}-${visageData.id}`;
+            
+            const ringEditor = new VisageRingEditor({
+                ringData: visageData.ring,
+                visageName: visageData.name,
+                id: editorId,
+                callback: (newRingData) => {
+                    this.updateRingData(index, newRingData);
+                },
+                position: {
+                    left: event.clientX + 20,
+                    top: event.clientY - 50
+                }
+            });
+            this.childApps.add(ringEditor);
+            ringEditor.render(true);
+        });
+    }
+
+    updateRingData(index, ringData) {
+        if (this._tempVisages && this._tempVisages[index]) {
+            this._tempVisages[index].ring = ringData;
+            this._markDirty();
+            this.render();
+        }
+    }
+
     _onToggleDisposition(event, target) {
         const row = target.closest(".visage-disposition-cell");
         const popout = row.querySelector(".visage-disposition-popout");
-        
-        // Close all others first
         this.element.querySelectorAll(".visage-disposition-popout").forEach(el => {
             if (el !== popout) el.classList.remove("active");
         });
-
         popout.classList.toggle("active");
     }
 
-    /**
-     * Internal helper to update the text on the disposition button when inputs change.
-     * This provides immediate visual feedback without a full re-render.
-     * @param {HTMLElement} popout - The popout container element.
-     */
     _updateButtonText(popout) {
         const cell = popout.closest(".visage-disposition-cell");
         const button = cell.querySelector(".visage-disposition-button");
-        
-        // Safely check inputs
         const dispoInput = popout.querySelector('input[name$=".dispositionType"]:checked');
         if (!dispoInput) return;
-        
         const dispoType = dispoInput.value;
         const select = popout.querySelector('select');
         let buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Default");
-        
         if (dispoType === "disguise") {
             select.disabled = false;
             const val = parseInt(select.value);
@@ -302,7 +289,6 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Illusion");
             }
         }
-
         button.textContent = buttonText;
         this._markDirty();
     }
@@ -310,73 +296,55 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     _onChangeDispositionType(event, target) { this._updateButtonText(target.closest(".visage-disposition-popout")); }
     _onChangeDispositionValue(event, target) { this._updateButtonText(target.closest(".visage-disposition-popout")); }
 
-    /**
-     * Action: Open File Picker.
-     * Opens the Foundry FilePicker to select an image for a specific row.
-     * @param {PointerEvent} event - The click event.
-     * @param {HTMLElement} target - The file picker button.
-     */
     _onOpenFilePicker(event, target) {
         const group = target.closest(".visage-path-group");
         const input = group.querySelector("input");
-        
         const fp = new FilePicker({
             type: "image",
             current: input.value,
             callback: (path) => {
                 input.value = path;
                 this._markDirty();
-                // Manually trigger change so FormData picks it up
                 input.dispatchEvent(new Event('change', { bubbles: true }));
             }
         });
         fp.browse();
     }
 
-    /**
-     * Marks the application as dirty and updates the save button style.
-     * @private
-     */
     _markDirty() {
         this._isDirty = true;
         const btn = this.element.querySelector(".visage-save");
         if (btn) btn.classList.add("dirty");
     }
 
-    /**
-     * Action: Save Changes.
-     * Validates data, constructs the update object, handles "smart defaults", 
-     * and saves to the Actor's flags. Also handles legacy data cleanup.
-     * @param {PointerEvent} event - The click/submit event.
-     * @param {HTMLElement} target - The save button.
-     */
+    async close(options) {
+        for (const app of this.childApps) {
+            app.close(); 
+        }
+        this.childApps.clear();
+        return super.close(options);
+    }
+
     async _onSave(event, target) {
         event.preventDefault();
-
         const scene = game.scenes.get(this.sceneId);
         const tokenDocument = scene?.tokens.get(this.tokenId);
         const actor = tokenDocument?.actor ?? game.actors.get(this.actorId);
-        
         if (!actor) return;
         
-        // 1. Fetch Token Defaults for fallback (Smart Defaults)
         const ns = Visage.DATA_NAMESPACE;
         const moduleData = actor.flags?.[ns] || {};
-        
         const tokenDefaults = moduleData[this.tokenId]?.defaults || {
             name: tokenDocument?.name,
             token: tokenDocument?.texture.src
         };
 
-        // 2. Read Data from DOM
         const currentVisages = await this._readFormData(this.element);
         
-        // 3. Validate & Apply Defaults
         const newKeys = new Set(); 
         const visagesToSave = [];
 
         for (const v of currentVisages) {
-            // Apply Smart Defaults: If empty, use token's current state
             const finalPath = v.path ? v.path.trim() : (tokenDefaults.token || "");
             const finalName = v.name ? v.name.trim() : (tokenDefaults.name || "Visage");
 
@@ -385,12 +353,9 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
             
             newKeys.add(v.id); 
-            
-            // Add valid entry to save list
             visagesToSave.push({ ...v, name: finalName, path: finalPath });
         }
 
-        // 4. Construct Update Object (Standardizing on new structure)
         const newVisages = {};
         for (const v of visagesToSave) {
             let scale = v.scale / 100;
@@ -404,20 +369,23 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 disposition = parseInt(v.dispositionValue);
             }
 
+            // FIX: Ensure we save null if ring is empty, avoiding {} persistence
+            const ringToSave = (v.ring && !foundry.utils.isEmpty(v.ring)) ? v.ring : null;
+
             newVisages[v.id] = {
                 name: v.name,
                 path: v.path,
                 scale: scale,
-                disposition: disposition 
+                disposition: disposition,
+                ring: ringToSave
             };
         }
 
         const updates = {
             [`flags.${ns}.alternateVisages`]: newVisages,
-            [`flags.${ns}.-=alternateImages`]: null // Clean up legacy key
+            [`flags.${ns}.-=alternateImages`]: null 
         };
 
-        // 5. Handle Explicit Deletions of keys that exist on Actor but not in form
         const currentFlags = actor.flags[ns]?.alternateVisages || {};
         for (const existingKey of Object.keys(currentFlags)) {
             if (!newKeys.has(existingKey)) {
@@ -432,26 +400,16 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
         ui.notifications.info(game.i18n.localize("VISAGE.Notifications.Saved"));
         
-        // Refresh the token on canvas
         if (tokenDocument?.object) {
             tokenDocument.object.refresh();
         }
-        
         this.close();
     }
 
-    /**
-     * Helper to scrape the HTML form into a structured Array of Objects.
-     * Uses FormDataExtended to read values and regex to reconstruct the array.
-     * * @param {HTMLElement} formElement - The form element to read.
-     * @returns {Promise<Array<object>>} The parsed visage data.
-     */
     async _readFormData(formElement) {
-        // Use namespaced FormDataExtended (V13+)
         const formData = new foundry.applications.ux.FormDataExtended(formElement).object;
         const visages = [];
         
-        // Extract unique indices from the flat FormData keys (e.g., "visages.0.name")
         const indices = new Set();
         for (const key of Object.keys(formData)) {
             const match = key.match(/^visages\.(\d+)\./);
@@ -462,15 +420,18 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const id = formData[`visages.${i}.id`];
             const name = formData[`visages.${i}.name`];
             const path = formData[`visages.${i}.path`];
-            
-            // Convert string percentage back to number
             const rawScale = formData[`visages.${i}.scale`];
             const scale = (rawScale ? parseFloat(rawScale) : 100) / 100;
-
             const isFlippedX = formData[`visages.${i}.isFlippedX`] || false;
-            
             const dispositionType = formData[`visages.${i}.dispositionType`];
             const dispositionValue = formData[`visages.${i}.dispositionValue`];
+
+            // FIX: Default to null, not {}
+            let ring = null; 
+            try {
+                const ringRaw = formData[`visages.${i}.ringJSON`];
+                if (ringRaw) ring = JSON.parse(ringRaw);
+            } catch (e) { console.warn("Visage | Failed to parse ring data", e); }
 
             let disposition = null;
             if (dispositionType === "illusion") {
@@ -480,29 +441,20 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
 
             visages.push(await this._processVisageEntry(
-                id, name, path, scale, isFlippedX, disposition
+                id, name, path, scale, isFlippedX, disposition, ring
             ));
         }
         return visages;
     }
 
-    /** * Post-render hooks.
-     * Binds change listeners to inputs for 'dirty' state tracking and
-     * sets up the click-away listener for popouts.
-     * @override
-     * @param {object} context - The prepared context.
-     * @param {object} options - The render options.
-     */
-    _onRender(context, options) {       
+    /** @override */
+    _onRender(context, options) {
         const inputs = this.element.querySelectorAll("input, select");
         inputs.forEach(i => i.addEventListener("change", () => this._markDirty()));
         
         this.element.addEventListener('click', (event) => {
-            // Check if click is OUTSIDE popout and OUTSIDE toggle button
             if (!event.target.closest('.visage-disposition-popout') && 
                 !event.target.closest('.visage-disposition-button')) {
-                
-                // Close all open popouts
                 this.element.querySelectorAll('.visage-disposition-popout.active').forEach(el => {
                     el.classList.remove('active');
                 });

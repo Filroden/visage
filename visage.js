@@ -52,53 +52,33 @@ export class Visage {
         };
     }
 
-    /**
-     * Centralized Data Normalization.
-     * Retrieves, sanitizes, and standardizes all visage data for an actor.
-     * * @param {Actor} actor - The actor to retrieve data from.
-     * @returns {Array<object>} An array of normalized visage objects.
-     */
     static getVisages(actor) {
         if (!actor) return [];
 
         const ns = this.DATA_NAMESPACE;
         const flags = actor.flags?.[ns] || {};
-        // 1. Prefer new key, fallback to old
         const sourceData = flags[this.ALTERNATE_FLAG_KEY] || flags[this.LEGACY_FLAG_KEY] || {};
 
         const results = [];
 
         for (const [key, data] of Object.entries(sourceData)) {
-            // 2. Normalize Data Structure (Object vs String)
             const isObject = typeof data === 'object' && data !== null;
-            
-            // 3. Normalize ID (Legacy Name vs UUID)
-            // If key is not a UUID (16 chars), generate a temporary one for UI stability
             const id = (key.length === 16) ? key : foundry.utils.randomID(16);
-            
             const name = (isObject && data.name) ? data.name : key;
             const path = isObject ? (data.path || "") : (data || "");
             const scale = isObject ? (data.scale ?? 1.0) : 1.0;
 
-            // 4. Normalize Disposition
             let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
-            
-            // Fix legacy '2' value
             if (disposition === 2) disposition = -2;
-            
-            // Fix legacy 'secret' boolean (merge into disposition)
             if (isObject && data.secret === true) disposition = -2;
 
+            const ring = (isObject && data.ring) ? data.ring : null;
+
             results.push({
-                id,
-                name,
-                path,
-                scale,
-                disposition
+                id, name, path, scale, disposition, ring
             });
         }
 
-        // 5. Sort Alphabetically
         return results.sort((a, b) => a.name.localeCompare(b.name));
     }
 
@@ -111,8 +91,9 @@ export class Visage {
         const hasChangedTextureSrc = "texture" in change && "src" in change.texture;
         const hasChangedTextureScale = "texture" in change && ("scaleX" in change.texture || "scaleY" in change.texture);
         const hasChangedDisposition = "disposition" in change;
+        const hasChangedRing = "ring" in change;
 
-        if (hasChangedName || hasChangedTextureSrc || hasChangedTextureScale || hasChangedDisposition) {
+        if (hasChangedName || hasChangedTextureSrc || hasChangedTextureScale || hasChangedDisposition || hasChangedRing) {
             const tokenId = tokenDocument.id;
             const updateData = {};
 
@@ -123,6 +104,9 @@ export class Visage {
                 if (newScale !== undefined) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.scale`] = newScale;
             }
             if (hasChangedDisposition) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.disposition`] = change.disposition;
+            if (hasChangedRing) {
+                updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.ring`] = change.ring;
+            }
 
             if (Object.keys(updateData).length > 0) {
                 actor.update(updateData).then(() => this.log(`Default visage updated for token ${tokenId}.`));
@@ -138,46 +122,56 @@ export class Visage {
         const moduleData = actor.flags?.[this.DATA_NAMESPACE] || {};
         const tokenData = moduleData[tokenId] || {};
         
-        let newName, newTokenPath, newScale, newDisposition;
+        let newName, newTokenPath, newScale, newDisposition, newRing;
 
         if (formKey === 'default') {
             const defaults = tokenData.defaults;
-            if (!defaults) return false;
+            if (!defaults) {
+                this.log(`Cannot reset to default; no defaults saved for token ${tokenId}.`, true);
+                return false;
+            }
             
             newName = defaults.name;
             newTokenPath = defaults.token;
             newScale = defaults.scale ?? 1.0;
-            newDisposition = defaults.disposition ?? 0; 
+            newDisposition = defaults.disposition ?? 0;
+            newRing = defaults.ring;
+
         } else {
-            // USE THE NEW HELPER to find the correct entry
             const allVisages = this.getVisages(actor);
             const visageData = allVisages.find(v => v.id === formKey);
             
-            if (!visageData) {
-                this.log(`Form key "${formKey}" not found via getVisages`, true);
-                // Fallback: Try direct lookup in case the key was legacy name
-                const rawData = (moduleData[this.ALTERNATE_FLAG_KEY] || moduleData[this.LEGACY_FLAG_KEY] || {})[formKey];
-                if (!rawData) return false;
-                
-                // If fallback worked, it means the user passed a legacy name-key via macro
-                // We construct a temp object to proceed
-                const isObject = typeof rawData === 'object';
-                visageData = {
-                    name: isObject ? (rawData.name || formKey) : formKey,
-                    path: isObject ? (rawData.path || "") : rawData,
-                    scale: isObject ? (rawData.scale ?? 1.0) : 1.0,
-                    disposition: isObject ? rawData.disposition : null
-                };
-                if (visageData.disposition === 2) visageData.disposition = -2;
+            // Fallback for legacy keys
+            let rawData = visageData;
+            if (!rawData) {
+                const rawSource = (moduleData[this.ALTERNATE_FLAG_KEY] || moduleData[this.LEGACY_FLAG_KEY] || {});
+                const legacyEntry = rawSource[formKey];
+                if (legacyEntry) {
+                   const isObject = typeof legacyEntry === 'object';
+                   rawData = {
+                       name: isObject ? (legacyEntry.name || formKey) : formKey,
+                       path: isObject ? (legacyEntry.path || "") : legacyEntry,
+                       scale: isObject ? (legacyEntry.scale ?? 1.0) : 1.0,
+                       disposition: isObject ? legacyEntry.disposition : null,
+                       ring: isObject ? legacyEntry.ring : null
+                   };
+                } else {
+                    this.log(`Form key "${formKey}" not found`, true);
+                    return false;
+                }
             }
 
             const defaults = tokenData.defaults;
             if (!defaults) return false;
             
-            newName = visageData.name || defaults.name;
-            newTokenPath = visageData.path || defaults.token;
-            newScale = visageData.scale ?? 1.0;
-            newDisposition = visageData.disposition;
+            newName = rawData.name || defaults.name;
+            newTokenPath = rawData.path || defaults.token;
+            newScale = rawData.scale ?? 1.0;
+            newDisposition = rawData.disposition;
+            
+            // FIX: Check if ring data is populated. If it's empty object {}, use defaults.
+            const hasRingConfig = rawData.ring && !foundry.utils.isEmpty(rawData.ring);
+            newRing = hasRingConfig ? rawData.ring : defaults.ring;
         }
 
         const finalTokenPath = await this.resolvePath(newTokenPath);
@@ -191,6 +185,10 @@ export class Visage {
 
         if (newDisposition !== null && newDisposition !== undefined) {
             updateData.disposition = newDisposition;
+        }
+
+        if (newRing !== undefined) {
+            updateData.ring = newRing;
         }
 
         try {
@@ -214,10 +212,13 @@ export class Visage {
         
         if (!defaults) {
             const proto = actor.prototypeToken;
-            defaults = { name: proto.name, token: proto.texture.src };
+            defaults = { 
+                name: proto.name, 
+                token: proto.texture.src,
+                ring: proto.ring 
+            };
         }
 
-        // USE THE NEW HELPER
         const normalizedVisages = this.getVisages(actor);
         if (!normalizedVisages.length) return null;
 
@@ -227,7 +228,8 @@ export class Visage {
                 name: data.name || defaults.name,
                 path: data.path || defaults.token,
                 scale: data.scale,
-                disposition: data.disposition
+                disposition: data.disposition,
+                ring: data.ring
             };
         });
     }

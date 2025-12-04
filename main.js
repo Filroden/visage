@@ -14,6 +14,7 @@ import { Visage } from "./visage.js";
 // UI Application classes
 import { VisageSelector } from "./visage-selector.js";
 import { VisageConfigApp } from "./visage-config.js";
+import { VisageRingEditor } from "./visage-ring-editor.js";
 
 // Dedicated handlers for specific hooks
 import { handleTokenHUD } from "./visage-hud.js";
@@ -25,7 +26,7 @@ import { migrateWorldData } from "./visage-migration.js";
 /**
  * Initialization Hook.
  * Invoked when the Foundry VTT game world begins initialization.
- * Registers module settings, Handlebars helpers, and initializes the core API.
+ * Registers module settings, Handlebars helpers, preloads templates, and initializes the core API.
  */
 Hooks.once("init", () => {
     // Run the main initialization logic from the Visage class
@@ -48,6 +49,22 @@ Hooks.once("init", () => {
      * @returns {string} "selected" or an empty string.
      */
     Handlebars.registerHelper("selected", (condition) => condition ? "selected" : "");
+
+    /**
+     * Helper: json
+     * Converts an object to a JSON string. Used for passing data to hidden inputs.
+     * @param {object} context - The object to stringify.
+     * @returns {string} The JSON string.
+     */
+    Handlebars.registerHelper("json", (context) => JSON.stringify(context)); // <--- NEW HELPER
+
+    // --- Preload Handlebars Templates ---
+    // This ensures that the templates (especially for the new Ring Editor) are loaded and ready.
+    loadTemplates([
+        "modules/visage/templates/visage-selector.hbs",
+        "modules/visage/templates/visage-config-app.hbs",
+        "modules/visage/templates/visage-ring-editor.hbs"
+    ]);
 
     // --- Register Module Settings ---
 
@@ -161,7 +178,7 @@ Visage.apps = {};
  * @param {object} data - The data used to render the application.
  */
 Hooks.on("renderApplication", (app, html, data) => {
-    if (app instanceof VisageSelector || app instanceof VisageConfigApp) {
+    if (app instanceof VisageSelector || app instanceof VisageConfigApp || app instanceof VisageRingEditor) {
         // Support both AppV2 (app.id) and AppV1 legacy (app.options.id)
         const appId = app.id || app.options?.id;
         if (appId) {
@@ -176,7 +193,7 @@ Hooks.on("renderApplication", (app, html, data) => {
  * @param {Application} app - The application instance being closed.
  */
 Hooks.on("closeApplication", (app) => {
-    if (app instanceof VisageSelector || app instanceof VisageConfigApp) {
+    if (app instanceof VisageSelector || app instanceof VisageConfigApp || app instanceof VisageRingEditor) {
         const appId = app.id || app.options?.id;
         if (appId && Visage.apps[appId]) {
             delete Visage.apps[appId];

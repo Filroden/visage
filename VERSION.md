@@ -2,8 +2,9 @@
 
 | Version | Changes |
 | :--- | :--- |
-| **Version 1.2.1** | * Feature: Improved accessibility to respect all font size changes by user.<br>* Feature: Improved UI theme to a warmer background.<br>* Feature: Added additional tooltips.<br>* Feature: Added notes to the Visage configuration window if no Visages are configured.|
-| **Version 1.2.0** | * Internal: Move module to ApplicationV2 in preparation for implementing a global Visage directory.<br>* Internal: Add data normalisation helper.<br>* Feature: Added internationalision.<br>* Fix: Update migration script as it missed unlinked tokens.|
+| **Version 1.3.0** | **ADDED DYNAMIC TOKEN RINGS**<br>* Full support for Dynamic Token Rings. You can now save specific ring configurations (Enabled/Disabled, Colors, Effects, Scale) for each visage.<br>* The Selector HUD shows any dynamic ring on the Visage, including animated effects for pulse, gradient, background wave and invisibility. |
+| **Version 1.2.1** | * Improved accessibility to respect all font size changes by user.<br>* Improved UI theme to a warmer background.<br>* Added additional tooltips.<br>* Added notes to the Visage configuration window if no Visages are configured.|
+| **Version 1.2.0** | * Moved module to ApplicationV2 in preparation for implementing a global Visage directory.<br>* Added data normalisation helper.<br>* Added internationalision.<br>* Updated migration script as it missed unlinked tokens.|
 | **Version 1.1.1** | * Fix bug that prevented multiple Visages being created at the same time. |
 | **Version 1.1.0** | * Visages can now be saved with blank Name or Image Path fields to create "partial" visages, inheriting the token's default name/image as needed.<br>* Upgraded the getForms API to accept an optional tokenId to intelligently resolve these partial visages using either token-specific defaults or (if no ID is provided) the actor's prototype token defaults. |
 | **Version 1.0.8** | * Internal: Rename misleading name-key and UUID-key variables. |

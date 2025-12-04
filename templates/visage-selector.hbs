@@ -16,7 +16,15 @@
                  aria-label="{{this.name}}" 
                  aria-pressed="{{this.isActive}}">
  
-                <img src="{{this.resolvedPath}}" alt="{{this.name}}"/>
+                <div class="visage-image-wrapper {{#if this.hasInvisibility}}invisible{{/if}}">
+                    {{#if this.hasRing}}
+                        <div class="visage-ring-preview {{#if this.hasPulse}}pulse{{/if}} {{#if this.hasGradient}}gradient{{/if}} {{#if this.hasWave}}wave{{/if}}" 
+                             style="--ring-color: {{this.ringColor}}; --ring-bkg: {{this.ringBkg}};">
+                        </div>
+                    {{/if}}
+                    <img class="{{#if this.hasRing}}circular{{/if}}" src="{{this.resolvedPath}}" alt="{{this.name}}"/>
+                </div>
+
                 <span class="visage-tile-name" data-tooltip="{{this.name}}">{{this.name}}</span>
                 
                 {{#if this.isActive}}
