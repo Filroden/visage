@@ -1,18 +1,50 @@
 /**
- * @file visage-ring-editor.js
- * @description Defines the VisageRingEditor class.
+ * @file Defines the VisageRingEditor class, a specialized application for configuring a visage's dynamic ring.
  * @module visage
  */
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+/**
+ * A specialized child application for editing the dynamic ring properties of a single visage.
+ * It is opened by the main `VisageConfigApp` and uses a callback to return the updated data.
+ * @extends {HandlebarsApplicationMixin(ApplicationV2)}
+ */
 export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) {
+    /**
+     * @param {object} [options={}] - Application configuration options.
+     * @param {object} [options.ringData={}] - The initial ring data to edit.
+     * @param {Function} options.callback - A function to call with the updated ring data when saved.
+     * @param {string} [options.visageName="Visage"] - The name of the parent visage, used in the window title.
+     */
     constructor(options = {}) {
         super(options);
+        /**
+         * The ring data object being edited.
+         * @type {object}
+         * @protected
+         */
         this.ringData = options.ringData || {};
+        
+        /**
+         * The callback function to execute on save.
+         * @type {Function}
+         * @protected
+         */
         this.callback = options.callback;
+        
+        /**
+         * The name of the parent visage.
+         * @type {string}
+         * @protected
+         */
         this.visageName = options.visageName || "Visage";
         
+        /**
+         * The available ring effects, with their bitwise values and labels.
+         * @type {Array<object>}
+         * @protected
+         */
         this.availableEffects = [
             { value: 2, label: "VISAGE.RingConfig.Effects.Pulse", key: "RING_PULSE" },
             { value: 4, label: "VISAGE.RingConfig.Effects.Gradient", key: "RING_GRADIENT" },
@@ -25,7 +57,7 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     static DEFAULT_OPTIONS = {
         tag: "form",
         id: "visage-ring-editor",
-        classes: ["visage-ring-editor", "visage-dark-theme"],
+        classes: ["visage", "visage-ring-editor"],
         window: {
             title: "VISAGE.RingConfig.Title",
             icon: "visage-header-icon",
@@ -49,12 +81,27 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
         }
     };
 
-    /** @override */
+    /**
+     * The localized title of the application window, including the visage name.
+     * @returns {string}
+     * @override
+     */
     get title() {
         return `${game.i18n.localize(this.options.window.title)}: ${this.visageName}`;
     }
 
-    /** @override */
+    /**
+     * Prepares the data context for rendering the ring editor template.
+     * This method unpacks the `ringData` object into a format that the Handlebars template can easily use.
+     * A key task is to take the `effects` property, which is a bitwise integer (a bitmask), and
+     * transform it into an array of objects where each effect has an `isActive` boolean property. This allows
+     * the template to simply loop through the effects and render checkboxes with the correct `checked` state.
+     *
+     * @param {object} options - Options passed to the render cycle.
+     * @returns {Promise<object>} The context object for the template.
+     * @protected
+     * @override
+     */
     async _prepareContext(options) {
         const data = this.ringData;
         
@@ -63,8 +110,6 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
             ...eff,
             isActive: (currentEffects & eff.value) !== 0
         }));
-
-        // Note: Removed CONST.TOKEN_RING_SUBJECTS logic here
 
         return {
             enabled: data.enabled ?? false,
@@ -80,7 +125,19 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
         };
     }
 
-    /** @override */
+    /**
+     * Handles the 'Save' button click event.
+     * This method reads the data from the form inputs and reconstructs the `ringData` object.
+     * It performs the reverse operation of `_prepareContext` for the `effects` property: it iterates
+     * over the effect checkboxes and uses bitwise OR operations to combine the values of the checked
+     * effects back into a single integer bitmask. The final `newRingData` object is then passed to the
+     * parent application's callback function.
+     *
+     * @param {PointerEvent} event - The triggering click event.
+     * @param {HTMLElement} target - The button element that was clicked.
+     * @protected
+     * @override
+     */
     async _onSave(event, target) {
         event.preventDefault();
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
@@ -98,6 +155,7 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
             effects: 0
         };
 
+        // Re-construct the bitmask from the individual effect checkboxes.
         for (const [key, value] of Object.entries(formData)) {
             if (key.startsWith("effect_") && value === true) {
                 const bitValue = parseInt(key.split("_")[1]);

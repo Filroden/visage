@@ -1,6 +1,5 @@
 /**
- * @file visage-selector.js
- * @description Defines the VisageSelector application.
+ * @file Defines the VisageSelector application, which provides a quick-selection UI for changing visages from the Token HUD.
  * @module visage
  */
 
@@ -9,14 +8,47 @@ import { VisageConfigApp } from "./visage-config.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+/**
+ * A pop-up application that allows users to quickly select a visage for a token.
+ * It appears next to the Token HUD and displays a grid of available visages.
+ * @extends {HandlebarsApplicationMixin(ApplicationV2)}
+ */
 export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
+    /**
+     * @param {object} [options={}] - Application configuration options.
+     * @param {string} options.actorId - The ID of the actor.
+     * @param {string} options.tokenId - The ID of the token.
+     * @param {string} options.sceneId - The ID of the scene.
+     */
     constructor(options = {}) {
         super(options);
         
+        /**
+         * The ID of the actor being targeted.
+         * @type {string}
+         * @protected
+         */
         this.actorId = options.actorId;
+
+        /**
+         * The ID of the token being targeted.
+         * @type {string}
+         * @protected
+         */
         this.tokenId = options.tokenId;
+
+        /**
+         * The ID of the scene the token is in.
+         * @type {string}
+         * @protected
+         */
         this.sceneId = options.sceneId;
 
+        /**
+         * A map to translate disposition values to localized names and CSS classes.
+         * @type {object}
+         * @private
+         */
         this._dispositionMap = {
             [-2]: { name: game.i18n.localize("VISAGE.Disposition.Secret"),   class: "secret"   },
             [-1]: { name: game.i18n.localize("VISAGE.Disposition.Hostile"),  class: "hostile"  },
@@ -29,7 +61,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         tag: "div",
         id: "visage-selector",
-        classes: ["visage-selector-app", "borderless"],
+        classes: ["visage", "visage-selector-app", "borderless"],
         position: {
             width: "auto",
             height: "auto" 
@@ -52,7 +84,29 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
-    /** @override */
+    /**
+     * Prepares the data context for rendering the selector's Handlebars template.
+     * This method is responsible for fetching all visages associated with the actor, processing them into a
+     * display-ready format, and sorting them for the UI.
+     *
+     * The process is as follows:
+     * 1.  It ensures the token has "default" data saved, creating it if it's missing (as a fallback).
+     * 2.  It constructs the special "Default" visage entry that allows reverting the token's appearance.
+     * 3.  It retrieves all alternate visages using `Visage.getVisages()`.
+     * 4.  For each visage (default and alternate), it computes a rich set of properties for the template:
+     *     - `isActive`: To highlight the currently applied visage.
+     *     - `isFlippedX`, `displayScale`: For showing token scale and orientation.
+     *     - `showDataChip`, `showScaleChip`: Logic to determine when to show informational chips.
+     *     - Disposition details (`dispositionName`, `dispositionClass`).
+     *     - Dynamic Ring effects (`hasRing`, `ringColor`, `hasPulse`, etc.) are broken down into boolean flags
+     *       and color values for easy use in the template.
+     * 5.  The visages are sorted alphabetically and wildcard paths are resolved before being returned.
+     *
+     * @param {object} options - Options passed to the render cycle.
+     * @returns {Promise<object>} The context object for the template.
+     * @protected
+     * @override
+     */
     async _prepareContext(options) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token || !token.actor) return { forms: [] };
@@ -63,6 +117,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         let tokenData = moduleData[this.tokenId] || {};
         let defaults = tokenData.defaults;
 
+        // Fallback data capture in case the HUD hook didn't run first.
         if (!defaults) {
             const currentToken = canvas.tokens.get(this.tokenId);
             if (!currentToken) return { forms: [] };
@@ -90,7 +145,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
         const forms = {};
         
-        // 1. Default visage setup
+        // 1. Prepare the "Default" visage entry.
         {
             const defaultPath = defaults.token || "";
             forms["default"] = {
@@ -112,7 +167,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
         
-        // 2. Alternate visages processing
+        // 2. Process all alternate visages.
         const normalizedData = Visage.getVisages(actor);
 
         for (const data of normalizedData) {
@@ -124,7 +179,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             const showDataChip = isActive || showScaleChip || isFlippedX;
             const dispositionInfo = (data.disposition !== null) ? this._dispositionMap[data.disposition] : null;
 
-            // Ring Logic
+            // Deconstruct ring data for the template.
             const hasRing = data.ring?.enabled === true;
             let ringColor = "";
             let ringBkg = "";
@@ -137,10 +192,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 ringColor = data.ring.colors?.ring || "#FFFFFF";
                 ringBkg = data.ring.colors?.background || "#000000";
                 const effects = data.ring.effects || 0;
-                hasPulse = (effects & 2) !== 0;      // RING_PULSE = 2
-                hasGradient = (effects & 4) !== 0;   // RING_GRADIENT = 4
-                hasWave = (effects & 8) !== 0;       // BKG_WAVE = 8
-                hasInvisibility = (effects & 16) !== 0; // NEW: INVISIBILITY = 16
+                hasPulse = (effects & 2) !== 0;      // RING_PULSE
+                hasGradient = (effects & 4) !== 0;   // RING_GRADIENT
+                hasWave = (effects & 8) !== 0;       // BKG_WAVE
+                hasInvisibility = (effects & 16) !== 0; // INVISIBILITY
             }
 
             forms[data.id] = {
@@ -169,6 +224,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
 
+        // 3. Sort and resolve paths for all forms.
         const orderedForms = [forms["default"]];
         const alternateKeys = Object.keys(forms)
             .filter(k => k !== "default")
@@ -185,7 +241,12 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         return { forms: orderedForms };
     }
     
-    // ... (Actions, Render, Close, Listeners remain unchanged) ...
+    /**
+     * Handles the click event on a visage tile.
+     * @param {PointerEvent} event - The triggering click event.
+     * @param {HTMLElement} target - The visage tile element that was clicked.
+     * @private
+     */
     async _onSelectVisage(event, target) {
         const formKey = target.dataset.formKey;
         if (formKey) {
@@ -194,8 +255,15 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Handles the click event on the configuration button.
+     * @param {PointerEvent} event - The triggering click event.
+     * @param {HTMLElement} target - The config button element that was clicked.
+     * @private
+     */
     _onOpenConfig(event, target) {
         const configId = `visage-config-${this.actorId}-${this.tokenId}`;
+        // If the config app is already open, just bring it to the front.
         if (Visage.apps[configId]) {
             Visage.apps[configId].bringToTop();
         } else {
@@ -210,23 +278,44 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         this.close();
     }
 
+    /**
+     * Binds listeners to dismiss the app when the user clicks away.
+     * @param {object} context - The data context used to render the template.
+     * @param {object} options - Rendering options.
+     * @protected
+     * @override
+     */
     _onRender(context, options) {
         this._unbindDismissListeners();
         this._bindDismissListeners();
     }
 
+    /**
+     * Unbinds dismiss listeners before closing the application.
+     * @param {object} [options] - Options for closing the application.
+     * @returns {Promise<void>}
+     * @override
+     */
     async close(options) {
         this._unbindDismissListeners();
         return super.close(options);
     }
 
+    /**
+     * Binds a 'pointerdown' event to the document to detect clicks outside the selector.
+     * This allows the selector to be automatically dismissed.
+     * @private
+     */
     _bindDismissListeners() {
         this._onDocPointerDown = (ev) => {
             const root = this.element;
             if (!root) return;
+            // Ignore clicks inside the selector itself.
             if (root.contains(ev.target)) return;
+            // Ignore clicks on the HUD button that opened the selector.
             const hudBtn = document.querySelector('.visage-button');
             if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
+            // Ignore clicks inside the config app if it's open.
             const configApp = ev.target.closest('.visage-config-app');
             if (configApp) return;
             this.close();
@@ -234,6 +323,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         document.addEventListener('pointerdown', this._onDocPointerDown, true);
     }
 
+    /**
+     * Removes the 'pointerdown' event listener from the document.
+     * @private
+     */
     _unbindDismissListeners() {
         if (this._onDocPointerDown) {
             document.removeEventListener('pointerdown', this._onDocPointerDown, true);

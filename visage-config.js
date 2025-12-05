@@ -1,6 +1,5 @@
 /**
- * @file visage-config.js
- * @description Defines the VisageConfigApp class.
+ * @file Defines the configuration application for managing an actor's visages.
  * @module visage
  */
 
@@ -9,17 +8,63 @@ import { VisageRingEditor } from "./visage-ring-editor.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+/**
+ * The application class for configuring an actor's visages.
+ * This interface allows users to add, edit, and delete alternate forms (visages) for an actor,
+ * including their appearance, token settings, and disposition.
+ * @extends {HandlebarsApplicationMixin(ApplicationV2)}
+ */
 export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     
+    /**
+     * @param {object} [options={}] - Application configuration options.
+     * @param {string} options.actorId - The ID of the actor being configured.
+     * @param {string} options.tokenId - The ID of the token associated with this configuration.
+     * @param {string} options.sceneId - The ID of the scene the token is in.
+     */
     constructor(options = {}) {
         super(options);
+        /**
+         * The ID of the actor being configured.
+         * @type {string}
+         * @protected
+         */
         this.actorId = options.actorId;
+
+        /**
+         * The ID of the token instance this configuration is for.
+         * @type {string}
+         * @protected
+         */
         this.tokenId = options.tokenId;
+
+        /**
+         * The ID of the scene containing the token.
+         * @type {string}
+         * @protected
+         */
         this.sceneId = options.sceneId;
 
+        /**
+         * A temporary store for visage data that has been modified but not yet saved.
+         * This allows for UI updates without immediate database writes.
+         * @type {Array<object>|null}
+         * @private
+         */
         this._tempVisages = null;
+
+        /**
+         * A set of all active child application instances, like the Ring Editor.
+         * @type {Set<ApplicationV2>}
+         * @protected
+         */
         this.childApps = new Set();
         
+        /**
+         * A map to translate disposition numeric values to localized names.
+         * @type {object}
+         * @private
+         */
         this._dispositionMap = {
             [-2]: { name: game.i18n.localize("VISAGE.Disposition.Secret")   },
             [-1]: { name: game.i18n.localize("VISAGE.Disposition.Hostile")  },
@@ -32,7 +77,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         tag: "form",
         id: "visage-config",
-        classes: ["visage-config-app", "visage-dark-theme"],
+        classes: ["visage", "visage-config-app"],
         window: {
             title: "VISAGE.Config.Title",
             icon: "visage-header-icon", 
@@ -64,13 +109,33 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
+    /**
+     * The localized title of the application window.
+     * @returns {string}
+     */
     get title() {
         return game.i18n.localize(this.options.window.title);
     }
 
-    /** @override */
+    /**
+     * Prepares the data context for rendering the Handlebars template.
+     * This method orchestrates fetching all necessary data, merging it with defaults, and preparing it for
+     * display in the form. It handles both saved data from the actor and temporary, unsaved data held in `_tempVisages`.
+     *
+     * The process involves:
+     * 1. Fetching the token's default appearance (name, image, scale, etc.) to serve as a baseline.
+     * 2. Processing this default data into a read-only "Default Visage" entry for display.
+     * 3. If there are unsaved changes (`_tempVisages`), it uses that data. Otherwise, it fetches the saved
+     *    visages from the actor using `Visage.getVisages` for normalization.
+     * 4. Each visage is processed to calculate derived properties needed for the template, such as display text,
+     *    and whether its ring configuration is "dirty" (changed from its saved state).
+     *
+     * @param {object} options - Options passed to the render cycle.
+     * @returns {Promise<object>} The context object for the template.
+     * @protected
+     * @override
+     */
     async _prepareContext(options) {
-        // ... (Actor/Token retrieval remains same) ...
         const scene = game.scenes.get(this.sceneId);
         const tokenDocument = scene?.tokens.get(this.tokenId);
         const actor = tokenDocument?.actor ?? game.actors.get(this.actorId);
@@ -79,7 +144,6 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ns = Visage.DATA_NAMESPACE;
         const moduleData = actor.flags?.[ns] || {};
         
-        // 1. Fetch Defaults
         const tokenDefaults = moduleData[this.tokenId]?.defaults || {
             name: tokenDocument.name,
             token: tokenDocument.texture.src,
@@ -88,19 +152,17 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             ring: tokenDocument.ring?.toObject() ?? {}
         };
         
-        // 2. Process Default Visage (Read-Only Row)
         const defaultVisage = await this._processVisageEntry(
             "default", 
             tokenDefaults.name, 
             tokenDefaults.token, 
             tokenDefaults.scale || 1.0, 
-            false, // isFlipped derived from scale inside function
+            false,
             tokenDefaults.disposition, 
             tokenDefaults.ring,
             false
         );
 
-        // 3. Build Informative Tooltip for Default Ring
         if (defaultVisage.hasRing) {
             const r = tokenDefaults.ring;
             const parts = [game.i18n.localize("VISAGE.RingConfig.Title")];
@@ -114,14 +176,11 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             defaultVisage.ringTooltip = game.i18n.localize("VISAGE.RingConfig.RingDisabled");
         }
 
-        // 4. Process Alternates (Existing Logic)
         let visages = [];
         if (this._tempVisages) {
              visages = this._tempVisages;
         } else {
-            const sourceData = moduleData.alternateVisages || moduleData.alternateImages || {};
             const normalizedData = Visage.getVisages(actor);
-            
             visages = await Promise.all(normalizedData.map(async (data) => {
                 return this._processVisageEntry(
                     data.id, data.name, data.path, data.scale, false, data.disposition, data.ring, false
@@ -129,8 +188,6 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }));
         }
         
-        // ... (Dirty Check Logic for Alternates remains same) ...
-        const sourceData = moduleData.alternateVisages || moduleData.alternateImages || {};
         const normalizedSource = Visage.getVisages(actor);
         
         const processedVisages = await Promise.all(visages.map(async (v) => {
@@ -150,13 +207,30 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         return {
             visages: processedVisages,
-            // NEW: Pass the full object instead of individual fields
             defaultVisage: defaultVisage, 
             isDirty: this._isDirty || false
         };
     }
 
-    async _processVisageEntry(id, name, path, scale, isFlippedX, disposition, ring, originalRing = {}) {
+    /**
+     * Processes a single visage data object to prepare it for template rendering.
+     * This function takes raw visage data and computes several derived properties needed by the UI.
+     * For example, it determines the correct localization for the disposition button's text based on the
+     * `disposition` value ('Default', 'Disguise: Friendly', 'Illusion'). It also calculates whether the
+     * token should be flipped horizontally based on a negative scale value. The final object is a rich
+     * context ready for Handlebars.
+     *
+     * @param {string} id - The unique ID of the visage.
+     * @param {string} name - The name of the visage.
+     * @param {string} path - The token image path.
+     * @param {number} scale - The token scale.
+     * @param {boolean} isFlippedX - Whether the token is horizontally flipped.
+     * @param {number|null} disposition - The token disposition value.
+     * @param {object|null} ring - The dynamic ring configuration.
+     * @returns {Promise<object>} A promise that resolves to the processed context object for the template.
+     * @private
+     */
+    async _processVisageEntry(id, name, path, scale, isFlippedX, disposition, ring) {
         let dispositionType = "none";
         let dispositionValue = 0; 
         let buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Default");
@@ -174,7 +248,6 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Default");
         }
 
-        // Ensure ring is null if empty to keep logic consistent
         const cleanRing = (ring && !foundry.utils.isEmpty(ring)) ? ring : null;
         const hasRing = !!(cleanRing && cleanRing.enabled);
         
@@ -194,7 +267,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             dispositionButtonText: buttonText,
             resolvedPath: await Visage.resolvePath(path),
             
-            ring: cleanRing || {}, // Pass object for form/JSON serialization
+            ring: cleanRing || {},
             hasRing,
             ringIcon,
             ringClass,
@@ -202,6 +275,14 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
+    /**
+     * Handles the 'Add Visage' button click event.
+     * It reads the current form data into `_tempVisages`, adds a new blank visage entry,
+     * marks the form as dirty, and triggers a re-render.
+     * @param {PointerEvent} event - The triggering click event.
+     * @param {HTMLElement} target - The button element that was clicked.
+     * @private
+     */
     async _onAddVisage(event, target) {
         this._tempVisages = await this._readFormData(this.element);
         
@@ -215,6 +296,14 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
+    /**
+     * Handles the 'Delete Visage' button click event.
+     * It reads the current form data, filters out the visage to be deleted by its ID,
+     * marks the form as dirty, and triggers a re-render.
+     * @param {PointerEvent} event - The triggering click event.
+     * @param {HTMLElement} target - The button element that was clicked.
+     * @private
+     */
     async _onDeleteVisage(event, target) {
         const row = target.closest(".visage-list-item");
         const idToDelete = row.dataset.id;
@@ -226,6 +315,14 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
+    /**
+     * Handles opening the VisageRingEditor application for a specific visage.
+     * It creates a new `VisageRingEditor` instance, passing the current ring data and a callback
+     * function to update the data in this parent application upon save.
+     * @param {PointerEvent} event - The triggering click event.
+     * @param {HTMLElement} target - The button element that was clicked.
+     * @private
+     */
     _onOpenRingEditor(event, target) {
         this._readFormData(this.element).then(currentData => {
             this._tempVisages = currentData;
@@ -253,6 +350,12 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         });
     }
 
+    /**
+     * Callback function for the VisageRingEditor to update ring data on the parent config app.
+     * @param {number} index - The index of the visage in the `_tempVisages` array.
+     * @param {object} ringData - The new ring data object from the editor.
+     * @protected
+     */
     updateRingData(index, ringData) {
         if (this._tempVisages && this._tempVisages[index]) {
             this._tempVisages[index].ring = ringData;
@@ -261,6 +364,12 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Toggles the visibility of the disposition settings popout for a visage row.
+     * @param {PointerEvent} event - The triggering click event.
+     * @param {HTMLElement} target - The button element that was clicked.
+     * @private
+     */
     _onToggleDisposition(event, target) {
         const row = target.closest(".visage-disposition-cell");
         const popout = row.querySelector(".visage-disposition-popout");
@@ -270,6 +379,11 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         popout.classList.toggle("active");
     }
 
+    /**
+     * Updates the disposition button text based on the current selection in the popout.
+     * @param {HTMLElement} popout - The popout element containing the disposition controls.
+     * @private
+     */
     _updateButtonText(popout) {
         const cell = popout.closest(".visage-disposition-cell");
         const button = cell.querySelector(".visage-disposition-button");
@@ -293,9 +407,28 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
     }
     
+    /**
+     * Handles changes to the disposition type radio buttons.
+     * @param {Event} event - The triggering change event.
+     * @param {HTMLElement} target - The input element that changed.
+     * @private
+     */
     _onChangeDispositionType(event, target) { this._updateButtonText(target.closest(".visage-disposition-popout")); }
+    
+    /**
+     * Handles changes to the disposition value dropdown.
+     * @param {Event} event - The triggering change event.
+     * @param {HTMLElement} target - The select element that changed.
+     * @private
+     */
     _onChangeDispositionValue(event, target) { this._updateButtonText(target.closest(".visage-disposition-popout")); }
 
+    /**
+     * Opens a FilePicker to select a token image.
+     * @param {PointerEvent} event - The triggering click event.
+     * @param {HTMLElement} target - The button element that was clicked.
+     * @private
+     */
     _onOpenFilePicker(event, target) {
         const group = target.closest(".visage-path-group");
         const input = group.querySelector("input");
@@ -311,12 +444,22 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         fp.browse();
     }
 
+    /**
+     * Marks the form as "dirty," indicating there are unsaved changes.
+     * @private
+     */
     _markDirty() {
         this._isDirty = true;
         const btn = this.element.querySelector(".visage-save");
         if (btn) btn.classList.add("dirty");
     }
 
+    /**
+     * Closes the application and all its child applications.
+     * @param {object} [options] - Options for closing the application.
+     * @returns {Promise<void>}
+     * @override
+     */
     async close(options) {
         for (const app of this.childApps) {
             app.close(); 
@@ -325,6 +468,15 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.close(options);
     }
 
+    /**
+     * Handles the 'Save' button click event.
+     * It reads the final form data, validates it, and updates the actor's flags
+     * with the new visage configuration.
+     * @param {PointerEvent} event - The triggering click event.
+     * @param {HTMLElement} target - The button element that was clicked.
+     * @returns {Promise<void>}
+     * @private
+     */
     async _onSave(event, target) {
         event.preventDefault();
         const scene = game.scenes.get(this.sceneId);
@@ -369,7 +521,6 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 disposition = parseInt(v.dispositionValue);
             }
 
-            // FIX: Ensure we save null if ring is empty, avoiding {} persistence
             const ringToSave = (v.ring && !foundry.utils.isEmpty(v.ring)) ? v.ring : null;
 
             newVisages[v.id] = {
@@ -406,6 +557,18 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this.close();
     }
 
+    /**
+     * Reads all visage data from the form element and reconstructs it into a structured array of objects.
+     * The HTML form presents the data in a flat structure (e.g., `visages.0.name`, `visages.1.name`). This method
+     * uses `FormDataExtended` to parse these fields into a JavaScript object. It then identifies all unique
+     * visage indices and iterates through them to rebuild each visage object, processing and normalizing
+     * values like scale and disposition along the way. It also safely parses JSON data for the ring configuration.
+     * This is the reverse of `_prepareContext`, turning the UI state back into structured data.
+     *
+     * @param {HTMLElement} formElement - The <form> element containing the input fields.
+     * @returns {Promise<Array<object>>} A promise that resolves to an array of processed visage objects.
+     * @private
+     */
     async _readFormData(formElement) {
         const formData = new foundry.applications.ux.FormDataExtended(formElement).object;
         const visages = [];
@@ -426,7 +589,6 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const dispositionType = formData[`visages.${i}.dispositionType`];
             const dispositionValue = formData[`visages.${i}.dispositionValue`];
 
-            // FIX: Default to null, not {}
             let ring = null; 
             try {
                 const ringRaw = formData[`visages.${i}.ringJSON`];
@@ -447,7 +609,15 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return visages;
     }
 
-    /** @override */
+    /**
+     * Attaches event listeners after the application is rendered.
+     * This is used to set up global listeners, like marking the form dirty on any input change
+     * and handling clicks outside of popouts to close them.
+     * @param {object} context - The data context used to render the template.
+     * @param {object} options - Rendering options.
+     * @protected
+     * @override
+     */
     _onRender(context, options) {
         const inputs = this.element.querySelectorAll("input, select");
         inputs.forEach(i => i.addEventListener("change", () => this._markDirty()));

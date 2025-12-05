@@ -97,5 +97,6 @@
     "VISAGE.RingConfig.Button.Add": "Add Ring",
     "VISAGE.RingConfig.RingDisabled": "Ring Disabled",
     "VISAGE.RingConfig.Group.Subject": "Subject",
-    "VISAGE.RingConfig.Group.Colors": "Colors"
+    "VISAGE.RingConfig.Group.Colors": "Colors",
+    "VISAGE.RingConfig.Placeholder.Default": "Default"
 }

@@ -1,21 +1,22 @@
 /**
- * @file visage-cleanup.js
- * @description Utility functions for data cleanup.
- * These functions allow GMs to perform a "hard reset" by removing all
- * Visage-related flags from actors within specific scopes (Scene or World).
+ * @file Utility functions for data cleanup. These functions provide GM tools to perform a "hard reset"
+ * by removing all Visage-related flags from actors within specific scopes (scene or world).
  * @module visage
  */
 
 import { Visage } from "./visage.js";
 
 /**
- * Removes all Visage-related data from actors associated with tokens
- * on the *currently active scene*.
+ * Removes all Visage-related data from actors associated with tokens on the *currently active scene*.
  *
- * This is a destructive action and cannot be undone.
- * It is triggered by a setting in the module configuration.
+ * This function differentiates between linked and unlinked tokens to ensure all data is removed correctly.
+ * - For **linked tokens**, it collects the unique parent actor IDs and performs a single bulk update.
+ * - For **unlinked tokens**, it updates each synthetic actor instance individually.
  *
- * @returns {Promise<void>} A promise that resolves when the update operation is complete.
+ * This is a destructive action and cannot be undone. It is intended to be triggered by a GM
+ * via the module settings.
+ *
+ * @returns {Promise<void>} A promise that resolves when all update operations are complete.
  */
 export async function cleanseSceneTokens() {
   if (!canvas.scene) {
@@ -29,20 +30,18 @@ export async function cleanseSceneTokens() {
   
   for (const token of canvas.scene.tokens) {
     const actor = token.actor;
-    // Check for Visage data using the strict namespace constant
     if (actor?.flags?.[Visage.DATA_NAMESPACE]) {
-        // Construct the deletion key dynamically
         const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
         const updateData = { _id: actor.id, [deleteKey]: null };
         
         if (token.actorLink) {
-            // Linked: Add to bulk update list (deduplicated by Actor ID)
+            // Linked: Add to bulk update map (deduplicated by Actor ID).
             if (!worldUpdates.has(actor.id)) {
                 worldUpdates.set(actor.id, updateData);
                 count++;
             }
         } else {
-            // Unlinked: Must update the synthetic actor instance directly
+            // Unlinked: Must update the synthetic actor instance directly.
             unlinkedPromises.push(actor.update({ [deleteKey]: null }));
             count++;
         }
@@ -50,7 +49,6 @@ export async function cleanseSceneTokens() {
   }
 
   if (count > 0) {
-    // Execute updates
     if (worldUpdates.size > 0) {
         await Actor.updateDocuments(Array.from(worldUpdates.values()));
     }
@@ -65,21 +63,23 @@ export async function cleanseSceneTokens() {
 }
 
 /**
- * Removes all Visage-related data from *all* actors in *all* scenes.
+ * Removes all Visage-related data from *all* actors in *all* scenes throughout the world.
  *
- * This is a global, destructive action and cannot be undone.
- * It is triggered by a setting in the module configuration.
+ * This function iterates through every scene and every token within those scenes to ensure global
+ * coverage. It correctly handles both linked and unlinked tokens by batching updates for linked actors
+ * and updating unlinked (synthetic) token actors individually.
  *
- * @returns {Promise<void>} A promise that resolves when the update operation is complete.
+ * This is a global, destructive action and cannot be undone. It is intended to be triggered by a GM
+ * via the module settings.
+ *
+ * @returns {Promise<void>} A promise that resolves when all update operations are complete.
  */
 export async function cleanseAllTokens() {
   const worldUpdates = new Map();
   const unlinkedPromises = [];
   let count = 0;
 
-  // Iterate over every scene in the game
   for (const scene of game.scenes) {
-    // Iterate over every token in that scene
     for (const token of scene.tokens) {
         const actor = token.actor;
         
@@ -88,13 +88,13 @@ export async function cleanseAllTokens() {
             const updateData = { _id: actor.id, [deleteKey]: null };
 
             if (token.actorLink) {
-                // Linked: Add to bulk list (deduplicated)
+                // Linked: Add to bulk update map (deduplicated by Actor ID).
                 if (!worldUpdates.has(actor.id)) {
                     worldUpdates.set(actor.id, updateData);
                     count++;
                 }
             } else {
-                // Unlinked: Update direct instance
+                // Unlinked: Must update the synthetic actor instance directly.
                 unlinkedPromises.push(actor.update({ [deleteKey]: null }));
                 count++;
             }
@@ -103,7 +103,6 @@ export async function cleanseAllTokens() {
   }
 
   if (count > 0) {
-    // Execute updates
     if (worldUpdates.size > 0) {
         await Actor.updateDocuments(Array.from(worldUpdates.values()));
     }

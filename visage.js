@@ -1,15 +1,42 @@
 /**
- * @file visage.js
- * @description The core logic class for the Visage module.
+ * @file Contains the core logic for the Visage module. This class manages actor data, token updates, and provides the public API.
  * @module visage
  */
 
+/**
+ * The primary class responsible for all Visage module logic.
+ * It handles data normalization, token modifications, and API exposure.
+ */
 export class Visage {
+    /**
+     * The ID of the module, used for namespacing and referencing.
+     * @type {string}
+     */
     static MODULE_ID = "visage";
+
+    /**
+     * The namespace used for storing module data on actor flags.
+     * @type {string}
+     */
     static DATA_NAMESPACE = "visage";
+
+    /**
+     * The key for the modern visage data structure within the actor flags.
+     * @type {string}
+     */
     static ALTERNATE_FLAG_KEY = "alternateVisages";
+
+    /**
+     * The key for the legacy (pre-v1.0) visage data structure.
+     * @type {string}
+     */
     static LEGACY_FLAG_KEY = "alternateImages";
 
+    /**
+     * Logs a message to the console if developer mode is enabled.
+     * @param {string} message The message to log.
+     * @param {boolean} [force=false] If true, logs the message regardless of the developer mode setting.
+     */
     static log(message, force = false) {
         const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(this.MODULE_ID);
         if (shouldLog) {
@@ -17,6 +44,13 @@ export class Visage {
         }
     }
 
+    /**
+     * Resolves a file path that may contain a wildcard ('*').
+     * If a wildcard is present, it fetches the list of matching files and returns a random one.
+     * Otherwise, it returns the original path.
+     * @param {string} path The file path to resolve.
+     * @returns {Promise<string>} The resolved file path, or the original path if no wildcard or match is found.
+     */
     static async resolvePath(path) {
         if (!path || !path.includes('*')) return path;
         try {
@@ -42,6 +76,10 @@ export class Visage {
         return path;
     }
 
+    /**
+     * Initializes the module and exposes the public API.
+     * This method is called once when the module is ready.
+     */
     static initialize() {
         this.log("Initializing Visage");
         game.modules.get(this.MODULE_ID).api = {
@@ -52,6 +90,18 @@ export class Visage {
         };
     }
 
+    /**
+     * Retrieves, normalizes, and sorts all visages for a given actor.
+     * This function is responsible for ensuring data consistency. It reads visage data from actor flags,
+     * gracefully handling both modern (object-based) and legacy (string-based) formats.
+     * For each entry, it guarantees a unique `id`. If an entry is from a legacy data source and lacks a
+     * stable 16-character ID as its key, a new random ID is generated. This ensures that all visages,
+     * regardless of their original format, can be uniquely identified and referenced throughout the system.
+     *
+     * @param {Actor} actor The actor document to retrieve visages from.
+     * @returns {Array<object>} A sorted array of normalized visage objects. Each object includes
+     *                          `id`, `name`, `path`, `scale`, `disposition`, and `ring`.
+     */
     static getVisages(actor) {
         if (!actor) return [];
 
@@ -63,11 +113,13 @@ export class Visage {
 
         for (const [key, data] of Object.entries(sourceData)) {
             const isObject = typeof data === 'object' && data !== null;
+            // Ensure a unique ID. If the key isn't a proper ID, generate one.
             const id = (key.length === 16) ? key : foundry.utils.randomID(16);
             const name = (isObject && data.name) ? data.name : key;
             const path = isObject ? (data.path || "") : (data || "");
             const scale = isObject ? (data.scale ?? 1.0) : 1.0;
 
+            // Normalize disposition: secret flag maps to -2, 2 is an invalid value.
             let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
             if (disposition === 2) disposition = -2;
             if (isObject && data.secret === true) disposition = -2;
@@ -82,6 +134,14 @@ export class Visage {
         return results.sort((a, b) => a.name.localeCompare(b.name));
     }
 
+    /**
+     * Captures and stores the "default" appearance of a token when it's first created or manually changed.
+     * This ensures there's a baseline to revert to.
+     * @param {TokenDocument} tokenDocument The document of the token being updated.
+     * @param {object} change The differential data that is changing.
+     * @param {object} options Additional options, including `visageUpdate` to prevent recursion.
+     * @protected
+     */
     static handleTokenUpdate(tokenDocument, change, options) {
         if (options.visageUpdate) return;
         const actor = tokenDocument.actor;
@@ -114,6 +174,13 @@ export class Visage {
         }
     }
 
+    /**
+     * Applies a selected visage or reverts to the default state for a specific token.
+     * @param {string} actorId The ID of the actor.
+     * @param {string} tokenId The ID of the token to modify.
+     * @param {string} formKey The key of the form to apply, or 'default' to revert.
+     * @returns {Promise<boolean>} True if the update was successful, false otherwise.
+     */
     static async setVisage(actorId, tokenId, formKey) {
         const token = canvas.tokens.get(tokenId);
         if (!token?.actor) return false;
@@ -141,7 +208,7 @@ export class Visage {
             const allVisages = this.getVisages(actor);
             const visageData = allVisages.find(v => v.id === formKey);
             
-            // Fallback for legacy keys
+            // Fallback for legacy keys if a direct ID match fails.
             let rawData = visageData;
             if (!rawData) {
                 const rawSource = (moduleData[this.ALTERNATE_FLAG_KEY] || moduleData[this.LEGACY_FLAG_KEY] || {});
@@ -169,7 +236,7 @@ export class Visage {
             newScale = rawData.scale ?? 1.0;
             newDisposition = rawData.disposition;
             
-            // FIX: Check if ring data is populated. If it's empty object {}, use defaults.
+            // If the visage has no specific ring configuration, use the token's default.
             const hasRingConfig = rawData.ring && !foundry.utils.isEmpty(rawData.ring);
             newRing = hasRingConfig ? rawData.ring : defaults.ring;
         }
@@ -203,6 +270,12 @@ export class Visage {
         }
     }
 
+    /**
+     * Gets a list of all available forms for a given actor, including default values.
+     * @param {string} actorId The ID of the actor.
+     * @param {string|null} [tokenId=null] The ID of the token, used to retrieve token-specific defaults.
+     * @returns {Array<object>|null} An array of form objects, or null if no visages are defined.
+     */
     static getForms(actorId, tokenId = null) {
         const actor = game.actors.get(actorId);
         if (!actor) return null;
@@ -234,9 +307,17 @@ export class Visage {
         });
     }
 
+    /**
+     * Checks if a specific form is currently active on a token.
+     * @param {string} actorId The ID of the actor.
+     * @param {string} tokenId The ID of the token.
+     * @param {string} formKey The key of the form to check.
+     * @returns {boolean} True if the form is active, false otherwise.
+     */
     static isFormActive(actorId, tokenId, formKey) {
         const actor = game.actors.get(actorId);
         const currentFormKey = actor?.flags?.[this.DATA_NAMESPACE]?.[tokenId]?.currentFormKey;
+        // If no form has been explicitly set, the 'default' form is considered active.
         if (currentFormKey === undefined && formKey === 'default') return true;
         return currentFormKey === formKey;
     }

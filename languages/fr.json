@@ -97,5 +97,6 @@
     "VISAGE.RingConfig.Button.Add": "Ajouter un Anneau",
     "VISAGE.RingConfig.RingDisabled": "Anneau Désactivé",
     "VISAGE.RingConfig.Group.Subject": "Sujet",
-    "VISAGE.RingConfig.Group.Colors": "Couleurs"
+    "VISAGE.RingConfig.Group.Colors": "Couleurs",
+    "VISAGE.RingConfig.Placeholder.Default": "Défaut"
 }

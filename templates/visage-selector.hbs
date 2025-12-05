@@ -20,6 +20,8 @@
                     {{#if this.hasRing}}
                         <div class="visage-ring-preview {{#if this.hasPulse}}pulse{{/if}} {{#if this.hasGradient}}gradient{{/if}} {{#if this.hasWave}}wave{{/if}}" 
                              style="--ring-color: {{this.ringColor}}; --ring-bkg: {{this.ringBkg}};">
+                             <div class="ring-band outer"></div>
+                             <div class="ring-band inner"></div>
                         </div>
                     {{/if}}
                     <img class="{{#if this.hasRing}}circular{{/if}}" src="{{this.resolvedPath}}" alt="{{this.name}}"/>
