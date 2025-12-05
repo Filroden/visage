@@ -1,211 +1,692 @@
 /**
  * Main stylesheet for the Visage module.
+ * * TABLE OF CONTENTS
+ * -----------------
+ * 1. Variables & Theme Overrides
+ * 2. Shared Styles (Chips, Icons, Utilities)
+ * 3. Application: Visage Selector (HUD)
+ * - Window & Layout
+ * - Tile Grid
+ * - Tile Content & Previews
+ * - CSS Animations (Pulse, Gradient, Wave)
+ * 4. Application: Visage Configuration
+ * - Window & Layout
+ * - List Items
+ * - Disposition Popout
+ * - Ring Editor Sub-Application
  */
 
-/* --- GENERAL & SHARED STYLES --- */
+/* ==========================================================================
+   1. VARIABLES & THEME OVERRIDES
+   ========================================================================== */
 
 :root {
-    /** Extra-extra-small text, for badges and chips. (e.g., ~8px) */
+    /** Extra-extra-small text for badges and chips */
     --filroden-font-size-xxs: 0.5rem;
 }
 
-/**
- * Basic styling for fieldset elements used in the config app.
- */
-.visage-config-fieldset {
-    padding: var(--filroden-space-l);
-    margin-top: var(--filroden-space-l);
-    gap: var(--filroden-space-s);
+.visage {
+    font-size: var(--filroden-font-size-s);
 }
 
-/**
- * Styles for a "read-only" text field.
- */
-.visage-readonly-field {
-    margin: 0;
-    padding: 0;
-    background: transparent;
+/* --- Custom Scrollbars --- */
+
+/* Webkit scrollbar styles (Chrome, Safari, Edge) */
+.visage-selector-app *,
+.visage-config-app *,
+.visage-ring-editor * {
+    scrollbar-width: auto !important;
+    scrollbar-color: auto !important;
+}
+
+.visage .visage-selector-grid-wrapper::-webkit-scrollbar,
+.visage .visage-config-wrapper::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+}
+
+.visage .visage-selector-grid-wrapper::-webkit-scrollbar-track,
+.visage .visage-config-wrapper::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-radius: var(--filroden-radius-large) !important;
+}
+
+.visage .visage-selector-grid-wrapper::-webkit-scrollbar-thumb {
+    background-color: var(--filroden-color-text-accent) !important;
+    border-radius: var(--filroden-radius-large) !important;
+    border: 1px solid rgba(0, 0, 0, 0.6) !important;
+}
+
+.visage .visage-selector-grid-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: var(--filroden-color-text-accent-hover) !important;
+}
+
+.visage .visage-config-wrapper::-webkit-scrollbar-track {
+    background: var(--filroden-color-bg-hover-solid) !important;
+}
+
+.visage .visage-config-wrapper::-webkit-scrollbar-thumb {
+    background-color: var(--filroden-color-text-accent) !important;
+    border: 1px solid rgba(0, 0, 0, 0.6) !important;
+}
+
+.visage .visage-config-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: var(--filroden-color-text-accent-hover) !important;
+}
+
+/* Hide scrollbar arrow buttons */
+.visage .visage-selector-grid-wrapper::-webkit-scrollbar-button,
+.visage .visage-config-wrapper::-webkit-scrollbar-button {
+    display: none;
+}
+
+
+/* ==========================================================================
+   2. SHARED STYLES (Chips, Icons, Utilities)
+   ========================================================================== */
+
+/* Placeholder text */
+.visage input::placeholder
+ {
+    color: var(--filroden-color-text-placeholder-solid);
+    opacity: 1;
+    font-style: italic;
+}
+
+/* --- Icons --- */
+
+/* Masked icon for window headers to match text color */
+.visage .visage-header-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: var(--filroden-space-xs);
+    display: inline-block;
+    vertical-align: middle;
+    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
+    mask: url('../icons/switch_account.svg') no-repeat center / contain;
+    background-color: currentColor; 
+    background-image: none !important;
+    content: "";
+}
+
+/* --- Chips & Indicators --- */
+
+/* Base style for circular indicators */
+.visage .visage-chip,
+.visage .visage-default-indicator,
+.visage .visage-wildcard-indicator,
+.visage .visage-ring-indicator {
+    position: absolute;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+}
+
+.visage .visage-chip img,
+.visage .visage-default-indicator img,
+.visage .visage-wildcard-indicator img,
+.visage .visage-ring-indicator i {
+    width: var(--filroden-space-m);
+    height: var(--filroden-space-m);
+    font-size: var(--filroden-font-size-xs); /* For font icons */
+    filter: invert(100%); /* White icon */
+    border: none;
+}
+
+/* Specific Indicator Positions & Colors */
+
+/* Active: Top-Right, Green */
+.visage .visage-chip {
+    top: -8px;
+    right: -8px;
+    background-color: var(--filroden-color-success);
+}
+
+/* Default: Top-Left, Gold */
+.visage .visage-default-indicator {
+    top: -8px;
+    left: -8px;
+    background-color: var(--filroden-color-text-accent);
+}
+
+/* Wildcard: Bottom-Left, Blue */
+.visage .visage-wildcard-indicator {
+    bottom: -8px;
+    left: -8px;
+    background-color: #007bff; 
+}
+
+/* Ring Configured: Top-Left (replaces Default if active), Gold */
+.visage .visage-ring-indicator {
+    top: -8px;
+    left: -8px;
+    background-color: var(--filroden-color-text-accent);
+    color: #000; 
+}
+
+/* Data Chip: Top-Center (Scale/Flip info) */
+.visage .visage-data-chip {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    background-color: var(--filroden-color-bg-medium-solid);
     color: var(--filroden-color-text-main-solid);
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-word;;
-    white-space: normal;
-    min-width: 0;
+    padding: var(--filroden-space-xxs) var(--filroden-space-s);
+    border-radius: var(--filroden-radius-large);
+    border: 1px solid var(--filroden-color-text-accent);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-xxs);
+}
+
+.visage .visage-data-chip span {
+    margin-top: 0;
+    font-size: var(--filroden-font-size-xxs);
+}
+
+.visage .visage-data-chip .visage-flip-icon {
+    width: var(--filroden-font-size-xs);
+    height: var(--filroden-font-size-xs);
+    border: none;
+}
+
+.visage .visage-data-chip .visage-status-icon {
+    width: var(--filroden-font-size-xs);
+    height: var(--filroden-font-size-xs);
+    border: none;
+    filter: invert(100%);
+}
+
+/* Disposition Chip: Bottom-Center */
+.visage .visage-tile .visage-disposition-chip {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--filroden-space-xxs) var(--filroden-space-s);
+    border-radius: var(--filroden-radius-large);
+    background-color: var(--filroden-color-bg-medium-solid); 
+    font-size: var(--filroden-font-size-xxs);
+    font-weight: var(--filroden-font-weight-bold);
+    color: var(--filroden-color-text-main-solid);
+    border: 1px solid #000; /* Base border */
+    z-index: 9;
+    white-space: nowrap;
+}
+
+/* Disposition Colors (Foundry Standards) */
+.visage .visage-disposition-chip.friendly { border-color: #00ffff; }
+.visage .visage-disposition-chip.neutral  { border-color: #ffff00; }
+.visage .visage-disposition-chip.hostile  { border-color: #ff0000; }
+.visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
+
+
+/* ==========================================================================
+   3. APPLICATION: VISAGE SELECTOR (HUD)
+   ========================================================================== */
+
+/* Main Window Frame */
+.visage.visage-selector-app {
+    position: fixed; 
+    display: block;
+    width: 14rem !important; 
+    max-height: 460px; 
+}
+
+.visage.visage-selector-app .window-header {
+    display: none; /* Borderless window */
+}
+
+.visage.visage-selector-app .window-content {
+    border: none;
+    box-shadow: var(--filroden-shadow-window);
+    background: var(--filroden-color-bg-darkest);
+    color: var(--filroden-color-text-main-solid);
+    border-radius: var(--filroden-radius-large);
+    z-index: 20;
+    transition: all 0.2s ease-out;
+    display: flex;
+    flex-direction: column;
+    padding: var(--filroden-space-m);
+}
+
+/* Internal Header (Title + Config Button) */
+.visage .visage-selector-header {
+    flex: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--filroden-space-m);
+    border-bottom: 1px solid var(--filroden-color-border);
+    padding-bottom: var(--filroden-space-xs);
+}
+
+.visage .visage-selector-header .visage-title {
+    margin: 0;
+    font-size: var(--filroden-font-size-m);
+    text-align: left;
+    color: var(--filroden-color-text-main-solid);
+    flex-grow: 1;
+    border: none;
+}
+
+.visage .visage-config-button {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+    padding: 0;
+    border: none;
+    background: none;
+    opacity: 0.8;
+    transition: opacity 0.1s ease;
+}
+
+.visage .visage-config-button:hover {
+    opacity: 1;
+}
+
+/* Grid Layout */
+.visage .visage-selector-grid-wrapper {
+    overflow-y: auto;
+    overflow-x: hidden; 
+    flex-grow: 1;
+    padding: var(--filroden-space-m) var(--filroden-space-s) var(--filroden-space-l) var(--filroden-space-s);
+    max-height: 400px;
+}
+
+.visage .visage-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: max(24px, 1.5rem) var(--filroden-space-l); 
     width: 100%;
 }
 
-/**
- * A grid layout for the "Default" information section.
- */
-.visage-defaults-grid {
-    display: grid;
-    grid-template-columns: max-content 1fr;
+/* Tile Styles */
+.visage .visage-tile {
+    position: relative; 
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 5px var(--filroden-space-m);
-    margin: var(--filroden-space-s) var(--filroden-space-l);
+    border: 2px solid var(--filroden-color-text-accent);
+    border-radius: var(--filroden-radius-medium);
+    padding: var(--filroden-space-xs) var(--filroden-space-xs) var(--filroden-space-l) var(--filroden-space-xs); 
+    cursor: pointer;
+    background: var(--filroden-color-bg-medium-solid);
+    transition: background-color 0.1s, border-color 0.1s;
 }
 
-/**
- * A CSS trick to make Foundry's .form-group elements
- * integrate seamlessly into .visage-defaults-grid layout.
- */
-.visage-defaults-grid .form-group,
-.visage-defaults-grid .form-group .form-group-fields {
-    display: contents;
+.visage .visage-tile:hover {
+    background-color: var(--filroden-color-bg-hover-solid);
+    border-color: var(--filroden-color-text-accent-hover);
 }
 
+.visage .visage-tile.active {
+    background-color: var(--filroden-color-bg-light);
+    border-color: var(--filroden-color-success);
+}
 
-/* --- CONFIG APP: VISAGE LIST STYLES --- */
+.visage .visage-tile-name {
+    font-size: var(--filroden-font-size-xs);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    margin-top: var(--filroden-space-xs);
+    color: var(--filroden-color-text-main-solid);
+}
 
-/**
- * Defines the core grid layout for the list of visages.
- */
-.visage-list-header,
-.visage-list .visage-list-item {
+/* --- Tile Content (Image & Ring Previews) --- */
+
+.visage-image-wrapper {
+    position: relative;
+    width: 4rem;
+    height: 4rem;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.visage-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--filroden-radius-small);
+    border: none;
+    position: relative;
+    z-index: 1;
+}
+
+.visage-image-wrapper img.circular {
+    border-radius: 50%;
+}
+
+/* The Ring Container */
+.visage-ring-preview {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    z-index: 0;
+    background: radial-gradient(circle, color-mix(in srgb, var(--ring-bkg), black 70%) 0%, black 100%);
+    transform: scale(0.9);
+    overflow: hidden;
+}
+
+/* --- THE BANDS (Structure) --- */
+
+.ring-band {
+    position: absolute;
+    border-radius: 50%;
+    box-sizing: border-box;
+    border: 2px solid var(--ring-color);
+    transform-origin: center;
+}
+
+/* Outer Ring: 2px wide, sits at the edge */
+.ring-band.outer {
+    inset: 0; 
+}
+
+/* Inner Ring: 2px wide, sits 4px inside (creating 2px black gap) */
+.ring-band.inner {
+    inset: 4px; 
+}
+
+/* --- ANIMATIONS --- */
+
+/* 1. Pulse Effect (Colors <-> Black) */
+@keyframes visage-ring-pulse-border {
+    0%, 100% { border-color: var(--ring-color); }
+    50% { border-color: #000; }
+}
+
+.visage-ring-preview.pulse .ring-band {
+    animation: visage-ring-pulse-border 3s ease-in-out infinite;
+}
+
+/* 2. Gradient Effect (Rotating Blended Conic) */
+.visage-ring-preview.gradient .ring-band {
+    border: none; /* Hide solid border */
+    background: conic-gradient(
+        var(--ring-color) 0deg 120deg,      /* Solid Color 1 */
+        var(--ring-bkg) 180deg 300deg,      /* Blend to Color 2, then Solid */
+        var(--ring-color) 360deg            /* Blend back to Color 1 */
+    );
+    
+    /* Mask to turn the solid circle into a 2px ring */
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
+        
+    /* Rotate */
+    animation: visage-spin 16s linear infinite;
+}
+
+@keyframes visage-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 3. Wave Effect (Ripples) */
+/* Use a pseudo-element on the container so it's behind the image but indepedent of bands */
+.visage-ring-preview.wave::after {
+    content: "";
+    position: absolute;
+    inset: -50%; 
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background: repeating-radial-gradient(circle, var(--ring-bkg), var(--ring-bkg) 6px, #000 10px, #000 16px);
+    opacity: 0;
+    border-radius: 50%;
+    z-index: -1;
+    animation: visage-ring-wave 4s linear infinite;
+}
+
+@keyframes visage-ring-wave {
+    0% { transform: scale(0.3); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+/* 4. Invisibility Effect */
+.visage-image-wrapper.invisible img {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.visage-tile:hover .visage-image-wrapper.invisible img {
+    opacity: 1;
+}
+
+.visage-image-wrapper.invisible {
+    opacity: 1 !important;
+}
+
+/* ==========================================================================
+   4. APPLICATION: VISAGE CONFIGURATION
+   ========================================================================== */
+
+/* Main Window Frame */
+.visage.visage-config-app {
+    background: var(--filroden-color-bg-darkest);
+    color: var(--filroden-color-text-main-solid);
+    border-radius: var(--filroden-radius-large);
+    width: 54rem;        
+    max-width: 1200px;
+    height: auto;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.visage.visage-config-app .window-header {
+    background: var(--filroden-color-bg-darkest);
+    color: var(--filroden-color-text-main-solid);
+    flex: 0 0 auto !important; 
+    min-height: 30px; 
+    height: auto !important;
+    display: flex;
+    align-items: center;
+}
+
+.visage.visage-config-app .window-header .window-title {
+    font-size: var(--filroden-font-size-s);
+    line-height: 1.2;
+}
+
+.visage.visage-config-app .window-content {
+    background: var(--filroden-color-bg-darkest);
+    color: var(--filroden-color-text-main-solid);
+    display: flex;
+    flex-direction: column;
+    height: 100% !important;
+    padding: var(--filroden-space-l);
+    overflow: hidden;
+    max-height: 70vh;
+}
+
+/* Layout Containers */
+.visage.visage-config-app form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 0;
+    height: auto; 
+    min-height: 0;
+}
+
+.visage .visage-config-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+.visage .visage-config-pane {
+    display: flex;
+    flex-direction: column;
+}
+
+.visage .visage-config-wrapper {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 100px;
+}
+
+.visage .visage-config-fieldset {
+    border: 1px solid var(--filroden-color-border);
+    border-radius: var(--filroden-radius-medium);
+    padding: var(--filroden-space-l);
+    margin-top: var(--filroden-space-l);
+    gap: var(--filroden-space-s);
+    flex-grow: 1;
+}
+
+.visage .visage-config-fieldset legend {
+    color: var(--filroden-color-text-accent);
+    font-weight: var(--filroden-font-weight-bold);
+}
+
+/* --- Inputs & Buttons --- */
+
+.visage input[type="text"],
+.visage input[type="number"],
+.visage select {
+    background: var(--filroden-color-bg-medium-solid);
+    border: 1px solid var(--filroden-color-border);
+    color: var(--filroden-color-text-main-solid);
+    border-radius: var(--filroden-radius-small);
+}
+
+.visage input[type="text"]:focus,
+.visage input[type="number"]:focus,
+.visage select:focus {
+    border-color: var(--filroden-color-text-accent);
+    box-shadow: var(--filroden-shadow-focus);
+}
+
+.visage button {
+    background: var(--filroden-color-bg-light-solid);
+    border: 1px solid var(--filroden-color-border);
+    color: var(--filroden-color-text-main-solid);
+    border-radius: var(--filroden-radius-small);
+    transition: background-color 0.1s, border-color 0.1s, color 0.1s ease;
+}
+
+.visage button:hover {
+    background: var(--filroden-color-bg-hover-solid);
+    border-color: var(--filroden-color-text-accent);
+    box-shadow: none;
+}
+
+.visage .visage-delete {
+    background: var(--filroden-color-bg-light-solid);
+    color: var(--filroden-color-text-main-solid);
+    text-align: center;
+    cursor: pointer;
+    transition: color 0.1s ease;
+}
+
+.visage .visage-delete:hover {
+    border-color: var(--filroden-color-border); 
+    color: var(--filroden-color-danger); 
+    box-shadow: none;
+}
+
+/* Footer & Save Button */
+.visage .visage-config-footer {
+    flex: none;
+    padding-top: var(--filroden-space-m);
+    margin-top: var(--filroden-space-l);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.visage .visage-save.dirty {
+    background: var(--filroden-color-text-accent);
+    border-color: var(--filroden-color-text-accent);
+    color: var(--filroden-color-text-on-accent);
+    font-weight: var(--filroden-font-weight-bold);
+}
+
+.visage .visage-save.dirty:hover {
+    background: var(--filroden-color-text-accent-hover);
+    border-color: var(--filroden-color-text-accent-hover);
+    box-shadow: 0 0 8px var(--filroden-color-text-accent-hover);
+}
+
+/* --- List Item Grid --- */
+
+.visage .visage-list-header,
+.visage .visage-list-item.default-row,
+.visage .visage-list .visage-list-item {
     display: grid;
-    grid-template-columns:
-        minmax(100px, 1.5fr)        /* Col 1: Name */
-        minmax(0, 4fr)              /* Col 2: Image Path Group */
-        minmax(70px, max-content)   /* COL 3: Scale + % */
-        minmax(30px, 30px)          /* Col 4: Flip Checkbox */
-        minmax(160px, 1.2fr)        /* Col 5: Disposition */
-        minmax(20px, 20px);         /* Col 6: Delete Button */
+    grid-template-columns: 
+        minmax(6rem, 1.5fr)           /* Name */
+        minmax(0, 4fr)                /* Image */
+        5rem                          /* Scale */
+        minmax(2rem, 2rem)            /* Flip */
+        minmax(10rem, 1.5fr)          /* Disposition */
+        minmax(2.5rem, 2.5rem)        /* Ring */
+        minmax(1.25rem, 1.25rem);     /* Delete */
     gap: var(--filroden-space-m);
     align-items: center;
     padding: var(--filroden-space-xxs) 0;
 }
 
-/**
- * Styles for the header row.
- */
-.visage-list-header {
-    font-weight: var(--filroden-font-weight-bold);
-    border-bottom: 1px solid var(--filroden-color-border);
-    margin-bottom: var(--filroden-space-xs);
-    padding: 0 0 var(--filroden-space-xs) 0;
-    font-size: var(--filroden-font-size-xs);
-    text-transform: uppercase;
+/* Default Row */
+.visage .visage-list-item.default-row input[disabled],
+.visage .visage-list-item.default-row button[disabled] {
+    border: none;
+    background: transparent;
     color: var(--filroden-color-text-muted-solid);
+    cursor: default;
+    opacity: 1;
 }
 
-/**
- * Assigns each header label <span> to its correct grid column.
- */
-.visage-list-header span:nth-child(1) { grid-column: 1; }
-.visage-list-header span:nth-child(2) { grid-column: 2; }
-.visage-list-header span:nth-child(3) { grid-column: 3; text-align: center; }
-.visage-list-header span:nth-child(4) { grid-column: 4; text-align: center; }
-.visage-list-header span:nth-child(5) { grid-column: 5; text-align: center; }
-.visage-list-header span:nth-child(6) { grid-column: 6; }
-
-/**
- * Container for the list of <li> items.
- */
-.visage-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--filroden-space-xs);
+.visage .visage-list-item.default-row input[type="checkbox"][disabled] {
+    filter: grayscale(1) opacity(0.5);
 }
 
-/**
- * Defines a nested grid for the path input field and the file picker button.
- */
-.visage-list-item .visage-path-group {
-    grid-column: 2;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: var(--filroden-space-xs);
-}
-
-/**
- * A flex container for the scale <input> and the "%" sign.
- */
-.visage-scale-group {
+/* Scale Group */
+.visage .visage-scale-group {
     display: flex;
     align-items: center;
     justify-content: center;
     grid-column: 3;
     gap: var(--filroden-space-xs);
+    flex-wrap: nowrap; 
+    width: 100%; 
 }
 
-/**
- * Fixes the width of the scale input field.
- */
-.visage-scale-input {
-    width: 6ch;
-    max-width: 6ch;
-    min-width: 6ch;
-    flex-grow: 0;
-    flex-shrink: 0;
+.visage .visage-scale-input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 3ch; 
     margin-right: 0;
     text-align: center;
 }
 
-/**
- * Styles the "%" sign next to the scale input.
- */
-.visage-percent-sign {
-    flex-shrink: 0;
+.visage .visage-percent-sign {
+    flex: 0 0 auto; 
     line-height: 24px;
-    width: 1ch;
+    width: auto;
 }
 
-/**
- * Styles for the "Flip" checkbox label.
- */
-.visage-flip-label {
-    grid-column: 4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 0;
-    margin: 0;
-    padding: 0;
-}
-
-.visage-flip-label input {
-    margin: 0;
-}
-
-.visage-flip-label input[type="checkbox"] {
-    appearance: auto;
-    -webkit-appearance: auto;
-    margin: 0;
-    flex: 0 0 16px;
-    width: 16px;
-    height: 16px;
-    padding: 0;
-    border: none;
-    outline: none;
-    vertical-align: middle;
-    cursor: pointer;
-    accent-color: var(--filroden-color-text-accent); 
-}
-
-.visage-flip-label input[type="checkbox"]::before,
-.visage-flip-label input[type="checkbox"]::after {
-    display: none !important;
-    content: none !important;
-    all: unset !important;
-}
-
-/**
- * Styles for the "Delete" button.
- */
-.visage-list-item .visage-delete {
-    grid-column: 6;
-    text-align: center;
-    cursor: pointer;
-}
-
-/**
- * Styles for the Disposition controls.
- */
-.visage-disposition-cell {
+/* Disposition Controls */
+.visage .visage-disposition-cell {
     position: relative;
     grid-column: 5;
     display: flex;
@@ -213,7 +694,7 @@
     justify-content: center;
 }
 
-.visage-disposition-button {
+.visage .visage-disposition-button {
     width: 100%;
     display: flex;
     justify-content: flex-start;
@@ -224,7 +705,7 @@
     padding: var(--filroden-space-xs) var(--filroden-space-s);
 }
 
-.visage-disposition-popout {
+.visage .visage-disposition-popout {
     display: none !important; 
     position: absolute;
     top: auto;
@@ -246,555 +727,56 @@
     align-items: flex-start;
 }
 
-.visage-disposition-popout.active {
+.visage .visage-disposition-popout.active {
     display: flex !important;
 }
 
-/* Styles for controls inside the pop-out */
-.visage-disposition-popout .form-group {
-    display: flex;
-    align-items: center;
-    gap: var(--filroden-space-m);
-    margin: 0;
-    width: 100%;
-    padding: var(--filroden-space-xs);
-    border-radius: var(--filroden-radius-small);
-    transition: background-color 0.1s ease;
-    clear: none;
-}
+/* Ring Button */
+.visage .visage-ring-cell { grid-column: 6; }
 
-/* Hover effect for popout rows */
-.visage-disposition-popout .form-group:hover {
-    background-color: var(--filroden-color-bg-light-solid);
-}
-
-.visage-disposition-popout .form-group label {
-    margin: 0;
-    white-space: nowrap;
-    flex: 0 0 auto;
-    height: 16px;
-    line-height: 16px; 
-    vertical-align: middle;
-}
-
-.visage-disposition-popout .form-group input[type="radio"] {
-    appearance: auto; 
-    -webkit-appearance: auto;
-    margin: 0;
-    flex: 0 0 16px; 
-    width: 16px;
-    height: 16px;
-    min-width: 16px;
+.visage .visage-ring-button {
+    background: none !important;
+    border: none !important;
     padding: 0;
-    border: none;
-    outline: none;
-    vertical-align: middle;
-    accent-color: var(--filroden-color-text-accent);
-    cursor: pointer;
-}
-
-.visage-disposition-popout .form-group input[type="radio"]::before,
-.visage-disposition-popout .form-group input[type="radio"]::after {
-    display: none !important;
-    content: none !important;
-    all: unset !important;
-}
-
-.visage-disposition-popout .form-group select {
-    text-align: left;
-    padding-left: var(--filroden-space-xs);
-    flex: 1;
-    width: auto;
-    min-width: 120px;
-    height: 24px;
-}
-
-.visage-disposition-popout .form-group select option {
-    text-align: left;
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-}
-
-.visage-disposition-popout .form-group input[type="radio"] {
     margin: 0;
-    flex: 0 0 auto;
-}
-
-/* --- VISAGE SELECTOR APP STYLES (POP-UP) --- */
-
-/**
- * Main window content for the selector pop-up.
- */
-
-/* Mandatory positioning for AppV2 with frame: false */
-.visage-selector-app {
-    position: fixed; 
-    display: block;
-    width: 13rem !important; 
-    max-height: 460px; 
-}
-
-.visage-selector-app .window-content {
-    border: none;
-    box-shadow: var(--filroden-shadow-window);
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    border-radius: var(--filroden-radius-large);
-    z-index: 20;
-    transition: all 0.2s ease-out;
-    display: flex;
-    flex-direction: column;
-    padding: var(--filroden-space-m);
-}
-
-/**
- * Hides the default Foundry window header (title bar).
- */
-.visage-selector-app .window-header {
-    display: none;
-}
-
-/**
- * Styles for the custom header *inside* the selector.
- */
-.visage-selector-header {
-    flex: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--filroden-space-m);
-    border-bottom: 1px solid var(--filroden-color-border);
-    padding-bottom: var(--filroden-space-xs);
-}
-
-.visage-selector-header .visage-title {
-    margin: 0;
-    font-size: var(--filroden-font-size-m);
-    text-align: left;
-    text-transform: uppercase;
-    color: var(--filroden-color-text-main-solid);
-    flex-grow: 1;
-    border: none;
-}
-
-/**
- * Styles for the config (gear) button in the selector header.
- */
-.visage-config-button {
-    flex: none;
-    width: 1.25rem;
-    height: 1.25rem;
+    line-height: 1;
     cursor: pointer;
-    padding: 0;
-    border: none;
-    background: none;
-    opacity: 0.8;
-    transition: opacity 0.1s ease;
-}
-
-.visage-config-button img {
-    width: 100%;
-    height: 100%;
-    border: none;
-}
-
-.visage-config-button:hover {
-    opacity: 1;
-    box-shadow: none;
-}
-
-/**
- * The scrollable container for the grid of visage tiles.
- */
-.visage-selector-grid-wrapper {
-    overflow-y: auto;
-    overflow-x: hidden; 
-    flex-grow: 1;
-    padding: var(--filroden-space-m) var(--filroden-space-s) var(--filroden-space-l) var(--filroden-space-s);
-    scrollbar-width: thin; 
-    scrollbar-color: var(--filroden-color-text-accent) rgba(0, 0, 0, 0.5);
-    max-height: 400px;
-}
-
-/**
- * Defines the 2-column grid layout for the visage tiles.
- */
-.visage-selector {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: max(24px, 1.5rem) var(--filroden-space-m); 
-    width: 100%;
-}
-
-/**
- * Styles for an individual visage tile.
- */
-.visage-tile {
+    font-size: var(--filroden-font-size-l);
+    color: var(--filroden-color-text-muted-solid);
+    transition: color 150ms ease, text-shadow 150ms ease;
+    overflow: visible; 
     position: relative; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border: 2px solid var(--filroden-color-text-accent);
-    border-radius: var(--filroden-radius-medium);
-    padding: var(--filroden-space-xs) var(--filroden-space-xs) var(--filroden-space-m) var(--filroden-space-xs);
-    cursor: pointer;
-    background: var(--filroden-color-bg-medium-solid);
-    transition: background-color 0.1s, border-color 0.1s;
 }
 
-.visage-tile:hover {
-    background-color: var(--filroden-color-bg-hover-solid);
-    border-color: var(--filroden-color-text-accent-hover);
+.visage .visage-ring-button:hover { color: var(--filroden-color-text-main-solid); }
+.visage .visage-ring-button.ring-active { color: var(--filroden-color-text-accent); }
+.visage .visage-ring-button.ring-active:hover {
+    color: var(--filroden-color-text-accent-hover);
+    text-shadow: 0 0 5px var(--filroden-color-text-accent);
 }
 
-/**
- * Style for the currently active visage tile.
- */
-.visage-tile.active {
-    background-color: var(--filroden-color-bg-light);
-    border-color: var(--filroden-color-success);
-}
-
-/**
- * Styles for the image preview inside the tile.
- */
-.visage-tile img {
-    width: 4rem;
-    height: 4rem;
-    object-fit: cover;
-    border-radius: var(--filroden-radius-small);
-    border: none;
-}
-
-/**
- * Styles for the name displayed below the image preview.
- */
-.visage-tile-name {
-    font-size: var(--filroden-font-size-xs);
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-    margin-top: var(--filroden-space-xs);
-    color: var(--filroden-color-text-main-solid);
-}
-
-/**
- * Disposition chip (bottom-center, coloured)
- * Note: Specific Colors kept hardcoded as they relate to Foundry Dispositions
- */
-.visage-tile .visage-disposition-chip {
-position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: var(--filroden-space-xxs) var(--filroden-space-s);
-    border-radius: 8px;
-    background-color: var(--filroden-color-bg-medium-solid); 
-    font-size: var(--filroden-font-size-xxs);
-    font-weight: var(--filroden-font-weight-bold);
-    color: var(--filroden-color-text-main-solid);
-    border: 1px solid #000; /* Base border, overridden by specific classes */
-    z-index: 9;
-    white-space: nowrap;
-}
-
-.visage-disposition-chip.friendly {
-    border-color: #00ffff; /* Bold Cyan */
-}
-.visage-disposition-chip.neutral {
-    border-color: #ffff00; /* Bold Yellow */
-}
-.visage-disposition-chip.hostile {
-    border-color: #ff0000; /* Bold Red */
-}
-.visage-disposition-chip.secret {
-    border-color: #ff00ff; /* Bold Purple */
-}
-
-
-/**
- * Base style for all circular "chips" (indicators) on a tile.
- */
-.visage-chip {
+.visage .visage-ring-button.ring-dirty::after {
+    content: "";
     position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 20px;
-    height: 20px;
+    top: -2px;
+    right: -2px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background-color: var(--filroden-color-success); /* Active chip green */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    z-index: 10;
+    background-color: var(--filroden-color-warning);
+    border: 1px solid var(--filroden-color-bg-darkest);
+    box-shadow: 0 0 2px #000;
+    pointer-events: none;
 }
 
-.visage-chip img {
-    width: 12px;
-    height: 12px;
-    filter: invert(100%);
-    border: none;
-}
-
-/**
- * "Default" indicator chip (top-left, gold).
- */
-.visage-default-indicator {
-    position: absolute;
-    top: -8px;
-    left: -8px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: var(--filroden-color-text-accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    z-index: 10;
-}
-
-.visage-default-indicator img {
-    width: 12px;
-    height: 12px;
-    filter: invert(100%);
-    border: none;
-}
-
-/**
- * "Wildcard" indicator chip (bottom-left, blue).
- */
-.visage-wildcard-indicator {
-    position: absolute;
-    bottom: -8px;
-    left: -8px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: #007bff; /* Distinct blue */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    z-index: 10;
-}
-
-.visage-wildcard-indicator img {
-    width: 12px;
-    height: 12px;
-    filter: invert(100%);
-    border: none;
-}
-
-/**
- * "Data" chip (top-center, dark) used to show scale/flip info.
- */
-.visage-data-chip {
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: max-content;
-    background-color: var(--filroden-color-bg-medium-solid);
-    color: var(--filroden-color-text-main-solid);
-    padding: 2px 6px;
-    border-radius: 8px;
-    border: 1px solid var(--filroden-color-text-accent);
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
-
-.visage-data-chip span {
-    margin-top: 0;
-    font-size: var(--filroden-font-size-xxs);
-}
-
-.visage-data-chip .visage-flip-icon {
-    width: 10px;
-    height: 10px;
-    border: none;
-}
-
-.visage-scale-value {
-    white-space: nowrap;
-}
-
-/* --- CONFIG APP: MAIN LAYOUT --- */
-
-.visage-dark-theme.visage-config-app .window-header {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    flex: 0 0 auto !important; 
-    min-height: 30px; 
-    height: auto !important;
-    display: flex;
-    align-items: center;
-    padding-top: max(2px, var(--filroden-space-xxs));
-    padding-bottom: max(2px, var(--filroden-space-xxs));
-}
-
-.visage-dark-theme.visage-config-app .window-header .window-title {
-    line-height: 1.2;
-}
-
-/**
- * Main window content for the config app.
- */
-.visage-config-app .window-content {
-    display: flex;
-    flex-direction: column;
-    height: 100% !important;
-    padding: 10px;
-    overflow: hidden;
-    max-height: 70vh;
-}
-
-/**
- * The main scrollable area within the config app window.
- */
-.visage-config-wrapper {
-    overflow-y: auto;
-    flex-grow: 1;
-    scrollbar-width: initial !important;
-    scrollbar-color: initial !important;
-    padding-right: 5px; /* Space for scrollbar */
-}
-
-.visage-config-pane {
-    display: flex;
-    flex-direction: column;
-}
-
-.visage-config-fieldset {
-    flex-grow: 1;
-}
-
-.visage-add-wrapper {
-    margin-top: 10px;
-}
-
-/**
- * The footer area containing the "Save Changes" button.
- */
-.visage-config-footer {
-    flex: none;
-    padding-top: var(--filroden-space-m);
-    margin-top: var(--filroden-space-m);
-    display: flex;
-    justify-content: flex-end;
-}
-
-/* --- CUSTOM SCROLLBAR STYLES --- */
-
-/* --- Webkit scrollbar styles (Chrome, Safari, Edge) --- */
-.visage-selector-grid-wrapper::-webkit-scrollbar,
-.visage-config-wrapper::-webkit-scrollbar {
-    width: 8px !important;
-    height: 8px !important;
-}
-
-.visage-selector-grid-wrapper::-webkit-scrollbar-track,
-.visage-config-wrapper::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1) !important;
-    border-radius: var(--filroden-radius-large) !important;
-}
-
-/* Scrollbar for Selector (Dark, Gold) */
-.visage-selector-grid-wrapper::-webkit-scrollbar-thumb {
-    background-color: var(--filroden-color-text-accent) !important;
-    border-radius: 10px !important;
-    border: 1px solid rgba(0, 0, 0, 0.6) !important;
-}
-.visage-selector-grid-wrapper::-webkit-scrollbar-thumb:hover {
-    background-color: var(--filroden-color-text-accent-hover) !important;
-}
-
-/* Scrollbar for Config */
-.visage-config-wrapper::-webkit-scrollbar-thumb {
-    background-color: #7a7971 !important;
-    border-radius: 10px !important;
-    border: 1px solid #c9c7c1 !important;
-}
-.visage-config-wrapper::-webkit-scrollbar-thumb:hover {
-    background-color: #4b4a44 !important;
-}
-
-/* Hide scrollbar arrow buttons */
-.visage-selector-grid-wrapper::-webkit-scrollbar-button,
-.visage-config-wrapper::-webkit-scrollbar-button {
-    display: none;
-}
-
-
-/* --- CONFIG APP --- */
-
-/* --- Base Styles --- */
-.visage-dark-theme.visage-config-app .window-content,
-.visage-dark-theme.visage-config-app .window-header {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-}
-
-.visage-dark-theme.visage-config-app {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    border-radius: var(--filroden-radius-large);
-    width: 48rem;        
-    max-width: 1000px;
-    height: auto;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.visage-config-app form {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    margin: 0;
-    height: auto; 
-    min-height: 0;
-}
-
-.visage-config-container {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-}
-
-.visage-config-wrapper {
-    overflow-y: auto;
-    flex: 1;
-    scrollbar-width: initial !important;
-    scrollbar-color: initial !important;
-    padding-right: var(--filroden-space-xs);
-    min-height: 100px;
-}
-
-
-.visage-dark-theme.visage-config-app .window-header .window-title {
-    font-size: var(--filroden-font-size-m);
-    text-transform: uppercase;
-}
-
-/* --- EMPTY STATE STYLES --- */
-.visage-empty-state {
+/* Empty State */
+.visage .visage-empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: var(--filroden-space-l);
     margin: var(--filroden-space-s) 0;
-    
-    /* Dashed border implies a "drop zone" or missing content */
     border: var(--filroden-border-dashed);
     border-radius: var(--filroden-radius-medium);
     background: var(--filroden-color-bg-light);
@@ -802,137 +784,118 @@ position: absolute;
     text-align: center;
 }
 
-.visage-empty-state p {
-    font-weight: var(--filroden-font-weight-bold);
-    font-size: var(--filroden-font-size-m);
-    color: var(--filroden-color-text-main-solid);
-    margin: 0 0 var(--filroden-space-xs) 0;
-}
+/* ==========================================================================
+   5. APPLICATION: VISAGE RING EDITOR (Sub-App)
+   ========================================================================== */
 
-.visage-empty-state span {
+.visage.visage-ring-editor {
+    background: var(--filroden-color-bg-darkest) !important;
+    border: 1px solid var(--filroden-color-border);
+    box-shadow: var(--filroden-shadow-popout);
+    border-radius: var(--filroden-radius-large);
     font-size: var(--filroden-font-size-s);
-    color: var(--filroden-color-text-muted);
+    display: flex;
+    flex-direction: column;
+    color: var(--filroden-color-text-main) !important;
+    width: 28rem;
 }
 
-/* --- Dark Theme: Text & Links --- */
-.visage-dark-theme .visage-notes,
-.visage-dark-theme label,
-.visage-dark-theme .visage-percent-sign {
-    color: var(--filroden-color-text-muted-solid);
-}
-
-.visage-dark-theme .visage-readonly-field {
+.visage.visage-ring-editor .window-header {
+    background: var(--filroden-color-bg-darkest);
     color: var(--filroden-color-text-main-solid);
+    flex: 0 0 auto !important; 
+    min-height: 30px; 
+    height: auto !important;
+    display: flex;
+    align-items: center;
 }
 
-.visage-dark-theme .visage-delete {
-    color: var(--filroden-color-text-muted-solid);
-    transition: color 0.1s ease;
-}
-.visage-dark-theme .visage-delete:hover {
-    color: var(--filroden-color-danger);
+.visage.visage-ring-editor .window-header .window-title {
+    font-size: var(--filroden-font-size-s);
+    line-height: 1.2;
 }
 
-/* --- Dark Theme: Fieldset --- */
-.visage-dark-theme .visage-config-fieldset {
-    border: 1px solid var(--filroden-color-border);
-    border-radius: var(--filroden-radius-medium);
-}
-.visage-dark-theme .visage-config-fieldset legend {
-    color: var(--filroden-color-text-accent);
-    font-weight: var(--filroden-font-weight-bold);
-}
-
-/* --- Dark Theme: Inputs --- */
-.visage-dark-theme input[type="text"],
-.visage-dark-theme input[type="number"],
-.visage-dark-theme select {
-    background: var(--filroden-color-bg-medium-solid);
-    border: 1px solid var(--filroden-color-border);
-    color: var(--filroden-color-text-main-solid);
-    border-radius: var(--filroden-radius-small);
-}
-.visage-dark-theme input[type="text"]:focus,
-.visage-dark-theme input[type="number"]:focus,
-.visage-dark-theme select:focus {
-    border-color: var(--filroden-color-text-accent);
-    box-shadow: var(--filroden-shadow-focus);
-}
-
-/* Style the dropdown options list */
-.visage-dark-theme select option {
+.visage.visage-ring-editor .window-content {
     background: var(--filroden-color-bg-darkest);
     color: var(--filroden-color-text-main-solid);
 }
 
-/* Radio button/checkbox appearance */
-.visage-dark-theme input[type="radio"],
-.visage-dark-theme input[type="checkbox"] {
-    accent-color: var(--filroden-color-text-accent);
-}
-
-/* --- Dark Theme: Buttons --- */
-.visage-dark-theme button {
-    background: var(--filroden-color-bg-light-solid);
+.visage .visage-ring-fieldset {
     border: 1px solid var(--filroden-color-border);
-    color: var(--filroden-color-text-main-solid);
-    border-radius: var(--filroden-radius-small);
-    transition: background-color 0.1s, border-color 0.1s, color 0.1s ease;
+    border-radius: var(--filroden-radius-medium);
+    padding: var(--filroden-space-m);
+    margin-top: var(--filroden-space-m);
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: var(--filroden-space-s) var(--filroden-space-m);
+    align-items: center;
 }
 
-.visage-dark-theme button:hover {
-    background: var(--filroden-color-bg-hover-solid);
-    border-color: var(--filroden-color-text-accent);
-    box-shadow: none;
+.visage .visage-ring-fieldset legend {
+    color: var(--filroden-color-text-accent);
+    font-weight: bold;
+    padding: 0 var(--filroden-space-xs);
 }
 
-.visage-dark-theme .visage-delete {
-    background: var(--filroden-color-bg-light-solid);
-    color: var(--filroden-color-text-main-solid);
+/* Editor Forms */
+.visage.visage-ring-editor .form-group {
+    display: contents; 
 }
 
-.visage-dark-theme .visage-delete:hover {
-    border-color: var(--filroden-color-border); 
-    color: var(--filroden-color-danger); 
-    box-shadow: none;
+.visage.visage-ring-editor .visage-config-wrapper > .form-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--filroden-space-s);
 }
 
-/* --- Dark Theme: Save Button "Dirty" State --- */
-.visage-dark-theme .visage-save.dirty {
-    background: var(--filroden-color-text-accent);
-    border-color: var(--filroden-color-text-accent);
-    color: var(--filroden-color-text-on-accent);
-    font-weight: var(--filroden-font-weight-bold);
-}
-.visage-dark-theme .visage-save.dirty:hover {
-    background: var(--filroden-color-text-accent-hover);
-    border-color: var(--filroden-color-text-accent-hover);
-    box-shadow: 0 0 8px var(--filroden-color-text-accent-hover);
+.visage.visage-ring-editor label {
+    white-space: nowrap;
+    color: var(--filroden-color-text-muted-solid);
 }
 
-/* --- Dark Theme: Scrollbar --- */
-.visage-dark-theme .visage-config-wrapper::-webkit-scrollbar-track {
-    background: var(--filroden-color-bg-hover-solid) !important;
-}
-.visage-dark-theme .visage-config-wrapper::-webkit-scrollbar-thumb {
-    background-color: var(--filroden-color-text-accent) !important;
-    border: 1px solid rgba(0, 0, 0, 0.6) !important;
-}
-.visage-dark-theme .visage-config-wrapper::-webkit-scrollbar-thumb:hover {
-    background-color: var(--filroden-color-text-accent-hover) !important;
+.visage.visage-ring-editor .form-fields {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--filroden-space-xs);
+    width: 100%;
 }
 
-/* --- CUSTOM ICONS --- */
+/* Stacked Group (Effects) */
+.visage.visage-ring-editor .form-group.stacked {
+    display: block;
+    grid-column: 1 / -1;
+}
 
-.visage-header-icon {
-    width: 1rem;
-    height: 1rem;
-    margin-right: var(--filroden-space-xs);
-    display: inline-block;
-    vertical-align: middle;
-    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
-    mask: url('../icons/switch_account.svg') no-repeat center / contain;
-    background-color: currentColor; 
-    background-image: none !important;
-    content: "";
+.visage.visage-ring-editor .form-group.stacked label.group-label {
+    display: block;
+    margin-bottom: var(--filroden-space-xs);
+    color: var(--filroden-color-text-accent);
+}
+
+.visage.visage-ring-editor .form-group.stacked .form-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: var(--filroden-space-xs);
+}
+
+.visage.visage-ring-editor .form-group.stacked .checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    justify-content: flex-start;
+    cursor: pointer;
+}
+
+.visage .visage-ring-footer {
+    flex: 0 0 auto;
+    margin-top: var(--filroden-space-l);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.visage .visage-ring-footer button {
+    width: auto; 
+    padding: var(--filroden-space-xs) var(--filroden-space-m);
 }
