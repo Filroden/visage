@@ -3,6 +3,13 @@
         
         <p class="visage-notes">{{localize "VISAGE.RingConfig.Hint"}}</p>
 
+        {{#if showVideoWarning}}
+            <div class="visage-warning-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>{{localize "VISAGE.RingConfig.VideoWarning"}}</span>
+            </div>
+        {{/if}}
+
         {{!-- Enable Toggle --}}
         <div class="form-group">
             <label>{{localize "VISAGE.RingConfig.Enabled"}}</label>

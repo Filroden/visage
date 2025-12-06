@@ -66,6 +66,7 @@
     "VISAGE.Notifications.ErrorTokenNotFound": "Could not find token with ID {id}",
     "VISAGE.Notifications.ErrorActorNotFound": "Could not find actor for token {id}",
     "VISAGE.Notifications.ErrorDefaultsFailed": "Visage defaults for token {id} could not be created.",
+    "VISAGE.Notifications.InvalidPath": "The file path for \"{name}\" must be a valid image or video file (e.g., .webp, .png, .webm).",
 
     "VISAGE.Settings.CleanseScene.Name": "[GM Only] Remove all Visage-related data from tokens on current scene",
     "VISAGE.Settings.CleanseScene.Hint": "When you check this box and save, you will be asked for confirmation to remove Visage data from tokens in the current scene. This action cannot be undone.",
@@ -98,5 +99,6 @@
     "VISAGE.RingConfig.RingDisabled": "Ring Disabled",
     "VISAGE.RingConfig.Group.Subject": "Subject",
     "VISAGE.RingConfig.Group.Colors": "Colors",
-    "VISAGE.RingConfig.Placeholder.Default": "Default"
+    "VISAGE.RingConfig.Placeholder.Default": "Default",
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT does not currently support animated (video) token art over Dynamic Rings. This token will appear static."
 }
