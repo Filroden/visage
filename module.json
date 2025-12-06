@@ -29,6 +29,11 @@
       "lang": "fr",
       "name": "Français",
       "path": "languages/fr.json"
+    },
+    {
+      "lang": "ar",
+      "name": "العربية",
+      "path": "languages/ar.json"
     }
   ],
   "url": "https://github.com/Filroden/visage",

@@ -27,6 +27,11 @@
 
 .visage {
     font-size: var(--filroden-font-size-s);
+    --filroden-dir-flip: 1;
+}
+
+.visage[dir="rtl"] {
+    --filroden-dir-flip: -1;
 }
 
 /* --- Custom Scrollbars --- */
@@ -99,7 +104,7 @@
 .visage .visage-header-icon {
     width: 1rem;
     height: 1rem;
-    margin-right: var(--filroden-space-xs);
+    margin-inline-end: var(--filroden-space-xs);
     display: inline-block;
     vertical-align: middle;
     -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
@@ -107,6 +112,7 @@
     background-color: currentColor; 
     background-image: none !important;
     content: "";
+    transform: scaleX(var(--filroden-dir-flip));
 }
 
 /* --- Chips & Indicators --- */
@@ -143,28 +149,28 @@
 /* Active: Top-Right, Green */
 .visage .visage-chip {
     top: -8px;
-    right: -8px;
+    inset-inline-end: -8px;
     background-color: var(--filroden-color-success);
 }
 
 /* Default: Top-Left, Gold */
 .visage .visage-default-indicator {
     top: -8px;
-    left: -8px;
+    inset-inline-start: -8px;
     background-color: var(--filroden-color-text-accent);
 }
 
 /* Wildcard: Bottom-Left, Blue */
 .visage .visage-wildcard-indicator {
     bottom: -8px;
-    left: -8px;
+    inset-inline-start: -8px;
     background-color: #007bff; 
 }
 
 /* Ring Configured: Top-Left (replaces Default if active), Gold */
 .visage .visage-ring-indicator {
     top: -8px;
-    left: -8px;
+    inset-inline-start: -8px;
     background-color: var(--filroden-color-text-accent);
     color: #000; 
 }
@@ -173,12 +179,14 @@
 .visage .visage-data-chip {
     position: absolute;
     top: -8px;
-    left: 50%;
-    transform: translateX(-50%);
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    transform: translateX(calc(-50% * var(--filroden-dir-flip)));
     width: max-content;
     background-color: var(--filroden-color-bg-medium-solid);
     color: var(--filroden-color-text-main-solid);
-    padding: var(--filroden-space-xxs) var(--filroden-space-s);
+    padding-block: var(--filroden-space-xxs);
+    padding-inline: var(--filroden-space-s);
     border-radius: var(--filroden-radius-large);
     border: 1px solid var(--filroden-color-text-accent);
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
@@ -197,6 +205,7 @@
     width: var(--filroden-font-size-xs);
     height: var(--filroden-font-size-xs);
     border: none;
+    transform: scaleX(var(--filroden-dir-flip));
 }
 
 .visage .visage-data-chip .visage-status-icon {
@@ -210,9 +219,11 @@
 .visage .visage-tile .visage-disposition-chip {
     position: absolute;
     bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: var(--filroden-space-xxs) var(--filroden-space-s);
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    transform: translateX(calc(-50% * var(--filroden-dir-flip)));
+    padding-block: var(--filroden-space-xxs);
+    padding-inline: var(--filroden-space-s);
     border-radius: var(--filroden-radius-large);
     background-color: var(--filroden-color-bg-medium-solid); 
     font-size: var(--filroden-font-size-xxs);
@@ -230,7 +241,7 @@
 .visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
 
 /* --- Ring Editor Warnings --- */
-.visage-warning-box {
+.visage .visage-warning-box {
     background: rgba(255, 193, 7, 0.15); /* Amber background */
     border: 1px solid var(--filroden-color-warning);
     border-radius: var(--filroden-radius-small);
@@ -243,8 +254,17 @@
     font-size: var(--filroden-font-size-xs);
 }
 
-.visage-warning-box i {
+.visage .visage-warning-box i {
     font-size: var(--filroden-font-size-m);
+}
+
+/* --- Utilities --- */
+
+/* Force LTR direction (for file paths, code snippets, etc.) */
+.visage .force-ltr {
+    direction: ltr !important;
+    text-align: left !important;
+    unicode-bidi: bidi-override !important;
 }
 
 /* ==========================================================================
@@ -290,7 +310,7 @@
 .visage .visage-selector-header .visage-title {
     margin: 0;
     font-size: var(--filroden-font-size-m);
-    text-align: left;
+    text-align: start;
     color: var(--filroden-color-text-main-solid);
     flex-grow: 1;
     border: none;
@@ -317,7 +337,8 @@
     overflow-y: auto;
     overflow-x: hidden; 
     flex-grow: 1;
-    padding: var(--filroden-space-m) var(--filroden-space-s) var(--filroden-space-l) var(--filroden-space-s);
+    padding-block: var(--filroden-space-m) var(--filroden-space-l);
+    padding-inline: var(--filroden-space-s);
     max-height: 400px;
 }
 
@@ -336,7 +357,8 @@
     align-items: center;
     border: 2px solid var(--filroden-color-text-accent);
     border-radius: var(--filroden-radius-medium);
-    padding: var(--filroden-space-xs) var(--filroden-space-xs) var(--filroden-space-l) var(--filroden-space-xs); 
+    padding-block: var(--filroden-space-xs) var(--filroden-space-l);
+    padding-inline: var(--filroden-space-xs); 
     cursor: pointer;
     background: var(--filroden-color-bg-medium-solid);
     transition: background-color 0.1s, border-color 0.1s;
@@ -465,7 +487,7 @@
     width: 200%;
     height: 200%;
     top: -50%;
-    left: -50%;
+    inset-inline-start: -50%;
     background: repeating-radial-gradient(circle, var(--ring-bkg), var(--ring-bkg) 6px, #000 10px, #000 16px);
     opacity: 0;
     border-radius: 50%;
@@ -516,12 +538,22 @@
     min-height: 30px; 
     height: auto !important;
     display: flex;
+    flex-direction: row;
     align-items: center;
 }
 
 .visage.visage-config-app .window-header .window-title {
     font-size: var(--filroden-font-size-s);
     line-height: 1.2;
+    text-align: start; 
+    padding-inline-start: var(--filroden-space-s);
+    padding-inline-end: 0;
+    flex: 1;
+}
+
+.visage.visage-config-app .window-header .window-icon {
+    margin-inline-start: var(--filroden-space-xxs);
+    margin-inline-end: 0;
 }
 
 .visage.visage-config-app .window-content {
@@ -596,6 +628,12 @@
     box-shadow: var(--filroden-shadow-focus);
 }
 
+.visage-config-app input[name$=".path"] {
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: bidi-override;
+}
+
 .visage button {
     background: var(--filroden-color-bg-light-solid);
     border: 1px solid var(--filroden-color-border);
@@ -648,6 +686,12 @@
 
 /* --- List Item Grid --- */
 
+.visage .visage-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
 .visage .visage-list-header,
 .visage .visage-list-item.default-row,
 .visage .visage-list .visage-list-item {
@@ -662,7 +706,19 @@
         minmax(1.25rem, 1.25rem);     /* Delete */
     gap: var(--filroden-space-m);
     align-items: center;
-    padding: var(--filroden-space-xxs) 0;
+    padding-block: var(--filroden-space-xxs);
+    padding-inline: 0;
+}
+
+.visage .visage-list-header > span {
+    padding-inline-start: var(--filroden-space-s); 
+}
+
+.visage .visage-list-header > span:nth-child(4), /* Flip */
+.visage .visage-list-header > span:nth-child(6)  /* Ring */ {
+    text-align: center !important;
+    padding-inline-start: 0 !important;
+    padding-inline-end: 0 !important;
 }
 
 /* Default Row */
@@ -694,7 +750,7 @@
     flex: 1 1 auto;
     width: auto;
     min-width: 3ch; 
-    margin-right: 0;
+    margin-inline-end: 0;
     text-align: center;
 }
 
@@ -702,6 +758,21 @@
     flex: 0 0 auto; 
     line-height: 24px;
     width: auto;
+}
+
+.visage .visage-flip-label {
+    justify-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    margin: 0;
+}
+
+.visage .visage-ring-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Disposition Controls */
@@ -717,11 +788,12 @@
     width: 100%;
     display: flex;
     justify-content: flex-start;
-    text-align: left;
+    text-align: start;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: var(--filroden-space-xs) var(--filroden-space-s);
+    padding-block: var(--filroden-space-xs);
+    padding-inline: var(--filroden-space-s);
 }
 
 .visage .visage-disposition-popout {
@@ -729,8 +801,8 @@
     position: absolute;
     top: auto;
     bottom: 100%;
-    left: auto;
-    right: 0;
+    inset-inline-start: auto;
+    inset-inline-end: 0;
     transform: none;
     margin-bottom: var(--filroden-space-xs);    
     width: max-content;
@@ -778,7 +850,7 @@
     content: "";
     position: absolute;
     top: -2px;
-    right: -2px;
+    inset-inline-end: -2px;
     width: 6px;
     height: 6px;
     border-radius: 50%;
@@ -826,12 +898,22 @@
     min-height: 30px; 
     height: auto !important;
     display: flex;
+    flex-direction: row;
     align-items: center;
 }
 
 .visage.visage-ring-editor .window-header .window-title {
     font-size: var(--filroden-font-size-s);
     line-height: 1.2;
+    text-align: start; 
+    padding-inline-start: var(--filroden-space-s);
+    padding-inline-end: 0;
+    flex: 1;
+}
+
+.visage.visage-ring-editor .window-header .window-icon {
+    margin-inline-start: var(--filroden-space-xxs);
+    margin-inline-end: 0;
 }
 
 .visage.visage-ring-editor .window-content {
@@ -853,7 +935,7 @@
 .visage .visage-ring-fieldset legend {
     color: var(--filroden-color-text-accent);
     font-weight: bold;
-    padding: 0 var(--filroden-space-xs);
+    padding-inline: var(--filroden-space-xs);
 }
 
 /* Editor Forms */
@@ -916,5 +998,6 @@
 
 .visage .visage-ring-footer button {
     width: auto; 
-    padding: var(--filroden-space-xs) var(--filroden-space-m);
+    padding-block: var(--filroden-space-xs);
+    padding-inline: var(--filroden-space-m);
 }
