@@ -18,7 +18,9 @@ Software and associated documentation files in this repository are covered by an
 
 [Short term]
 
-* None yet.
+* Support animated token art (webm).
+* Right-to-left language support.
+* Additional localisation.
 
 [Long term]
 
