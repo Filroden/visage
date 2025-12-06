@@ -1,6 +1,8 @@
 # Visage
 
-**Visage** allows players and GMs to instantly switch a token's appearance, disposition, and Dynamic Token Ring configuration on the fly. Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes. Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state) and completely reconfigure its Dynamic Token Ring settings (colours, effects, subject texture). The module also **supports wildcard filepaths** (e.g., path/to/wolves/*.webp), letting you select a random image from a folder every time the **Visage** is activated.
+**Visage** allows players and GMs to instantly switch a token's appearance, disposition, and Dynamic Token Ring configuration on the fly.
+
+Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes. Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state) and completely reconfigure its Dynamic Token Ring settings (colours, effects, subject texture). The module also **supports wildcard filepaths** (e.g., path/to/wolves/*.webp), letting you select a random image from a folder every time the **Visage** is activated.
 
 This module makes it ideal for dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
 
