@@ -663,14 +663,19 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /**
      * Attaches event listeners after the application is rendered.
-     * This is used to set up global listeners, like marking the form dirty on any input change
-     * and handling clicks outside of popouts to close them.
      * @param {object} context - The data context used to render the template.
      * @param {object} options - Rendering options.
      * @protected
      * @override
      */
     _onRender(context, options) {
+        // --- RTL Support ---
+        const rtlLanguages = ["ar", "he", "fa", "ur"];
+        if (rtlLanguages.includes(game.i18n.lang)) {
+            this.element.setAttribute("dir", "rtl");
+            this.element.classList.add("rtl");
+        }
+
         const inputs = this.element.querySelectorAll("input, select");
         inputs.forEach(i => i.addEventListener("change", () => this._markDirty()));
         

@@ -290,6 +290,14 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
      * @override
      */
     _onRender(context, options) {
+        // --- RTL Support ---
+        // Apply direction only to this specific application window
+        const rtlLanguages = ["ar", "he", "fa", "ur"];
+        if (rtlLanguages.includes(game.i18n.lang)) {
+            this.element.setAttribute("dir", "rtl");
+            this.element.classList.add("rtl");
+        }
+
         this._unbindDismissListeners();
         this._bindDismissListeners();
     }

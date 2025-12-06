@@ -150,4 +150,14 @@
 
     /** The accent-coloured glow for focused inputs or buttons. */
     --filroden-shadow-focus: 0 0 5px var(--filroden-color-text-accent);
+
+    /* ===================================
+        --- 6. Directional Language Logic ---
+    =================================== */
+
+    /* 1 = Normal (LTR), -1 = Flipped (RTL) */
+    --filroden-dir-flip: 1; 
+    
+    /* Default Chevron (Pointing Right for 'Next' or 'Open') */
+    --filroden-icon-chevron-next: "\f054"; /* fa-chevron-right */
 }

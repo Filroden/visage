@@ -25,7 +25,7 @@
 
                         <div class="form-group">
                             <div class="form-fields">
-                                <input type="text" value="{{defaultVisage.path}}" disabled data-tooltip="{{defaultVisage.path}}" />
+                                <input type="text" class="force-ltr" value="{{defaultVisage.path}}" disabled data-tooltip="{{defaultVisage.path}}" />
                                 <button type="button" class="file-picker-button" disabled style="opacity: 0;"><i class="fas fa-file-import fa-fw"></i></button>
                             </div>
                         </div>
@@ -47,7 +47,7 @@
                             </button>
                         </div>
                         
-                        <div class="visage-ring-cell" style="display:flex; justify-content:center;">
+                        <div class="visage-ring-cell">
                             <button type="button" class="visage-ring-button {{defaultVisage.ringClass}}" 
                                     disabled
                                     data-tooltip="{{defaultVisage.ringTooltip}}">

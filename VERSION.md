@@ -2,6 +2,7 @@
 
 | Version | Changes |
 | :--- | :--- |
+| **Unreleased** | **ADDED RIGHT-TO-LEFT LANGUAGE SUPPORT**: Introduce bidirectional text support and interface mirroring. When a user selects a Right-to-Left language (like Arabic or Hebrew), the entire layout — including navigation bars, icons, and text alignment—will flip to align with the natural reading flow of that language, ensuring a localised experience.|
 | **Unreleased** | **ADDED ANIMATED TOKEN SUPPORT**: Full support for animated tokens. You can now apply any valid Foundry image filetype to the token and it will display correctly in the Selector HUD, including animated token art using webm format. Note that animated tokens are not compatible with Dynamic Token Rings. If you apply a dynamic ring to a token using animated art, it will render the art as a static image.|
 | **Version 1.3.0** | **ADDED DYNAMIC TOKEN RINGS**: Full support for Dynamic Token Rings. You can now save specific ring configurations (Enabled/Disabled, Colors, Effects, Scale) for each visage. The Selector HUD shows any dynamic ring on the Visage, including animated effects for pulse, gradient, background wave and invisibility. |
 | **Version 1.2.1** | * Improved accessibility to respect all font size changes by user.<br>* Improved UI theme to a warmer background.<br>* Added additional tooltips.<br>* Added notes to the Visage configuration window if no Visages are configured.|

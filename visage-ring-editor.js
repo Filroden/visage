@@ -184,4 +184,15 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
 
         this.close();
     }
+
+    /** * @override 
+     * Inject RTL attributes into the editor window if necessary.
+     */
+    _onRender(context, options) {
+        const rtlLanguages = ["ar", "he", "fa", "ur"];
+        if (rtlLanguages.includes(game.i18n.lang)) {
+            this.element.setAttribute("dir", "rtl");
+            this.element.classList.add("rtl");
+        }
+    }
 }
