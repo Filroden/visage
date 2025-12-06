@@ -77,7 +77,8 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         tag: "form",
         id: "visage-config",
-        classes: ["visage", "visage-config-app"],
+        // PRESERVED: Your specific classes
+        classes: ["visage", "visage-config-app", "visage-dark-theme"],
         window: {
             title: "VISAGE.Config.Title",
             icon: "visage-header-icon", 
@@ -86,7 +87,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             contentClasses: ["standard-form"]
         },
         position: {
-            width: "auto",
+            width: "auto", // Responsive width
             height: "auto"
         },
         actions: {
@@ -118,17 +119,34 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
+     * Helper to retrieve the token's default data.
+     * Used by _prepareContext and _onOpenRingEditor to resolve inheritance.
+     * @returns {object} The default token data (name, texture, etc).
+     * @private
+     */
+    _getTokenDefaults() {
+        const scene = game.scenes.get(this.sceneId);
+        const tokenDocument = scene?.tokens.get(this.tokenId);
+        const actor = tokenDocument?.actor ?? game.actors.get(this.actorId);
+        
+        if (!actor) return {};
+
+        const ns = Visage.DATA_NAMESPACE;
+        const moduleData = actor.flags?.[ns] || {};
+        
+        return moduleData[this.tokenId]?.defaults || {
+            name: tokenDocument?.name,
+            token: tokenDocument?.texture.src,
+            scale: tokenDocument?.texture.scaleX ?? 1.0,
+            disposition: tokenDocument?.disposition ?? 0,
+            ring: tokenDocument?.ring?.toObject() ?? {}
+        };
+    }
+
+    /**
      * Prepares the data context for rendering the Handlebars template.
      * This method orchestrates fetching all necessary data, merging it with defaults, and preparing it for
      * display in the form. It handles both saved data from the actor and temporary, unsaved data held in `_tempVisages`.
-     *
-     * The process involves:
-     * 1. Fetching the token's default appearance (name, image, scale, etc.) to serve as a baseline.
-     * 2. Processing this default data into a read-only "Default Visage" entry for display.
-     * 3. If there are unsaved changes (`_tempVisages`), it uses that data. Otherwise, it fetches the saved
-     *    visages from the actor using `Visage.getVisages` for normalization.
-     * 4. Each visage is processed to calculate derived properties needed for the template, such as display text,
-     *    and whether its ring configuration is "dirty" (changed from its saved state).
      *
      * @param {object} options - Options passed to the render cycle.
      * @returns {Promise<object>} The context object for the template.
@@ -144,13 +162,8 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ns = Visage.DATA_NAMESPACE;
         const moduleData = actor.flags?.[ns] || {};
         
-        const tokenDefaults = moduleData[this.tokenId]?.defaults || {
-            name: tokenDocument.name,
-            token: tokenDocument.texture.src,
-            scale: tokenDocument.texture.scaleX ?? 1.0,
-            disposition: tokenDocument.disposition ?? 0,
-            ring: tokenDocument.ring?.toObject() ?? {}
-        };
+        // Use helper to get defaults
+        const tokenDefaults = this._getTokenDefaults();
         
         const defaultVisage = await this._processVisageEntry(
             "default", 
@@ -215,10 +228,6 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /**
      * Processes a single visage data object to prepare it for template rendering.
      * This function takes raw visage data and computes several derived properties needed by the UI.
-     * For example, it determines the correct localization for the disposition button's text based on the
-     * `disposition` value ('Default', 'Disguise: Friendly', 'Illusion'). It also calculates whether the
-     * token should be flipped horizontally based on a negative scale value. The final object is a rich
-     * context ready for Handlebars.
      *
      * @param {string} id - The unique ID of the visage.
      * @param {string} name - The name of the visage.
@@ -331,11 +340,18 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const index = parseInt(row.dataset.index);
             const visageData = this._tempVisages[index];
 
+            // 1. Calculate Effective Path for validation
+            const defaults = this._getTokenDefaults();
+            // Use visage path if present, otherwise fall back to default token path
+            const effectivePath = visageData.path || defaults.token || "";
+
             const editorId = `visage-ring-editor-${this.actorId}-${this.tokenId}-${visageData.id}`;
             
             const ringEditor = new VisageRingEditor({
                 ringData: visageData.ring,
                 visageName: visageData.name,
+                // NEW: Pass the resolved path to the editor so it can check file type
+                effectivePath: effectivePath, 
                 id: editorId,
                 callback: (newRingData) => {
                     this.updateRingData(index, newRingData);
@@ -433,7 +449,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const group = target.closest(".visage-path-group");
         const input = group.querySelector("input");
         const fp = new FilePicker({
-            type: "image",
+            type: "imagevideo",
             current: input.value,
             callback: (path) => {
                 input.value = path;
@@ -469,6 +485,35 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
+     * Validate a file path against allowed image and video extensions.
+     * STRICT MODE: Must have a valid extension.
+     * @param {string} path
+     * @returns {boolean}
+     */
+    _isValidPath(path) {
+        if (!path) return true; // Empty path is valid (inherits default)
+        
+        const validExtensions = new Set([
+            ...Object.keys(CONST.IMAGE_FILE_EXTENSIONS),
+            ...Object.keys(CONST.VIDEO_FILE_EXTENSIONS)
+        ]);
+
+        // Clean query parameters
+        const cleanPath = path.split("?")[0].trim();
+        
+        // Extract extension
+        const parts = cleanPath.split(".");
+        // If no dot, or it ends with a dot, it has no valid extension
+        if (parts.length < 2) return false; 
+        
+        const extension = parts.pop().toLowerCase();
+        
+        // Strict check: The extension MUST be in the allowlist.
+        // This permits "file_*.webp" (valid) but rejects "file_*" (invalid) or "file.txt" (invalid).
+        return validExtensions.has(extension);
+    }
+
+    /**
      * Handles the 'Save' button click event.
      * It reads the final form data, validates it, and updates the actor's flags
      * with the new visage configuration.
@@ -497,7 +542,14 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const visagesToSave = [];
 
         for (const v of currentVisages) {
-            const finalPath = v.path ? v.path.trim() : (tokenDefaults.token || "");
+            // Validate Path
+            const rawPath = v.path ? v.path.trim() : "";
+            if (rawPath && !this._isValidPath(rawPath)) {
+                ui.notifications.error(game.i18n.format("VISAGE.Notifications.InvalidPath", { name: v.name || "Visage" }));
+                return; // BLOCK SAVE
+            }
+
+            const finalPath = rawPath || (tokenDefaults.token || "");
             const finalName = v.name ? v.name.trim() : (tokenDefaults.name || "Visage");
 
             if (!finalPath) {
@@ -558,7 +610,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Reads all visage data from the form element and reconstructs it into a structured array of objects.
+     * Helper to Scrape HTML Form into Array of Objects.
      * The HTML form presents the data in a flat structure (e.g., `visages.0.name`, `visages.1.name`). This method
      * uses `FormDataExtended` to parse these fields into a JavaScript object. It then identifies all unique
      * visage indices and iterates through them to rebuild each visage object, processing and normalizing

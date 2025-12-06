@@ -24,7 +24,12 @@
                              <div class="ring-band inner"></div>
                         </div>
                     {{/if}}
-                    <img class="{{#if this.hasRing}}circular{{/if}}" src="{{this.resolvedPath}}" alt="{{this.name}}"/>
+                    
+                    {{#if this.isVideo}}
+                        <video class="{{#if this.hasRing}}circular{{/if}}" src="{{this.resolvedPath}}" autoplay loop muted playsinline></video>
+                    {{else}}
+                        <img class="{{#if this.hasRing}}circular{{/if}}" src="{{this.resolvedPath}}" alt="{{this.name}}"/>
+                    {{/if}}
                 </div>
 
                 <span class="visage-tile-name" data-tooltip="{{this.name}}">{{this.name}}</span>

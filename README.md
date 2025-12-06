@@ -2,7 +2,12 @@
 
 **Visage** allows players and GMs to instantly switch a token's appearance, disposition, and Dynamic Token Ring configuration on the fly.
 
-Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes. Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state) and completely reconfigure its Dynamic Token Ring settings (colours, effects, subject texture). The module also **supports wildcard filepaths** (e.g., path/to/wolves/*.webp), letting you select a random image from a folder every time the **Visage** is activated.
+Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes. Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state) and completely reconfigure its Dynamic Token Ring settings (colours, effects, subject texture).
+
+The module supports:
+
+* **all image or video formats** that are valid for tokens.
+* **supports wildcard filepaths** (e.g., path/to/wolves/*.webp), letting you select a random image from a folder every time the **Visage** is activated.
 
 This module makes it ideal for dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
 
@@ -20,7 +25,6 @@ Software and associated documentation files in this repository are covered by an
 
 [Short term]
 
-* Support animated token art (webm).
 * Right-to-left language support.
 * Additional localisation.
 
@@ -147,7 +151,7 @@ The core function to switch the specified Token to the specified appearance form
 
 **Details:**
 
-This function updates the token's `name`, `texture.src`, `texture.scaleX`, `texture.scaleY`, and `disposition` based on the data saved for the specified `formKey`. If the `formKey` is `"default"`, it restores the values captured automatically by Visage. If the configured disposition for the form is set to `"Default (No Change)"` (`null` internally), the token's disposition will *not* be modified by this call when switching to that form. If the saved visage has a blank name or image path, this function will automatically use the token's captured default name/image instead.
+This function updates the token's `name`, `texture.src`, `texture.scaleX`, `texture.scaleY`, `disposition` and dynamic `ring`configuration based on the data saved for the specified `formKey`. If the `formKey` is `"default"`, it restores the values captured automatically by Visage. If the configured disposition for the form is set to `"Default (No Change)"` (`null` internally), the token's disposition will *not* be modified by this call when switching to that form. If the saved visage has a blank name or image path, this function will automatically use the token's captured default name/image instead.
 
 **Example:** Switch a specific token to a 'Wolf' form
 

@@ -66,6 +66,7 @@
     "VISAGE.Notifications.ErrorTokenNotFound": "Impossible de trouver le token avec l'ID {id}",
     "VISAGE.Notifications.ErrorActorNotFound": "Impossible de trouver l'acteur pour le token {id}",
     "VISAGE.Notifications.ErrorDefaultsFailed": "Les défauts de Visage pour le token {id} n'ont pas pu être créés.",
+    "VISAGE.Notifications.InvalidPath": "Le chemin du fichier pour \"{name}\" doit être un fichier image ou vidéo valide (ex: .webp, .png, .webm).",
 
     "VISAGE.Settings.CleanseScene.Name": "[MJ Uniquement] Supprimer toutes les données Visage des tokens de la scène actuelle",
     "VISAGE.Settings.CleanseScene.Hint": "Si vous cochez cette case et sauvegardez, il vous sera demandé de confirmer la suppression des données Visage des tokens de la scène actuelle. Cette action est irréversible.",
@@ -98,5 +99,6 @@
     "VISAGE.RingConfig.RingDisabled": "Anneau Désactivé",
     "VISAGE.RingConfig.Group.Subject": "Sujet",
     "VISAGE.RingConfig.Group.Colors": "Couleurs",
-    "VISAGE.RingConfig.Placeholder.Default": "Défaut"
+    "VISAGE.RingConfig.Placeholder.Default": "Défaut",
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT ne prend pas actuellement en charge les illustrations de token animées (vidéo) sur les Anneaux Dynamiques. Ce token apparaîtra statique."
 }

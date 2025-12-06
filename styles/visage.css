@@ -229,6 +229,23 @@
 .visage .visage-disposition-chip.hostile  { border-color: #ff0000; }
 .visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
 
+/* --- Ring Editor Warnings --- */
+.visage-warning-box {
+    background: rgba(255, 193, 7, 0.15); /* Amber background */
+    border: 1px solid var(--filroden-color-warning);
+    border-radius: var(--filroden-radius-small);
+    padding: var(--filroden-space-s);
+    margin-bottom: var(--filroden-space-m);
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-m);
+    color: #ffc107; /* Bright Amber text */
+    font-size: var(--filroden-font-size-xs);
+}
+
+.visage-warning-box i {
+    font-size: var(--filroden-font-size-m);
+}
 
 /* ==========================================================================
    3. APPLICATION: VISAGE SELECTOR (HUD)
@@ -358,7 +375,8 @@
     justify-content: center;
 }
 
-.visage-image-wrapper img {
+.visage-image-wrapper img,
+.visage-image-wrapper video {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -368,7 +386,8 @@
     z-index: 1;
 }
 
-.visage-image-wrapper img.circular {
+.visage-image-wrapper img.circular,
+.visage-image-wrapper video.circular {
     border-radius: 50%;
 }
 

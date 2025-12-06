@@ -16,6 +16,7 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
      * @param {object} [options.ringData={}] - The initial ring data to edit.
      * @param {Function} options.callback - A function to call with the updated ring data when saved.
      * @param {string} [options.visageName="Visage"] - The name of the parent visage, used in the window title.
+     * @param {string} [options.effectivePath=""] - The resolved image path for this visage, used for validation.
      */
     constructor(options = {}) {
         super(options);
@@ -39,6 +40,14 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
          * @protected
          */
         this.visageName = options.visageName || "Visage";
+
+        /**
+         * The effective image path for this visage (inherited or overridden).
+         * Used to check for video compatibility.
+         * @type {string}
+         * @protected
+         */
+        this.effectivePath = options.effectivePath || "";
         
         /**
          * The available ring effects, with their bitwise values and labels.
@@ -57,7 +66,8 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     static DEFAULT_OPTIONS = {
         tag: "form",
         id: "visage-ring-editor",
-        classes: ["visage", "visage-ring-editor"],
+        // PRESERVED: Your specific classes
+        classes: ["visage", "visage-ring-editor", "visage-dark-theme"],
         window: {
             title: "VISAGE.RingConfig.Title",
             icon: "visage-header-icon",
@@ -111,6 +121,10 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
             isActive: (currentEffects & eff.value) !== 0
         }));
 
+        // NEW: Check if the effective path is a video file.
+        // If so, enabling the ring will freeze the video, so we must warn the user.
+        const showVideoWarning = VideoHelper.hasVideoExtension(this.effectivePath);
+
         return {
             enabled: data.enabled ?? false,
             subject: {
@@ -121,7 +135,8 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
                 ring: data.colors?.ring ?? "#FFFFFF",
                 background: data.colors?.background ?? "#000000"
             },
-            effects: effects
+            effects: effects,
+            showVideoWarning: showVideoWarning // Pass flag to template
         };
     }
 

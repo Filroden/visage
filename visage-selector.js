@@ -163,7 +163,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 isWildcard: defaultPath.includes('*'),
                 showDispositionChip: false,
                 isSecret: false,
-                hasRing: false
+                hasRing: false,
+                isVideo: VideoHelper.hasVideoExtension(defaultPath)
             };
         }
         
@@ -192,11 +193,13 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 ringColor = data.ring.colors?.ring || "#FFFFFF";
                 ringBkg = data.ring.colors?.background || "#000000";
                 const effects = data.ring.effects || 0;
-                hasPulse = (effects & 2) !== 0;      // RING_PULSE
-                hasGradient = (effects & 4) !== 0;   // RING_GRADIENT
-                hasWave = (effects & 8) !== 0;       // BKG_WAVE
+                hasPulse = (effects & 2) !== 0;         // RING_PULSE
+                hasGradient = (effects & 4) !== 0;      // RING_GRADIENT
+                hasWave = (effects & 8) !== 0;          // BKG_WAVE
                 hasInvisibility = (effects & 16) !== 0; // INVISIBILITY
             }
+
+            const isVideo = VideoHelper.hasVideoExtension(data.path);
 
             forms[data.id] = {
                 key: data.id,
@@ -220,7 +223,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasPulse: hasPulse,
                 hasGradient: hasGradient,
                 hasWave: hasWave,
-                hasInvisibility: hasInvisibility
+                hasInvisibility: hasInvisibility,
+                isVideo: isVideo
             };
         }
 
