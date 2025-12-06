@@ -2,7 +2,7 @@
 
 | Version | Changes |
 | :--- | :--- |
-| **Version 1.4.0** | **ADDED ANIMATED TOKEN SUPPORT**: Full support for animated tokens. You can now apply any valid Foundry image filetype to the token and it will display correctly in the Selector HUD, including animated token art using webm format. Note that animated tokens are not compatible with Dynamic Token Rings. If you apply a dynamic ring to a token using animated art, it will render the art as a static image.|
+| **Unreleased** | **ADDED ANIMATED TOKEN SUPPORT**: Full support for animated tokens. You can now apply any valid Foundry image filetype to the token and it will display correctly in the Selector HUD, including animated token art using webm format. Note that animated tokens are not compatible with Dynamic Token Rings. If you apply a dynamic ring to a token using animated art, it will render the art as a static image.|
 | **Version 1.3.0** | **ADDED DYNAMIC TOKEN RINGS**: Full support for Dynamic Token Rings. You can now save specific ring configurations (Enabled/Disabled, Colors, Effects, Scale) for each visage. The Selector HUD shows any dynamic ring on the Visage, including animated effects for pulse, gradient, background wave and invisibility. |
 | **Version 1.2.1** | * Improved accessibility to respect all font size changes by user.<br>* Improved UI theme to a warmer background.<br>* Added additional tooltips.<br>* Added notes to the Visage configuration window if no Visages are configured.|
 | **Version 1.2.0** | * Moved module to ApplicationV2 in preparation for implementing a global Visage directory.<br>* Added data normalisation helper.<br>* Added internationalision.<br>* Updated migration script as it missed unlinked tokens.|
