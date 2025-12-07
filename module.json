@@ -23,142 +23,142 @@
         {
             "lang": "en",
             "name": "English",
-            "path": "lang/en.json"
+            "path": "languages/en.json"
         },
         {
             "lang": "en-GB",
             "name": "English (UK)",
-            "path": "lang/en-gb.json"
+            "path": "languages/en-gb.json"
         },
         {
             "lang": "ar",
             "name": "العربية (Arabic)",
-            "path": "lang/ar.json"
+            "path": "languages/ar.json"
         },
         {
             "lang": "ca",
             "name": "Català (Catalan)",
-            "path": "lang/ca.json"
+            "path": "languages/ca.json"
         },
         {
             "lang": "cs",
             "name": "Čeština (Czech)",
-            "path": "lang/cs.json"
+            "path": "languages/cs.json"
         },
         {
             "lang": "zh-cn",
             "name": "中文 (Chinese - Simplified)",
-            "path": "lang/zh-cn.json"
+            "path": "languages/zh-cn.json"
         },
         {
             "lang": "zh-tw",
             "name": "正體中文 (Chinese - Traditional)",
-            "path": "lang/zh-tw.json"
+            "path": "languages/zh-tw.json"
         },
         {
             "lang": "nl",
             "name": "Nederlands (Dutch)",
-            "path": "lang/nl.json"
+            "path": "languages/nl.json"
         },
         {
             "lang": "fi",
             "name": "Suomi (Finnish)",
-            "path": "lang/fi.json"
+            "path": "languages/fi.json"
         },
         {
             "lang": "fr",
             "name": "Français (French)",
-            "path": "lang/fr.json"
+            "path": "languages/fr.json"
         },
         {
             "lang": "de",
             "name": "Deutsch (German)",
-            "path": "lang/de.json"
+            "path": "languages/de.json"
         },
         {
             "lang": "he",
             "name": "עברית (Hebrew)",
-            "path": "lang/he.json"
+            "path": "languages/he.json"
         },
         {
             "lang": "hu",
             "name": "Magyar (Hungarian)",
-            "path": "lang/hu.json"
+            "path": "languages/hu.json"
         },
         {
             "lang": "it",
             "name": "Italiano (Italian)",
-            "path": "lang/it.json"
+            "path": "languages/it.json"
         },
         {
             "lang": "ja",
             "name": "日本語 (Japanese)",
-            "path": "lang/ja.json"
+            "path": "languages/ja.json"
         },
         {
             "lang": "ko",
             "name": "한국어 (Korean)",
-            "path": "lang/ko.json"
+            "path": "languages/ko.json"
         },
         {
             "lang": "fa",
             "name": "فارسی (Persian)",
-            "path": "lang/fa.json"
+            "path": "languages/fa.json"
         },
         {
             "lang": "pl",
             "name": "Polski (Polish)",
-            "path": "lang/pl.json"
+            "path": "languages/pl.json"
         },
         {
             "lang": "pt-br",
             "name": "Português (Brasil)",
-            "path": "lang/pt-br.json"
+            "path": "languages/pt-br.json"
         },
         {
             "lang": "pt-PT",
             "name": "Português (Portugal)",
-            "path": "lang/pt-pt.json"
+            "path": "languages/pt-pt.json"
         },
         {
             "lang": "ro",
             "name": "Română (Romanian)",
-            "path": "lang/ro.json"
+            "path": "languages/ro.json"
         },
         {
             "lang": "ru",
             "name": "Русский (Russian)",
-            "path": "lang/ru.json"
+            "path": "languages/ru.json"
         },
         {
             "lang": "es",
             "name": "Español (Spanish)",
-            "path": "lang/es.json"
+            "path": "languages/es.json"
         },
         {
             "lang": "es-419",
             "name": "Español (Spanish - Latin America)",
-            "path": "lang/es-419.json"
+            "path": "languages/es-419.json"
         },
         {
             "lang": "sv",
             "name": "Svenska (Swedish)",
-            "path": "lang/sv.json"
+            "path": "languages/sv.json"
         },
         {
             "lang": "tr",
             "name": "Türkçe (Turkish)",
-            "path": "lang/tr.json"
+            "path": "languages/tr.json"
         },
         {
             "lang": "uk",
             "name": "Українська (Ukrainian)",
-            "path": "lang/uk.json"
+            "path": "languages/uk.json"
         },
         {
             "lang": "cy",
             "name": "Cymraeg (Welsh)",
-            "path": "lang/cy.json"
+            "path": "languages/cy.json"
         }
     ],
     "url": "https://github.com/Filroden/visage",

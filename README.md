@@ -5,7 +5,8 @@
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
 ![Languages](https://img.shields.io/badge/Languages-24-blueviolet)
-![Download Count](https://img.shields.io/github/downloads/Filroden/visage/total)
+![Download Count](https://img.shields.io/github/downloads/Filroden/visage/visage.zip)
+![Download Count](https://img.shields.io/github/downloads/Filroden/visage/latest/visage.zip)
 ![Last Commit](https://img.shields.io/github/last-commit/Filroden/visage)
 ![Issues](https://img.shields.io/github/issues/Filroden/visage)
 
