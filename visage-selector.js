@@ -164,7 +164,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 showDispositionChip: false,
                 isSecret: false,
                 hasRing: false,
-                isVideo: VideoHelper.hasVideoExtension(defaultPath)
+                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(defaultPath)
             };
         }
         
@@ -199,7 +199,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasInvisibility = (effects & 16) !== 0; // INVISIBILITY
             }
 
-            const isVideo = VideoHelper.hasVideoExtension(data.path);
+            const isVideo = foundry.helpers.media.VideoHelper.hasVideoExtension(data.path);
 
             forms[data.id] = {
                 key: data.id,

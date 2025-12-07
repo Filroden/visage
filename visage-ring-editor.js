@@ -121,9 +121,9 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
             isActive: (currentEffects & eff.value) !== 0
         }));
 
-        // NEW: Check if the effective path is a video file.
-        // If so, enabling the ring will freeze the video, so we must warn the user.
-        const showVideoWarning = VideoHelper.hasVideoExtension(this.effectivePath);
+        // Check if the effective path is a video file.
+        // If so, enabling the ring will freeze the video, so must warn the user.
+        const showVideoWarning = foundry.helpers.media.VideoHelper.hasVideoExtension(this.effectivePath);
 
         return {
             enabled: data.enabled ?? false,
