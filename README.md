@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-1.3.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-1.4.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
@@ -17,6 +17,9 @@ Owners can configure and **store multiple alternate forms** (Visages) for any Ac
 The module supports:
 
 * **all image or video formats** that are valid for tokens.
+
+<img src="images/animated_tokens.gif" alt="Visage Configuration Window showing RTL support for Arabic" style="margin-inline-start: 3rem; height: 250px;">
+
 * **supports wildcard filepaths** (e.g., path/to/wolves/*.webp), letting you select a random image from a folder every time the **Visage** is activated.
 
 This module makes it ideal for dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
@@ -33,6 +36,9 @@ This is the perfect module for visually resolving common game mechanics across a
 
 * **Responsive UI**: The interface is fully responsive to changes in the base font size and scales naturally for users requiring larger text.
 * **Native RTL Support**: Includes full **Right-to-Left (RTL)** support. If your Foundry client is set to an RTL language (e.g., Arabic, Hebrew), the Visage UI (Selector HUD, Configuration Window, and Dynamic Ring Editor) automatically mirrors its layout to ensure a natural reading experience.
+
+<div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;"><div style="text-align: center;"><img src="images/visage_configuration_ar.png" alt="Visage Configuration Window showing RTL support for Arabic" style="max-width: 100%; height: 250px; object-fit: contain;"></div><div style="text-align: center;"><img src="images/visage_configuration_he.png" alt="Visage Configuration Window showing RTL support for Hebrew" style="max-width: 100%; height: 250px; object-fit: contain;"></div></div>
+
 * **Languages**: Currently supports Arabic, Catalan, Chinese (Simplified and Traditional), Czech, Dutch, English (UK and US), Finnish, French, German, Hebrew, Hungarian, Italian, Japanese, Korean, Persian, Polish, Portuguese (Brazil and Portugal), Romanian, Russian, Spanish (Spain and Latin American), Swedish, Turkish, Ukrainian and Welsh.
 
 ## Licence
