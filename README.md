@@ -1,12 +1,10 @@
 # Visage
 
-Read in other languages: [العربية](README-ar.md) • [Français](README-fr.md)
-
 ![Latest Version](https://img.shields.io/badge/Version-1.3.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
-![Languages](https://img.shields.io/badge/Languages-3-blueviolet)
+![Languages](https://img.shields.io/badge/Languages-24-blueviolet)
 ![Download Count](https://img.shields.io/github/downloads/Filroden/visage/total)
 ![Last Commit](https://img.shields.io/github/last-commit/Filroden/visage)
 ![Issues](https://img.shields.io/github/issues/Filroden/visage)
@@ -34,7 +32,7 @@ This is the perfect module for visually resolving common game mechanics across a
 
 * **Responsive UI**: The interface is fully responsive to changes in the base font size and scales naturally for users requiring larger text.
 * **Native RTL Support**: Includes full **Right-to-Left (RTL)** support. If your Foundry client is set to an RTL language (e.g., Arabic, Hebrew), the Visage UI (Selector HUD, Configuration Window, and Dynamic Ring Editor) automatically mirrors its layout to ensure a natural reading experience.
-* **Languages**: Currently supports Arabic, English (US), and French.
+* **Languages**: Currently supports Arabic, Catalan, Chinese (Simplified and Traditional), Czech, Dutch, English (UK and US), Finnish, French, German, Hebrew, Hungarian, Italian, Japanese, Korean, Persian, Polish, Portuguese (Brazil and Portugal), Romanian, Russian, Spanish (Spain and Latin American), Swedish, Turkish, Ukrainian and Welsh.
 
 ## Licence
 
