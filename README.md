@@ -39,7 +39,7 @@ This is the perfect module for visually resolving common game mechanics across a
 
 <div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;"><div style="text-align: center;"><img src="images/visage_configuration_ar.png" alt="Visage Configuration Window showing RTL support for Arabic" style="max-width: 100%; height: 250px; object-fit: contain;"></div><div style="text-align: center;"><img src="images/visage_configuration_he.png" alt="Visage Configuration Window showing RTL support for Hebrew" style="max-width: 100%; height: 250px; object-fit: contain;"></div></div>
 
-* **Languages**: Currently supports Arabic, Catalan, Chinese (Simplified and Traditional), Czech, Dutch, English (UK and US), Finnish, French, German, Hebrew, Hungarian, Italian, Japanese, Korean, Persian, Polish, Portuguese (Brazil and Portugal), Romanian, Russian, Spanish (Spain and Latin American), Swedish, Turkish, Ukrainian and Welsh.
+* **Languages**: Currently supports Arabic, Catalan, Chinese (Simplified and Traditional), Czech, Dutch, English (UK and US), Finnish, French, German, Hebrew, Hungarian, Italian, Japanese, Korean, Persian, Polish, Portuguese (Brazil and Portugal), Romanian, Russian, Spanish (Latin America and Spain), Swedish, Turkish, Ukrainian and Welsh.
 
 ## Licence
 
