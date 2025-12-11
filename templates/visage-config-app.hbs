@@ -1,3 +1,5 @@
+{{!-- modules/visage/templates/visage-config-app.hbs --}}
+
 <div class="visage-config-container">
     <div class="visage-config-wrapper">
         <div class="visage-config-pane">
@@ -7,13 +9,29 @@
                 <legend>{{localize "VISAGE.Config.DefaultLegend"}}</legend>
                 <p class="visage-notes">{{localize "VISAGE.Config.DefaultHint"}}</p>
 
+                {{!-- GROUPED HEADER --}}
+                <div class="visage-list-header-group">
+                    <span class="header-spacer"></span> {{!-- Name --}}
+                    <span class="header-spacer"></span> {{!-- Image --}}
+                    <span class="header-group-label visual">{{localize "VISAGE.Config.Group.Visual"}}</span>
+                    <span class="header-group-label dimensions">{{localize "VISAGE.Config.Group.Dimensions"}}</span>
+                    <span class="header-spacer"></span> {{!-- Delete --}}
+                </div>
+
                 <div class="visage-list-header">
                     <span>{{localize "VISAGE.Config.List.Name"}}</span>
                     <span>{{localize "VISAGE.Config.List.Image"}}</span>
-                    <span style="text-align: center;">{{localize "VISAGE.Config.List.Scale"}}</span>
-                    <span style="text-align: center;">{{localize "VISAGE.Config.List.Flip"}}</span>
-                    <span style="text-align: center;">{{localize "VISAGE.Config.List.Disposition"}}</span>
-                    <span style="text-align: center;">{{localize "VISAGE.RingConfig.Ring"}}</span>
+                    
+                    {{!-- Visual Group --}}
+                    <span class="centered">{{localize "VISAGE.Config.List.Scale"}}</span>
+                    <span class="centered">{{localize "VISAGE.Config.List.Flip"}}</span>
+                    <span class="centered">{{localize "VISAGE.Config.List.Disposition"}}</span>
+                    <span class="centered">{{localize "VISAGE.RingConfig.Ring"}}</span>
+                    
+                    {{!-- Token Dimensions Group --}}
+                    <span class="centered">{{localize "VISAGE.Config.List.Width"}}</span>
+                    <span class="centered">{{localize "VISAGE.Config.List.Height"}}</span>
+                    
                     <span></span>
                 </div>
 
@@ -30,29 +48,36 @@
                             </div>
                         </div>
 
+                        {{!-- Visual Inputs --}}
                         <div class="visage-scale-group">
                             <input type="number" value="{{defaultVisage.scale}}" disabled class="visage-scale-input">
                             <span class="visage-percent-sign">%</span>
                         </div>
 
-                        <div class="form-group" style="justify-content: center;">
+                        <div class="form-group centered">
                             <label class="checkbox visage-flip-label">
                                 <input type="checkbox" {{checked defaultVisage.isFlippedX}} disabled> 
                             </label>
                         </div>
                         
                         <div class="visage-disposition-cell">
-                             <button type="button" class="visage-disposition-button" disabled>
+                            <button type="button" class="visage-disposition-button" disabled>
                                 {{defaultVisage.dispositionButtonText}}
                             </button>
                         </div>
                         
                         <div class="visage-ring-cell">
-                            <button type="button" class="visage-ring-button {{defaultVisage.ringClass}}" 
-                                    disabled
-                                    data-tooltip="{{defaultVisage.ringTooltip}}">
+                            <button type="button" class="visage-ring-button {{defaultVisage.ringClass}}" disabled data-tooltip="{{defaultVisage.ringTooltip}}">
                                 <i class="{{defaultVisage.ringIcon}}"></i>
                             </button>
+                        </div>
+
+                        {{!-- Token Dimensions Inputs (Default) --}}
+                        <div class="visage-dimension-group">
+                            <input type="number" value="{{defaultVisage.width}}" disabled class="visage-dim-input" data-tooltip="{{localize 'VISAGE.Config.Tooltips.Width'}}">
+                        </div>
+                        <div class="visage-dimension-group">
+                            <input type="number" value="{{defaultVisage.height}}" disabled class="visage-dim-input" data-tooltip="{{localize 'VISAGE.Config.Tooltips.Height'}}">
                         </div>
                         
                         <span></span>
@@ -65,13 +90,27 @@
                 <legend>{{localize "VISAGE.Config.Legend"}}</legend>
                 <p class="visage-notes">{{localize "VISAGE.Config.LegendHint"}}</p>
                 
+                {{!-- REPEAT HEADER FOR CLARITY --}}
+                <div class="visage-list-header-group">
+                    <span class="header-spacer"></span>
+                    <span class="header-spacer"></span>
+                    <span class="header-group-label visual">{{localize "VISAGE.Config.Group.Visual"}}</span>
+                    <span class="header-group-label dimensions">{{localize "VISAGE.Config.Group.Dimensions"}}</span>
+                    <span class="header-spacer"></span>
+                </div>
+                
                 <div class="visage-list-header">
                     <span>{{localize "VISAGE.Config.List.Name"}}</span>
                     <span>{{localize "VISAGE.Config.List.Image"}}</span>
-                    <span style="text-align: center;">{{localize "VISAGE.Config.List.Scale"}}</span>
-                    <span style="text-align: center;">{{localize "VISAGE.Config.List.Flip"}}</span>
-                    <span style="text-align: center;">{{localize "VISAGE.Config.List.Disposition"}}</span>
-                    <span style="text-align: center;">{{localize "VISAGE.RingConfig.Ring"}}</span>
+                    <span class="centered">
+                        {{localize "VISAGE.Config.List.Scale"}}
+                        <i class="fas fa-info-circle visage-info-icon" data-tooltip="{{localize 'VISAGE.Config.Tooltips.ScaleHeader'}}"></i>
+                    </span>
+                    <span class="centered">{{localize "VISAGE.Config.List.Flip"}}</span>
+                    <span class="centered">{{localize "VISAGE.Config.List.Disposition"}}</span>
+                    <span class="centered">{{localize "VISAGE.RingConfig.Ring"}}</span>
+                    <span class="centered">{{localize "VISAGE.Config.List.Width"}}</span>
+                    <span class="centered">{{localize "VISAGE.Config.List.Height"}}</span>
                     <span></span>
                 </div>
                 
@@ -88,15 +127,16 @@
                             <button type="button" class="file-picker-button" data-action="openFilePicker"><i class="fas fa-file-import fa-fw"></i></button>
                         </div>
                         
+                        {{!-- Visual --}}
                         <div class="visage-scale-group">
-                            <input type="number" name="visages.{{@index}}.scale" value="{{this.scale}}" placeholder="{{localize 'VISAGE.Config.Placeholder.Scale'}}" min="0" max="500" step="5" class="visage-scale-input">
+                            <input type="number" name="visages.{{@index}}.scale" value="{{this.scale}}" min="0" max="500" step="5" class="visage-scale-input">
                             <span class="visage-percent-sign">%</span>
                         </div>
                 
                         <label class="checkbox visage-flip-label">
                             <input type="checkbox" name="visages.{{@index}}.isFlippedX" {{checked this.isFlippedX}}> 
                         </label>
-                    
+                     
                         <div class="visage-disposition-cell">
                             <button type="button" class="visage-disposition-button" data-action="toggleDisposition">
                                 {{this.dispositionButtonText}}
@@ -104,37 +144,37 @@
                             
                             <div class="visage-disposition-popout">
                                 <div class="form-group">
-                                    <input type="radio" name="visages.{{@index}}.dispositionType" value="none" 
-                                        {{checked (eq this.dispositionType "none")}} data-action="changeDispositionType" />
+                                    <input type="radio" name="visages.{{@index}}.dispositionType" value="none" {{checked (eq this.dispositionType "none")}} data-action="changeDispositionType" />
                                     <label>{{localize "VISAGE.Config.Disposition.Label.Default"}}</label>
                                 </div>
-
                                 <div class="form-group">
-                                    <input type="radio" name="visages.{{@index}}.dispositionType" value="disguise" 
-                                        {{checked (eq this.dispositionType "disguise")}} data-action="changeDispositionType" />
+                                    <input type="radio" name="visages.{{@index}}.dispositionType" value="disguise" {{checked (eq this.dispositionType "disguise")}} data-action="changeDispositionType" />
                                     <label>{{localize "VISAGE.Config.Disposition.Label.Disguise"}}</label>
-                                    <select name="visages.{{@index}}.dispositionValue" 
-                                        {{disabled (neq this.dispositionType "disguise")}} data-action="changeDispositionValue">
+                                    <select name="visages.{{@index}}.dispositionValue" {{disabled (neq this.dispositionType "disguise")}} data-action="changeDispositionValue">
                                         <option value="1" {{selected (eq this.dispositionValue 1)}}>{{localize "VISAGE.Disposition.Friendly"}}</option>
                                         <option value="0" {{selected (eq this.dispositionValue 0)}}>{{localize "VISAGE.Disposition.Neutral"}}</option>
                                         <option value="-1" {{selected (eq this.dispositionValue -1)}}>{{localize "VISAGE.Disposition.Hostile"}}</option>
                                     </select>
                                 </div>
-
                                 <div class="form-group">
-                                    <input type="radio" name="visages.{{@index}}.dispositionType" value="illusion" 
-                                        {{checked (eq this.dispositionType "illusion")}} data-action="changeDispositionType" />
+                                    <input type="radio" name="visages.{{@index}}.dispositionType" value="illusion" {{checked (eq this.dispositionType "illusion")}} data-action="changeDispositionType" />
                                     <label>{{localize "VISAGE.Config.Disposition.Label.Illusion"}}</label>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="visage-ring-cell" style="display:flex; justify-content:center;">
-                            <button type="button" class="visage-ring-button {{this.ringClass}}" 
-                                    data-action="openRingEditor" 
-                                    data-tooltip="{{this.ringTooltip}}">
+                        <div class="visage-ring-cell">
+                            <button type="button" class="visage-ring-button {{this.ringClass}}" data-action="openRingEditor" data-tooltip="{{this.ringTooltip}}">
                                 <i class="{{this.ringIcon}}"></i>
                             </button>
+                        </div>
+
+                        {{!-- Token Dimensions Inputs --}}
+                        <div class="visage-dimension-group">
+                            <input type="number" name="visages.{{@index}}.width" value="{{this.width}}" min="0.5" step="0.5" class="visage-dim-input" placeholder="W" data-tooltip="{{localize 'VISAGE.Config.Tooltips.Width'}}">
+                        </div>
+                        <div class="visage-dimension-group">
+                            <input type="number" name="visages.{{@index}}.height" value="{{this.height}}" min="0.5" step="0.5" class="visage-dim-input" placeholder="H" data-tooltip="{{localize 'VISAGE.Config.Tooltips.Height'}}">
                         </div>
 
                         <a class="visage-delete" data-action="deleteVisage" data-tooltip="VISAGE.Config.Tooltips.Delete"><i class="fas fa-trash"></i></a>
@@ -153,7 +193,7 @@
             </fieldset>
         </div>
     </div>
-
+    
     <footer class="visage-config-footer">
         <button type="submit" class="visage-save {{#if isDirty}}dirty{{/if}}" data-action="save"><i class="fas fa-save"></i> {{localize "VISAGE.Config.Button.Save"}}</button>
     </footer>

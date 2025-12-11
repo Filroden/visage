@@ -46,13 +46,20 @@
                 </div>
                 {{/if}}
                 
-                {{#if this.showScaleChip}}
+                {{#if this.showFlipBadge}}
+                <div class="visage-flip-indicator" data-tooltip="{{localize 'VISAGE.Selector.Flipped'}}">
+                     <img src="modules/visage/icons/flip.svg" alt="{{localize 'VISAGE.Selector.Flipped'}}"/>
+                </div>
+                {{/if}}
+
+                {{#if this.showDataChip}}
                 <div class="visage-data-chip">
-                    {{#if this.isFlippedX}}
-                    <img class="visage-flip-icon" src="modules/visage/icons/flip.svg" alt="{{localize 'VISAGE.Selector.Flipped'}}" data-tooltip="{{localize 'VISAGE.Selector.Flipped'}}"/>
+                    {{#if this.sizeLabel}}
+                    <span class="visage-size-value" style="font-weight: bold;">{{this.sizeLabel}}</span>
                     {{/if}}
-                    {{#if (ne this.absScale 1)}}
-                     <span class="visage-scale-value">{{this.displayScale}}%</span>
+                    
+                    {{#if this.scaleLabel}}
+                    <span class="visage-scale-value">{{this.scaleLabel}}</span>
                     {{/if}}
                 </div>
                 {{/if}}

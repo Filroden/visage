@@ -125,9 +125,11 @@ export class Visage {
             if (isObject && data.secret === true) disposition = -2;
 
             const ring = (isObject && data.ring) ? data.ring : null;
+            const width = isObject ? (data.width ?? 1) : 1;
+            const height = isObject ? (data.height ?? 1) : 1;
 
             results.push({
-                id, name, path, scale, disposition, ring
+                id, name, path, scale, disposition, ring, width, height
             });
         }
 
@@ -152,8 +154,9 @@ export class Visage {
         const hasChangedTextureScale = "texture" in change && ("scaleX" in change.texture || "scaleY" in change.texture);
         const hasChangedDisposition = "disposition" in change;
         const hasChangedRing = "ring" in change;
+        const hasChangedSize = "width" in change || "height" in change;
 
-        if (hasChangedName || hasChangedTextureSrc || hasChangedTextureScale || hasChangedDisposition || hasChangedRing) {
+        if (hasChangedName || hasChangedTextureSrc || hasChangedTextureScale || hasChangedDisposition || hasChangedRing || hasChangedSize) {
             const tokenId = tokenDocument.id;
             const updateData = {};
 
@@ -166,6 +169,10 @@ export class Visage {
             if (hasChangedDisposition) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.disposition`] = change.disposition;
             if (hasChangedRing) {
                 updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.ring`] = change.ring;
+            }
+            if (hasChangedSize) {
+                if ("width" in change) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.width`] = change.width;
+                if ("height" in change) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.height`] = change.height;
             }
 
             if (Object.keys(updateData).length > 0) {
@@ -189,7 +196,7 @@ export class Visage {
         const moduleData = actor.flags?.[this.DATA_NAMESPACE] || {};
         const tokenData = moduleData[tokenId] || {};
         
-        let newName, newTokenPath, newScale, newDisposition, newRing;
+        let newName, newTokenPath, newScale, newDisposition, newRing, newWidth, newHeight;
 
         if (formKey === 'default') {
             const defaults = tokenData.defaults;
@@ -203,6 +210,8 @@ export class Visage {
             newScale = defaults.scale ?? 1.0;
             newDisposition = defaults.disposition ?? 0;
             newRing = defaults.ring;
+            newWidth = defaults.width ?? 1;
+            newHeight = defaults.height ?? 1;
 
         } else {
             const allVisages = this.getVisages(actor);
@@ -220,7 +229,9 @@ export class Visage {
                        path: isObject ? (legacyEntry.path || "") : legacyEntry,
                        scale: isObject ? (legacyEntry.scale ?? 1.0) : 1.0,
                        disposition: isObject ? legacyEntry.disposition : null,
-                       ring: isObject ? legacyEntry.ring : null
+                       ring: isObject ? legacyEntry.ring : null,
+                       width: isObject ? (legacyEntry.width ?? 1) : 1,
+                       height: isObject ? (legacyEntry.height ?? 1) : 1
                    };
                 } else {
                     this.log(`Form key "${formKey}" not found`, true);
@@ -239,6 +250,9 @@ export class Visage {
             // If the visage has no specific ring configuration, use the token's default.
             const hasRingConfig = rawData.ring && !foundry.utils.isEmpty(rawData.ring);
             newRing = hasRingConfig ? rawData.ring : defaults.ring;
+            
+            newWidth = rawData.width ?? defaults.width ?? 1;
+            newHeight = rawData.height ?? defaults.height ?? 1;
         }
 
         const finalTokenPath = await this.resolvePath(newTokenPath);
@@ -247,7 +261,9 @@ export class Visage {
             "name": newName,
             "texture.src": finalTokenPath,
             "texture.scaleX": newScale,
-            "texture.scaleY": Math.abs(newScale)
+            "texture.scaleY": Math.abs(newScale),
+            "width": newWidth,
+            "height": newHeight
         };
 
         if (newDisposition !== null && newDisposition !== undefined) {

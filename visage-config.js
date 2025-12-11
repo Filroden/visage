@@ -139,7 +139,9 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             token: tokenDocument?.texture.src,
             scale: tokenDocument?.texture.scaleX ?? 1.0,
             disposition: tokenDocument?.disposition ?? 0,
-            ring: tokenDocument?.ring?.toObject() ?? {}
+            ring: tokenDocument?.ring?.toObject() ?? {},
+            width: tokenDocument?.width ?? 1,
+            height: tokenDocument?.height ?? 1
         };
     }
 
@@ -173,7 +175,8 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             false,
             tokenDefaults.disposition, 
             tokenDefaults.ring,
-            false
+            tokenDefaults.width || 1,
+            tokenDefaults.height || 1
         );
 
         if (defaultVisage.hasRing) {
@@ -196,7 +199,15 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const normalizedData = Visage.getVisages(actor);
             visages = await Promise.all(normalizedData.map(async (data) => {
                 return this._processVisageEntry(
-                    data.id, data.name, data.path, data.scale, false, data.disposition, data.ring, false
+                    data.id,
+                    data.name,
+                    data.path,
+                    data.scale,
+                    false,
+                    data.disposition,
+                    data.ring,
+                    data.width,
+                    data.height
                 );
             }));
         }
@@ -239,7 +250,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @returns {Promise<object>} A promise that resolves to the processed context object for the template.
      * @private
      */
-    async _processVisageEntry(id, name, path, scale, isFlippedX, disposition, ring) {
+    async _processVisageEntry(id, name, path, scale, isFlippedX, disposition, ring, width = 1, height = 1) {
         let dispositionType = "none";
         let dispositionValue = 0; 
         let buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Default");
@@ -275,12 +286,13 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             dispositionValue,
             dispositionButtonText: buttonText,
             resolvedPath: await Visage.resolvePath(path),
-            
             ring: cleanRing || {},
             hasRing,
             ringIcon,
             ringClass,
-            ringTooltip
+            ringTooltip,
+            width: width || 1,
+            height: height || 1
         };
     }
 
@@ -580,7 +592,9 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 path: v.path,
                 scale: scale,
                 disposition: disposition,
-                ring: ringToSave
+                ring: ringToSave,
+                width: v.width || 1,
+                height: v.height || 1
             };
         }
 
@@ -640,6 +654,8 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const isFlippedX = formData[`visages.${i}.isFlippedX`] || false;
             const dispositionType = formData[`visages.${i}.dispositionType`];
             const dispositionValue = formData[`visages.${i}.dispositionValue`];
+            const width = formData[`visages.${i}.width`] ? parseFloat(formData[`visages.${i}.width`]) : 1;
+            const height = formData[`visages.${i}.height`] ? parseFloat(formData[`visages.${i}.height`]) : 1;
 
             let ring = null; 
             try {
@@ -655,7 +671,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
 
             visages.push(await this._processVisageEntry(
-                id, name, path, scale, isFlippedX, disposition, ring
+                id, name, path, scale, isFlippedX, disposition, ring, width, height
             ));
         }
         return visages;

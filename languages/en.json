@@ -21,12 +21,17 @@
     "VISAGE.Config.DefaultImage": "Default Token Image",
     "VISAGE.Config.DefaultLegend": "Captured Token Defaults",
     "VISAGE.Config.DefaultHint": "These settings are automatically captured from the token's main configuration and are used for the 'Default' visage.",
-    
+
+    "VISAGE.Config.Group.Visual": "Visual Properties",
+    "VISAGE.Config.Group.Dimensions": "Token Dimensions",
+
     "VISAGE.Config.List.Name": "Name",
     "VISAGE.Config.List.Image": "Image Filepath",
     "VISAGE.Config.List.Scale": "Scale (%)",
     "VISAGE.Config.List.Flip": "Flip",
     "VISAGE.Config.List.Disposition": "Disposition",
+    "VISAGE.Config.List.Width": "Width",
+    "VISAGE.Config.List.Height": "Height",
     
     "VISAGE.Config.Placeholder.Name": "Visage Name",
     "VISAGE.Config.Placeholder.Path": "path/to/image.webp",
@@ -41,6 +46,9 @@
     "VISAGE.Config.Disposition.Label.Disguise": "Disguise As:",
     "VISAGE.Config.Disposition.Label.Illusion": "Illusion (Secret)",
 
+    "VISAGE.Config.Tooltips.ScaleHeader": "Image Scale relative to Token Dimensions. <br>100% fits the image to the Width/Height.<br>Scales greater than 100% will cause the image to overflow the token's grid space making the token <em>appear</em> visually larger than it is.",
+    "VISAGE.Config.Tooltips.Width": "Grid spaces wide (integer)",
+    "VISAGE.Config.Tooltips.Height": "Grid spaces high (integer)",
     "VISAGE.Config.Tooltips.Delete": "Delete Visage",
     "VISAGE.Config.EmptyState.Title": "No Alternate Visages Configured",
     "VISAGE.Config.EmptyState.Hint": "Click the 'Add Visage' button below to create one.",
