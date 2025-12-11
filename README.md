@@ -12,7 +12,7 @@
 
 **Visage** allows players and GMs to instantly switch a token's appearance, disposition, and Dynamic Token Ring configuration on the fly.
 
-Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes. Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state) and completely reconfigure its Dynamic Token Ring settings (colours, effects, subject texture).
+Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes. Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state) and completely reconfigure its Dynamic Token Ring settings (colours, effects, subject texture). **[New in v1.5.0]** You can also change a token's actual dimensions (width and height).
 
 The module supports:
 
@@ -49,11 +49,12 @@ Software and associated documentation files in this repository are covered by an
 
 [Short term]
 
-* Additional localisation.
+* 
 
 [Long term]
 
 * Add the ability to create and use a global directory of visages, so certain effects can be applied quickly to any token (e.g., enlarge/reduce effects).
+* Consider adding the ability to create and edit visages from actors without needing to place a token on the scene.
 * Test module against FoundryVTT v14.
 
 ## How to Use Visage
@@ -70,7 +71,7 @@ Before you can switch **Visages**, you need to define them for a token. These **
     * By default, these are inherited from the actor's main settings. However, you can override them by changing the token name/image/disposition on the Token's main configuration window. **Visage** automatically tracks these changes.
 3. **Add Alternate Visages**:
     * Click the "**Add Visage**" button to create a new alternate form.
-    * For each  **Visage**, you must provide:
+    * For each  **Visage**, you can provide:
         * **Name**: A name for the **Visage** (e.g., "[Name] (Wolf Form)", "[Name] (Enlarged)", "Barrel"). This name will also be used for the token's name when this **Visage** is active so remember this is what other players will see. **This is optional**.
             * If you leave this field blank, the Visage will use the token's current default name when applied.
             * If you provide a name, it will override the token's name as usual.
@@ -89,6 +90,7 @@ Before you can switch **Visages**, you need to define them for a token. These **
             * **Subject**: You can override the texture used inside the ring (leave blank to use the main Visage image) and adjust the subject scale correction independently.
             * **Colours**: Define the Ring Colour and Background Colour.
             * **Effects**: Enable special ring animations like Pulse, Gradient, Wave, or Invisibility.
+        * **Token Dimensions** (width and height): Enter the size, in grid spaces, for the token's size. Note that this changes the actual token size and can have in-game impacts such as calculating cover, attack size, etc.
 4. **Delete Alternative Visages**: Click the trash icon to delete the **Visage**.
 5. **Save Changes**: If you make any changes (add new **Visage**, change a value in an existing **Visage**, or delete a **Visage**), the "Save Changes" button will highlight. Clicking it will save the changes and close the **Visage Configuration** window.
 
@@ -102,13 +104,17 @@ Once configured, switching between **Visages** is simple.
 
 1. **Open the Token HUD**: Click on a token you have configured to bring up the Token HUD.
 2. **Click the Visage Icon**: You will see an icon (a "switch account" symbol). Click this to open the **Visage Selector HUD**.
-3. **Choose a Visage**: A grid will appear next to the token showing all the available **Visages** you configured:
-    * The token's "Default" **Visage** has a gold star icon in the top left corner.
-    * The active **Visage** is highlighted with a green check icon in the top right corner.
-    * If a **Visage** has a scale that is not 100% or it has flip enabled, these will be shown in a chip on the top border.
-    * If a **Visage** uses a wildcard in its filepath, it will show a blue shuffle icon in the bottom left corner. Selecting it again will pick another random image.
-    * If a **Visage** changes the token's disposition, a coloured chip will appear at the bottom-center indicating the state (e.g., 'Friendly', 'Hostile', 'Secret'), matching Foundry's disposition colours.
+3. **Choose a Visage**: A grid will appear next to the token showing all the available **Visages** you configured.
+    * Each tile will show the name and image you have set (or the default image if it was blank).
     * If a **Visage** uses a Dynamic Token Ring, the **Visage** will show the ring with your configured colours, background style and any animation effects, giving you an immediate preview of the effect.
+    * **Corner Buttons**
+        * The token's "Default" **Visage** has a gold star icon in the top left corner.
+        * The active **Visage** is highlighted with a green check icon in the top right corner.
+        * If a **Visage** uses a wildcard in its filepath, it will show a blue shuffle icon in the bottom left corner. Selecting it again will pick another random image.
+        * If a Visage's image has been flipped it will show a purple mirror-image icon in the bottom right corner.
+    * **Information Chips**
+        * If a **Visage** has a scale that is not 100% or it has a different token size to the default, these will be shown in a chip on the top border.
+        * If a **Visage** changes the token's disposition, a coloured chip will appear at the bottom-center indicating the state (e.g., 'Friendly', 'Hostile', 'Secret'), matching Foundry's disposition colours.
 4. **Click to Switch**: Simply click on a **Visage** in the grid. The token's image, name, scale, flip, and disposition will instantly update to match your selection, and the selector will close.
 
 <img src="images/selector_hud.png" alt="Visage Selector HUD showing available Visages and their saved changes" height="500" style="display: block; margin: 0 auto;">
@@ -174,7 +180,7 @@ The core function to switch the specified Token to the specified appearance form
 
 **Details:**
 
-This function updates the token's `name`, `texture.src`, `texture.scaleX`, `texture.scaleY`, `disposition` and dynamic `ring`configuration based on the data saved for the specified `formKey`. If the `formKey` is `"default"`, it restores the values captured automatically by Visage. If the configured disposition for the form is set to `"Default (No Change)"` (`null` internally), the token's disposition will *not* be modified by this call when switching to that form. If the saved visage has a blank name or image path, this function will automatically use the token's captured default name/image instead.
+This function updates the token's `name`, `texture.src`, `texture.scaleX`, `texture.scaleY`, `width`, `height`, `disposition` and dynamic `ring`configuration based on the data saved for the specified `formKey`. If the `formKey` is `"default"`, it restores the values captured automatically by Visage. If the configured disposition for the form is set to `"Default (No Change)"` (`null` internally), the token's disposition will *not* be modified by this call when switching to that form. If the saved visage has a blank name or image path, this function will automatically use the token's captured default name/image instead.
 
 **Example:** Switch a specific token to a 'Wolf' form
 
@@ -206,6 +212,8 @@ Retrieves a standardised array of all available alternate visages for a given Ac
   * `scale` (number): The configured scale factor for the visage (e.g., `1.0`, `1.2`, `-0.8`).
   * `disposition` (number | null): The configured disposition override value (`1`: Friendly, `0`: Neutral, `-1`: Hostile, `-2`: Secret) or `null` if the visage is set to "Default (No Change)".
   * `ring` (object | null): The Dynamic Ring configuration object. Contains { `enabled`, `subject`, `colors`, `effects` }. Returns null or an empty object if no ring overrides are set.
+  * `width` (number): The token's width in grid spaces (e.g., 1).
+  * `height` (number): The token's height in grid spaces (e.g., 2).
 * Returns `null` if no alternate forms are defined or the Actor is not found.
 
 **Example 1: Using only an Actor ID**
@@ -220,7 +228,9 @@ const forms = visageAPI.getForms("actor-id-12345");
 //     key: "a1...", 
 //     name: "Wolf", 
 //     path: "path/to/wolf.webp", 
-//     scale: 1.2, 
+//     scale: 1.2,
+//     width: 1,
+//     height: 1,
 //     disposition: -1,
 //     ring: { enabled: false } // Ring explicitly disabled
 //   }, 
@@ -228,7 +238,9 @@ const forms = visageAPI.getForms("actor-id-12345");
 //     key: "b2...", 
 //     name: "Spectral Form", 
 //     path: "path/to/ghost.webp", 
-//     scale: 1.0, 
+//     scale: 1.0,
+//     width: 2,
+//     height: 2,
 //     disposition: -2, // Secret
 //     ring: { 
 //        enabled: true, 
