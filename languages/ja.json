@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "対象",
     "VISAGE.RingConfig.Group.Colors": "色",
     "VISAGE.RingConfig.Placeholder.Default": "デフォルト",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTTは現在、ダイナミックリング上の動画（アニメーション）トークンアートをサポートしていません。このトークンは静止画として表示されます。"
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTTは現在、ダイナミックリング上の動画（アニメーション）トークンアートをサポートしていません。このトークンは静止画として表示されます。",
+
+    "VISAGE.Config.Group.Visual": "視覚プロパティ",
+    "VISAGE.Config.Group.Dimensions": "コマの寸法",
+    "VISAGE.Config.List.Width": "幅",
+    "VISAGE.Config.List.Height": "高さ",
+    "VISAGE.Config.Tooltips.ScaleHeader": "コマの寸法に対する画像の倍率。<br>100% で画像を幅/高さに合わせます。<br>100% を超える倍率にすると、画像がコマのグリッドスペースからはみ出し、コマが実際よりも視覚的に大きく<em>見えます</em>。",
+    "VISAGE.Config.Tooltips.Width": "グリッドの幅（整数）",
+    "VISAGE.Config.Tooltips.Height": "グリッドの高さ（整数）"
 }

@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Объект",
     "VISAGE.RingConfig.Group.Colors": "Цвета",
     "VISAGE.RingConfig.Placeholder.Default": "По умолчанию",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT в настоящее время не поддерживает анимированные (видео) изображения токенов поверх динамических колец. Токен будет отображаться статично."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT в настоящее время не поддерживает анимированные (видео) изображения токенов поверх динамических колец. Токен будет отображаться статично.",
+
+    "VISAGE.Config.Group.Visual": "Визуальные свойства",
+    "VISAGE.Config.Group.Dimensions": "Размеры токена",
+    "VISAGE.Config.List.Width": "Ширина",
+    "VISAGE.Config.List.Height": "Высота",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Масштаб изображения относительно размеров токена.<br>100% подгоняет изображение под Ширину/Высоту.<br>Масштаб более 100% приведет к тому, что изображение выйдет за пределы сетки токена, из-за чего токен будет <em>казаться</em> визуально больше, чем он есть.",
+    "VISAGE.Config.Tooltips.Width": "Ширина в клетках (целое число)",
+    "VISAGE.Config.Tooltips.Height": "Высота в клетках (целое число)"
 }

@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Nesne",
     "VISAGE.RingConfig.Group.Colors": "Renkler",
     "VISAGE.RingConfig.Placeholder.Default": "Varsayılan",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT şu anda Dinamik Halkalar üzerinde hareketli (video) tokenlerini desteklememektedir. Bu token statik görünecektir."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT şu anda Dinamik Halkalar üzerinde hareketli (video) tokenlerini desteklememektedir. Bu token statik görünecektir.",
+
+    "VISAGE.Config.Group.Visual": "Görsel Özellikler",
+    "VISAGE.Config.Group.Dimensions": "Token Boyutları",
+    "VISAGE.Config.List.Width": "Genişlik",
+    "VISAGE.Config.List.Height": "Yükseklik",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Token Boyutlarına göre Görüntü Ölçeği.<br>%100, görüntüyü Genişliğe/Yüksekliğe sığdırır.<br>%100'den büyük ölçekler, görüntünün token ızgara alanından taşmasına neden olarak tokenin görsel olarak olduğundan daha büyük <em>görünmesini</em> sağlar.",
+    "VISAGE.Config.Tooltips.Width": "Izgara genişliği (tamsayı)",
+    "VISAGE.Config.Tooltips.Height": "Izgara yüksekliği (tamsayı)"
 }

@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "נושא",
     "VISAGE.RingConfig.Group.Colors": "צבעים",
     "VISAGE.RingConfig.Placeholder.Default": "ברירת מחדל",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT אינה תומכת כרגע בגרפיקת טוקן מונפשת (וידאו) עבור טבעות דינמיות. טוקן זה יוצג כסטטי."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT אינה תומכת כרגע בגרפיקת טוקן מונפשת (וידאו) עבור טבעות דינמיות. טוקן זה יוצג כסטטי.",
+
+    "VISAGE.Config.Group.Visual": "מאפיינים חזותיים",
+    "VISAGE.Config.Group.Dimensions": "ממדי הטוקן",
+    "VISAGE.Config.List.Width": "רוחב",
+    "VISAGE.Config.List.Height": "גובה",
+    "VISAGE.Config.Tooltips.ScaleHeader": "קנה מידה של התמונה ביחס לממדי הטוקן.<br>100% מתאים את התמונה לרוחב/גובה.<br>קנה מידה גדול מ-100% יגרום לתמונה לחרוג משטח הרשת של הטוקן, מה שיגרום לטוקן <em>להיראות</em> גדול יותר ממה שהוא באמת.",
+    "VISAGE.Config.Tooltips.Width": "רוחב במשבצות (מספר שלם)",
+    "VISAGE.Config.Tooltips.Height": "גובה במשבצות (מספר שלם)"
 }

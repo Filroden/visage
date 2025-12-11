@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Kohde",
     "VISAGE.RingConfig.Group.Colors": "Värit",
     "VISAGE.RingConfig.Placeholder.Default": "Oletus",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT ei tällä hetkellä tue animoituja (video) pelimerkkikuvia dynaamisten renkaiden päällä. Tämä pelimerkki näkyy staattisena kuvana."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT ei tällä hetkellä tue animoituja (video) pelimerkkikuvia dynaamisten renkaiden päällä. Tämä pelimerkki näkyy staattisena kuvana.",
+
+    "VISAGE.Config.Group.Visual": "Visuaaliset ominaisuudet",
+    "VISAGE.Config.Group.Dimensions": "Pelimerkin mitat",
+    "VISAGE.Config.List.Width": "Leveys",
+    "VISAGE.Config.List.Height": "Korkeus",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Kuvan skaalaus suhteessa pelimerkin mittoihin.<br>100% sovittaa kuvan leveyteen/korkeuteen.<br>Yli 100% skaalaus saa kuvan ylittämään pelimerkin ruudukkotilan, jolloin pelimerkki <em>näyttää</em> visuaalisesti suuremmalta kuin se on.",
+    "VISAGE.Config.Tooltips.Width": "Ruudun leveys (kokonaisluku)",
+    "VISAGE.Config.Tooltips.Height": "Ruudun korkeus (kokonaisluku)"
 }

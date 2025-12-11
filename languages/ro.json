@@ -14,13 +14,13 @@
     "VISAGE.Selector.Secret": "Secret",
 
     "VISAGE.Config.Title": "Configurare Visage",
-    "VISAGE.Config.Notes": "Numele și imaginea implicite sunt gestionate automat și provin din setările principale ale token-ului. Dacă le modificați manual în fereastra principală de Configurare Token și actualizați token-ul, schimbările vor fi reflectate mai jos la următoarea vizualizare.",
+    "VISAGE.Config.Notes": "Numele și imaginea implicite sunt gestionate automat și provin din setările principale ale tokenului. Dacă le modificați manual în fereastra principală de Configurare Token și actualizați token-ul, schimbările vor fi reflectate mai jos la următoarea vizualizare.",
     "VISAGE.Config.Legend": "Visage-uri alternative universale",
     "VISAGE.Config.LegendHint": "Dacă acest token este legat de un actor, aceste Visage-uri vor fi disponibile pentru toate token-urile acelui actor.",
     "VISAGE.Config.DefaultName": "Nume token implicit",
     "VISAGE.Config.DefaultImage": "Imagine token implicită",
-    "VISAGE.Config.DefaultLegend": "Valorile implicite ale token-ului",
-    "VISAGE.Config.DefaultHint": "Aceste setări sunt preluate automat din configurația principală a token-ului și sunt utilizate pentru Visage-ul 'Implicit'.",
+    "VISAGE.Config.DefaultLegend": "Valorile implicite ale tokenului",
+    "VISAGE.Config.DefaultHint": "Aceste setări sunt preluate automat din configurația principală a tokenului și sunt utilizate pentru Visage-ul 'Implicit'.",
     
     "VISAGE.Config.List.Name": "Nume",
     "VISAGE.Config.List.Image": "Cale fișier imagine",
@@ -81,7 +81,7 @@
 
     "VISAGE.RingConfig.Ring": "Inel",
     "VISAGE.RingConfig.Title": "Setări Inel Dinamic",
-    "VISAGE.RingConfig.Hint": "Configurați modul în care apare Inelul Dinamic al Token-ului pentru acest Visage specific.",
+    "VISAGE.RingConfig.Hint": "Configurați modul în care apare Inelul Dinamic al tokenului pentru acest Visage specific.",
     "VISAGE.RingConfig.Enabled": "Activează suprascrierea inelului",
     "VISAGE.RingConfig.SubjectTexture": "Textura Subiectului",
     "VISAGE.RingConfig.SubjectTextureHint": "Lăsați gol pentru a utiliza imaginea principală Visage.",
@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Subiect",
     "VISAGE.RingConfig.Group.Colors": "Culori",
     "VISAGE.RingConfig.Placeholder.Default": "Implicit",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT nu suportă momentan arta animată a token-ului (video) peste Inele Dinamice. Acest token va apărea static."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT nu suportă momentan arta animată a tokenului (video) peste Inele Dinamice. Acest token va apărea static.",
+
+    "VISAGE.Config.Group.Visual": "Proprietăți Vizuale",
+    "VISAGE.Config.Group.Dimensions": "Dimensiuni Token",
+    "VISAGE.Config.List.Width": "Lățime",
+    "VISAGE.Config.List.Height": "Înălțime",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Scara imaginii relativă la dimensiunile tokenului.<br>100% potrivește imaginea la Lățime/Înălțime.<br>Scări mai mari de 100% vor face ca imaginea să depășească spațiul grilei tokenului, făcându-l să <em>pară</em> vizual mai mare decât este.",
+    "VISAGE.Config.Tooltips.Width": "Lățime grilă (întreg)",
+    "VISAGE.Config.Tooltips.Height": "Înălțime grilă (întreg)"
 }

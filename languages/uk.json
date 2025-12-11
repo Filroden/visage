@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Об'єкт",
     "VISAGE.RingConfig.Group.Colors": "Кольори",
     "VISAGE.RingConfig.Placeholder.Default": "За замовчуванням",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT наразі не підтримує анімовані (відео) токени поверх динамічних кілець. Цей токен відображатиметься статичним."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT наразі не підтримує анімовані (відео) токени поверх динамічних кілець. Цей токен відображатиметься статичним.",
+
+    "VISAGE.Config.Group.Visual": "Візуальні властивості",
+    "VISAGE.Config.Group.Dimensions": "Розміри токена",
+    "VISAGE.Config.List.Width": "Ширина",
+    "VISAGE.Config.List.Height": "Висота",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Масштаб зображення відносно розмірів токена.<br>100% підганяє зображення під Ширину/Висоту.<br>Масштаб понад 100% призведе до виходу зображення за межі сітки токена, через що токен <em>здаватиметься</em> візуально більшим, ніж він є.",
+    "VISAGE.Config.Tooltips.Width": "Ширина в клітинках (ціле число)",
+    "VISAGE.Config.Tooltips.Height": "Висота в клітинках (ціле число)"
 }

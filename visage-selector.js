@@ -117,7 +117,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         let tokenData = moduleData[this.tokenId] || {};
         let defaults = tokenData.defaults;
 
-        // Fallback data capture in case the HUD hook didn't run first.
+        // --- 1. Fallback Data Capture ---
         if (!defaults) {
             const currentToken = canvas.tokens.get(this.tokenId);
             if (!currentToken) return { forms: [] };
@@ -129,7 +129,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 scale: currentToken.document.texture.scaleX ?? 1.0,
                 disposition: currentToken.document.disposition ?? 0,
                 secret: currentToken.document.secret ?? false,
-                ring: currentToken.document.ring ? currentToken.document.ring.toObject() : undefined
+                ring: currentToken.document.ring ? currentToken.document.ring.toObject() : undefined,
+                width: currentToken.document.width ?? 1,
+                height: currentToken.document.height ?? 1
             };
             updates[`flags.${ns}.${this.tokenId}.currentFormKey`] = 'default';
             
@@ -144,22 +146,54 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
         const forms = {};
+
+        // Helper to generate the Smart Chip labels
+        const getSmartData = (scale, width, height, isFlippedX) => {
+            const absScale = Math.abs(scale);
+            
+            // Scale Label: Hide if 100% (1.0)
+            const isScaleDefault = absScale === 1.0;
+            const scaleLabel = isScaleDefault ? "" : `${Math.round(absScale * 100)}%`;
+
+            // Size Label: Hide if 1x1
+            // Use fallback to 1 to ensure we don't display "undefinedxundefined"
+            const safeW = width || 1;
+            const safeH = height || 1;
+            const isSizeDefault = safeW === 1 && safeH === 1;
+            const sizeLabel = isSizeDefault ? "" : `${safeW}x${safeH}`;
+
+            // Logic Flags
+            // Show Flip Badge if flipped (negative scale OR explict flag)
+            const showFlipBadge = (scale < 0) || (isFlippedX === true);
+            
+            // Show Data Chip if there is text to display
+            const showDataChip = (scaleLabel !== "") || (sizeLabel !== "");
+
+            return { scaleLabel, sizeLabel, showFlipBadge, showDataChip };
+        };
         
-        // 1. Prepare the "Default" visage entry.
+        // --- 2. Prepare "Default" Visage ---
         {
             const defaultPath = defaults.token || "";
+            const defScale = defaults.scale ?? 1.0; 
+            const defWidth = defaults.width ?? 1; 
+            const defHeight = defaults.height ?? 1;
+            const isFlipped = defScale < 0;
+
+            const smartData = getSmartData(defScale, defWidth, defHeight, isFlipped);
+
             forms["default"] = {
                 key: "default",
                 name: defaults.name || game.i18n.localize("VISAGE.Selector.Default"),
                 path: defaultPath,
                 isActive: currentFormKey === "default",
                 isDefault: true,
-                scale: 1.0,
-                isFlippedX: false,
-                displayScale: 100,
-                showDataChip: true,
-                absScale: 1,
-                showScaleChip: false, 
+                scale: defScale,
+                isFlippedX: isFlipped,
+                showDataChip: smartData.showDataChip,
+                showFlipBadge: smartData.showFlipBadge,
+                sizeLabel: smartData.sizeLabel,
+                scaleLabel: smartData.scaleLabel,
                 isWildcard: defaultPath.includes('*'),
                 showDispositionChip: false,
                 isSecret: false,
@@ -168,35 +202,29 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
         
-        // 2. Process all alternate visages.
+        // --- 3. Process Alternate Visages ---
         const normalizedData = Visage.getVisages(actor);
 
         for (const data of normalizedData) {
             const isFlippedX = data.scale < 0;
-            const absScale = Math.abs(data.scale);
-            const displayScale = Math.round(absScale * 100);
-            const showScaleChip = data.scale !== 1.0; 
             const isActive = data.id === currentFormKey;
-            const showDataChip = isActive || showScaleChip || isFlippedX;
             const dispositionInfo = (data.disposition !== null) ? this._dispositionMap[data.disposition] : null;
 
-            // Deconstruct ring data for the template.
+            // Generate Labels for this visage
+            const smartData = getSmartData(data.scale, data.width, data.height, isFlippedX);
+
+            // Ring Logic
             const hasRing = data.ring?.enabled === true;
-            let ringColor = "";
-            let ringBkg = "";
-            let hasPulse = false;
-            let hasGradient = false;
-            let hasWave = false;
-            let hasInvisibility = false;
+            let ringColor = "", ringBkg = "", hasPulse = false, hasGradient = false, hasWave = false, hasInvisibility = false;
             
             if (hasRing) {
                 ringColor = data.ring.colors?.ring || "#FFFFFF";
                 ringBkg = data.ring.colors?.background || "#000000";
                 const effects = data.ring.effects || 0;
-                hasPulse = (effects & 2) !== 0;         // RING_PULSE
-                hasGradient = (effects & 4) !== 0;      // RING_GRADIENT
-                hasWave = (effects & 8) !== 0;          // BKG_WAVE
-                hasInvisibility = (effects & 16) !== 0; // INVISIBILITY
+                hasPulse = (effects & 2) !== 0;        
+                hasGradient = (effects & 4) !== 0;     
+                hasWave = (effects & 8) !== 0;         
+                hasInvisibility = (effects & 16) !== 0; 
             }
 
             const isVideo = foundry.helpers.media.VideoHelper.hasVideoExtension(data.path);
@@ -209,10 +237,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 isActive: isActive,
                 isDefault: false,
                 isFlippedX: isFlippedX,
-                displayScale: displayScale,
-                showDataChip: showDataChip,
-                showScaleChip: showScaleChip, 
-                absScale: absScale,
+                showDataChip: smartData.showDataChip,
+                showFlipBadge: smartData.showFlipBadge,
+                sizeLabel: smartData.sizeLabel,
+                scaleLabel: smartData.scaleLabel,
                 isWildcard: data.path.includes('*'),
                 showDispositionChip: !!dispositionInfo,
                 dispositionName: dispositionInfo?.name || "",
@@ -228,7 +256,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
 
-        // 3. Sort and resolve paths for all forms.
+        // --- 4. Sort and Resolve ---
         const orderedForms = [forms["default"]];
         const alternateKeys = Object.keys(forms)
             .filter(k => k !== "default")

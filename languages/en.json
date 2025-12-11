@@ -21,7 +21,7 @@
     "VISAGE.Config.DefaultImage": "Default Token Image",
     "VISAGE.Config.DefaultLegend": "Captured Token Defaults",
     "VISAGE.Config.DefaultHint": "These settings are automatically captured from the token's main configuration and are used for the 'Default' visage.",
-    
+
     "VISAGE.Config.List.Name": "Name",
     "VISAGE.Config.List.Image": "Image Filepath",
     "VISAGE.Config.List.Scale": "Scale (%)",
@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Subject",
     "VISAGE.RingConfig.Group.Colors": "Colors",
     "VISAGE.RingConfig.Placeholder.Default": "Default",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT does not currently support animated (video) token art over Dynamic Rings. This token will appear static."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT does not currently support animated (video) token art over Dynamic Rings. This token will appear static.",
+
+    "VISAGE.Config.Group.Visual": "Visual Properties",
+    "VISAGE.Config.Group.Dimensions": "Token Dimensions",
+    "VISAGE.Config.List.Width": "Width",
+    "VISAGE.Config.List.Height": "Height",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Image Scale relative to Token Dimensions. <br>100% fits the image to the Width/Height.<br>Scales greater than 100% will cause the image to overflow the token's grid space making the token <em>appear</em> visually larger than it is.",
+    "VISAGE.Config.Tooltips.Width": "Grid spaces wide (integer)",
+    "VISAGE.Config.Tooltips.Height": "Grid spaces high (integer)"
 }

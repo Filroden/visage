@@ -121,7 +121,7 @@
 .visage .visage-chip,
 .visage .visage-default-indicator,
 .visage .visage-wildcard-indicator,
-.visage .visage-ring-indicator {
+.visage .visage-flip-indicator {
     position: absolute;
     width: 1.25rem;
     height: 1.25rem;
@@ -136,12 +136,21 @@
 .visage .visage-chip img,
 .visage .visage-default-indicator img,
 .visage .visage-wildcard-indicator img,
-.visage .visage-ring-indicator i {
+.visage .visage-flip-indicator img {
     width: var(--filroden-space-m);
     height: var(--filroden-space-m);
     font-size: var(--filroden-font-size-xs); /* For font icons */
-    filter: invert(100%); /* White icon */
     border: none;
+}
+
+.visage .visage-chip img,
+.visage .visage-default-indicator img {
+    filter: invert(100%); /* Black icon */
+}
+
+.visage .visage-wildcard-indicator img,
+.visage .visage-flip-indicator img {
+    filter: none; /* White icon */
 }
 
 /* Specific Indicator Positions & Colors */
@@ -167,15 +176,18 @@
     background-color: #007bff; 
 }
 
-/* Ring Configured: Top-Left (replaces Default if active), Gold */
-.visage .visage-ring-indicator {
-    top: -8px;
-    inset-inline-start: -8px;
-    background-color: var(--filroden-color-text-accent);
-    color: #000; 
+/* Flip Configured: Botttom-Right, Purple */
+.visage .visage-flip-indicator {
+    bottom: -8px;
+    inset-inline-end: -8px;
+    background-color: #9b59b6; 
 }
 
-/* Data Chip: Top-Center (Scale/Flip info) */
+.visage .visage-flip-indicator img {
+    transform: scaleX(var(--filroden-dir-flip)); /* Support RTL flipping */
+}
+
+/* Data Chip: Top-Center (Scale/Size info) */
 .visage .visage-data-chip {
     position: absolute;
     top: -8px;
@@ -186,7 +198,7 @@
     background-color: var(--filroden-color-bg-medium-solid);
     color: var(--filroden-color-text-main-solid);
     padding-block: var(--filroden-space-xxs);
-    padding-inline: var(--filroden-space-s);
+    padding-inline: var(--filroden-space-xs);
     border-radius: var(--filroden-radius-large);
     border: 1px solid var(--filroden-color-text-accent);
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
@@ -201,18 +213,18 @@
     font-size: var(--filroden-font-size-xxs);
 }
 
-.visage .visage-data-chip .visage-flip-icon {
-    width: var(--filroden-font-size-xs);
-    height: var(--filroden-font-size-xs);
-    border: none;
-    transform: scaleX(var(--filroden-dir-flip));
-}
-
 .visage .visage-data-chip .visage-status-icon {
     width: var(--filroden-font-size-xs);
     height: var(--filroden-font-size-xs);
     border: none;
     filter: invert(100%);
+}
+
+/* Data Chip Separator (Vertical Line) */
+.visage .visage-data-chip span + span {
+    margin-inline-start: 4px;
+    padding-inline-start: 4px;
+    border-inline-start: 1px solid var(--filroden-color-text-muted);
 }
 
 /* Disposition Chip: Bottom-Center */
@@ -223,7 +235,7 @@
     inset-inline-end: auto;
     transform: translateX(calc(-50% * var(--filroden-dir-flip)));
     padding-block: var(--filroden-space-xxs);
-    padding-inline: var(--filroden-space-s);
+    padding-inline: var(--filroden-space-xs);
     border-radius: var(--filroden-radius-large);
     background-color: var(--filroden-color-bg-medium-solid); 
     font-size: var(--filroden-font-size-xxs);
@@ -692,22 +704,75 @@
     padding: 0;
 }
 
+.visage .visage-list-header-group,
 .visage .visage-list-header,
 .visage .visage-list-item.default-row,
 .visage .visage-list .visage-list-item {
     display: grid;
     grid-template-columns: 
-        minmax(6rem, 1.5fr)           /* Name */
-        minmax(0, 4fr)                /* Image */
-        5rem                          /* Scale */
-        minmax(2rem, 2rem)            /* Flip */
-        minmax(10rem, 1.5fr)          /* Disposition */
-        minmax(2.5rem, 2.5rem)        /* Ring */
-        minmax(1.25rem, 1.25rem);     /* Delete */
-    gap: var(--filroden-space-m);
+        minmax(6rem, 1.5fr)     /* Name */
+        minmax(0, 3.5fr)        /* Image */
+        minmax(4rem, 0.8fr)     /* Scale */
+        minmax(2rem, 0.5fr)     /* Flip */
+        minmax(8rem, 1.5fr)     /* Disposition */
+        minmax(2.5rem, 0.5fr)   /* Ring */
+        minmax(3rem, 0.8fr)     /* Width */
+        minmax(3rem, 0.8fr)     /* Height */
+        minmax(1.25rem, 0.4fr); /* Delete */
+    gap: var(--filroden-space-s);
     align-items: center;
-    padding-block: var(--filroden-space-xxs);
-    padding-inline: 0;
+}
+
+/* --- Header Group Styling --- */
+.visage .visage-list-header-group {
+    margin-bottom: var(--filroden-space-xxs);
+    font-size: var(--filroden-font-size-xs);
+    font-weight: var(--filroden-font-weight-bold);
+    color: var(--filroden-color-text-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: none;
+    align-items: end !important; 
+    padding-bottom: var(--filroden-space-xxs);
+}
+
+/* Span the 'Visual' label across Scale(3), Flip(4), Disp(5), Ring(6) */
+.visage .header-group-label.visual {
+    grid-column: 3 / span 4; 
+    text-align: center;
+    border-bottom: 2px solid var(--filroden-color-border);
+    padding-bottom: var(--filroden-space-xxs);
+}
+
+/* Span the 'Dimensions' label across Width(7), Height(8) */
+.visage .header-group-label.dimensions {
+    grid-column: 7 / span 2;
+    text-align: center;
+    border-bottom: 2px solid var(--filroden-color-border);
+    padding-bottom: var(--filroden-space-xxs);
+}
+
+.visage .header-spacer {
+    /* Empty spans for alignment */
+}
+
+/* --- Column Specifics --- */
+
+.visage .visage-list-header .centered,
+.visage .visage-list-item .centered {
+    text-align: center;
+    justify-content: center;
+}
+
+.visage .visage-dimension-group {
+    display: flex;
+    justify-content: center;
+}
+
+.visage .visage-dim-input {
+    width: 100%;
+    text-align: center;
+    padding-inline: var(--filroden-space-xxs);
 }
 
 .visage .visage-list-header > span {
@@ -785,6 +850,7 @@
 }
 
 .visage .visage-disposition-button {
+    font-size: var(--filroden-font-size-xs);
     width: 100%;
     display: flex;
     justify-content: flex-start;
@@ -793,7 +859,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     padding-block: var(--filroden-space-xs);
-    padding-inline: var(--filroden-space-s);
+    padding-inline: var(--filroden-space-xs);
 }
 
 .visage .visage-disposition-popout {
@@ -820,6 +886,47 @@
 
 .visage .visage-disposition-popout.active {
     display: flex !important;
+}
+
+.visage .visage-disposition-popout .form-group {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--filroden-space-s);
+    margin: 0 !important;
+    padding: 0;
+    width: 100%;
+    min-height: 0;
+}
+
+.visage .visage-disposition-popout label {
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    line-height: 1.5;
+    color: var(--filroden-color-text-main-solid);
+}
+
+.visage .visage-disposition-popout input[type="radio"] {
+    margin: 0;
+    flex: 0 0 auto;
+    width: 1rem;
+    height: 1rem;
+}
+
+.visage .visage-disposition-popout select {
+    flex: 1;
+    width: auto;
+    height: 1.6rem;
+    padding-block: 0;
+    font-size: var(--filroden-font-size-xs);
+}
+
+.visage .visage-disposition-popout select option {
+    background-color: var(--filroden-color-bg-medium-solid);
+    color: var(--filroden-color-text-main-solid);
 }
 
 /* Ring Button */
@@ -873,6 +980,18 @@
     background: var(--filroden-color-bg-light);
     color: var(--filroden-color-text-muted-solid);
     text-align: center;
+}
+
+/* Tooltip icon */
+.visage .visage-info-icon {
+    margin-left: var(--filroden-space-xxs);
+    color: var(--filroden-color-text-muted);
+    cursor: help;
+    font-size: var(--filroden-font-size-xs);
+}
+
+.visage .visage-info-icon:hover {
+    color: var(--filroden-color-text-accent);
 }
 
 /* ==========================================================================

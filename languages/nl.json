@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Onderwerp",
     "VISAGE.RingConfig.Group.Colors": "Kleuren",
     "VISAGE.RingConfig.Placeholder.Default": "Standaard",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT ondersteunt momenteel geen geanimeerde (video) token-art over Dynamische Ringen. Dit token wordt statisch weergegeven."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT ondersteunt momenteel geen geanimeerde (video) token-art over Dynamische Ringen. Dit token wordt statisch weergegeven.",
+
+    "VISAGE.Config.Group.Visual": "Visuele Eigenschappen",
+    "VISAGE.Config.Group.Dimensions": "Token Afmetingen",
+    "VISAGE.Config.List.Width": "Breedte",
+    "VISAGE.Config.List.Height": "Hoogte",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Afbeeldingsschaal ten opzichte van Token Afmetingen.<br>100% past de afbeelding in de Breedte/Hoogte.<br>Schalen groter dan 100% zorgen ervoor dat de afbeelding buiten het rastervak van het token valt, waardoor het token visueel groter <em>lijkt</em> dan het is.",
+    "VISAGE.Config.Tooltips.Width": "Rastervakken breed (geheel getal)",
+    "VISAGE.Config.Tooltips.Height": "Rastervakken hoog (geheel getal)"
 }

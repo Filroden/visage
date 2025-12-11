@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "سوژه",
     "VISAGE.RingConfig.Group.Colors": "رنگ‌ها",
     "VISAGE.RingConfig.Placeholder.Default": "پیش‌فرض",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT در حال حاضر از هنر توکن متحرک (ویدیو) روی حلقه‌های پویا پشتیبانی نمی‌کند. این توکن به‌صورت ثابت نمایش داده می‌شود."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT در حال حاضر از هنر توکن متحرک (ویدیو) روی حلقه‌های پویا پشتیبانی نمی‌کند. این توکن به‌صورت ثابت نمایش داده می‌شود.",
+
+    "VISAGE.Config.Group.Visual": "ویژگی‌های بصری",
+    "VISAGE.Config.Group.Dimensions": "ابعاد توکن",
+    "VISAGE.Config.List.Width": "عرض",
+    "VISAGE.Config.List.Height": "ارتفاع",
+    "VISAGE.Config.Tooltips.ScaleHeader": "مقیاس تصویر نسبت به ابعاد توکن.<br>100% تصویر را با عرض/ارتفاع منطبق می‌کند.<br>مقیاس‌های بیشتر از 100% باعث می‌شود تصویر از فضای شبکه توکن بیرون بزند و توکن از نظر بصری بزرگ‌تر از آنچه هست <em>به نظر برسد</em>.",
+    "VISAGE.Config.Tooltips.Width": "عرض شبکه (عدد صحیح)",
+    "VISAGE.Config.Tooltips.Height": "ارتفاع شبکه (عدد صحیح)"
 }

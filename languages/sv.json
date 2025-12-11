@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Motiv",
     "VISAGE.RingConfig.Group.Colors": "Färger",
     "VISAGE.RingConfig.Placeholder.Default": "Standard",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT stöder för närvarande inte animerade (video-)tokens över dynamiska ringar. Denna token visas som statisk."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT stöder för närvarande inte animerade (video-)tokens över dynamiska ringar. Denna token visas som statisk.",
+
+    "VISAGE.Config.Group.Visual": "Visuella Egenskaper",
+    "VISAGE.Config.Group.Dimensions": "Token-dimensioner",
+    "VISAGE.Config.List.Width": "Bredd",
+    "VISAGE.Config.List.Height": "Höjd",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Bildskala i förhållande till token-dimensioner.<br>100% anpassar bilden till Bredd/Höjd.<br>Skalor över 100% gör att bilden flödar över tokens rutnätsutrymme, vilket får token att <em>verka</em> visuellt större än den är.",
+    "VISAGE.Config.Tooltips.Width": "Rutnätsbredd (heltal)",
+    "VISAGE.Config.Tooltips.Height": "Rutnätshöjd (heltal)"
 }
