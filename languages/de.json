@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Motiv",
     "VISAGE.RingConfig.Group.Colors": "Farben",
     "VISAGE.RingConfig.Placeholder.Default": "Standard",
-    "VISAGE.RingConfig.VideoWarning": "Animierte (Video-)Token-Bilder über Dynamische Ringe werden von Foundry VTT derzeit nicht unterstützt. Dieser Token erscheint statisch."
+    "VISAGE.RingConfig.VideoWarning": "Animierte (Video-)Token-Bilder über Dynamische Ringe werden von Foundry VTT derzeit nicht unterstützt. Dieser Token erscheint statisch.",
+
+    "VISAGE.Config.Group.Visual": "Visuelle Eigenschaften",
+    "VISAGE.Config.Group.Dimensions": "Token-Abmessungen",
+    "VISAGE.Config.List.Width": "Breite",
+    "VISAGE.Config.List.Height": "Höhe",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Bildskalierung relativ zu den Token-Abmessungen.<br>100% passt das Bild an Breite/Höhe an.<br>Skalierungen über 100% lassen das Bild über das Rasterfeld des Tokens hinausragen, wodurch der Token visuell größer <em>erscheint</em>, als er ist.",
+    "VISAGE.Config.Tooltips.Width": "Rasterfelder breit (Ganzzahl)",
+    "VISAGE.Config.Tooltips.Height": "Rasterfelder hoch (Ganzzahl)"
 }

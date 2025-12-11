@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Pwnc",
     "VISAGE.RingConfig.Group.Colors": "Lliwiau",
     "VISAGE.RingConfig.Placeholder.Default": "Rhagosodiad",
-    "VISAGE.RingConfig.VideoWarning": "Ar hyn o bryd, nid yw Foundry VTT yn cefnogi tocynnau animeiddiedig (fideo) ar Gylchoedd Deinamig. Bydd y tocyn hwn yn ymddangos yn statig."
+    "VISAGE.RingConfig.VideoWarning": "Ar hyn o bryd, nid yw Foundry VTT yn cefnogi tocynnau animeiddiedig (fideo) ar Gylchoedd Deinamig. Bydd y tocyn hwn yn ymddangos yn statig.",
+
+    "VISAGE.Config.Group.Visual": "Priodweddau Gweledol",
+    "VISAGE.Config.Group.Dimensions": "Dimensiynau Tocyn",
+    "VISAGE.Config.List.Width": "Lled",
+    "VISAGE.Config.List.Height": "Uchder",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Graddfa Delwedd mewn perthynas â Dimensiynau Tocyn.<br>Mae 100% yn ffitio'r ddelwedd i'r Lled/Uchder.<br>Bydd graddfeydd mwy na 100% yn achosi i'r ddelwedd orlifo gofod grid y tocyn gan wneud i'r tocyn <em>ymddangos</em> yn weledol fwy nag ydyw.",
+    "VISAGE.Config.Tooltips.Width": "Lled grid (cyfanrif)",
+    "VISAGE.Config.Tooltips.Height": "Uchder grid (cyfanrif)"
 }

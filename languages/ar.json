@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "العنصر",
     "VISAGE.RingConfig.Group.Colors": "الألوان",
     "VISAGE.RingConfig.Placeholder.Default": "افتراضي",
-    "VISAGE.RingConfig.VideoWarning": "لا يدعم Foundry VTT حاليًا الصور المتحركة (الفيديو) عبر الحلقات الديناميكية. سيظهر هذا الرمز ثابتًا."
+    "VISAGE.RingConfig.VideoWarning": "لا يدعم Foundry VTT حاليًا الصور المتحركة (الفيديو) عبر الحلقات الديناميكية. سيظهر هذا الرمز ثابتًا.",
+
+    "VISAGE.Config.Group.Visual": "الخصائص المرئية",
+    "VISAGE.Config.Group.Dimensions": "أبعاد الرمز (Token)",
+    "VISAGE.Config.List.Width": "العرض",
+    "VISAGE.Config.List.Height": "الارتفاع",
+    "VISAGE.Config.Tooltips.ScaleHeader": "مقياس الصورة نسبة إلى أبعاد الرمز.<br>100% يطابق الصورة مع العرض/الارتفاع.<br>المقاييس الأكبر من 100% ستجعل الصورة تتجاوز مساحة شبكة الرمز مما يجعله <em>يبدو</em> بصرياً أكبر مما هو عليه.",
+    "VISAGE.Config.Tooltips.Width": "عرض مساحات الشبكة (عدد صحيح)",
+    "VISAGE.Config.Tooltips.Height": "ارتفاع مساحات الشبكة (عدد صحيح)"
 }

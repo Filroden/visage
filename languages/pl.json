@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Obiekt",
     "VISAGE.RingConfig.Group.Colors": "Kolory",
     "VISAGE.RingConfig.Placeholder.Default": "Domyślny",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT obecnie nie obsługuje animowanych grafik (wideo) tokenów nad Dynamicznymi Pierścieniami. Ten token zostanie wyświetlony statycznie."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT obecnie nie obsługuje animowanych grafik (wideo) tokenów nad Dynamicznymi Pierścieniami. Ten token zostanie wyświetlony statycznie.",
+
+    "VISAGE.Config.Group.Visual": "Właściwości Wizualne",
+    "VISAGE.Config.Group.Dimensions": "Wymiary Tokena",
+    "VISAGE.Config.List.Width": "Szerokość",
+    "VISAGE.Config.List.Height": "Wysokość",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Skala obrazu względem wymiarów tokena.<br>100% dopasowuje obraz do szerokości/wysokości.<br>Skale powyżej 100% spowodują, że obraz wykroczy poza przestrzeń siatki tokena, sprawiając, że token będzie <em>wydawał się</em> wizualnie większy niż jest w rzeczywistości.",
+    "VISAGE.Config.Tooltips.Width": "Szerokość w kratkach (liczba całkowita)",
+    "VISAGE.Config.Tooltips.Height": "Wysokość w kratkach (liczba całkowita)"
 }

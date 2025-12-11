@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Subjecte",
     "VISAGE.RingConfig.Group.Colors": "Colors",
     "VISAGE.RingConfig.Placeholder.Default": "Per defecte",
-    "VISAGE.RingConfig.VideoWarning": "Actualment Foundry VTT no admet art de fitxa animat (vídeo) sobre Anelles Dinàmiques. Aquesta fitxa apareixerà estàtica."
+    "VISAGE.RingConfig.VideoWarning": "Actualment Foundry VTT no admet art de fitxa animat (vídeo) sobre Anelles Dinàmiques. Aquesta fitxa apareixerà estàtica.",
+
+    "VISAGE.Config.Group.Visual": "Propietats Visuals",
+    "VISAGE.Config.Group.Dimensions": "Dimensions de la Fitxa",
+    "VISAGE.Config.List.Width": "Amplada",
+    "VISAGE.Config.List.Height": "Alçada",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Escala de la imatge relativa a les dimensions de la fitxa.<br>El 100% ajusta la imatge a l'Amplada/Alçada.<br>Escales superiors al 100% faran que la imatge sobresurti de l'espai de la graella de la fitxa, fent que la fitxa <em>sembli</em> visualment més gran del que és.",
+    "VISAGE.Config.Tooltips.Width": "Espais de graella d'amplada (enter)",
+    "VISAGE.Config.Tooltips.Height": "Espais de graella d'alçada (enter)"
 }

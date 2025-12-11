@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Sujet",
     "VISAGE.RingConfig.Group.Colors": "Couleurs",
     "VISAGE.RingConfig.Placeholder.Default": "Par défaut",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT ne supporte pas actuellement les illustrations de token animées (vidéo) sur les Anneaux Dynamiques. Ce token apparaîtra statique."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT ne supporte pas actuellement les illustrations de token animées (vidéo) sur les Anneaux Dynamiques. Ce token apparaîtra statique.",
+
+    "VISAGE.Config.Group.Visual": "Propriétés Visuelles",
+    "VISAGE.Config.Group.Dimensions": "Dimensions du token",
+    "VISAGE.Config.List.Width": "Largeur",
+    "VISAGE.Config.List.Height": "Hauteur",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Échelle de l'image par rapport aux dimensions du token.<br>100% ajuste l'image à la Largeur/Hauteur.<br>Une échelle supérieure à 100% fera déborder l'image de l'espace grille du token, le faisant <em>paraître</em> visuellement plus grand qu'il ne l'est.",
+    "VISAGE.Config.Tooltips.Width": "Largeur en cases (entier)",
+    "VISAGE.Config.Tooltips.Height": "Hauteur en cases (entier)"
 }

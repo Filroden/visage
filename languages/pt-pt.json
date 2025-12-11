@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Objeto",
     "VISAGE.RingConfig.Group.Colors": "Cores",
     "VISAGE.RingConfig.Placeholder.Default": "Predefinição",
-    "VISAGE.RingConfig.VideoWarning": "O Foundry VTT não suporta atualmente arte de token animada (vídeo) sobre Anéis Dinâmicos. Este token será exibido de forma estática."
+    "VISAGE.RingConfig.VideoWarning": "O Foundry VTT não suporta atualmente arte de token animada (vídeo) sobre Anéis Dinâmicos. Este token será exibido de forma estática.",
+
+    "VISAGE.Config.Group.Visual": "Propriedades Visuais",
+    "VISAGE.Config.Group.Dimensions": "Dimensões do Token",
+    "VISAGE.Config.List.Width": "Largura",
+    "VISAGE.Config.List.Height": "Altura",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Escala da imagem relativa às dimensões do token.<br>100% ajusta a imagem à Largura/Altura.<br>Escalas superiores a 100% farão com que a imagem ultrapasse o espaço da grelha do token, fazendo com que o token <em>pareça</em> visualmente maior do que é.",
+    "VISAGE.Config.Tooltips.Width": "Largura em grelha (inteiro)",
+    "VISAGE.Config.Tooltips.Height": "Altura em grelha (inteiro)"
 }

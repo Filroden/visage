@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "Subjekt",
     "VISAGE.RingConfig.Group.Colors": "Barvy",
     "VISAGE.RingConfig.Placeholder.Default": "Výchozí",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT aktuálně nepodporuje animované tokeny (video) na dynamických prstencích. Tento token se zobrazí jako statický."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT aktuálně nepodporuje animované tokeny (video) na dynamických prstencích. Tento token se zobrazí jako statický.",
+    
+    "VISAGE.Config.Group.Visual": "Vizuální vlastnosti",
+    "VISAGE.Config.Group.Dimensions": "Rozměry tokenu",
+    "VISAGE.Config.List.Width": "Šířka",
+    "VISAGE.Config.List.Height": "Výška",
+    "VISAGE.Config.Tooltips.ScaleHeader": "Měřítko obrázku vzhledem k rozměrům tokenu.<br>100% přizpůsobí obrázek šířce/výšce.<br>Měřítka větší než 100% způsobí, že obrázek přesáhne mřížku tokenu, takže token bude <em>vypadat</em> vizuálně větší, než ve skutečnosti je.",
+    "VISAGE.Config.Tooltips.Width": "Šířka v polích mřížky (celé číslo)",
+    "VISAGE.Config.Tooltips.Height": "Výška v polích mřížky (celé číslo)"
 }

@@ -100,5 +100,13 @@
     "VISAGE.RingConfig.Group.Subject": "主體",
     "VISAGE.RingConfig.Group.Colors": "顏色",
     "VISAGE.RingConfig.Placeholder.Default": "預設",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT 目前不支援在動態圓環上方使用動畫（影片）指示物美術圖。此指示物將顯示為靜態。"
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT 目前不支援在動態圓環上方使用動畫（影片）指示物美術圖。此指示物將顯示為靜態。",
+
+    "VISAGE.Config.Group.Visual": "視覺屬性",
+    "VISAGE.Config.Group.Dimensions": "指示物尺寸",
+    "VISAGE.Config.List.Width": "寬度",
+    "VISAGE.Config.List.Height": "高度",
+    "VISAGE.Config.Tooltips.ScaleHeader": "相對於指示物尺寸的圖像縮放比例。<br>100% 使圖像適應寬度/高度。<br>超過 100% 的縮放會導致圖像溢出指示物的網格空間，使指示物在視覺上<em>看起來</em>比實際更大。",
+    "VISAGE.Config.Tooltips.Width": "網格寬度（整數）",
+    "VISAGE.Config.Tooltips.Height": "網格高度（整數）"
 }
