@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Výška",
     "VISAGE.Config.Tooltips.ScaleHeader": "Měřítko obrázku vzhledem k rozměrům tokenu.<br>100% přizpůsobí obrázek šířce/výšce.<br>Měřítka větší než 100% způsobí, že obrázek přesáhne mřížku tokenu, takže token bude <em>vypadat</em> vizuálně větší, než ve skutečnosti je.",
     "VISAGE.Config.Tooltips.Width": "Šířka v polích mřížky (celé číslo)",
-    "VISAGE.Config.Tooltips.Height": "Výška v polích mřížky (celé číslo)"
+    "VISAGE.Config.Tooltips.Height": "Výška v polích mřížky (celé číslo)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Výchozí nastavení prototypu tokenu",
+    "VISAGE.Config.DefaultHintPrototype": "Tato nastavení pocházejí z prototypu tokenu aktéra. Budou použita jako základ pro 'Výchozí' vizáž."
 }

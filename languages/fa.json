@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "ارتفاع",
     "VISAGE.Config.Tooltips.ScaleHeader": "مقیاس تصویر نسبت به ابعاد توکن.<br>100% تصویر را با عرض/ارتفاع منطبق می‌کند.<br>مقیاس‌های بیشتر از 100% باعث می‌شود تصویر از فضای شبکه توکن بیرون بزند و توکن از نظر بصری بزرگ‌تر از آنچه هست <em>به نظر برسد</em>.",
     "VISAGE.Config.Tooltips.Width": "عرض شبکه (عدد صحیح)",
-    "VISAGE.Config.Tooltips.Height": "ارتفاع شبکه (عدد صحیح)"
+    "VISAGE.Config.Tooltips.Height": "ارتفاع شبکه (عدد صحیح)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "پیش‌فرض‌های توکن نمونه",
+    "VISAGE.Config.DefaultHintPrototype": "این تنظیمات از توکن نمونه بازیگر گرفته شده‌اند. آن‌ها به عنوان پایه برای چهره 'پیش‌فرض' استفاده خواهند شد."
 }

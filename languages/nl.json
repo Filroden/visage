@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Hoogte",
     "VISAGE.Config.Tooltips.ScaleHeader": "Afbeeldingsschaal ten opzichte van Token Afmetingen.<br>100% past de afbeelding in de Breedte/Hoogte.<br>Schalen groter dan 100% zorgen ervoor dat de afbeelding buiten het rastervak van het token valt, waardoor het token visueel groter <em>lijkt</em> dan het is.",
     "VISAGE.Config.Tooltips.Width": "Rastervakken breed (geheel getal)",
-    "VISAGE.Config.Tooltips.Height": "Rastervakken hoog (geheel getal)"
+    "VISAGE.Config.Tooltips.Height": "Rastervakken hoog (geheel getal)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Standaardwaarden Prototype Token",
+    "VISAGE.Config.DefaultHintPrototype": "Deze instellingen zijn afkomstig van het Prototype Token van de Actor. Ze worden gebruikt als basis voor de 'Standaard' visage."
 }

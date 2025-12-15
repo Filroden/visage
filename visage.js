@@ -318,7 +318,9 @@ export class Visage {
                 path: data.path || defaults.token,
                 scale: data.scale,
                 disposition: data.disposition,
-                ring: data.ring
+                ring: data.ring,
+                width: data.width,
+                height: data.height
             };
         });
     }

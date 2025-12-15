@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Altezza",
     "VISAGE.Config.Tooltips.ScaleHeader": "Scala dell'immagine relativa alle dimensioni del token.<br>100% adatta l'immagine alla Larghezza/Altezza.<br>Scale superiori al 100% faranno sì che l'immagine esca dallo spazio della griglia del token, facendolo <em>sembrare</em> visivamente più grande di quanto sia.",
     "VISAGE.Config.Tooltips.Width": "Larghezza in caselle (intero)",
-    "VISAGE.Config.Tooltips.Height": "Altezza in caselle (intero)"
+    "VISAGE.Config.Tooltips.Height": "Altezza in caselle (intero)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Predefiniti del Token Prototipo",
+    "VISAGE.Config.DefaultHintPrototype": "Queste impostazioni provengono dal Token Prototipo dell'Attore. Saranno usate come base per il volto 'Predefinito'."
 }

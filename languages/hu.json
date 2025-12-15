@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Magasság",
     "VISAGE.Config.Tooltips.ScaleHeader": "Képméretezés a token méreteihez viszonyítva.<br>A 100% a szélességhez/magassághoz igazítja a képet.<br>A 100% feletti méretezés azt eredményezi, hogy a kép túlnyúlik a token rácsmezőjén, így a token vizuálisan nagyobbnak <em>tűnik</em>, mint amekkora valójában.",
     "VISAGE.Config.Tooltips.Width": "Rácsmező szélesség (egész szám)",
-    "VISAGE.Config.Tooltips.Height": "Rácsmező magasság (egész szám)"
+    "VISAGE.Config.Tooltips.Height": "Rácsmező magasság (egész szám)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Prototípus Token alapértelmezések",
+    "VISAGE.Config.DefaultHintPrototype": "Ezek a beállítások az Actor Prototípus Tokenjéből származnak. Ezek szolgálnak majd az 'Alapértelmezett' megjelenés alapjául."
 }

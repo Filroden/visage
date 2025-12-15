@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Höjd",
     "VISAGE.Config.Tooltips.ScaleHeader": "Bildskala i förhållande till token-dimensioner.<br>100% anpassar bilden till Bredd/Höjd.<br>Skalor över 100% gör att bilden flödar över tokens rutnätsutrymme, vilket får token att <em>verka</em> visuellt större än den är.",
     "VISAGE.Config.Tooltips.Width": "Rutnätsbredd (heltal)",
-    "VISAGE.Config.Tooltips.Height": "Rutnätshöjd (heltal)"
+    "VISAGE.Config.Tooltips.Height": "Rutnätshöjd (heltal)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Standardvärden för Prototyptoken",
+    "VISAGE.Config.DefaultHintPrototype": "Dessa inställningar kommer från Aktörens Prototyptoken. De kommer att användas som bas för 'Standard'-visage."
 }

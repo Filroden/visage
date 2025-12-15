@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Korkeus",
     "VISAGE.Config.Tooltips.ScaleHeader": "Kuvan skaalaus suhteessa pelimerkin mittoihin.<br>100% sovittaa kuvan leveyteen/korkeuteen.<br>Yli 100% skaalaus saa kuvan ylittämään pelimerkin ruudukkotilan, jolloin pelimerkki <em>näyttää</em> visuaalisesti suuremmalta kuin se on.",
     "VISAGE.Config.Tooltips.Width": "Ruudun leveys (kokonaisluku)",
-    "VISAGE.Config.Tooltips.Height": "Ruudun korkeus (kokonaisluku)"
+    "VISAGE.Config.Tooltips.Height": "Ruudun korkeus (kokonaisluku)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Mallinappulan oletusarvot",
+    "VISAGE.Config.DefaultHintPrototype": "Nämä asetukset ovat peräisin Toimijan mallinappulasta (Prototype Token). Niitä käytetään 'Oletus'-ulkoasun pohjana."
 }

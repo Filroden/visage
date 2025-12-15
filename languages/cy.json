@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Uchder",
     "VISAGE.Config.Tooltips.ScaleHeader": "Graddfa Delwedd mewn perthynas â Dimensiynau Tocyn.<br>Mae 100% yn ffitio'r ddelwedd i'r Lled/Uchder.<br>Bydd graddfeydd mwy na 100% yn achosi i'r ddelwedd orlifo gofod grid y tocyn gan wneud i'r tocyn <em>ymddangos</em> yn weledol fwy nag ydyw.",
     "VISAGE.Config.Tooltips.Width": "Lled grid (cyfanrif)",
-    "VISAGE.Config.Tooltips.Height": "Uchder grid (cyfanrif)"
+    "VISAGE.Config.Tooltips.Height": "Uchder grid (cyfanrif)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Rhagosodiadau Tocyn Prototeip",
+    "VISAGE.Config.DefaultHintPrototype": "Daw'r gosodiadau hyn o Docyn Prototeip yr Actor. Cânt eu defnyddio fel sail i'r 'Visage' rhagosodedig."
 }

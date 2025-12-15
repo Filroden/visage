@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Wysokość",
     "VISAGE.Config.Tooltips.ScaleHeader": "Skala obrazu względem wymiarów tokena.<br>100% dopasowuje obraz do szerokości/wysokości.<br>Skale powyżej 100% spowodują, że obraz wykroczy poza przestrzeń siatki tokena, sprawiając, że token będzie <em>wydawał się</em> wizualnie większy niż jest w rzeczywistości.",
     "VISAGE.Config.Tooltips.Width": "Szerokość w kratkach (liczba całkowita)",
-    "VISAGE.Config.Tooltips.Height": "Wysokość w kratkach (liczba całkowita)"
+    "VISAGE.Config.Tooltips.Height": "Wysokość w kratkach (liczba całkowita)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Domyślne ustawienia Prototypu Tokena",
+    "VISAGE.Config.DefaultHintPrototype": "Te ustawienia pochodzą z Prototypu Tokena Aktora. Będą używane jako baza dla 'Domyślnego' oblicza."
 }

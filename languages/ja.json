@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "高さ",
     "VISAGE.Config.Tooltips.ScaleHeader": "コマの寸法に対する画像の倍率。<br>100% で画像を幅/高さに合わせます。<br>100% を超える倍率にすると、画像がコマのグリッドスペースからはみ出し、コマが実際よりも視覚的に大きく<em>見えます</em>。",
     "VISAGE.Config.Tooltips.Width": "グリッドの幅（整数）",
-    "VISAGE.Config.Tooltips.Height": "グリッドの高さ（整数）"
+    "VISAGE.Config.Tooltips.Height": "グリッドの高さ（整数）",
+
+    "VISAGE.Config.DefaultLegendPrototype": "原型トークンの初期設定",
+    "VISAGE.Config.DefaultHintPrototype": "これらの設定はアクターの原型トークン（プロトタイプ）に基づいています。「初期設定」の容貌（Visage）の基礎として使用されます。"
 }
