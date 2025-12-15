@@ -13,7 +13,8 @@
  * - Window & Layout
  * - List Items
  * - Disposition Popout
- * - Ring Editor Sub-Application
+ * 5. Ring Editor Sub-Application
+ * 6. Actor Sheet Header Icon
  */
 
 /* ==========================================================================
@@ -850,7 +851,7 @@
 }
 
 .visage .visage-disposition-button {
-    font-size: var(--filroden-font-size-xs);
+    /* font-size: var(--filroden-font-size-xs); */
     width: 100%;
     display: flex;
     justify-content: flex-start;
@@ -1119,4 +1120,20 @@
     width: auto; 
     padding-block: var(--filroden-space-xs);
     padding-inline: var(--filroden-space-m);
+}
+
+
+/* ==========================================================================
+   6. Actor Sheet Header Icon
+   ========================================================================== */
+
+/* Applies the switch_account.svg as a mask to the <i> tag in the header button. */
+.visage-icon-mask {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
+    mask: url('../icons/switch_account.svg') no-repeat center / contain;
+    background-color: currentColor;
+    margin-inline-end: 0.25em;
 }

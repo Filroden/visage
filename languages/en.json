@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Height",
     "VISAGE.Config.Tooltips.ScaleHeader": "Image Scale relative to Token Dimensions. <br>100% fits the image to the Width/Height.<br>Scales greater than 100% will cause the image to overflow the token's grid space making the token <em>appear</em> visually larger than it is.",
     "VISAGE.Config.Tooltips.Width": "Grid spaces wide (integer)",
-    "VISAGE.Config.Tooltips.Height": "Grid spaces high (integer)"
+    "VISAGE.Config.Tooltips.Height": "Grid spaces high (integer)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Prototype Token Defaults",
+    "VISAGE.Config.DefaultHintPrototype": "These settings are from the Actor's Prototype Token. They will be used as the base for the 'Default' visage."
 }

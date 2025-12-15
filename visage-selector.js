@@ -147,8 +147,11 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
         const forms = {};
 
+        const defScale = defaults.scale ?? 1.0;
+        const defaultIsFlipped = defScale < 0;
+
         // Helper to generate the Smart Chip labels
-        const getSmartData = (scale, width, height, isFlippedX) => {
+        const getSmartData = (scale, width, height, matchesDefaultFlip) => {
             const absScale = Math.abs(scale);
             
             // Scale Label: Hide if 100% (1.0)
@@ -163,10 +166,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             const sizeLabel = isSizeDefault ? "" : `${safeW}x${safeH}`;
 
             // Logic Flags
-            // Show Flip Badge if flipped (negative scale OR explict flag)
-            const showFlipBadge = (scale < 0) || (isFlippedX === true);
+            // Badge Logic: Only show if this visage's flip state DIFFERS from the default.
+            const showFlipBadge = !matchesDefaultFlip;
             
-            // Show Data Chip if there is text to display
             const showDataChip = (scaleLabel !== "") || (sizeLabel !== "");
 
             return { scaleLabel, sizeLabel, showFlipBadge, showDataChip };
@@ -180,7 +182,20 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             const defHeight = defaults.height ?? 1;
             const isFlipped = defScale < 0;
 
-            const smartData = getSmartData(defScale, defWidth, defHeight, isFlipped);
+            const smartData = getSmartData(defScale, defWidth, defHeight, true);
+
+            const hasRing = defaults.ring?.enabled === true;
+            let ringColor = "", ringBkg = "", hasPulse = false, hasGradient = false, hasWave = false, hasInvisibility = false;
+
+            if (hasRing) {
+                ringColor = defaults.ring.colors?.ring || "#FFFFFF";
+                ringBkg = defaults.ring.colors?.background || "#000000";
+                const effects = defaults.ring.effects || 0;
+                hasPulse = (effects & 2) !== 0;        
+                hasGradient = (effects & 4) !== 0;     
+                hasWave = (effects & 8) !== 0;         
+                hasInvisibility = (effects & 16) !== 0; 
+            }
 
             forms["default"] = {
                 key: "default",
@@ -197,7 +212,13 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 isWildcard: defaultPath.includes('*'),
                 showDispositionChip: false,
                 isSecret: false,
-                hasRing: false,
+                hasRing: hasRing,
+                ringColor: ringColor,
+                ringBkg: ringBkg,
+                hasPulse: hasPulse,
+                hasGradient: hasGradient,
+                hasWave: hasWave,
+                hasInvisibility: hasInvisibility,
                 isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(defaultPath)
             };
         }
@@ -210,8 +231,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             const isActive = data.id === currentFormKey;
             const dispositionInfo = (data.disposition !== null) ? this._dispositionMap[data.disposition] : null;
 
+            const matchesDefaultFlip = isFlippedX === defaultIsFlipped;
+
             // Generate Labels for this visage
-            const smartData = getSmartData(data.scale, data.width, data.height, isFlippedX);
+            const smartData = getSmartData(data.scale, data.width, data.height, matchesDefaultFlip);
 
             // Ring Logic
             const hasRing = data.ring?.enabled === true;
