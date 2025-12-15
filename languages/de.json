@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Höhe",
     "VISAGE.Config.Tooltips.ScaleHeader": "Bildskalierung relativ zu den Token-Abmessungen.<br>100% passt das Bild an Breite/Höhe an.<br>Skalierungen über 100% lassen das Bild über das Rasterfeld des Tokens hinausragen, wodurch der Token visuell größer <em>erscheint</em>, als er ist.",
     "VISAGE.Config.Tooltips.Width": "Rasterfelder breit (Ganzzahl)",
-    "VISAGE.Config.Tooltips.Height": "Rasterfelder hoch (Ganzzahl)"
+    "VISAGE.Config.Tooltips.Height": "Rasterfelder hoch (Ganzzahl)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Standardwerte des Prototyp-Tokens",
+    "VISAGE.Config.DefaultHintPrototype": "Diese Einstellungen stammen vom Prototyp-Token des Akteurs. Sie werden als Basis für das 'Standard'-Visage verwendet."
 }

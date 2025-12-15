@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "高度",
     "VISAGE.Config.Tooltips.ScaleHeader": "相對於指示物尺寸的圖像縮放比例。<br>100% 使圖像適應寬度/高度。<br>超過 100% 的縮放會導致圖像溢出指示物的網格空間，使指示物在視覺上<em>看起來</em>比實際更大。",
     "VISAGE.Config.Tooltips.Width": "網格寬度（整數）",
-    "VISAGE.Config.Tooltips.Height": "網格高度（整數）"
+    "VISAGE.Config.Tooltips.Height": "網格高度（整數）",
+
+    "VISAGE.Config.DefaultLegendPrototype": "原型指示物預設值",
+    "VISAGE.Config.DefaultHintPrototype": "這些設定來自角色的原型指示物。它們將作為「預設」外觀的基礎。"
 }

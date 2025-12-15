@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "높이",
     "VISAGE.Config.Tooltips.ScaleHeader": "토큰 크기 대비 이미지 비율.<br>100%는 이미지를 너비/높이에 맞춥니다.<br>100%보다 큰 비율은 이미지가 토큰의 그리드 공간을 넘어가게 하여 토큰이 실제보다 시각적으로 더 커 <em>보이게</em> 만듭니다.",
     "VISAGE.Config.Tooltips.Width": "그리드 칸 너비 (정수)",
-    "VISAGE.Config.Tooltips.Height": "그리드 칸 높이 (정수)"
+    "VISAGE.Config.Tooltips.Height": "그리드 칸 높이 (정수)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "프로토타입 토큰 기본값",
+    "VISAGE.Config.DefaultHintPrototype": "이 설정은 액터의 프로토타입 토큰에서 가져왔습니다. '기본' 외형의 기반으로 사용됩니다."
 }

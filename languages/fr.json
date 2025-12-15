@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Hauteur",
     "VISAGE.Config.Tooltips.ScaleHeader": "Échelle de l'image par rapport aux dimensions du token.<br>100% ajuste l'image à la Largeur/Hauteur.<br>Une échelle supérieure à 100% fera déborder l'image de l'espace grille du token, le faisant <em>paraître</em> visuellement plus grand qu'il ne l'est.",
     "VISAGE.Config.Tooltips.Width": "Largeur en cases (entier)",
-    "VISAGE.Config.Tooltips.Height": "Hauteur en cases (entier)"
+    "VISAGE.Config.Tooltips.Height": "Hauteur en cases (entier)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Valeurs par défaut du Token Prototype",
+    "VISAGE.Config.DefaultHintPrototype": "Ces paramètres proviennent du Token Prototype de l'Acteur. Ils serviront de base pour le visage 'Par défaut'."
 }

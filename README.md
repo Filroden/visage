@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-1.5.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-1.6.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
@@ -12,14 +12,15 @@
 
 **Visage** allows players and GMs to instantly switch a token's appearance, disposition, and Dynamic Token Ring configuration on the fly.
 
-Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes. Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state) and completely reconfigure its Dynamic Token Ring settings (colours, effects, subject texture). **[New in v1.5.0]** You can also change a token's actual dimensions (width and height).
+Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes.
+
+<div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;"><div style="text-align: center;"><img src="images/selector_hud_cropped.png" alt="Visage Selector HUD" style="margin-inline-start: 3rem; width: 150px; max-height: 100%; object-fit: contain;"></div><div style="text-align: center;"><img src="images/animated_tokens.gif" alt="Visage Selector HUD showing animated tokens" style="margin-inline-start: 3rem; width: 150px; max-height: 100%;object-fit: contain;"></div></div>
+
+Using a custom, grid-based **Token HUD Selector**, you can switch the token's image and name, adjust its visual scale (e.g., 150% for enlarge), flip its orientation, apply a disposition ('Friendly', 'Neutral', 'Hostile', or 'Secret' state) and completely reconfigure its Dynamic Token Ring settings (colours, effects, subject texture). You can also change a token's actual dimensions (width and height).
 
 The module supports:
 
 * **all image or video formats** that are valid for tokens.
-
-<img src="images/animated_tokens.gif" alt="Visage Configuration Window showing RTL support for Arabic" style="margin-inline-start: 3rem; height: 250px;">
-
 * **supports wildcard filepaths** (e.g., path/to/wolves/*.webp), letting you select a random image from a folder every time the **Visage** is activated.
 
 This module makes it ideal for dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
@@ -54,7 +55,6 @@ Software and associated documentation files in this repository are covered by an
 [Long term]
 
 * Add the ability to create and use a global directory of visages, so certain effects can be applied quickly to any token (e.g., enlarge/reduce effects).
-* Consider adding the ability to create and edit visages from actors without needing to place a token on the scene.
 * Test module against FoundryVTT v14.
 
 ## How to Use Visage
@@ -65,11 +65,17 @@ Software and associated documentation files in this repository are covered by an
 
 Before you can switch **Visages**, you need to define them for a token. These **Visages** are stored on the actor and are available to all tokens of that actor.
 
-1. **Open Visage Configuration**: Right-click on a token and choose the **Visage** icon in the Token HUD (a "switch account" symbol) to open the **Visage Selector HUD**. In the top right corner, click the settings ("cog") icon to open the **Visage Configuration** window.
+1. **Open Visage Configuration**: You can access the configuration window in two ways:
+
+    * **From the Actor Sheet**: Open any Actor Sheet. In the window header (top bar), click the Visage button. This allows you to configure Visages using the Prototype Token as your baseline, perfect for prepping NPCs before placing them on a scene.
+    * **From a Token**: Right-click on a token and choose the **Visage** icon in the Token HUD (a "switch account" symbol) to open the **Visage Selector HUD**. In the top right corner, click the settings ("cog") icon in the top right.
+
 2. **Review Visage Defaults**:
-    * The **Visage Configuration** window shows the token's current default name and image path. These are the settings the token will have when its **Visage** is set to "Default".
+    * The **Visage Configuration** window displays the default name and image path and other settings.
+        * **Token Mode**: Shows the settings for the specific token you selected.
+        * **Actor Mode**: Shows the settings from the Actor's Prototype Token.
     * By default, these are inherited from the actor's main settings. However, you can override them by changing the token name/image/disposition on the Token's main configuration window. **Visage** automatically tracks these changes.
-3. **Add Alternate Visages**:
+3. **Add Alternate Visages**: When adding a new Visage, the module automatically pre-fills the Width, Height, and Scale to match your current token (or Prototype Token). This makes sure that if you are configuring a large creature (e.g., 2x2 or 4x4), the new form maintains that physical size by default.
     * Click the "**Add Visage**" button to create a new alternate form.
     * For each  **Visage**, you can provide:
         * **Name**: A name for the **Visage** (e.g., "[Name] (Wolf Form)", "[Name] (Enlarged)", "Barrel"). This name will also be used for the token's name when this **Visage** is active so remember this is what other players will see. **This is optional**.

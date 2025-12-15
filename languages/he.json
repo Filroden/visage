@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "גובה",
     "VISAGE.Config.Tooltips.ScaleHeader": "קנה מידה של התמונה ביחס לממדי הטוקן.<br>100% מתאים את התמונה לרוחב/גובה.<br>קנה מידה גדול מ-100% יגרום לתמונה לחרוג משטח הרשת של הטוקן, מה שיגרום לטוקן <em>להיראות</em> גדול יותר ממה שהוא באמת.",
     "VISAGE.Config.Tooltips.Width": "רוחב במשבצות (מספר שלם)",
-    "VISAGE.Config.Tooltips.Height": "גובה במשבצות (מספר שלם)"
+    "VISAGE.Config.Tooltips.Height": "גובה במשבצות (מספר שלם)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "ברירות מחדל של אסימון אב-טיפוס",
+    "VISAGE.Config.DefaultHintPrototype": "הגדרות אלו לקוחות מאסימון האב-טיפוס של השחקן. הן ישמשו כבסיס ל'חזות' ברירת המחדל."
 }

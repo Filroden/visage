@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Altura",
     "VISAGE.Config.Tooltips.ScaleHeader": "Escala da imagem relativa às dimensões do token.<br>100% ajusta a imagem à Largura/Altura.<br>Escalas maiores que 100% farão com que a imagem ultrapasse o espaço da grade do token, fazendo com que o token <em>pareça</em> visualmente maior do que é.",
     "VISAGE.Config.Tooltips.Width": "Largura em grade (inteiro)",
-    "VISAGE.Config.Tooltips.Height": "Altura em grade (inteiro)"
+    "VISAGE.Config.Tooltips.Height": "Altura em grade (inteiro)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Valores padrão do Token Protótipo",
+    "VISAGE.Config.DefaultHintPrototype": "Estas configurações vêm do Token Protótipo do Ator. Elas serão usadas como base para a visage 'Padrão'."
 }

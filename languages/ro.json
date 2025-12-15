@@ -108,5 +108,8 @@
     "VISAGE.Config.List.Height": "Înălțime",
     "VISAGE.Config.Tooltips.ScaleHeader": "Scara imaginii relativă la dimensiunile tokenului.<br>100% potrivește imaginea la Lățime/Înălțime.<br>Scări mai mari de 100% vor face ca imaginea să depășească spațiul grilei tokenului, făcându-l să <em>pară</em> vizual mai mare decât este.",
     "VISAGE.Config.Tooltips.Width": "Lățime grilă (întreg)",
-    "VISAGE.Config.Tooltips.Height": "Înălțime grilă (întreg)"
+    "VISAGE.Config.Tooltips.Height": "Înălțime grilă (întreg)",
+
+    "VISAGE.Config.DefaultLegendPrototype": "Valori implicite Token Prototip",
+    "VISAGE.Config.DefaultHintPrototype": "Aceste setări provin de la Token-ul Prototip al Actorului. Ele vor fi folosite ca bază pentru înfățișarea 'Implicită'."
 }
