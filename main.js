@@ -134,6 +134,35 @@ Hooks.once("init", () => {
 });
 
 /**
+ * Hook: Add Visage configuration button to Actor Sheet headers.
+ */
+Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
+    // Only allow for Owners
+    if (!sheet.actor.isOwner) return;
+
+    buttons.unshift({
+        label: "VISAGE.Title",
+        class: "visage-config",
+        icon: "visage-icon-mask",
+        onclick: () => {
+            const actor = sheet.actor;
+            let tokenId = null;
+            let sceneId = null;
+            if (actor.isToken) {
+                tokenId = actor.token.id;
+                sceneId = actor.token.parent.id;
+            }
+
+            new VisageConfigApp({
+                actorId: actor.id,
+                tokenId: tokenId,
+                sceneId: sceneId
+            }).render(true);
+        }
+    });
+});
+
+/**
  * Foundry VTT "ready" hook.
  * Fired once when the game world is fully loaded and ready to play.
  * This hook is used to check for module updates and trigger data migrations if necessary.

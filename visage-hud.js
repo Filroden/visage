@@ -48,7 +48,9 @@ export async function handleTokenHUD(app, html, data) {
             token: token.document.texture.src,
             scale: token.document.texture.scaleX ?? 1.0,
             disposition: token.document.disposition ?? 0,
-            ring: sourceData.ring 
+            ring: sourceData.ring,
+            width: token.document.width ?? 1,
+            height: token.document.height ?? 1
         };
         updates[`flags.${ns}.${token.id}.currentFormKey`] = 'default';
         // Use a timeout to ensure the update doesn't conflict with other operations.
@@ -60,7 +62,15 @@ export async function handleTokenHUD(app, html, data) {
         const updates = {};
         const sourceData = token.document.toObject();
         
-        updates[`flags.${ns}.${token.id}.defaults.ring`] = sourceData.ring;
+        if (tokenFlags.defaults.ring === undefined) {
+            updates[`flags.${ns}.${token.id}.defaults.ring`] = sourceData.ring;
+        }
+
+        if (tokenFlags.defaults.width === undefined) {
+            updates[`flags.${ns}.${token.id}.defaults.width`] = token.document.width ?? 1;
+            updates[`flags.${ns}.${token.id}.defaults.height`] = token.document.height ?? 1;
+        }
+        
         setTimeout(() => actor.update(updates), 0);
     }
 

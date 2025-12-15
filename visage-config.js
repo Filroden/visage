@@ -125,23 +125,45 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @private
      */
     _getTokenDefaults() {
+        // 1. Try to get the specific token
         const scene = game.scenes.get(this.sceneId);
         const tokenDocument = scene?.tokens.get(this.tokenId);
-        const actor = tokenDocument?.actor ?? game.actors.get(this.actorId);
         
-        if (!actor) return {};
+        // 2. If token exists, return its specific data (Current Behavior)
+        if (tokenDocument) {
+            const ns = Visage.DATA_NAMESPACE;
+            const moduleData = tokenDocument.actor?.flags?.[ns] || {};
+            const savedDefaults = moduleData[this.tokenId]?.defaults || {};
 
-        const ns = Visage.DATA_NAMESPACE;
-        const moduleData = actor.flags?.[ns] || {};
-        
-        return moduleData[this.tokenId]?.defaults || {
-            name: tokenDocument?.name,
-            token: tokenDocument?.texture.src,
-            scale: tokenDocument?.texture.scaleX ?? 1.0,
-            disposition: tokenDocument?.disposition ?? 0,
-            ring: tokenDocument?.ring?.toObject() ?? {},
-            width: tokenDocument?.width ?? 1,
-            height: tokenDocument?.height ?? 1
+            return {
+                name: savedDefaults.name || tokenDocument.name,
+                token: savedDefaults.token || tokenDocument.texture.src,
+                scale: savedDefaults.scale ?? tokenDocument.texture.scaleX ?? 1.0,
+                disposition: savedDefaults.disposition ?? tokenDocument.disposition ?? 0,
+                width: savedDefaults.width ?? tokenDocument.width ?? 1,
+                height: savedDefaults.height ?? tokenDocument.height ?? 1,
+                ring: savedDefaults.ring ? savedDefaults.ring : (tokenDocument.ring?.toObject ? tokenDocument.ring.toObject() : (tokenDocument.ring || {}))
+            };
+        }
+
+        // 3. FALLBACK: If no token (Actor Mode), use Prototype Token data
+        const actor = game.actors.get(this.actorId);
+        const proto = actor?.prototypeToken;
+        if (!proto) return {};
+
+        // Check if .toObject exists before calling it
+        const ringData = (proto.ring && typeof proto.ring.toObject === "function") 
+            ? proto.ring.toObject() 
+            : (proto.ring || {});
+
+        return {
+            name: proto.name,
+            token: proto.texture.src,
+            scale: proto.texture.scaleX ?? 1.0,
+            disposition: proto.disposition ?? 0,
+            width: proto.width ?? 1,
+            height: proto.height ?? 1,
+            ring: ringData
         };
     }
 
@@ -159,7 +181,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const scene = game.scenes.get(this.sceneId);
         const tokenDocument = scene?.tokens.get(this.tokenId);
         const actor = tokenDocument?.actor ?? game.actors.get(this.actorId);
-        if (!actor || !tokenDocument) return {};
+        if (!actor) return {};
 
         const ns = Visage.DATA_NAMESPACE;
         const moduleData = actor.flags?.[ns] || {};
@@ -229,11 +251,20 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             return v;
         }));
 
+        const isActorMode = !this.tokenId;
+        
         return {
             visages: processedVisages,
-            defaultVisage: defaultVisage, 
-            isDirty: this._isDirty || false
+            defaultVisage: defaultVisage,
+            isDirty: this._isDirty || false,
+            defaultLegend: isActorMode 
+                ? game.i18n.localize("VISAGE.Config.DefaultLegendPrototype") 
+                : game.i18n.localize("VISAGE.Config.DefaultLegend"),
+            defaultHint: isActorMode
+                ? game.i18n.localize("VISAGE.Config.DefaultHintPrototype")
+                : game.i18n.localize("VISAGE.Config.DefaultHint")
         };
+
     }
 
     /**
@@ -307,10 +338,20 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onAddVisage(event, target) {
         this._tempVisages = await this._readFormData(this.element);
         
+        const defaults = this._getTokenDefaults();
+
         const newEntry = await this._processVisageEntry(
             foundry.utils.randomID(16), 
-            "", "", 1.0, false, null, null
+            "",                         // Name
+            "",                         // Path
+            defaults.scale ?? 1.0,      // Inherit Scale
+            false,                      // isFlippedX
+            null,                       // disposition
+            null,                       // ring
+            defaults.width || 1,        // Inherit Width
+            defaults.height || 1        // Inherit Height
         );
+        
         this._tempVisages.push(newEntry);
         
         this._isDirty = true;
@@ -542,14 +583,8 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!actor) return;
         
         const ns = Visage.DATA_NAMESPACE;
-        const moduleData = actor.flags?.[ns] || {};
-        const tokenDefaults = moduleData[this.tokenId]?.defaults || {
-            name: tokenDocument?.name,
-            token: tokenDocument?.texture.src
-        };
-
-        const currentVisages = await this._readFormData(this.element);
-        
+        const tokenDefaults = this._getTokenDefaults();
+        const currentVisages = await this._readFormData(this.element);        
         const newKeys = new Set(); 
         const visagesToSave = [];
 
