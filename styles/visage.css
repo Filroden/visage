@@ -1124,7 +1124,7 @@
 
 
 /* ==========================================================================
-   6. Actor Sheet Header Icon
+   6. Actor Sheet Header Icon and Context Menu Icon
    ========================================================================== */
 
 /* Applies the switch_account.svg as a mask to the <i> tag in the header button. */
@@ -1135,5 +1135,13 @@
     -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
     mask: url('../icons/switch_account.svg') no-repeat center / contain;
     background-color: currentColor;
-    margin-inline-end: 0.25em;
+}
+
+.context-items .visage-icon-mask {
+    height: 1.25em;
+    width: 1.25em;
+    vertical-align: middle;
+    background-color: currentColor;
+    position: relative;
+    top: -1px;
 }

@@ -1,74 +1,170 @@
 /**
- * @file Main entry point for the Visage module. This file handles initialization, setting registration,
- * application window tracking, and the registration of core Foundry VTT hooks.
+ * @file Main entry point for the Visage module.
  * @module visage
+ * @description Handles module initialization, hook registration, and integration with the Foundry VTT UI (Sidebar, Actor Sheets, and Token Configuration).
  */
 
-// --- Imports ---
-
-// Core module logic
 import { Visage } from "./visage.js";
-
-// UI Application classes
 import { VisageSelector } from "./visage-selector.js";
 import { VisageConfigApp } from "./visage-config.js";
 import { VisageRingEditor } from "./visage-ring-editor.js";
-
-// Hook handlers and utility functions
 import { handleTokenHUD } from "./visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./visage-cleanup.js";
 import { migrateWorldData } from "./visage-migration.js";
 
-// --- Module Initialization ---
+/**
+ * Opens the Visage configuration application for a given actor.
+ * determines the correct context (Actor vs. Token) and renders the config app.
+ *
+ * @param {Actor} actor - The actor document to configure.
+ * @param {TokenDocument|null} [token=null] - Optional specific token context (e.g., for unlinked tokens).
+ */
+function openVisageConfig(actor, token = null) {
+    if (!actor) return;
+
+    try {
+        let tokenId = token?.id || null;
+        let sceneId = token?.parent?.id || null;
+
+        // If no specific token is provided but the actor itself is a token (unlinked), use its context.
+        if (!tokenId && actor.isToken) {
+            tokenId = actor.token.id;
+            sceneId = actor.token.parent.id;
+        }
+
+        new VisageConfigApp({
+            actorId: actor.id,
+            tokenId: tokenId,
+            sceneId: sceneId
+        }).render(true);
+    } catch (err) {
+        console.error("Visage | Failed to open configuration window:", err);
+    }
+}
 
 /**
- * Foundry VTT "init" hook.
- * Fired once during Foundry's initialization process. This is the primary setup location for the module.
- * It registers module settings, Handlebars helpers, preloads templates, and initializes the core API.
+ * Retrieves the Actor ID from a sidebar directory list element.
+ * Handles both jQuery objects and raw DOM elements.
+ *
+ * @param {jQuery|HTMLElement} li - The list item element from the sidebar.
+ * @returns {string|undefined} The document ID found in the dataset.
  */
+function getActorIdFromElement(li) {
+    const element = (li instanceof jQuery) ? li[0] : li;
+    return element.dataset?.entryId || element.dataset?.documentId;
+}
+
+/* -------------------------------------------- */
+/* Initialization                              */
+/* -------------------------------------------- */
+
 Hooks.once("init", () => {
-    Visage.initialize();
+    try {
+        Visage.initialize();
 
-    // --- Register Handlebars Helpers ---
-    
-    /**
-     * Handlebars Helper: Not Equal (`neq`).
-     * @param {*} a - The first value to compare.
-     * @param {*} b - The second value to compare.
-     * @returns {boolean} True if the values are not strictly equal.
-     */
-    Handlebars.registerHelper("neq", (a, b) => a !== b);
+        // Register Handlebars Helpers
+        Handlebars.registerHelper("neq", (a, b) => a !== b);
+        Handlebars.registerHelper("selected", (condition) => condition ? "selected" : "");
+        Handlebars.registerHelper("json", (context) => JSON.stringify(context));
 
-    /**
-     * Handlebars Helper: `selected`.
-     * Returns the string "selected" if the provided condition is true.
-     * Useful for setting the selected option in a <select> element.
-     * @param {boolean} condition - The condition to evaluate.
-     * @returns {string} "selected" or an empty string.
-     */
-    Handlebars.registerHelper("selected", (condition) => condition ? "selected" : "");
+        // Load Templates
+        loadTemplates([
+            "modules/visage/templates/visage-selector.hbs",
+            "modules/visage/templates/visage-config-app.hbs",
+            "modules/visage/templates/visage-ring-editor.hbs"
+        ]);
 
-    /**
-     * Handlebars Helper: `json`.
-     * Converts a JavaScript object into a JSON string, suitable for embedding in HTML attributes.
-     * @param {object} context - The object to stringify.
-     * @returns {string} The JSON representation of the object.
-     */
-    Handlebars.registerHelper("json", (context) => JSON.stringify(context));
+        // Register Module Settings
+        registerSettings();
 
-    // Preload templates to ensure they are available for quick rendering.
-    loadTemplates([
-        "modules/visage/templates/visage-selector.hbs",
-        "modules/visage/templates/visage-config-app.hbs",
-        "modules/visage/templates/visage-ring-editor.hbs"
-    ]);
+        // ----------------------------------------------------
+        // Context Menu Integration (Actor Directory)
+        // ----------------------------------------------------
+        
+        /**
+         * Adds the "Visage" option to the Actor Directory context menu.
+         * @param {ContextMenuEntry[]} options - The array of context menu options.
+         */
+        const addSidebarOption = (options) => {
+            options.push({
+                name: "VISAGE.Title",
+                icon: '<i class="visage-icon-mask"></i>',
+                condition: (li) => {
+                    const documentId = getActorIdFromElement(li);
+                    if (!documentId) return false;
+                    const actor = game.actors.get(documentId);
+                    return actor && actor.isOwner;
+                },
+                callback: (li) => {
+                    const documentId = getActorIdFromElement(li);
+                    const actor = game.actors.get(documentId);
+                    if (actor) openVisageConfig(actor);
+                }
+            });
+        };
 
-    // --- Register Module Settings ---
+        // Hook for standard context menu construction
+        Hooks.on("getActorContextOptions", (html, options) => addSidebarOption(options));
+        
+        // Backup hook for core directory context menu (prevents duplication)
+        Hooks.on("getActorDirectoryEntryContext", (html, options) => {
+            if (!options.some(o => o.name === "VISAGE.Title")) addSidebarOption(options);
+        });
 
-    /**
-     * Setting: Cleanse Scene Tokens (GM-only trigger).
-     * This setting acts as a button for GMs to remove all Visage data from tokens on the current scene.
-     */
+        // ----------------------------------------------------
+        // Actor Sheet Header Integration (Application V1)
+        // ----------------------------------------------------
+        
+        Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
+            if (!sheet.actor.isOwner) return;
+
+            buttons.unshift({
+                label: "VISAGE.Title",
+                class: "visage-config",
+                icon: "visage-icon-mask",
+                onclick: () => openVisageConfig(sheet.actor)
+            });
+        });
+
+        // ----------------------------------------------------
+        // Actor Sheet Header Integration (Application V2)
+        // ----------------------------------------------------
+
+        /**
+         * Adds the "Visage" control to ApplicationV2 based actor sheets.
+         * Adheres to the ApplicationHeaderControlsEntry interface.
+         * * @param {ApplicationV2} app - The application instance.
+         * @param {ApplicationHeaderControlsEntry[]} controls - The array of header controls.
+         */
+        const addAppV2Control = (app, controls) => {
+            const actor = app.document;
+            if (!actor || !actor.isOwner) return;
+
+            controls.push({
+                label: "VISAGE.Title",
+                icon: "visage-icon-mask",
+                action: "visageConfigure",
+                onClick: () => openVisageConfig(actor), // Required V13+ camelCase property
+                order: 0
+            });
+        };
+
+        Hooks.on("getHeaderControlsActorSheetV2", addAppV2Control);
+        Hooks.on("getActorSheetV2HeaderControls", addAppV2Control);
+
+    } catch (err) {
+        console.error("Visage | Initialization failed:", err);
+    }
+});
+
+/* -------------------------------------------- */
+/* Module Logic & Hooks                        */
+/* -------------------------------------------- */
+
+/**
+ * Registers module-specific settings.
+ */
+function registerSettings() {
     game.settings.register(Visage.MODULE_ID, "cleanseScene", {
         name: "VISAGE.Settings.CleanseScene.Name",
         hint: "VISAGE.Settings.CleanseScene.Hint",
@@ -79,24 +175,12 @@ Hooks.once("init", () => {
         default: false,
         onChange: (value) => {
             if (value) {
-                Dialog.confirm({
-                    title: game.i18n.localize("VISAGE.Settings.CleanseConfirm.Title"),
-                    content: `<p>${game.i18n.localize("VISAGE.Settings.CleanseScene.Confirm")}</p>`,
-                    yes: () => cleanseSceneTokens(),
-                    no: () => ui.notifications.warn("Visage | Data cleanse cancelled."),
-                    defaultYes: false
-                }).finally(() => {
-                    // Reset the setting to false to make it behave like a button.
-                    game.settings.set(Visage.MODULE_ID, "cleanseScene", false);
-                });
+                cleanseSceneTokens();
+                game.settings.set(Visage.MODULE_ID, "cleanseScene", false);
             }
         },
     });
 
-    /**
-     * Setting: Cleanse All Tokens (GM-only trigger).
-     * This setting acts as a button for GMs to remove all Visage data from all tokens in all scenes.
-     */
     game.settings.register(Visage.MODULE_ID, "cleanseAll", {
         name: "VISAGE.Settings.CleanseAll.Name",
         hint: "VISAGE.Settings.CleanseAll.Hint",
@@ -107,140 +191,69 @@ Hooks.once("init", () => {
         default: false,
         onChange: (value) => {
             if (value) {
-                Dialog.confirm({
-                    title: game.i18n.localize("VISAGE.Settings.CleanseConfirm.Title"),
-                    content: `<p>${game.i18n.localize("VISAGE.Settings.CleanseAll.Confirm")}</p>`,
-                    yes: () => cleanseAllTokens(),
-                    no: () => ui.notifications.warn("Visage | Data cleanse cancelled."),
-                    defaultYes: false
-                }).finally(() => {
-                    game.settings.set(Visage.MODULE_ID, "cleanseAll", false);
-                });
+                cleanseAllTokens();
+                game.settings.set(Visage.MODULE_ID, "cleanseAll", false);
             }
         },
     });
 
-    /**
-     * Setting: World Data Version (Internal).
-     * An internal setting to track the module version last used with this world, used for migrations.
-     */
     game.settings.register(Visage.MODULE_ID, "worldVersion", {
         name: "World Data Version",
         scope: "world",
-        config: false, // Hidden from the settings UI.
+        config: false,
         type: String,
         default: "0.0.0"
     });
-});
+}
 
 /**
- * Hook: Add Visage configuration button to Actor Sheet headers.
- */
-Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
-    // Only allow for Owners
-    if (!sheet.actor.isOwner) return;
-
-    buttons.unshift({
-        label: "VISAGE.Title",
-        class: "visage-config",
-        icon: "visage-icon-mask",
-        onclick: () => {
-            const actor = sheet.actor;
-            let tokenId = null;
-            let sceneId = null;
-            if (actor.isToken) {
-                tokenId = actor.token.id;
-                sceneId = actor.token.parent.id;
-            }
-
-            new VisageConfigApp({
-                actorId: actor.id,
-                tokenId: tokenId,
-                sceneId: sceneId
-            }).render(true);
-        }
-    });
-});
-
-/**
- * Foundry VTT "ready" hook.
- * Fired once when the game world is fully loaded and ready to play.
- * This hook is used to check for module updates and trigger data migrations if necessary.
+ * Performs ready-state tasks such as version checks and data migration.
  */
 Hooks.once("ready", () => {
     if (!game.user.isGM) return;
 
-    const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
-    const currentVersion = game.modules.get(Visage.MODULE_ID).version;
+    try {
+        const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
+        const currentVersion = game.modules.get(Visage.MODULE_ID).version;
 
-    // Check if the installed module version is newer than the one last recorded for this world.
-    if (isNewerVersion(currentVersion, lastVersion)) {
-        
-        // Data structures changed significantly in v1.2.0, requiring a deep scan migration.
-        if (isNewerVersion("1.2.0", lastVersion)) {
-             Visage.log(`World migration needed (Deep Scan): ${lastVersion} -> ${currentVersion}`, true);
-             migrateWorldData();
+        if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {
+            if (foundry.utils.isNewerVersion("1.2.0", lastVersion)) {
+                migrateWorldData();
+            }
+            game.settings.set(Visage.MODULE_ID, "worldVersion", currentVersion);
         }
-        
-        // Update the stored version to the current one to prevent re-running migrations.
-        game.settings.set(Visage.MODULE_ID, "worldVersion", currentVersion);
+    } catch (err) {
+        console.warn("Visage | Version check failed:", err);
     }
 });
 
-// --- Application Tracking ---
-
-/**
- * A global registry of open Visage application instances.
- * This is used to prevent duplicate windows and manage focus (e.g., bringing an open app to top).
- * @type {Object<string, Application>}
- */
+// Initialize application registry for window management
 Visage.apps = {};
 
 /**
- * Hook: `renderApplication`.
- * Tracks open Visage applications by adding them to the `Visage.apps` registry.
- * @param {Application} app - The application instance being rendered.
+ * Tracks Visage application instances when they render.
  */
 Hooks.on("renderApplication", (app) => {
     if (app instanceof VisageSelector || app instanceof VisageConfigApp || app instanceof VisageRingEditor) {
-        // Support both ApplicationV2 `id` and legacy `options.id`.
         const appId = app.id || app.options?.id;
-        if (appId) {
-            Visage.apps[appId] = app;
-        }
+        if (appId) Visage.apps[appId] = app;
     }
 });
 
 /**
- * Hook: `closeApplication`.
- * Removes closed Visage applications from the registry to prevent memory leaks and dangling references.
- * @param {Application} app - The application instance being closed.
+ * Cleans up application registry when Visage apps are closed.
  */
 Hooks.on("closeApplication", (app) => {
     if (app instanceof VisageSelector || app instanceof VisageConfigApp || app instanceof VisageRingEditor) {
         const appId = app.id || app.options?.id;
-        if (appId && Visage.apps[appId]) {
-            delete Visage.apps[appId];
-        }
+        if (appId && Visage.apps[appId]) delete Visage.apps[appId];
     }
 });
 
-// --- Core Event Hooks ---
-
-/**
- * Hook: `renderTokenHUD`.
- * Delegates to `handleTokenHUD` to add the "Change Visage" button to the token's interface.
- */
+// Inject Token HUD controls
 Hooks.on("renderTokenHUD", handleTokenHUD);
 
-/**
- * Hook: `preUpdateToken`.
- * Intercepts token updates to synchronize changes (e.g., name, image) with Visage's default data for that token.
- * This ensures that the "Default" visage option always reflects the token's last known manual state.
- * @param {TokenDocument} document - The token document being updated.
- * @param {object} change - The differential data being applied.
- * @param {object} options - Options for the update operation.
- */
+// Handle token updates for dynamic visual changes
 Hooks.on("preUpdateToken", (document, change, options) => {
     Visage.handleTokenUpdate(document, change, options);
 });
