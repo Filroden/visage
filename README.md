@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-1.6.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-1.6.1-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
@@ -50,7 +50,7 @@ Software and associated documentation files in this repository are covered by an
 
 [Short term]
 
-* 
+* Add Wiki to GitHib and move "How to Use" and "API Documentation"
 
 [Long term]
 
@@ -65,10 +65,25 @@ Software and associated documentation files in this repository are covered by an
 
 Before you can switch **Visages**, you need to define them for a token. These **Visages** are stored on the actor and are available to all tokens of that actor.
 
-1. **Open Visage Configuration**: You can access the configuration window in two ways:
+1. **Open Visage Configuration**: You can access the configuration window in three ways:
 
-    * **From the Actor Sheet**: Open any Actor Sheet. In the window header (top bar), click the Visage button. This allows you to configure Visages using the Prototype Token as your baseline, perfect for prepping NPCs before placing them on a scene.
+    * **From the Actor Sidebar**: Right-click any actor in the sidebar and click the Visage option.
+
+    <img src="images/actor-mode-sidebar.png" alt="Right-click menu on actors in the sidebar" width="200" style="display: block; margin: 0 auto;">
+
+    * **From the Actor Sheet**: Open any Actor Sheet. Depending on the system, Visage can either be accessed via the window header (top bar), or from within the context menu (the "hamburger" icon).
+
+    <img src="images/actor-mode-appv1.png" alt="Right-click menu on actors in the sidebar" width="200" style="display: block; margin: 0 auto;">
+    <br>
+    <img src="images/actor-mode-appv2.png" alt="Right-click menu on actors in the sidebar" width="200" style="display: block; margin: 0 auto;">
+
     * **From a Token**: Right-click on a token and choose the **Visage** icon in the Token HUD (a "switch account" symbol) to open the **Visage Selector HUD**. In the top right corner, click the settings ("cog") icon in the top right.
+
+    <img src="images/selector_hud.png" alt="Visage Selector HUD showing Visage icon in the token HUD" width="200" style="display: block; margin: 0 auto;">
+
+    Opening Visage from the Actor (the sidebar or sheet) allows you to configure Visages using the Prototype Token as your baseline, perfect for prepping NPCs before placing them on a scene.
+
+    Opening Visage from the Token (the token HUD) allows yuo to configure Visages using that Token's default settings.
 
 2. **Review Visage Defaults**:
     * The **Visage Configuration** window displays the default name and image path and other settings.
