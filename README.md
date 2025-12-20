@@ -12,6 +12,8 @@
 
 **Visage** allows players and GMs to instantly switch a token's appearance, disposition, Dynamic Token Ring configuration and size/image scale on the fly.
 
+For how to use Visage, check the [Wiki](https://github.com/Filroden/visage/wiki).
+
 Owners can configure and **store multiple alternate forms** (Visages) for any Actor — which are saved persistently and available to all its linked tokens across all scenes.
 
 <div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;"><div style="text-align: center;"><img src="images/selector_hud_cropped.png" alt="Visage Selector HUD" style="margin-inline-start: 3rem; width: 150px; max-height: 100%; object-fit: contain;"></div><div style="text-align: center;"><img src="images/animated_tokens.gif" alt="Visage Selector HUD showing animated tokens" style="margin-inline-start: 3rem; width: 150px; max-height: 100%;object-fit: contain;"></div></div>
