@@ -1152,7 +1152,7 @@
    7. GLOBAL EDITOR FIXES
    ========================================================================== */
 
-/* FIX 1: Force Background Color */
+/* Force Background Color */
 .visage.visage-global-editor .window-content {
     background: var(--filroden-color-bg-darkest) !important;
     background-image: none !important;
@@ -1179,7 +1179,7 @@
     margin-top: var(--filroden-space-xxs);
 }
 
-/* FIX 3: Disabled Inputs */
+/* Disabled Inputs */
 .visage.visage-global-editor input:disabled,
 .visage.visage-global-editor select:disabled,
 .visage.visage-global-editor button:disabled {
@@ -1196,9 +1196,6 @@
     cursor: pointer;
 }
 
-/* FIX 4: SELECT OPTION STYLING 
-   We target the select AND the options to ensure the menu matches the theme.
-*/
 .visage.visage-global-editor select {
     background-color: var(--filroden-color-bg-light) !important;
     color: var(--filroden-color-text-main-solid) !important;
@@ -1246,7 +1243,7 @@
     gap: var(--filroden-space-s);
 }
 
-/* NEW: Stacked Selects Class */
+/* Stacked Selects Class */
 .visage .checkbox-input-group .stacked-selects {
     display: flex;
     flex-direction: column;
@@ -1268,4 +1265,201 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--filroden-space-xs);
+}
+
+
+/* ==========================================================================
+   8. GLOBAL DIRECTORY
+   ========================================================================== */
+
+.visage.visage-global-directory .window-content {
+    padding: 0 !important; /* Remove padding to allow sidebar to touch edges */
+    background: var(--filroden-color-bg-darkest);
+    display: flex;
+    flex-direction: column;
+}
+
+.visage-directory-container {
+    display: flex;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* --- Sidebar --- */
+.visage-sidebar {
+    width: 250px;
+    background: rgba(0, 0, 0, 0.2);
+    border-right: 1px solid var(--filroden-color-border);
+    display: flex;
+    flex-direction: column;
+    padding: var(--filroden-space-m);
+    gap: var(--filroden-space-m);
+}
+
+.visage-sidebar .search-bar {
+    position: relative;
+}
+
+.visage-sidebar .search-bar input {
+    padding-left: 2rem;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--filroden-color-border);
+    border-radius: 4px;
+    color: var(--filroden-color-text-main-solid);
+}
+
+.visage-sidebar .search-bar i {
+    position: absolute;
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--filroden-color-text-muted);
+}
+
+.visage-create-btn {
+    background: var(--filroden-color-text-accent);
+    color: #000;
+    border: none;
+    font-weight: bold;
+}
+
+.category-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.category-list li a {
+    display: block;
+    padding: 0.5rem;
+    color: var(--filroden-color-text-muted-solid);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.category-list li.active a,
+.category-list li a:hover {
+    background: var(--filroden-color-bg-light);
+    color: var(--filroden-color-text-main-solid);
+}
+
+.recycle-bin-toggle {
+    margin-top: auto;
+    cursor: pointer;
+    color: var(--filroden-color-text-muted);
+    padding: 0.5rem;
+}
+
+.recycle-bin-toggle.active {
+    color: #ff6b6b; /* Reddish for bin mode */
+}
+
+/* --- Browser & Grid --- */
+.visage-browser {
+    flex: 1;
+    padding: var(--filroden-space-l);
+    overflow-y: auto;
+}
+
+.visage-browser-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--filroden-space-m);
+}
+
+/* --- Card --- */
+.visage-card {
+    background: var(--filroden-color-bg-light);
+    border: 1px solid var(--filroden-color-border);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: transform 0.2s;
+    cursor: grab;
+    display: flex;
+    flex-direction: column;
+}
+
+.visage-card:hover {
+    border-color: var(--filroden-color-text-accent);
+    transform: translateY(-2px);
+}
+
+.card-image {
+    height: 180px;
+    background: #000;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Overlay Actions */
+.card-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.visage-card:hover .card-overlay {
+    opacity: 1;
+}
+
+.card-overlay button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: var(--filroden-color-text-accent);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.card-overlay button.danger {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+.card-footer {
+    padding: 0.5rem;
+    background: rgba(0,0,0,0.2);
+}
+
+.card-title {
+    margin: 0;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+.card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+    justify-content: center;
+}
+
+.tag {
+    font-size: 0.7rem;
+    background: rgba(255,255,255,0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+    color: var(--filroden-color-text-muted-solid);
 }

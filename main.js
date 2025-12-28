@@ -10,6 +10,7 @@ import { VisageConfigApp } from "./visage-config.js";
 import { VisageRingEditor } from "./visage-ring-editor.js";
 import { VisageGlobalData } from "./visage-global-data.js";
 import { VisageGlobalEditor } from "./visage-global-editor.js";
+import { VisageGlobalDirectory } from "./visage-global-directory.js";
 import { handleTokenHUD } from "./visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./visage-cleanup.js";
 import { migrateWorldData } from "./visage-migration.js";
@@ -70,6 +71,7 @@ Hooks.once("init", () => {
         // --- EXPOSE FOR DEBUGGING/API (Phase 1 & 2) ---
         window.VisageGlobalData = VisageGlobalData;
         window.VisageGlobalEditor = VisageGlobalEditor;
+        window.VisageGlobalDirectory = VisageGlobalDirectory;
         
         game.modules.get("visage").api.Global = VisageGlobalData;
         game.modules.get("visage").api.Editor = VisageGlobalEditor;
@@ -84,7 +86,8 @@ Hooks.once("init", () => {
             "modules/visage/templates/visage-selector.hbs",
             "modules/visage/templates/visage-config-app.hbs",
             "modules/visage/templates/visage-ring-editor.hbs",
-            "modules/visage/templates/visage-global-editor.hbs"
+            "modules/visage/templates/visage-global-editor.hbs",
+            "modules/visage/templates/visage-global-directory.hbs"
         ]);
 
         // Register Module Settings

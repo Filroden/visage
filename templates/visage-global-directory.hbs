@@ -1,0 +1,93 @@
+<div class="visage-directory-container">
+    
+    {{!-- SIDEBAR --}}
+    <aside class="visage-sidebar">
+        
+        {{!-- Search --}}
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" value="{{filters.search}}" placeholder="Search Library...">
+            {{#if filters.search}}
+            <a data-action="clearSearch"><i class="fas fa-times"></i></a>
+            {{/if}}
+        </div>
+
+        {{!-- Actions --}}
+        <div class="sidebar-actions">
+            <button class="visage-create-btn" data-action="create">
+                <i class="fas fa-plus"></i> New Visage
+            </button>
+        </div>
+
+        {{!-- Categories --}}
+        <nav class="category-list">
+            <h3 class="sidebar-header">Categories</h3>
+            <ul>
+                <li class="{{#unless filters.category}}active{{/unless}}">
+                    <a data-action="selectCategory" data-category="">All Visages</a>
+                </li>
+                {{#each categories}}
+                <li class="{{#if this.active}}active{{/if}}">
+                    <a data-action="selectCategory" data-category="{{this.label}}">{{this.label}}</a>
+                </li>
+                {{/each}}
+            </ul>
+        </nav>
+
+        {{!-- Recycle Bin Toggle --}}
+        <div class="recycle-bin-toggle {{#if isBin}}active{{/if}}" data-action="toggleBin">
+            <i class="fas fa-trash"></i> Recycle Bin
+        </div>
+    </aside>
+
+    {{!-- MAIN BROWSER --}}
+    <main class="visage-browser">
+        
+        {{#if items.length}}
+        <div class="visage-browser-grid">
+            {{#each items}}
+            <div class="visage-card" data-id="{{this.id}}" draggable="true">
+                
+                {{!-- Image Preview --}}
+                <div class="card-image">
+                    {{#if this.changes.img}}
+                    <img src="{{this.changes.img}}" alt="{{this.label}}">
+                    {{else}}
+                    <div class="no-image"><i class="visage-icon-mask"></i></div>
+                    {{/if}}
+                    
+                    {{!-- Hover Actions --}}
+                    <div class="card-overlay">
+                        {{#if ../isBin}}
+                            <button data-action="restore" data-tooltip="Restore"><i class="fas fa-trash-restore"></i></button>
+                            <button data-action="destroy" data-tooltip="Destroy Forever" class="danger"><i class="fas fa-ban"></i></button>
+                        {{else}}
+                            <button data-action="apply" data-tooltip="Apply to Selected"><i class="fas fa-check"></i></button>
+                            <button data-action="edit" data-tooltip="Edit"><i class="fas fa-edit"></i></button>
+                            <button data-action="delete" data-tooltip="Delete" class="danger"><i class="fas fa-trash"></i></button>
+                        {{/if}}
+                    </div>
+                </div>
+
+                {{!-- Footer --}}
+                <div class="card-footer">
+                    <h4 class="card-title">{{this.label}}</h4>
+                    {{#if this.tags}}
+                    <div class="card-tags">
+                        {{#each this.tags}}
+                        <span class="tag">{{this}}</span>
+                        {{/each}}
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-directory">
+            <p>No Visages found.</p>
+        </div>
+        {{/if}}
+
+    </main>
+</div>
