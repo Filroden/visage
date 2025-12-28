@@ -1,0 +1,183 @@
+<div class="visage-editor-container">
+    <p class="visage-notes">Configure a global visage. Use the checkboxes to decide which properties override the token's defaults.</p>
+
+    <div class="visage-editor-grid">
+        
+        {{!-- COLUMN 1: METADATA --}}
+        <div class="visage-column metadata">
+            <h3 class="column-header">Identity</h3>
+            <fieldset class="visage-config-fieldset">
+                
+                <div class="form-group">
+                    <label>Label</label>
+                    <div class="form-fields">
+                        <input type="text" name="label" value="{{label}}" placeholder="e.g. Ancient Red Dragon">
+                    </div>
+                    <p class="hint">Name shown in the library.</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <div class="form-fields">
+                        <input type="text" name="category" value="{{category}}" list="visage-categories" placeholder="e.g. Monsters/Dragons">
+                        <datalist id="visage-categories">
+                            {{!-- Populated dynamically later --}}
+                        </datalist>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Tags</label>
+                    <div class="form-fields">
+                        <input type="text" name="tags" value="{{tags}}" placeholder="boss, fire, huge">
+                    </div>
+                    <p class="hint">Comma separated keywords.</p>
+                </div>
+
+            </fieldset>
+        </div>
+
+        {{!-- COLUMN 2: TOKEN DATA --}}
+        <div class="visage-column token-data">
+            <h3 class="column-header">Token Appearance</h3>
+            
+            <fieldset class="visage-config-fieldset">
+                {{!-- 1. Name Override --}}
+                <div class="form-group checkbox-input-group">
+                    <input type="checkbox" name="nameOverride_active" data-action="toggleField" data-target="nameOverride" {{checked nameOverride.active}} data-tooltip="Override?">
+                    <div class="form-fields">
+                        <input type="text" name="nameOverride" value="{{nameOverride.value}}" {{disabled (not nameOverride.active)}} placeholder="Token Name Override">
+                    </div>
+                </div>
+
+                {{!-- 2. Image --}}
+                <div class="form-group checkbox-input-group">
+                    <input type="checkbox" name="img_active" data-action="toggleField" data-target="img" {{checked img.active}} data-tooltip="Override?">
+                    <div class="form-fields">
+                        <input type="text" name="img" value="{{img.value}}" {{disabled (not img.active)}} placeholder="path/to/image.webp">
+                        <button type="button" class="file-picker-button" data-action="openFilePicker" {{disabled (not img.active)}}><i class="fas fa-file-import"></i></button>
+                    </div>
+                </div>
+
+                {{!-- 3. Scale (%) --}}
+                <div class="form-group checkbox-input-group">
+                    <input type="checkbox" name="scale_active" data-action="toggleField" data-target="scale" {{checked scale.active}} data-tooltip="Override?">
+                    <label>Scale (%)</label>
+                    <div class="form-fields">
+                        <input type="number" name="scale" value="{{scale.value}}" step="1" {{disabled (not scale.active)}}>
+                    </div>
+                </div>
+
+                {{!-- 4. Flips (Vertical Stack) --}}
+                <div class="form-group checkbox-input-group">
+                    {{!-- Using grid-column to span the checkbox gap since we don't have a toggle here --}}
+                    <label style="grid-column: 1 / span 3; margin-bottom: 0.25rem;">Mirroring</label>
+                    
+                    <div class="form-fields stacked-selects" style="grid-column: 1 / span 3;">
+                        
+                        {{!-- Horizontal X --}}
+                        <select name="isFlippedX">
+                            <option value="" {{visageSelected (eq isFlippedX.value null)}}>Horizontal: Unchanged</option>
+                            <option value="false" {{visageSelected (eq isFlippedX.value false)}}>Force Right (Standard)</option>
+                            <option value="true" {{visageSelected (eq isFlippedX.value true)}}>Force Left (Mirrored)</option>
+                        </select>
+
+                        {{!-- Vertical Y --}}
+                        <select name="isFlippedY">
+                            <option value="" {{visageSelected (eq isFlippedY.value null)}}>Vertical: Unchanged</option>
+                            <option value="false" {{visageSelected (eq isFlippedY.value false)}}>Force Up (Standard)</option>
+                            <option value="true" {{visageSelected (eq isFlippedY.value true)}}>Force Down (Mirrored)</option>
+                        </select>
+                    </div>
+                    
+                    <p class="hint" style="grid-column: 1 / span 3;">"Unchanged" preserves the token's current facing.</p>
+                </div>
+
+                {{!-- 5. Disposition --}}
+                <div class="form-group checkbox-input-group">
+                    <input type="checkbox" name="disposition_active" data-action="toggleField" data-target="disposition" {{checked disposition.active}} data-tooltip="Override?">
+                    <div class="form-fields">
+                        <select name="disposition" {{disabled (not disposition.active)}}>
+                            <option value="1" {{visageSelected (eq disposition.value 1)}}>Friendly</option>
+                            <option value="0" {{visageSelected (eq disposition.value 0)}}>Neutral</option>
+                            <option value="-1" {{visageSelected (eq disposition.value -1)}}>Hostile</option>
+                            <option value="-2" {{visageSelected (eq disposition.value -2)}}>Secret</option>
+                        </select>
+                    </div>
+                </div>
+
+                {{!-- 6. Dimensions --}}
+                <div class="form-group checkbox-input-group">
+                    <input type="checkbox" name="width_active" data-action="toggleField" data-target="width" {{checked width.active}} data-tooltip="Override?">
+                    <label>Width</label>
+                    <input type="number" name="width" value="{{width.value}}" {{disabled (not width.active)}}>
+                </div>
+                <div class="form-group checkbox-input-group">
+                    <input type="checkbox" name="height_active" data-action="toggleField" data-target="height" {{checked height.active}} data-tooltip="Override?">
+                    <label>Height</label>
+                    <input type="number" name="height" value="{{height.value}}" {{disabled (not height.active)}}>
+                </div>
+            </fieldset>
+        </div>
+
+        {{!-- COLUMN 3: DYNAMIC RING --}}
+        <div class="visage-column ring-data">
+            <h3 class="column-header">Dynamic Ring</h3>
+            
+            <fieldset class="visage-config-fieldset">
+                <div class="form-group">
+                    <label class="master-toggle">
+                        <input type="checkbox" name="ring_active" {{checked ring.active}}>
+                        Enable Ring Override
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Ring Color</label>
+                    <div class="form-fields">
+                        <color-picker name="ringColor" value="{{ring.colors.ring}}"></color-picker>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Background Color</label>
+                    <div class="form-fields">
+                        <color-picker name="ringBackgroundColor" value="{{ring.colors.background}}"></color-picker>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Subject Texture</label>
+                    <div class="form-fields">
+                        <file-picker type="image" name="ringSubjectTexture" value="{{ring.subject.texture}}"></file-picker>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Subject Scale</label>
+                    <div class="form-fields">
+                        <range-picker name="ringSubjectScale" value="{{ring.subject.scale}}" min="0.5" max="3.0" step="0.1"></range-picker>
+                    </div>
+                </div>
+
+                <div class="form-group stacked">
+                    <label>Effects</label>
+                    <div class="form-fields effects-grid">
+                        {{#each ring.effects}}
+                        <label class="checkbox">
+                            <input type="checkbox" name="effect_{{this.value}}" {{checked this.isActive}}>
+                            {{this.label}}
+                        </label>
+                        {{/each}}
+                    </div>
+                </div>
+
+            </fieldset>
+        </div>
+
+    </div>
+
+    <footer class="visage-config-footer">
+        <button type="submit" class="visage-save {{#if isDirty}}dirty{{/if}}" data-action="save">
+            <i class="fas fa-save"></i> Save Visage
+        </button>
+    </footer>
+</div>
