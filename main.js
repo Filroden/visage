@@ -64,7 +64,7 @@ Hooks.once("init", () => {
 
         // Register Handlebars Helpers
         Handlebars.registerHelper("neq", (a, b) => a !== b);
-        Handlebars.registerHelper("selected", (condition) => condition ? "selected" : "");
+        Handlebars.registerHelper("visageSelected", (condition) => condition ? "selected" : "");
         Handlebars.registerHelper("json", (context) => JSON.stringify(context));
 
         // Load Templates
