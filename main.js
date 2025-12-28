@@ -9,6 +9,7 @@ import { VisageSelector } from "./visage-selector.js";
 import { VisageConfigApp } from "./visage-config.js";
 import { VisageRingEditor } from "./visage-ring-editor.js";
 import { VisageGlobalData } from "./visage-global-data.js";
+import { VisageGlobalEditor } from "./visage-global-editor.js";
 import { handleTokenHUD } from "./visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./visage-cleanup.js";
 import { migrateWorldData } from "./visage-migration.js";
@@ -66,6 +67,13 @@ Hooks.once("init", () => {
         // Register Global Data Storage (Phase 1)
         VisageGlobalData.registerSettings();
 
+        // --- EXPOSE FOR DEBUGGING/API (Phase 1 & 2) ---
+        window.VisageGlobalData = VisageGlobalData;
+        window.VisageGlobalEditor = VisageGlobalEditor;
+        
+        game.modules.get("visage").api.Global = VisageGlobalData;
+        game.modules.get("visage").api.Editor = VisageGlobalEditor;
+
         // Register Handlebars Helpers
         Handlebars.registerHelper("neq", (a, b) => a !== b);
         Handlebars.registerHelper("visageSelected", (condition) => condition ? "selected" : "");
@@ -75,7 +83,8 @@ Hooks.once("init", () => {
         loadTemplates([
             "modules/visage/templates/visage-selector.hbs",
             "modules/visage/templates/visage-config-app.hbs",
-            "modules/visage/templates/visage-ring-editor.hbs"
+            "modules/visage/templates/visage-ring-editor.hbs",
+            "modules/visage/templates/visage-global-editor.hbs"
         ]);
 
         // Register Module Settings
@@ -242,7 +251,10 @@ Visage.apps = {};
  * Tracks Visage application instances when they render.
  */
 Hooks.on("renderApplication", (app) => {
-    if (app instanceof VisageSelector || app instanceof VisageConfigApp || app instanceof VisageRingEditor) {
+    if (app instanceof VisageSelector ||
+        app instanceof VisageConfigApp ||
+        app instanceof VisageRingEditor || 
+        app instanceof VisageGlobalEditor) {
         const appId = app.id || app.options?.id;
         if (appId) Visage.apps[appId] = app;
     }
@@ -252,7 +264,10 @@ Hooks.on("renderApplication", (app) => {
  * Cleans up application registry when Visage apps are closed.
  */
 Hooks.on("closeApplication", (app) => {
-    if (app instanceof VisageSelector || app instanceof VisageConfigApp || app instanceof VisageRingEditor) {
+    if (app instanceof VisageSelector ||
+        app instanceof VisageConfigApp ||
+        app instanceof VisageRingEditor || 
+        app instanceof VisageGlobalEditor) {
         const appId = app.id || app.options?.id;
         if (appId && Visage.apps[appId]) delete Visage.apps[appId];
     }

@@ -1146,3 +1146,126 @@
     position: relative;
     top: -1px;
 }
+
+
+/* ==========================================================================
+   7. GLOBAL EDITOR FIXES
+   ========================================================================== */
+
+/* FIX 1: Force Background Color */
+.visage.visage-global-editor .window-content {
+    background: var(--filroden-color-bg-darkest) !important;
+    background-image: none !important;
+    padding: var(--filroden-space-l) !important;
+}
+
+.visage.visage-global-editor {
+    width: 60rem !important;
+    max-width: 95vw;
+}
+
+/* Labels */
+.visage.visage-global-editor label {
+    color: var(--filroden-color-text-muted-solid) !important;
+    font-weight: bold;
+}
+
+/* Hint Text */
+.visage.visage-global-editor .hint,
+.visage.visage-global-editor .visage-notes {
+    color: var(--filroden-color-text-main-solid) !important;
+    opacity: 0.8;
+    font-size: var(--filroden-font-size-xs);
+    margin-top: var(--filroden-space-xxs);
+}
+
+/* FIX 3: Disabled Inputs */
+.visage.visage-global-editor input:disabled,
+.visage.visage-global-editor select:disabled,
+.visage.visage-global-editor button:disabled {
+    opacity: 0.7 !important;
+    color: var(--filroden-color-text-muted) !important;
+    cursor: not-allowed !important;
+    border-color: var(--filroden-color-border) !important;
+    border-style: dashed !important;
+    box-shadow: none !important;
+}
+
+.visage.visage-global-editor input[type="checkbox"] {
+    opacity: 1 !important;
+    cursor: pointer;
+}
+
+/* FIX 4: SELECT OPTION STYLING 
+   We target the select AND the options to ensure the menu matches the theme.
+*/
+.visage.visage-global-editor select {
+    background-color: var(--filroden-color-bg-light) !important;
+    color: var(--filroden-color-text-main-solid) !important;
+}
+
+.visage.visage-global-editor select option {
+    background-color: #1a1a1a !important; /* Hardcoded dark hex for max compatibility */
+    color: #ffffff !important;
+}
+
+/* Layout Grids */
+.visage-editor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--filroden-space-l);
+    padding-bottom: var(--filroden-space-m);
+}
+
+.visage-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-m);
+}
+
+.visage-column .column-header {
+    border-bottom: 2px solid var(--filroden-color-text-accent);
+    padding-bottom: var(--filroden-space-xs);
+    margin-bottom: 0;
+    color: var(--filroden-color-text-main-solid);
+    font-size: var(--filroden-font-size-m);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Checkbox + Input Group Styling */
+.visage .checkbox-input-group {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+}
+
+.visage .checkbox-input-group:has(label) {
+    grid-template-columns: 1.5rem auto 1fr;
+    gap: var(--filroden-space-s);
+}
+
+/* NEW: Stacked Selects Class */
+.visage .checkbox-input-group .stacked-selects {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-s);
+    width: 100%;
+}
+
+.visage .master-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    font-weight: bold;
+    color: var(--filroden-color-text-accent);
+    cursor: pointer;
+    line-height: 1.5;
+}
+
+.visage .effects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--filroden-space-xs);
+}
