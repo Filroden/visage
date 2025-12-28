@@ -8,6 +8,7 @@ import { Visage } from "./visage.js";
 import { VisageSelector } from "./visage-selector.js";
 import { VisageConfigApp } from "./visage-config.js";
 import { VisageRingEditor } from "./visage-ring-editor.js";
+import { VisageGlobalData } from "./visage-global-data.js";
 import { handleTokenHUD } from "./visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./visage-cleanup.js";
 import { migrateWorldData } from "./visage-migration.js";
@@ -61,6 +62,9 @@ function getActorIdFromElement(li) {
 Hooks.once("init", () => {
     try {
         Visage.initialize();
+
+        // Register Global Data Storage (Phase 1)
+        VisageGlobalData.registerSettings();
 
         // Register Handlebars Helpers
         Handlebars.registerHelper("neq", (a, b) => a !== b);
@@ -213,6 +217,10 @@ Hooks.once("ready", () => {
     if (!game.user.isGM) return;
 
     try {
+        // Run Garbage Collection (Phase 1)
+        // Clean up any global visages deleted > 30 days ago
+        VisageGlobalData.runGarbageCollection();
+
         const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
         const currentVersion = game.modules.get(Visage.MODULE_ID).version;
 
