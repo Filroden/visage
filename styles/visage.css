@@ -27,6 +27,7 @@
 }
 
 .visage {
+    font-family: var(--filroden-font-family) !important;
     font-size: var(--filroden-font-size-s);
     --filroden-dir-flip: 1;
 }
@@ -1269,26 +1270,38 @@
 
 
 /* ==========================================================================
-   8. GLOBAL DIRECTORY
+   8. GLOBAL DIRECTORY (FINAL FIXED LAYOUT)
    ========================================================================== */
 
-.visage.visage-global-directory .window-content {
-    padding: 0 !important; /* Remove padding to allow sidebar to touch edges */
-    background: var(--filroden-color-bg-darkest);
-    display: flex;
-    flex-direction: column;
+div#visage-global-directory {
+    min-width: 900px !important; 
+    min-height: 520px !important;
 }
 
+div#visage-global-directory .window-content {
+    padding: 0 !important;
+    background: var(--filroden-color-bg-darkest) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+
+/* Container */
 .visage-directory-container {
-    display: flex;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     height: 100%;
+    width: 100%;
     overflow: hidden;
 }
 
-/* --- Sidebar --- */
+/* Sidebar */
 .visage-sidebar {
     width: 250px;
-    background: rgba(0, 0, 0, 0.2);
+    flex: 0 0 250px;
+    background: rgba(0, 0, 0, 0.25);
     border-right: 1px solid var(--filroden-color-border);
     display: flex;
     flex-direction: column;
@@ -1296,170 +1309,432 @@
     gap: var(--filroden-space-m);
 }
 
-.visage-sidebar .search-bar {
-    position: relative;
+/* Main Browser - SCROLLS INTERNALLY */
+.visage-browser {
+    flex: 1;
+    padding: var(--filroden-space-l);
+    background: var(--filroden-color-bg-darkest);
+    overflow-y: auto;
+    height: 100%;
 }
 
+.visage-browser-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--filroden-space-m);
+    align-content: start;
+}
+
+.visage-mode-switcher {
+    display: flex;
+    background: transparent;
+    gap: 8px;
+}
+
+.visage-mode-switcher button {
+    flex: 1;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: var(--filroden-color-text-muted);
+    font-size: 0.85rem;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.visage-mode-switcher button.active {
+    background: var(--filroden-color-bg-light-solid);
+    color: var(--filroden-color-text-main-solid);
+    border-color: var(--filroden-color-text-accent);
+    font-weight: bold;
+}
+
+/* Search */
+.visage-sidebar .search-bar { position: relative; }
 .visage-sidebar .search-bar input {
     padding-left: 2rem;
     background: rgba(0,0,0,0.3);
     border: 1px solid var(--filroden-color-border);
     border-radius: 4px;
     color: var(--filroden-color-text-main-solid);
+    width: 100%;
 }
-
 .visage-sidebar .search-bar i {
-    position: absolute;
-    left: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
+    position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%);
     color: var(--filroden-color-text-muted);
 }
 
 .visage-create-btn {
     background: var(--filroden-color-text-accent);
-    color: #000;
-    border: none;
-    font-weight: bold;
+    color: #000; border: none; font-weight: bold; width: 100%;
 }
 
+/* FIX 3: Category Pills */
 .category-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 4px;
 }
-
 .category-list li a {
-    display: block;
-    padding: 0.5rem;
+    display: block; padding: 6px 10px;
     color: var(--filroden-color-text-muted-solid);
-    border-radius: 4px;
-    cursor: pointer;
+    border-radius: 4px; cursor: pointer;
+    border: 1px solid transparent;
+    background: rgba(255,255,255,0.03);
+    transition: all 0.2s;
 }
-
-.category-list li.active a,
 .category-list li a:hover {
-    background: var(--filroden-color-bg-light);
+    background: rgba(255,255,255,0.08);
     color: var(--filroden-color-text-main-solid);
+    border-color: rgba(255,255,255,0.1);
+}
+.category-list li.active a {
+    background: var(--filroden-color-text-accent);
+    color: #000; font-weight: bold;
 }
 
-.recycle-bin-toggle {
-    margin-top: auto;
-    cursor: pointer;
-    color: var(--filroden-color-text-muted);
-    padding: 0.5rem;
-}
-
-.recycle-bin-toggle.active {
-    color: #ff6b6b; /* Reddish for bin mode */
-}
-
-/* --- Browser & Grid --- */
+/* --- MAIN BROWSER --- */
 .visage-browser {
     flex: 1;
     padding: var(--filroden-space-l);
-    overflow-y: auto;
+    background: var(--filroden-color-bg-darkest);
+    overflow-y: auto; 
+    height: 100%; 
 }
 
 .visage-browser-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--filroden-space-m);
+    align-content: start;
 }
 
-/* --- Card --- */
+/* --- CARD (3-ZONE LAYOUT) --- */
 .visage-card {
     background: var(--filroden-color-bg-light);
     border: 1px solid var(--filroden-color-border);
     border-radius: 6px;
     overflow: hidden;
-    transition: transform 0.2s;
-    cursor: grab;
     display: flex;
     flex-direction: column;
+    height: 190px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    transition: border-color 0.2s;
+}
+.visage-card:hover { border-color: var(--filroden-color-text-accent); }
+
+.card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    margin: 3px 3px 0 3px; 
+    border-radius: 4px 4px 0 0;
+    border: 1px solid rgba(0,0,0,0.5);
+    border-bottom: none;
 }
 
-.visage-card:hover {
-    border-color: var(--filroden-color-text-accent);
-    transform: translateY(-2px);
+/* ZONE 1: LEFT (Metadata Lightbox) */
+.card-zone-left {
+    width: 100px; 
+    background: rgba(0,0,0,0.4);
+    border-right: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
-.card-image {
-    height: 180px;
-    background: #000;
-    position: relative;
+/* Fixed Slots */
+.metadata-slot {
     display: flex;
     align-items: center;
-    justify-content: center;
-}
-
-.card-image img {
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--filroden-color-text-main-solid);
     width: 100%;
-    height: 100%;
-    object-fit: contain;
+    height: 20px;
 }
 
-/* Overlay Actions */
-.card-overlay {
+.metadata-slot.inactive {
+    color: var(--filroden-color-text-muted);
+    opacity: 0.4;
+}
+
+.metadata-slot i {
+    width: 16px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.metadata-slot .slot-value {
+    font-family: var(--filroden-font-family) !important;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* Disposition Slot */
+.metadata-slot.disposition-slot {
+    margin-top: auto;
+    width: 100%;
+    justify-content: center;
+    height: auto;
+}
+
+.visage-disposition-chip {
+    width: 100%;
+    text-align: center;
+    font-size: 0.65rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 3px 0;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.1);
+    letter-spacing: 0.05em;
+}
+
+.visage-disposition-chip.friendly { background: #1c6b2a; color: #fff; border-color: #4ade80; }
+.visage-disposition-chip.neutral { background: #856404; color: #fff; border-color: #facc15; }
+.visage-disposition-chip.hostile { background: #7f1d1d; color: #fff; border-color: #f87171; }
+.visage-disposition-chip.secret { background: #4c1d95; color: #fff; border-color: #a78bfa; }
+.visage-disposition-chip.none { 
+    background: transparent; 
+    border: 1px dashed rgba(255,255,255,0.2); 
+    color: rgba(255,255,255,0.3);
+}
+
+/* ZONE 2: CENTER (Visual) */
+.card-zone-center {
+    flex: 1;
+    position: relative;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+    gap: 8px;
+}
+
+.visual-target {
+    width: 100px; 
+    height: 100px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* --- RING PREVIEWS (The User's Exact CSS) --- */
+
+/* LAYER 1: RING */
+.visage-ring-preview {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.visage-card:hover .card-overlay {
-    opacity: 1;
-}
-
-.card-overlay button {
-    width: 32px;
-    height: 32px;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
     border-radius: 50%;
-    border: none;
-    background: var(--filroden-color-text-accent);
-    color: #000;
-    display: flex;
-    align-items: center;
+}
+
+/* LAYER 2: IMAGE */
+.visage-preview-content {
+    position: absolute;
+    inset: 0; 
+    z-index: 10; /* Top */
+    display: flex; 
+    align-items: center; 
     justify-content: center;
-    cursor: pointer;
+    border-radius: 50%;
+    overflow: hidden;
+    pointer-events: none;
 }
 
-.card-overlay button.danger {
-    background: #ff6b6b;
-    color: #fff;
+/* IMPORTANT: Ensure gradient effects don't fill the center opaquely */
+/* Your .gradient effect uses a mask to make the center transparent.
+   We just need to make sure the standard ring borders don't have a background. */
+
+.visage-ring-preview .ring-band {
+    background: transparent; /* Ensure bands don't have fills */
 }
 
-.card-footer {
-    padding: 0.5rem;
-    background: rgba(0,0,0,0.2);
+/* THE BANDS (Structure) */
+.ring-band {
+    position: absolute;
+    border-radius: 50%;
+    box-sizing: border-box;
+    border: 2px solid var(--ring-color);
+    transform-origin: center;
 }
 
-.card-title {
-    margin: 0;
-    font-size: 0.9rem;
+/* Outer Ring: 2px wide, sits at the edge */
+.ring-band.outer { inset: 0; }
+
+/* Inner Ring: 2px wide, sits 4px inside (creating 2px black gap) */
+.ring-band.inner { inset: 4px; }
+
+/* --- ANIMATIONS --- */
+
+/* 1. Pulse Effect */
+@keyframes visage-ring-pulse-border {
+    0%, 100% { border-color: var(--ring-color); }
+    50% { border-color: #000; }
+}
+.visage-ring-preview.pulse .ring-band {
+    animation: visage-ring-pulse-border 3s ease-in-out infinite;
+}
+
+/* 2. Gradient Effect */
+.visage-ring-preview.gradient .ring-band {
+    border: none; 
+    background: conic-gradient(
+        var(--ring-color) 0deg 120deg, 
+        var(--ring-bkg) 180deg 300deg, 
+        var(--ring-color) 360deg 
+    );
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
+    animation: visage-spin 16s linear infinite;
+}
+@keyframes visage-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 3. Wave Effect */
+.visage-ring-preview.wave::after {
+    content: "";
+    position: absolute;
+    inset: -50%; 
+    width: 200%;
+    height: 200%;
+    background: repeating-radial-gradient(circle, var(--ring-bkg), var(--ring-bkg) 6px, #000 10px, #000 16px);
+    opacity: 0;
+    border-radius: 50%;
+    z-index: -1;
+    animation: visage-ring-wave 4s linear infinite;
+}
+@keyframes visage-ring-wave {
+    0% { transform: scale(0.3); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+/* --- PREVIEW CONTENT (Image) --- */
+.visage-preview-content {
+    position: absolute;
+    inset: 4px; /* Matches inner ring inset to sit inside */
+    z-index: 5; /* Below Ring, Above Wave */
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    border-radius: 50%; /* Clip image to circle */
+    overflow: hidden;
+}
+
+.visage-preview-content img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; /* Fill the circle */
+}
+
+.visage-preview-content .fallback-icon {
+    font-size: 3rem; 
+    color: var(--filroden-color-text-muted); 
+    opacity: 0.5;
+}
+
+/* 4. Invisibility Effect */
+.visage-preview-content.invisible img {
+    opacity: 0.5;
+    filter: blur(1px) grayscale(0.5);
+    transition: opacity 0.2s ease;
+}
+
+/* --- TOKEN NAME (Below Ring) --- */
+.token-name-label {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--filroden-color-text-accent);
+    text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: center;
+    max-width: 90%;
+    padding-top: 2px;
 }
 
-.card-tags {
+/* ZONE 3: RIGHT (Actions) */
+.card-zone-right {
+    width: 44px; /* Slightly wider for the square buttons */
+    background: rgba(0,0,0,0.3);
+    border-left: 1px solid rgba(255,255,255,0.05);
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 4px;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+    gap: 10px; /* Nice spacing */
+    padding: 8px 0;
 }
 
+/* FIX: Rounded Box Buttons */
+.card-zone-right button {
+    width: 30px; height: 30px;
+    border-radius: 4px; /* The Requested Change */
+    border: 1px solid transparent; /* Invisible border by default */
+    background: transparent;
+    color: var(--filroden-color-text-muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.card-zone-right button:hover {
+    background: var(--filroden-color-bg-light);
+    color: var(--filroden-color-text-main-solid);
+    border-color: var(--filroden-color-text-accent);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    transform: translateY(-1px);
+}
+
+.card-zone-right button.danger:hover {
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+}
+
+/* Apply Button - Slightly more visible by default */
+.card-zone-right button[data-action="apply"] {
+    color: var(--filroden-color-text-main-solid);
+    opacity: 0.9;
+}
+
+/* FOOTER */
+.card-footer {
+    height: 36px;
+    background: var(--filroden-color-bg-light-solid);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    margin: 0 3px 3px 3px;
+    border-radius: 0 0 4px 4px;
+}
+
+.card-title {
+    margin: 0; 
+    font-size: 0.9rem; 
+    font-weight: bold;
+    font-family: var(--filroden-font-family) !important;
+    color: var(--filroden-color-text-main-solid) !important;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
+}
+
+.card-tags { display: flex; gap: 4px; }
 .tag {
-    font-size: 0.7rem;
-    background: rgba(255,255,255,0.1);
-    padding: 2px 4px;
-    border-radius: 3px;
+    font-size: 0.65rem; padding: 1px 4px; border-radius: 3px;
+    background: rgba(0,0,0,0.2); 
     color: var(--filroden-color-text-muted-solid);
+    border: 1px solid rgba(255,255,255,0.05);
 }

@@ -12,7 +12,7 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
     constructor(options = {}) {
         super(options);
         this.visageId = options.visageId || null;
-        this.isDirty = false; // FIX 3: Track Dirty State
+        this.isDirty = false;
     }
 
     static DEFAULT_OPTIONS = {
@@ -72,12 +72,11 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             active: val !== null && val !== undefined
         });
 
-        // FIX 4: Convert Scale 1.0 -> 100% for display
         const rawScale = c.scale ?? 1.0;
         const displayScale = Math.round(rawScale * 100);
 
         const prepFlip = (val) => ({
-            value: val ?? null // explicit null if undefined
+            value: val ?? null
         });
 
         const ring = c.ring || {};
@@ -139,7 +138,7 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             const button = group.querySelector('button.file-picker-button');
             if (button) button.disabled = !target.checked;
         }
-        this._markDirty(); // Toggle counts as a change
+        this._markDirty();
     }
 
     _onOpenFilePicker(event, target) {
@@ -155,7 +154,6 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         fp.browse();
     }
 
-    // FIX 3: Dirty State Logic
     _markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
@@ -165,7 +163,6 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
     }
 
     _onRender(context, options) {
-        // Listen for ANY input change to trigger dirty state
         this.element.addEventListener("change", () => this._markDirty());
         this.element.addEventListener("input", () => this._markDirty());
     }
@@ -189,13 +186,13 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             finalScale = parseFloat(formData.scale) / 100;
         }
 
-        const label = formData.label ? formData.label.trim() : "New Global Visage";
+        const label = formData.label ? formData.label.trim() : game.i18n.localize("VISAGE.GlobalEditor.DefaultLabel");
 
         const getFlipVal = (key) => {
-            const val = formData[key]; // returns string "true", "false", or ""
+            const val = formData[key];
             if (val === "true") return true;
             if (val === "false") return false;
-            return null; // "Unchanged"
+            return null;
         };
 
         const payload = {
@@ -206,7 +203,7 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             changes: {
                 name: getVal("nameOverride"),
                 img: getVal("img"),
-                scale: finalScale, // Use converted scale
+                scale: finalScale,
                 isFlippedX: getFlipVal("isFlippedX"),
                 isFlippedY: getFlipVal("isFlippedY"),
                 width: getVal("width", Number),
@@ -241,14 +238,14 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         try {
             if (this.visageId) {
                 await VisageGlobalData.update(this.visageId, payload);
-                ui.notifications.info(`Updated Visage: ${payload.label}`);
+                ui.notifications.info(game.i18n.format("VISAGE.Notifications.Updated", { name: payload.label }));
             } else {
                 await VisageGlobalData.create(payload);
-                ui.notifications.info(`Created Visage: ${payload.label}`);
+                ui.notifications.info(game.i18n.format("VISAGE.Notifications.Created", { name: payload.label }));
             }
             this.close();
         } catch (err) {
-            ui.notifications.error("Visage | Save Failed. Check console.");
+            ui.notifications.error(game.i18n.localize("VISAGE.Notifications.SaveFailed"));
             console.error(err);
         }
     }

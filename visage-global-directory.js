@@ -15,9 +15,17 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
         super(options);
         this.filters = {
             search: "",
-            category: null, // null = All
+            category: null, 
             showBin: false
         };
+        
+        this._onDataChanged = () => this.render();
+        Hooks.on("visageGlobalDataChanged", this._onDataChanged);
+    }
+
+    async close(options) {
+        Hooks.off("visageGlobalDataChanged", this._onDataChanged);
+        return super.close(options);
     }
 
     static DEFAULT_OPTIONS = {
@@ -25,21 +33,21 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
         id: "visage-global-directory",
         classes: ["visage", "visage-global-directory", "visage-dark-theme"],
         window: {
-            title: "VISAGE.GlobalDirectory.Title",
-            icon: "visage-icon-mask", // Using your CSS mask class
+            title: "VISAGE.Directory.Title",
+            icon: "visage-icon-mask",
             resizable: true,
-            width: 900,
-            height: 700
+        },
+        position: {
+            width: 1180,
+            height: 660
         },
         actions: {
             create: VisageGlobalDirectory.prototype._onCreate,
             edit: VisageGlobalDirectory.prototype._onEdit,
             delete: VisageGlobalDirectory.prototype._onDelete,
             restore: VisageGlobalDirectory.prototype._onRestore,
-            destroy: VisageGlobalDirectory.prototype._onDestroy, // Hard delete
+            destroy: VisageGlobalDirectory.prototype._onDestroy,
             apply: VisageGlobalDirectory.prototype._onApply,
-            
-            // Filter Actions
             selectCategory: VisageGlobalDirectory.prototype._onSelectCategory,
             toggleBin: VisageGlobalDirectory.prototype._onToggleBin,
             clearSearch: VisageGlobalDirectory.prototype._onClearSearch
@@ -55,11 +63,8 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
 
     /** @override */
     async _prepareContext(options) {
-        // 1. Get Data Source (Bin vs Active)
         const source = this.filters.showBin ? VisageGlobalData.bin : VisageGlobalData.all;
         
-        // 2. Extract Categories (from Active list only, usually)
-        // We accumulate unique categories to build the sidebar list
         const allActive = VisageGlobalData.all;
         const categories = new Set();
         allActive.forEach(v => {
@@ -70,12 +75,8 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
             active: this.filters.category === c
         }));
 
-        // 3. Filter Items
         let items = source.filter(entry => {
-            // Category Filter
             if (this.filters.category && entry.category !== this.filters.category) return false;
-            
-            // Search Filter
             if (this.filters.search) {
                 const term = this.filters.search.toLowerCase();
                 return (
@@ -86,30 +87,130 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
             return true;
         });
 
+        items.sort((a, b) => a.label.localeCompare(b.label));
+
+        items = items.map(entry => {
+            const c = entry.changes;
+
+            // SLOT 1: SCALE
+            const scaleVal = (c.scale !== null) ? Math.round(c.scale * 100) : 100;
+            const scaleActive = (c.scale !== null && c.scale !== 1);
+
+            // SLOT 2: DIMENSIONS
+            let dimLabel = "-";
+            let dimActive = false;
+            if (c.width || c.height) {
+                dimLabel = `${c.width || "-"} x ${c.height || "-"}`;
+                dimActive = true;
+            }
+
+            // SLOT 3: MIRRORING
+            let flipIcon = "fas fa-arrows-alt-h"; 
+            let flipLabel = "-";
+            let flipActive = false;
+
+            if (c.isFlippedX !== null || c.isFlippedY !== null) {
+                flipActive = true;
+                
+                if (c.isFlippedX !== null && c.isFlippedY === null) {
+                    flipIcon = c.isFlippedX ? "fas fa-arrow-left" : "fas fa-arrow-right";
+                    flipLabel = c.isFlippedX ? game.i18n.localize("VISAGE.Mirror.Horizontal.Label") : game.i18n.localize("VISAGE.Mirror.Label.Standard");
+                } else if (c.isFlippedY !== null && c.isFlippedX === null) {
+                    flipIcon = c.isFlippedY ? "fas fa-arrow-down" : "fas fa-arrow-up";
+                    flipLabel = c.isFlippedY ? game.i18n.localize("VISAGE.Mirror.Vertical.Label") : game.i18n.localize("VISAGE.Mirror.Label.Standard");
+                } else {
+                    flipIcon = "fas fa-expand-arrows-alt";
+                    const hState = c.isFlippedX ? "H" : "";
+                    const vState = c.isFlippedY ? "V" : "";
+                    
+                    if (hState && vState) flipLabel = game.i18n.localize("VISAGE.Mirror.Label.Combined");
+                    else if (hState) flipLabel = game.i18n.localize("VISAGE.Mirror.Horizontal.Label");
+                    else if (vState) flipLabel = game.i18n.localize("VISAGE.Mirror.Vertical.Label");
+                    else flipLabel = game.i18n.localize("VISAGE.Mirror.Label.Standard");
+                }
+            }
+
+            // SLOT 4: DISPOSITION
+            let dispositionClass = "none";
+            let dispositionLabel = game.i18n.localize("VISAGE.Disposition.NoChange");
+            if (c.disposition !== null) {
+                switch (c.disposition) {
+                    case 1: dispositionClass = "friendly"; dispositionLabel = game.i18n.localize("VISAGE.Disposition.Friendly"); break;
+                    case 0: dispositionClass = "neutral"; dispositionLabel = game.i18n.localize("VISAGE.Disposition.Neutral"); break;
+                    case -1: dispositionClass = "hostile"; dispositionLabel = game.i18n.localize("VISAGE.Disposition.Hostile"); break;
+                    case -2: dispositionClass = "secret"; dispositionLabel = game.i18n.localize("VISAGE.Disposition.Secret"); break;
+                }
+            }
+
+            const ring = c.ring || {};
+            const hasRing = !!c.ring;
+            const hasPulse = hasRing && (ring.effects & 2); 
+            const hasGradient = hasRing && (ring.effects & 4);
+            const hasWave = hasRing && (ring.effects & 8);
+            const hasInvisibility = hasRing && (ring.effects & 16);
+
+            const forceFlipX = c.isFlippedX === true; 
+            const forceFlipY = c.isFlippedY === true;
+
+            return {
+                ...entry,
+                meta: {
+                    hasRing,
+                    hasPulse,
+                    hasGradient,
+                    hasWave,
+                    hasInvisibility,
+                    ringColor: ring.colors?.ring,
+                    ringBkg: ring.colors?.background,
+                    forceFlipX,
+                    forceFlipY,
+                    tokenName: c.name || null,
+
+                    slots: {
+                        scale: { active: scaleActive, val: `${scaleVal}%` },
+                        dim: { active: dimActive, val: dimLabel },
+                        flip: { active: flipActive, icon: flipIcon, val: flipLabel },
+                        disposition: { class: dispositionClass, val: dispositionLabel }
+                    }
+                }
+            };
+        });
+
         return {
             items: items,
             categories: categoryList,
             filters: this.filters,
-            isBin: this.filters.showBin,
-            hasSelection: canvas.tokens?.controlled.length > 0
+            isBin: this.filters.showBin
         };
     }
 
-    /* -------------------------------------------- */
-    /* Event Listeners                              */
-    /* -------------------------------------------- */
-
     _onRender(context, options) {
-        // Debounced Search Input
         const searchInput = this.element.querySelector(".search-bar input");
         if (searchInput) {
+            if (this.filters.search && document.activeElement !== searchInput) {
+                // Focus restored implicitly by browser if re-render is fast enough, or manual handling below
+            }
+
             searchInput.addEventListener("input", (e) => {
                 this.filters.search = e.target.value;
-                this.render(); // Re-render to filter grid
+                
+                if (this._searchDebounce) clearTimeout(this._searchDebounce);
+                
+                this._searchDebounce = setTimeout(() => {
+                    this.render();
+                    setTimeout(() => {
+                        const input = this.element.querySelector(".search-bar input");
+                        if(input) {
+                            input.focus();
+                            const val = input.value;
+                            input.value = "";
+                            input.value = val;
+                        }
+                    }, 50);
+                }, 300);
             });
         }
 
-        // Drag Start Handler
         const cards = this.element.querySelectorAll(".visage-card");
         cards.forEach(card => {
             card.addEventListener("dragstart", this._onDragStart.bind(this));
@@ -120,174 +221,95 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
         const id = event.currentTarget.dataset.id;
         const visage = VisageGlobalData.get(id);
         if (!visage) return;
-
-        // Standard Foundry Drag Data
         const dragData = {
             type: "Visage",
-            payload: visage, // Pass the full data
+            payload: visage, 
             id: id
         };
         event.dataTransfer.setData("text/plain", JSON.stringify(dragData));
     }
 
-    /* -------------------------------------------- */
-    /* Actions                                      */
-    /* -------------------------------------------- */
-
-    async _onCreate() {
-        new VisageGlobalEditor().render(true);
-    }
-
+    async _onCreate() { new VisageGlobalEditor().render(true); }
     async _onEdit(event, target) {
         const id = target.closest(".visage-card").dataset.id;
         new VisageGlobalEditor({ visageId: id }).render(true);
     }
-
     async _onDelete(event, target) {
         const id = target.closest(".visage-card").dataset.id;
-        const confirm = await Dialog.confirm({
-            title: "Delete Visage",
-            content: "Move this visage to the Recycle Bin?"
-        });
-        if (confirm) {
-            await VisageGlobalData.delete(id);
-            this.render();
-        }
+        await VisageGlobalData.delete(id);
     }
-
     async _onRestore(event, target) {
         const id = target.closest(".visage-card").dataset.id;
         await VisageGlobalData.restore(id);
-        this.render();
     }
-
     async _onDestroy(event, target) {
         const id = target.closest(".visage-card").dataset.id;
         const confirm = await Dialog.confirm({
-            title: "Permanently Delete",
-            content: "This action cannot be undone. Are you sure?"
+            title: game.i18n.localize("VISAGE.Dialog.Destroy.Title"),
+            content: game.i18n.localize("VISAGE.Dialog.Destroy.Content")
         });
-        if (confirm) {
-            await VisageGlobalData.destroy(id);
-            this.render();
-        }
+        if (confirm) await VisageGlobalData.destroy(id);
     }
-
     _onSelectCategory(event, target) {
         const cat = target.dataset.category;
-        // Toggle off if clicking active
         this.filters.category = (this.filters.category === cat) ? null : cat;
         this.render();
     }
-
-    _onToggleBin() {
-        this.filters.showBin = !this.filters.showBin;
-        this.filters.category = null; // Reset category when switching modes
+    _onToggleBin(event, target) {
+        const mode = target.dataset.mode;
+        const requestingBin = mode === "bin";
+        if (this.filters.showBin === requestingBin) return;
+        this.filters.showBin = requestingBin;
+        this.filters.category = null; 
         this.render();
     }
-
     _onClearSearch() {
         this.filters.search = "";
         this.render();
     }
-
-    /* -------------------------------------------- */
-    /* THE APPLY LOGIC                              */
-    /* -------------------------------------------- */
-
-    /**
-     * Applies a Global Visage to all selected tokens on the canvas.
-     */
     async _onApply(event, target) {
         const id = target.closest(".visage-card").dataset.id;
         const visage = VisageGlobalData.get(id);
         if (!visage) return;
-
         const tokens = canvas.tokens.controlled;
-        if (!tokens.length) {
-            ui.notifications.warn("Visage | No tokens selected.");
-            return;
+        if (!tokens.length) { 
+            ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.NoTokens")); 
+            return; 
         }
-
-        const updates = tokens.map(t => this._calculateTokenUpdate(t, visage.changes));
-        
-        // Filter out null updates (in case of error)
-        const validUpdates = updates.filter(u => u);
-
-        if (validUpdates.length) {
-            await canvas.scene.updateEmbeddedDocuments("Token", validUpdates);
-            ui.notifications.info(`Applied '${visage.label}' to ${validUpdates.length} tokens.`);
+        const updates = tokens.map(t => this._calculateTokenUpdate(t, visage.changes)).filter(u => u);
+        if (updates.length) {
+            await canvas.scene.updateEmbeddedDocuments("Token", updates);
+            ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { label: visage.label, count: updates.length }));
         }
     }
-
-    /**
-     * Converts a Visage Payload into a specific Token Update object.
-     * @param {Token} token - The token object on the canvas.
-     * @param {object} changes - The payload from the Global Visage.
-     * @returns {object} The update data.
-     */
+    
+    // _calculateTokenUpdate remains unchanged as it contains no user-facing strings
     _calculateTokenUpdate(token, changes) {
         const update = { _id: token.id };
         const c = changes;
-
-        // 1. Identity
         if (c.name) update.name = c.name;
         if (c.disposition !== null) update.disposition = c.disposition;
-
-        // 2. Texture & Scale
-        // Foundry V10+ Structure: texture: { src, scaleX, scaleY }
         const textureUpdate = {};
-        
         if (c.img) textureUpdate.src = c.img;
-
-        // SCALE & FLIP MATH
-        // We need to respect the token's *current* flipping if the payload says "Unchanged" (null).
-        // If Payload Flip is True/False, we force it.
-        
-        // Get current state
         const currentScaleX = token.document.texture.scaleX;
         const currentScaleY = token.document.texture.scaleY;
         const currentAbsScale = Math.abs(currentScaleX);
-        const currentIsFlippedX = currentScaleX < 0; // Negative scaleX means flipped horizontally in Foundry
+        const currentIsFlippedX = currentScaleX < 0; 
         const currentIsFlippedY = currentScaleY < 0; 
-
-        // Determine new absolute scale (use payload, or keep current)
         const newAbsScale = (c.scale !== null) ? c.scale : currentAbsScale;
-
-        // Determine new Flip State X
-        let newIsFlippedX = currentIsFlippedX; // Default to current
+        let newIsFlippedX = currentIsFlippedX; 
         if (c.isFlippedX === true) newIsFlippedX = true;
         if (c.isFlippedX === false) newIsFlippedX = false;
-
-        // Determine new Flip State Y
-        let newIsFlippedY = currentIsFlippedY; // Default to current
+        let newIsFlippedY = currentIsFlippedY; 
         if (c.isFlippedY === true) newIsFlippedY = true;
         if (c.isFlippedY === false) newIsFlippedY = false;
-
-        // Calculate Final Scale Values
-        // In Foundry, negative scale = flipped
         textureUpdate.scaleX = newAbsScale * (newIsFlippedX ? -1 : 1);
         textureUpdate.scaleY = newAbsScale * (newIsFlippedY ? -1 : 1);
-
         if (Object.keys(textureUpdate).length > 0) update.texture = textureUpdate;
-
-        // 3. Dimensions
         if (c.width) update.width = c.width;
         if (c.height) update.height = c.height;
-
-        // 4. Ring
-        if (c.ring) {
-            update.ring = c.ring;
-        }
-
-        // 5. Flags (Metadata for Tracking)
-        // We stamp the token so we know it's using a Global Visage
-        update["flags.visage.activeVisage"] = {
-            id: "global", // or the specific ID if we want to track it
-            source: "global",
-            label: changes.label // store for UI reference
-        };
-
+        if (c.ring) update.ring = c.ring;
+        update["flags.visage.activeVisage"] = { id: "global", source: "global", label: changes.label };
         return update;
     }
 }

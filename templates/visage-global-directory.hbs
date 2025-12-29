@@ -3,28 +3,38 @@
     {{!-- SIDEBAR --}}
     <aside class="visage-sidebar">
         
-        {{!-- Search --}}
+        {{!-- MODE SWITCHER (TABS) --}}
+        <div class="visage-mode-switcher">
+            <button type="button" class="{{#unless isBin}}active{{/unless}}" data-action="toggleBin" data-mode="library">
+                <i class="fas fa-book-open"></i> {{localize "VISAGE.Directory.Mode.Library"}}
+            </button>
+            <button type="button" class="{{#if isBin}}active{{/if}}" data-action="toggleBin" data-mode="bin">
+                <i class="fas fa-trash"></i> {{localize "VISAGE.Directory.Mode.Bin"}}
+            </button>
+        </div>
+
+        {{!-- SEARCH --}}
         <div class="search-bar">
             <i class="fas fa-search"></i>
-            <input type="text" value="{{filters.search}}" placeholder="Search Library...">
+            <input type="text" value="{{filters.search}}" placeholder="{{localize 'VISAGE.Directory.SearchPlaceholder'}}">
             {{#if filters.search}}
             <a data-action="clearSearch"><i class="fas fa-times"></i></a>
             {{/if}}
         </div>
 
-        {{!-- Actions --}}
-        <div class="sidebar-actions">
-            <button class="visage-create-btn" data-action="create">
-                <i class="fas fa-plus"></i> New Visage
-            </button>
-        </div>
+        {{!-- CREATE BTN --}}
+        {{#unless isBin}}
+        <button class="visage-create-btn" data-action="create">
+            <i class="fas fa-plus"></i> {{localize "VISAGE.Directory.CreateNew"}}
+        </button>
+        {{/unless}}
 
-        {{!-- Categories --}}
+        {{!-- CATEGORY PILLS --}}
         <nav class="category-list">
-            <h3 class="sidebar-header">Categories</h3>
+            <h3 class="sidebar-header">{{localize "VISAGE.Directory.Categories"}}</h3>
             <ul>
                 <li class="{{#unless filters.category}}active{{/unless}}">
-                    <a data-action="selectCategory" data-category="">All Visages</a>
+                    <a data-action="selectCategory" data-category="">{{localize "VISAGE.Directory.AllVisages"}}</a>
                 </li>
                 {{#each categories}}
                 <li class="{{#if this.active}}active{{/if}}">
@@ -33,11 +43,6 @@
                 {{/each}}
             </ul>
         </nav>
-
-        {{!-- Recycle Bin Toggle --}}
-        <div class="recycle-bin-toggle {{#if isBin}}active{{/if}}" data-action="toggleBin">
-            <i class="fas fa-trash"></i> Recycle Bin
-        </div>
     </aside>
 
     {{!-- MAIN BROWSER --}}
@@ -48,28 +53,88 @@
             {{#each items}}
             <div class="visage-card" data-id="{{this.id}}" draggable="true">
                 
-                {{!-- Image Preview --}}
-                <div class="card-image">
-                    {{#if this.changes.img}}
-                    <img src="{{this.changes.img}}" alt="{{this.label}}">
-                    {{else}}
-                    <div class="no-image"><i class="visage-icon-mask"></i></div>
-                    {{/if}}
+                {{!-- CARD BODY (3 ZONES) --}}
+                <div class="card-body">
                     
-                    {{!-- Hover Actions --}}
-                    <div class="card-overlay">
+                    {{!-- LEFT: METADATA (Fixed Slots) --}}
+                    <div class="card-zone-left">
+                        
+                        {{!-- Slot 1: Scale --}}
+                        <div class="metadata-slot {{#unless this.meta.slots.scale.active}}inactive{{/unless}}" 
+                             data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Scale'}}">
+                            <i class="fas fa-ruler-combined"></i>
+                            <span class="slot-value">{{this.meta.slots.scale.val}}</span>
+                        </div>
+
+                        {{!-- Slot 2: Dimensions --}}
+                        <div class="metadata-slot {{#unless this.meta.slots.dim.active}}inactive{{/unless}}"
+                             data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Dimensions'}}">
+                            <i class="fas fa-vector-square"></i>
+                            <span class="slot-value">{{this.meta.slots.dim.val}}</span>
+                        </div>
+
+                        {{!-- Slot 3: Orientation --}}
+                        <div class="metadata-slot {{#unless this.meta.slots.flip.active}}inactive{{/unless}}"
+                             data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Orientation'}}">
+                            <i class="{{this.meta.slots.flip.icon}}"></i>
+                            <span class="slot-value">{{this.meta.slots.flip.val}}</span>
+                        </div>
+
+                        {{!-- Slot 4: Disposition (Bottom) --}}
+                        <div class="metadata-slot disposition-slot">
+                            <div class="visage-disposition-chip {{this.meta.slots.disposition.class}}">
+                                {{this.meta.slots.disposition.val}}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {{!-- CENTER: VISUAL PREVIEW --}}
+                    <div class="card-zone-center">
+                        <div class="visual-target">
+                            
+                            {{!-- LAYER 1: IMAGE (Bottom) --}}
+                            <div class="visage-preview-content {{#if this.meta.hasInvisibility}}invisible{{/if}}">
+                                {{#if this.changes.img}}
+                                    <img src="{{this.changes.img}}" alt="{{this.label}}"
+                                         style="transform: scale({{#if this.meta.forceFlipX}}-1{{else}}1{{/if}}, {{#if this.meta.forceFlipY}}-1{{else}}1{{/if}});">
+                                {{else}}
+                                    <i class="visage-icon-mask fallback-icon"></i>
+                                {{/if}}
+                            </div>
+
+                            {{!-- LAYER 2: RING (Top) --}}
+                            {{#if this.meta.hasRing}}
+                                <div class="visage-ring-preview {{#if this.meta.hasPulse}}pulse{{/if}} {{#if this.meta.hasGradient}}gradient{{/if}} {{#if this.meta.hasWave}}wave{{/if}}" 
+                                     style="--ring-color: {{this.meta.ringColor}}; --ring-bkg: {{this.meta.ringBkg}};">
+                                     <div class="ring-band outer"></div>
+                                     <div class="ring-band inner"></div>
+                                </div>
+                            {{/if}}
+                        </div>
+                        
+                        {{!-- Token Name --}}
+                        {{#if this.meta.tokenName}}
+                            <div class="token-name-label">{{this.meta.tokenName}}</div>
+                        {{/if}}
+
+                    </div>
+
+                    {{!-- RIGHT: ACTIONS --}}
+                    <div class="card-zone-right">
                         {{#if ../isBin}}
-                            <button data-action="restore" data-tooltip="Restore"><i class="fas fa-trash-restore"></i></button>
-                            <button data-action="destroy" data-tooltip="Destroy Forever" class="danger"><i class="fas fa-ban"></i></button>
+                            <button data-action="restore" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Restore'}}"><i class="fas fa-trash-restore"></i></button>
+                            <button data-action="destroy" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Destroy'}}" class="danger"><i class="fas fa-ban"></i></button>
                         {{else}}
-                            <button data-action="apply" data-tooltip="Apply to Selected"><i class="fas fa-check"></i></button>
-                            <button data-action="edit" data-tooltip="Edit"><i class="fas fa-edit"></i></button>
-                            <button data-action="delete" data-tooltip="Delete" class="danger"><i class="fas fa-trash"></i></button>
+                            <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Apply'}}"><i class="fas fa-check"></i></button>
+                            <button data-action="edit" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Edit'}}"><i class="fas fa-edit"></i></button>
+                            <button data-action="delete" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Delete'}}" class="danger"><i class="fas fa-trash"></i></button>
                         {{/if}}
                     </div>
+
                 </div>
 
-                {{!-- Footer --}}
+                {{!-- FOOTER: LABEL --}}
                 <div class="card-footer">
                     <h4 class="card-title">{{this.label}}</h4>
                     {{#if this.tags}}
@@ -85,7 +150,7 @@
         </div>
         {{else}}
         <div class="empty-directory">
-            <p>No Visages found.</p>
+            <p>{{#if isBin}}{{localize "VISAGE.Directory.EmptyBin"}}{{else}}{{localize "VISAGE.Directory.EmptyLibrary"}}{{/if}}</p>
         </div>
         {{/if}}
 
