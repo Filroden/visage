@@ -1,7 +1,6 @@
 /**
  * @file Main entry point for the Visage module.
  * @module visage
- * @description Handles module initialization, hook registration, and integration with the Foundry VTT UI (Sidebar, Actor Sheets, and Token Configuration).
  */
 
 import { Visage } from "./visage.js";
@@ -10,26 +9,23 @@ import { VisageConfigApp } from "./visage-config.js";
 import { VisageRingEditor } from "./visage-ring-editor.js";
 import { VisageGlobalData } from "./visage-global-data.js";
 import { VisageGlobalEditor } from "./visage-global-editor.js";
-import { VisageGlobalDirectory } from "./visage-global-directory.js";
+import { VisageGlobalDirectory } from "./visage-global-directory.js"; // Import Directory
 import { handleTokenHUD } from "./visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./visage-cleanup.js";
 import { migrateWorldData } from "./visage-migration.js";
 
+// Track the directory instance globally so we can toggle it
+let globalDirectoryInstance = null;
+
 /**
  * Opens the Visage configuration application for a given actor.
- * determines the correct context (Actor vs. Token) and renders the config app.
- *
- * @param {Actor} actor - The actor document to configure.
- * @param {TokenDocument|null} [token=null] - Optional specific token context (e.g., for unlinked tokens).
  */
 function openVisageConfig(actor, token = null) {
     if (!actor) return;
-
     try {
         let tokenId = token?.id || null;
         let sceneId = token?.parent?.id || null;
 
-        // If no specific token is provided but the actor itself is a token (unlinked), use its context.
         if (!tokenId && actor.isToken) {
             tokenId = actor.token.id;
             sceneId = actor.token.parent.id;
@@ -45,13 +41,6 @@ function openVisageConfig(actor, token = null) {
     }
 }
 
-/**
- * Retrieves the Actor ID from a sidebar directory list element.
- * Handles both jQuery objects and raw DOM elements.
- *
- * @param {jQuery|HTMLElement} li - The list item element from the sidebar.
- * @returns {string|undefined} The document ID found in the dataset.
- */
 function getActorIdFromElement(li) {
     const element = (li instanceof jQuery) ? li[0] : li;
     return element.dataset?.entryId || element.dataset?.documentId;
@@ -65,16 +54,17 @@ Hooks.once("init", () => {
     try {
         Visage.initialize();
 
-        // Register Global Data Storage (Phase 1)
+        // Register Global Data Settings
         VisageGlobalData.registerSettings();
 
-        // --- EXPOSE FOR DEBUGGING/API (Phase 1 & 2) ---
+        // --- EXPOSE FOR DEBUGGING/API ---
         window.VisageGlobalData = VisageGlobalData;
         window.VisageGlobalEditor = VisageGlobalEditor;
         window.VisageGlobalDirectory = VisageGlobalDirectory;
         
         game.modules.get("visage").api.Global = VisageGlobalData;
         game.modules.get("visage").api.Editor = VisageGlobalEditor;
+        game.modules.get("visage").api.Directory = VisageGlobalDirectory;
 
         // Register Handlebars Helpers
         Handlebars.registerHelper("neq", (a, b) => a !== b);
@@ -90,17 +80,9 @@ Hooks.once("init", () => {
             "modules/visage/templates/visage-global-directory.hbs"
         ]);
 
-        // Register Module Settings
         registerSettings();
 
-        // ----------------------------------------------------
-        // Context Menu Integration (Actor Directory)
-        // ----------------------------------------------------
-        
-        /**
-         * Adds the "Visage" option to the Actor Directory context menu.
-         * @param {ContextMenuEntry[]} options - The array of context menu options.
-         */
+        // Context Menu Integration
         const addSidebarOption = (options) => {
             options.push({
                 name: "VISAGE.Title",
@@ -119,21 +101,14 @@ Hooks.once("init", () => {
             });
         };
 
-        // Hook for standard context menu construction
         Hooks.on("getActorContextOptions", (html, options) => addSidebarOption(options));
-        
-        // Backup hook for core directory context menu (prevents duplication)
         Hooks.on("getActorDirectoryEntryContext", (html, options) => {
             if (!options.some(o => o.name === "VISAGE.Title")) addSidebarOption(options);
         });
 
-        // ----------------------------------------------------
-        // Actor Sheet Header Integration (Application V1)
-        // ----------------------------------------------------
-        
+        // Sheet Header Buttons
         Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
             if (!sheet.actor.isOwner) return;
-
             buttons.unshift({
                 label: "VISAGE.Title",
                 class: "visage-config",
@@ -142,25 +117,14 @@ Hooks.once("init", () => {
             });
         });
 
-        // ----------------------------------------------------
-        // Actor Sheet Header Integration (Application V2)
-        // ----------------------------------------------------
-
-        /**
-         * Adds the "Visage" control to ApplicationV2 based actor sheets.
-         * Adheres to the ApplicationHeaderControlsEntry interface.
-         * * @param {ApplicationV2} app - The application instance.
-         * @param {ApplicationHeaderControlsEntry[]} controls - The array of header controls.
-         */
         const addAppV2Control = (app, controls) => {
             const actor = app.document;
             if (!actor || !actor.isOwner) return;
-
             controls.push({
                 label: "VISAGE.Title",
                 icon: "visage-icon-mask",
                 action: "visageConfigure",
-                onClick: () => openVisageConfig(actor), // Required V13+ camelCase property
+                onClick: () => openVisageConfig(actor),
                 order: 0
             });
         };
@@ -177,9 +141,53 @@ Hooks.once("init", () => {
 /* Module Logic & Hooks                        */
 /* -------------------------------------------- */
 
-/**
- * Registers module-specific settings.
- */
+// Universal Scene Control Integration
+Hooks.on("getSceneControlButtons", (controls) => {
+    if (!game.user.isGM) return;
+
+    let tokenLayer = null;
+
+    // STEP 1: Find the Token Layer (Universal)
+    if (Array.isArray(controls)) {
+        tokenLayer = controls.find(c => c.name === "token");
+    } else {
+        for (const key in controls) {
+            const layer = controls[key];
+            if (layer.name === "token" || layer.name === "tokens") {
+                tokenLayer = layer;
+                break;
+            }
+        }
+    }
+
+    if (!tokenLayer) return;
+
+    // STEP 2: Define the Tool (Simple Launcher)
+    const visageTool = {
+        name: "visage-global",
+        title: "VISAGE.Directory.Title",
+        icon: "visage-tool-icon",
+        visible: true,
+        toggle: false, 
+        button: true,
+        
+        onClick: () => {
+            if (!globalDirectoryInstance) {
+                globalDirectoryInstance = new VisageGlobalDirectory();
+            }
+            // Always render (opens if closed, brings to front if open)
+            globalDirectoryInstance.render(true);
+        }
+    };
+
+    // STEP 3: Add the Tool
+    if (Array.isArray(tokenLayer.tools)) {
+        tokenLayer.tools.push(visageTool);
+    } else {
+        tokenLayer.tools["visage-global"] = visageTool;
+    }
+});
+
 function registerSettings() {
     game.settings.register(Visage.MODULE_ID, "cleanseScene", {
         name: "VISAGE.Settings.CleanseScene.Name",
@@ -222,15 +230,10 @@ function registerSettings() {
     });
 }
 
-/**
- * Performs ready-state tasks such as version checks and data migration.
- */
 Hooks.once("ready", () => {
     if (!game.user.isGM) return;
 
     try {
-        // Run Garbage Collection (Phase 1)
-        // Clean up any global visages deleted > 30 days ago
         VisageGlobalData.runGarbageCollection();
 
         const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
@@ -247,39 +250,35 @@ Hooks.once("ready", () => {
     }
 });
 
-// Initialize application registry for window management
 Visage.apps = {};
 
-/**
- * Tracks Visage application instances when they render.
- */
+// App Tracker (Updated)
 Hooks.on("renderApplication", (app) => {
-    if (app instanceof VisageSelector ||
-        app instanceof VisageConfigApp ||
+    if (app instanceof VisageSelector || 
+        app instanceof VisageConfigApp || 
         app instanceof VisageRingEditor || 
-        app instanceof VisageGlobalEditor) {
+        app instanceof VisageGlobalEditor ||
+        app instanceof VisageGlobalDirectory) {
+        
         const appId = app.id || app.options?.id;
         if (appId) Visage.apps[appId] = app;
     }
 });
 
-/**
- * Cleans up application registry when Visage apps are closed.
- */
 Hooks.on("closeApplication", (app) => {
-    if (app instanceof VisageSelector ||
-        app instanceof VisageConfigApp ||
+    if (app instanceof VisageSelector || 
+        app instanceof VisageConfigApp || 
         app instanceof VisageRingEditor || 
-        app instanceof VisageGlobalEditor) {
+        app instanceof VisageGlobalEditor ||
+        app instanceof VisageGlobalDirectory) {
+        
         const appId = app.id || app.options?.id;
         if (appId && Visage.apps[appId]) delete Visage.apps[appId];
     }
 });
 
-// Inject Token HUD controls
 Hooks.on("renderTokenHUD", handleTokenHUD);
 
-// Handle token updates for dynamic visual changes
 Hooks.on("preUpdateToken", (document, change, options) => {
     Visage.handleTokenUpdate(document, change, options);
 });

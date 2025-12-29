@@ -72,7 +72,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         },
         actions: {
             selectVisage: VisageSelector.prototype._onSelectVisage,
-            openConfig: VisageSelector.prototype._onOpenConfig
+            openConfig: VisageSelector.prototype._onOpenConfig,
+            revertGlobal: VisageSelector.prototype._onRevertGlobal
         }
     };
 
@@ -83,6 +84,32 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             scrollable: [".visage-selector-grid-wrapper"] 
         }
     };
+
+    async _onRevertGlobal(event, target) {
+        // Fetch the token object dynamically using the stored ID
+        const token = canvas.tokens.get(this.tokenId);
+        if (!token) {
+            ui.notifications.error(game.i18n.localize("VISAGE.Notifications.ErrorTokenNotFound"));
+            return;
+        }
+
+        const originalState = token.document.getFlag("visage", "originalState");
+        if (!originalState) return;
+
+        // Construct update using the token's ID and the saved state
+        const update = { _id: token.id, ...originalState };
+        
+        // Clear flags
+        update["flags.visage"] = {
+            activeVisage: null,
+            originalState: null
+        };
+        update["flags.visage.-=activeVisage"] = null;
+        update["flags.visage.-=originalState"] = null;
+
+        await token.document.update(update);
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.Reverted"));
+    }
 
     /**
      * Prepares the data context for rendering the selector's Handlebars template.
@@ -293,7 +320,17 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             form.resolvedPath = await Visage.resolvePath(form.path);
         }
 
-        return { forms: orderedForms };
+        // --- DETECT GLOBAL OVERRIDE ---
+        const flags = token.document.flags.visage || {};
+        const activeVisage = flags.activeVisage;
+        // It is a global override ONLY if the source is 'global' AND we have a saved original state
+        const hasGlobalOverride = activeVisage?.source === "global" && !!flags.originalState;
+
+        return { 
+            forms: orderedForms,
+            hasGlobalOverride: hasGlobalOverride,
+            globalLabel: activeVisage?.label || "Global Visage"
+        };  
     }
     
     /**

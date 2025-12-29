@@ -233,6 +233,7 @@
 .visage .visage-tile .visage-disposition-chip {
     position: absolute;
     bottom: -8px;
+    width: auto;
     inset-inline-start: 50%;
     inset-inline-end: auto;
     transform: translateX(calc(-50% * var(--filroden-dir-flip)));
@@ -344,6 +345,62 @@
 
 .visage .visage-config-button:hover {
     opacity: 1;
+}
+
+/* --- Global Override Banner --- */
+.visage .visage-global-banner {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(var(--filroden-color-accent-rgb), 0.1); 
+    border: 1px solid var(--filroden-color-text-accent);
+    border-radius: var(--filroden-radius-small);
+    padding: 4px 8px;
+    margin-bottom: var(--filroden-space-m);
+    gap: var(--filroden-space-s);
+    min-height: 32px;
+}
+
+.visage .visage-global-banner .banner-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--filroden-color-text-accent);
+    font-weight: bold;
+    font-size: var(--filroden-font-size-xs);
+    overflow: hidden;
+    cursor: help;
+}
+
+.visage .visage-global-banner .banner-info span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.visage .visage-global-banner .revert-btn {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    background: var(--filroden-color-text-accent);
+    color: var(--filroden-color-bg-darkest);
+    border: none;
+    border-radius: var(--filroden-radius-small);
+    padding: 0;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.visage .visage-global-banner .revert-btn:hover {
+    background: var(--filroden-color-text-accent-hover);
+    box-shadow: 0 0 5px var(--filroden-color-text-accent);
+    color: #fff;
 }
 
 /* Grid Layout */
@@ -1737,4 +1794,30 @@ div#visage-global-directory .window-content {
     background: rgba(0,0,0,0.2); 
     color: var(--filroden-color-text-muted-solid);
     border: 1px solid rgba(255,255,255,0.05);
+}
+
+
+/* ==========================================================================
+   9. SCENE CONTROL INTEGRATION
+   ========================================================================== */
+
+.visage-tool-icon::before {
+    content: "";
+    display: block;
+    width: 24px;
+    height: 24px;
+    margin: 0 auto;
+    background-color: currentColor;
+    -webkit-mask: url('../icons/switch_account.svg') no-repeat center;
+    mask: url('../icons/switch_account.svg') no-repeat center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+/* 2. Ensure the parent button centers our pseudo-element */
+button.visage-tool-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }

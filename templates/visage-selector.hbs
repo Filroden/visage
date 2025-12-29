@@ -5,6 +5,20 @@
             <img src="modules/visage/icons/settings.svg" alt="Settings"/>
         </button>
     </div>
+
+    {{!-- Global Override Banner --}}
+    {{#if hasGlobalOverride}}
+    <div class="visage-global-banner">
+        <div class="banner-info" data-tooltip="{{localize 'VISAGE.Selector.GlobalContext'}}">
+            <i class="fas fa-globe"></i>
+            <span>{{globalLabel}}</span>
+        </div>
+        <button type="button" class="revert-btn" data-action="revertGlobal" data-tooltip="{{localize 'VISAGE.Selector.Tooltip.Revert'}}">
+            <i class="fas fa-undo"></i>
+        </button>
+    </div>
+    {{/if}}
+
     <div class="visage-selector-grid-wrapper">
         <div class="visage-selector">
             {{#each forms}}
