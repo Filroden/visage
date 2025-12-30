@@ -90,8 +90,13 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
 
         items.sort((a, b) => a.label.localeCompare(b.label));
 
-        items = items.map(entry => {
+        // Use Promise.all to handle async image resolution for wildcards
+        const preparedItems = await Promise.all(items.map(async (entry) => {
             const c = entry.changes;
+
+            // Resolve Image Path (Wildcard Support)
+            // This ensures the card shows a random image from the wildcard set
+            const resolvedImg = await Visage.resolvePath(c.img);
 
             // SLOT 1: SCALE
             const scaleVal = (c.scale !== null) ? Math.round(c.scale * 100) : 100;
@@ -155,6 +160,10 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
 
             return {
                 ...entry,
+                changes: {
+                    ...entry.changes,
+                    img: resolvedImg // Override just for display so HBS uses the resolved path
+                },
                 meta: {
                     hasRing,
                     hasPulse,
@@ -175,10 +184,10 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
                     }
                 }
             };
-        });
+        }));
 
         return {
-            items: items,
+            items: preparedItems,
             categories: categoryList,
             filters: this.filters,
             isBin: this.filters.showBin

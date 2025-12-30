@@ -3,11 +3,92 @@
 
     <div class="visage-editor-grid">
         
-        {{!-- COLUMN 1: METADATA --}}
+        {{!-- COLUMN 1: IDENTITY & PREVIEW --}}
         <div class="visage-column metadata">
+            
+            <h3 class="column-header">{{localize "VISAGE.GlobalEditor.Col.Preview"}}</h3>
+            
+            <div class="visage-live-preview-stage">
+                {{!-- REUSING VISAGE CARD STRUCTURE --}}
+                <div class="visage-card">
+                    <div class="card-body">
+                        
+                        {{!-- ZONE 1: METADATA (Left) --}}
+                        <div class="card-zone-left">
+                            <div class="metadata-slot scale-slot {{#unless preview.slots.scale.active}}inactive{{/unless}}" 
+                                 data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Scale'}}">
+                                <i class="fas fa-ruler-combined"></i>
+                                <span class="slot-value">{{preview.slots.scale.val}}</span>
+                            </div>
+
+                            <div class="metadata-slot dim-slot {{#unless preview.slots.dim.active}}inactive{{/unless}}"
+                                 data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Dimensions'}}">
+                                <i class="fas fa-vector-square"></i>
+                                <span class="slot-value">{{preview.slots.dim.val}}</span>
+                            </div>
+
+                            <div class="metadata-slot flip-slot {{#unless preview.slots.flip.active}}inactive{{/unless}}"
+                                 data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Orientation'}}">
+                                <i class="{{preview.slots.flip.icon}}"></i>
+                                <span class="slot-value">{{preview.slots.flip.val}}</span>
+                            </div>
+
+                            <div class="metadata-slot disposition-slot">
+                                <div class="visage-disposition-chip {{preview.slots.disposition.class}}">
+                                    {{preview.slots.disposition.val}}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{!-- ZONE 2: VISUAL PREVIEW (Center) --}}
+                        <div class="card-zone-center">
+                            <div class="visual-target">
+                                <div class="visage-preview-content">
+                                    {{!-- RING PREVIEW --}}
+                                    {{!-- Note: Inline styles handle the live updates for display and CSS variables --}}
+                                    <div class="visage-ring-preview {{#if preview.hasPulse}}pulse{{/if}} {{#if preview.hasGradient}}gradient{{/if}} {{#if preview.hasWave}}wave{{/if}}" 
+                                         style="display: {{#if preview.hasRing}}block{{else}}none{{/if}}; --ring-color: {{preview.ringColor}}; --ring-bkg: {{preview.ringBkg}};">
+                                         <div class="ring-band outer"></div>
+                                         <div class="ring-band inner"></div>
+                                    </div>
+
+                                    {{!-- MEDIA PREVIEW --}}
+                                    <video class="visage-preview-video" 
+                                           src="{{#if preview.isVideo}}{{preview.img}}{{/if}}" 
+                                           autoplay loop muted playsinline 
+                                           style="display: {{#if preview.isVideo}}block{{else}}none{{/if}}; transform: scale({{#if preview.flipX}}-1{{else}}1{{/if}}, {{#if preview.flipY}}-1{{else}}1{{/if}});">
+                                    </video>
+
+                                    <img class="visage-preview-img" 
+                                         src="{{#unless preview.isVideo}}{{preview.img}}{{/unless}}" 
+                                         style="display: {{#if (and preview.img (not preview.isVideo))}}block{{else}}none{{/if}}; transform: scale({{#if preview.flipX}}-1{{else}}1{{/if}}, {{#if preview.flipY}}-1{{else}}1{{/if}});">
+
+                                    <i class="visage-icon-mask fallback-icon" 
+                                       style="display: {{#if preview.img}}none{{else}}block{{/if}};"></i>
+                                </div>
+                            </div>
+                            <div class="token-name-label">{{preview.name}}</div>
+                        </div>
+
+                        {{!-- ZONE 3: ACTIONS (Right) - Empty but structurally necessary --}}
+                        <div class="card-zone-right"></div>
+                    </div>
+
+                    {{!-- FOOTER --}}
+                    <div class="card-footer">
+                        <h4 class="card-title">{{label}}</h4>
+                        <div class="card-tags">
+                            {{#each preview.tagList}}
+                            <span class="tag">{{this}}</span>
+                            {{/each}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{!-- B. IDENTITY INPUTS --}}
             <h3 class="column-header">{{localize "VISAGE.GlobalEditor.Col.Identity"}}</h3>
             <fieldset class="visage-config-fieldset">
-                
                 <div class="form-group">
                     <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
                     <div class="form-fields">
@@ -21,7 +102,9 @@
                     <div class="form-fields">
                         <input type="text" name="category" value="{{category}}" list="visage-categories" placeholder="{{localize 'VISAGE.GlobalEditor.CategoryPlaceholder'}}">
                         <datalist id="visage-categories">
-                            {{!-- Populated dynamically --}}
+                            {{#each categories}}
+                            <option value="{{this}}"></option>
+                            {{/each}}
                         </datalist>
                     </div>
                 </div>
@@ -33,7 +116,6 @@
                     </div>
                     <p class="hint">{{localize "VISAGE.GlobalEditor.TagsHint"}}</p>
                 </div>
-
             </fieldset>
         </div>
 
@@ -131,7 +213,7 @@
             <fieldset class="visage-config-fieldset">
                 <div class="form-group">
                     <label class="master-toggle">
-                        <input type="checkbox" name="ring_active" {{checked ring.active}}>
+                        <input type="checkbox" name="ring.enabled" {{checked ring.active}}>
                         {{localize "VISAGE.GlobalEditor.RingEnable"}}
                     </label>
                 </div>

@@ -132,6 +132,8 @@
     "VISAGE.GlobalEditor.Save": "Save Visage",
     "VISAGE.GlobalEditor.OverrideTooltip": "Override?",
     "VISAGE.GlobalEditor.DefaultLabel": "New Global Visage",
+    "VISAGE.GlobalEditor.Col.Preview": "Live Preview",
+    "VISAGE.GlobalEditor.PreviewHint": "Visual approximation of the resulting Global Visage.",
 
     "VISAGE.Directory.Title": "Global Visage Library",
     "VISAGE.Directory.Mode.Library": "Library",

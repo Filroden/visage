@@ -5,16 +5,12 @@
  * 1. Variables & Theme Overrides
  * 2. Shared Styles (Chips, Icons, Utilities)
  * 3. Application: Visage Selector (HUD)
- * - Window & Layout
- * - Tile Grid
- * - Tile Content & Previews
- * - CSS Animations (Pulse, Gradient, Wave)
  * 4. Application: Visage Configuration
- * - Window & Layout
- * - List Items
- * - Disposition Popout
- * 5. Ring Editor Sub-Application
+ * 5. Application: Ring Editor Sub-Application
  * 6. Actor Sheet Header Icon
+ * 7. GLOBAL EDITOR FIXES (The Editor Window)
+ * 8. GLOBAL DIRECTORY (The Card Styles)
+ * 9. Scene Control Integration
  */
 
 /* ==========================================================================
@@ -38,7 +34,6 @@
 
 /* --- Custom Scrollbars --- */
 
-/* Webkit scrollbar styles (Chrome, Safari, Edge) */
 .visage-selector-app *,
 .visage-config-app *,
 .visage-ring-editor * {
@@ -81,7 +76,6 @@
     background-color: var(--filroden-color-text-accent-hover) !important;
 }
 
-/* Hide scrollbar arrow buttons */
 .visage .visage-selector-grid-wrapper::-webkit-scrollbar-button,
 .visage .visage-config-wrapper::-webkit-scrollbar-button {
     display: none;
@@ -92,9 +86,7 @@
    2. SHARED STYLES (Chips, Icons, Utilities)
    ========================================================================== */
 
-/* Placeholder text */
-.visage input::placeholder
- {
+.visage input::placeholder {
     color: var(--filroden-color-text-placeholder-solid);
     opacity: 1;
     font-style: italic;
@@ -102,7 +94,6 @@
 
 /* --- Icons --- */
 
-/* Masked icon for window headers to match text color */
 .visage .visage-header-icon {
     width: 1rem;
     height: 1rem;
@@ -119,7 +110,6 @@
 
 /* --- Chips & Indicators --- */
 
-/* Base style for circular indicators */
 .visage .visage-chip,
 .visage .visage-default-indicator,
 .visage .visage-wildcard-indicator,
@@ -141,44 +131,39 @@
 .visage .visage-flip-indicator img {
     width: var(--filroden-space-m);
     height: var(--filroden-space-m);
-    font-size: var(--filroden-font-size-xs); /* For font icons */
+    font-size: var(--filroden-font-size-xs);
     border: none;
 }
 
 .visage .visage-chip img,
 .visage .visage-default-indicator img {
-    filter: invert(100%); /* Black icon */
+    filter: invert(100%);
 }
 
 .visage .visage-wildcard-indicator img,
 .visage .visage-flip-indicator img {
-    filter: none; /* White icon */
+    filter: none;
 }
 
-/* Specific Indicator Positions & Colors */
-
-/* Active: Top-Right, Green */
+/* Specific Indicator Positions */
 .visage .visage-chip {
     top: -8px;
     inset-inline-end: -8px;
     background-color: var(--filroden-color-success);
 }
 
-/* Default: Top-Left, Gold */
 .visage .visage-default-indicator {
     top: -8px;
     inset-inline-start: -8px;
     background-color: var(--filroden-color-text-accent);
 }
 
-/* Wildcard: Bottom-Left, Blue */
 .visage .visage-wildcard-indicator {
     bottom: -8px;
     inset-inline-start: -8px;
     background-color: #007bff; 
 }
 
-/* Flip Configured: Botttom-Right, Purple */
 .visage .visage-flip-indicator {
     bottom: -8px;
     inset-inline-end: -8px;
@@ -186,10 +171,10 @@
 }
 
 .visage .visage-flip-indicator img {
-    transform: scaleX(var(--filroden-dir-flip)); /* Support RTL flipping */
+    transform: scaleX(var(--filroden-dir-flip));
 }
 
-/* Data Chip: Top-Center (Scale/Size info) */
+/* Data Chip */
 .visage .visage-data-chip {
     position: absolute;
     top: -8px;
@@ -222,14 +207,13 @@
     filter: invert(100%);
 }
 
-/* Data Chip Separator (Vertical Line) */
 .visage .visage-data-chip span + span {
     margin-inline-start: 4px;
     padding-inline-start: 4px;
     border-inline-start: 1px solid var(--filroden-color-text-muted);
 }
 
-/* Disposition Chip: Bottom-Center */
+/* Disposition Chip */
 .visage .visage-tile .visage-disposition-chip {
     position: absolute;
     bottom: -8px;
@@ -244,38 +228,17 @@
     font-size: var(--filroden-font-size-xxs);
     font-weight: var(--filroden-font-weight-bold);
     color: var(--filroden-color-text-main-solid);
-    border: 1px solid #000; /* Base border */
+    border: 1px solid #000;
     z-index: 9;
     white-space: nowrap;
 }
 
-/* Disposition Colors (Foundry Standards) */
 .visage .visage-disposition-chip.friendly { border-color: #00ffff; }
 .visage .visage-disposition-chip.neutral  { border-color: #ffff00; }
 .visage .visage-disposition-chip.hostile  { border-color: #ff0000; }
 .visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
 
-/* --- Ring Editor Warnings --- */
-.visage .visage-warning-box {
-    background: rgba(255, 193, 7, 0.15); /* Amber background */
-    border: 1px solid var(--filroden-color-warning);
-    border-radius: var(--filroden-radius-small);
-    padding: var(--filroden-space-s);
-    margin-bottom: var(--filroden-space-m);
-    display: flex;
-    align-items: center;
-    gap: var(--filroden-space-m);
-    color: #ffc107; /* Bright Amber text */
-    font-size: var(--filroden-font-size-xs);
-}
-
-.visage .visage-warning-box i {
-    font-size: var(--filroden-font-size-m);
-}
-
-/* --- Utilities --- */
-
-/* Force LTR direction (for file paths, code snippets, etc.) */
+/* Utilities */
 .visage .force-ltr {
     direction: ltr !important;
     text-align: left !important;
@@ -286,7 +249,6 @@
    3. APPLICATION: VISAGE SELECTOR (HUD)
    ========================================================================== */
 
-/* Main Window Frame */
 .visage.visage-selector-app {
     position: fixed; 
     display: block;
@@ -295,7 +257,7 @@
 }
 
 .visage.visage-selector-app .window-header {
-    display: none; /* Borderless window */
+    display: none;
 }
 
 .visage.visage-selector-app .window-content {
@@ -311,7 +273,6 @@
     padding: var(--filroden-space-m);
 }
 
-/* Internal Header (Title + Config Button) */
 .visage .visage-selector-header {
     flex: none;
     display: flex;
@@ -347,7 +308,7 @@
     opacity: 1;
 }
 
-/* --- Global Stack List Container --- */
+/* Global Stack List */
 .visage .visage-stack-list {
     display: flex;
     flex-direction: column;
@@ -355,7 +316,6 @@
     margin-bottom: var(--filroden-space-m);
 }
 
-/* Header Label */
 .visage .stack-header {
     font-size: 0.7rem;
     font-weight: bold;
@@ -365,7 +325,6 @@
     margin-bottom: 2px;
 }
 
-/* Reset the list style */
 .visage .visage-stack-list ul {
     list-style: none;
     margin: 0;
@@ -375,7 +334,6 @@
     gap: 4px;
 }
 
-/* --- The Row --- */
 .visage .stack-item {
     display: flex;
     align-items: center;
@@ -387,7 +345,6 @@
     min-height: 28px;
 }
 
-/* The Label + Icon */
 .visage .stack-item .effect-label {
     display: flex;
     align-items: center;
@@ -403,7 +360,6 @@
     cursor: help;
 }
 
-/* The "X" Button */
 .visage .stack-item .remove-layer-btn {
     flex: 0 0 20px;
     width: 20px;
@@ -427,7 +383,6 @@
     color: #fff;
 }
 
-/* --- Clear All Button --- */
 .visage .revert-all-btn {
     align-self: flex-end;    
     background: transparent;
@@ -462,7 +417,6 @@
     width: 100%;
 }
 
-/* Tile Styles */
 .visage .visage-tile {
     position: relative; 
     display: flex;
@@ -498,7 +452,8 @@
     color: var(--filroden-color-text-main-solid);
 }
 
-/* --- Tile Content (Image & Ring Previews) --- */
+/* --- Tile Content --- */
+/* This section handles the HUD tiles specifically */
 
 .visage-image-wrapper {
     position: relative;
@@ -526,7 +481,6 @@
     border-radius: 50%;
 }
 
-/* Ensure the partial fills the HUD wrapper */
 .visage .visage-hud-content {
     position: absolute;
     inset: 0;
@@ -539,118 +493,15 @@
     border-radius: var(--filroden-radius-small);
 }
 
-/* Ensure invisibility works on the new class */
 .visage .visage-hud-content.invisible {
     opacity: 0.5;
     filter: blur(1px) grayscale(0.5);
-}
-
-/* The Ring Container */
-.visage-ring-preview {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    z-index: 0;
-    background: radial-gradient(circle, color-mix(in srgb, var(--ring-bkg), black 70%) 0%, black 100%);
-    transform: scale(0.9);
-    overflow: hidden;
-}
-
-/* --- THE BANDS (Structure) --- */
-
-.ring-band {
-    position: absolute;
-    border-radius: 50%;
-    box-sizing: border-box;
-    border: 2px solid var(--ring-color);
-    transform-origin: center;
-}
-
-/* Outer Ring: 2px wide, sits at the edge */
-.ring-band.outer {
-    inset: 0; 
-}
-
-/* Inner Ring: 2px wide, sits 4px inside (creating 2px black gap) */
-.ring-band.inner {
-    inset: 4px; 
-}
-
-/* --- ANIMATIONS --- */
-
-/* 1. Pulse Effect (Colors <-> Black) */
-@keyframes visage-ring-pulse-border {
-    0%, 100% { border-color: var(--ring-color); }
-    50% { border-color: #000; }
-}
-
-.visage-ring-preview.pulse .ring-band {
-    animation: visage-ring-pulse-border 3s ease-in-out infinite;
-}
-
-/* 2. Gradient Effect (Rotating Blended Conic) */
-.visage-ring-preview.gradient .ring-band {
-    border: none; /* Hide solid border */
-    background: conic-gradient(
-        var(--ring-color) 0deg 120deg,      /* Solid Color 1 */
-        var(--ring-bkg) 180deg 300deg,      /* Blend to Color 2, then Solid */
-        var(--ring-color) 360deg            /* Blend back to Color 1 */
-    );
-    
-    /* Mask to turn the solid circle into a 2px ring */
-    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
-    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
-        
-    /* Rotate */
-    animation: visage-spin 16s linear infinite;
-}
-
-@keyframes visage-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* 3. Wave Effect (Ripples) */
-/* Use a pseudo-element on the container so it's behind the image but indepedent of bands */
-.visage-ring-preview.wave::after {
-    content: "";
-    position: absolute;
-    inset: -50%; 
-    width: 200%;
-    height: 200%;
-    top: -50%;
-    inset-inline-start: -50%;
-    background: repeating-radial-gradient(circle, var(--ring-bkg), var(--ring-bkg) 6px, #000 10px, #000 16px);
-    opacity: 0;
-    border-radius: 50%;
-    z-index: -1;
-    animation: visage-ring-wave 4s linear infinite;
-}
-
-@keyframes visage-ring-wave {
-    0% { transform: scale(0.3); opacity: 0.6; }
-    100% { transform: scale(1); opacity: 0; }
-}
-
-/* 4. Invisibility Effect */
-.visage-image-wrapper.invisible img {
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-}
-
-.visage-tile:hover .visage-image-wrapper.invisible img {
-    opacity: 1;
-}
-
-.visage-image-wrapper.invisible {
-    opacity: 1 !important;
 }
 
 /* ==========================================================================
    4. APPLICATION: VISAGE CONFIGURATION
    ========================================================================== */
 
-/* Main Window Frame */
 .visage.visage-config-app {
     background: var(--filroden-color-bg-darkest);
     color: var(--filroden-color-text-main-solid);
@@ -699,7 +550,6 @@
     max-height: 70vh;
 }
 
-/* Layout Containers */
 .visage.visage-config-app form {
     flex: 1;
     display: flex;
@@ -742,9 +592,7 @@
     font-weight: var(--filroden-font-weight-bold);
 }
 
-/* --- Flip Column Alignment --- */
-
-/* Align the header icons */
+/* Flip Column Alignment */
 .visage-flip-header {
     display: flex;
     justify-content: center;
@@ -752,7 +600,6 @@
     color: var(--filroden-color-text-muted);
 }
 
-/* Align the checkboxes in the rows */
 .visage-flip-group {
     display: flex;
     gap: var(--filroden-space-xxs);
@@ -767,8 +614,7 @@
     cursor: pointer;
 }
 
-/* --- Inputs & Buttons --- */
-
+/* Inputs & Buttons */
 .visage input[type="text"],
 .visage input[type="number"],
 .visage select {
@@ -818,7 +664,6 @@
     box-shadow: none;
 }
 
-/* Footer & Save Button */
 .visage .visage-config-footer {
     flex: none;
     padding-top: var(--filroden-space-m);
@@ -840,8 +685,7 @@
     box-shadow: 0 0 8px var(--filroden-color-text-accent-hover);
 }
 
-/* --- List Item Grid --- */
-
+/* List Item Grid */
 .visage .visage-list {
     list-style: none;
     margin: 0;
@@ -854,20 +698,12 @@
 .visage .visage-list .visage-list-item {
     display: grid;
     grid-template-columns: 
-        minmax(6rem, 1.5fr)     /* Name */
-        minmax(0, 3.5fr)        /* Image */
-        minmax(4rem, 0.8fr)     /* Scale */
-        minmax(2rem, 0.5fr)     /* Flip */
-        minmax(8rem, 1.5fr)     /* Disposition */
-        minmax(2.5rem, 0.5fr)   /* Ring */
-        minmax(3rem, 0.8fr)     /* Width */
-        minmax(3rem, 0.8fr)     /* Height */
-        minmax(1.25rem, 0.4fr); /* Delete */
+        minmax(6rem, 1.5fr) minmax(0, 3.5fr) minmax(4rem, 0.8fr) minmax(2rem, 0.5fr) 
+        minmax(8rem, 1.5fr) minmax(2.5rem, 0.5fr) minmax(3rem, 0.8fr) minmax(3rem, 0.8fr) minmax(1.25rem, 0.4fr);
     gap: var(--filroden-space-s);
     align-items: center;
 }
 
-/* --- Header Group Styling --- */
 .visage .visage-list-header-group {
     margin-bottom: var(--filroden-space-xxs);
     font-size: var(--filroden-font-size-xs);
@@ -880,7 +716,6 @@
     padding-bottom: var(--filroden-space-xxs);
 }
 
-/* Span the 'Visual' label across Scale(3), Flip(4), Disp(5), Ring(6) */
 .visage .header-group-label.visual {
     grid-column: 3 / span 4; 
     text-align: center;
@@ -888,19 +723,12 @@
     padding-bottom: var(--filroden-space-xxs);
 }
 
-/* Span the 'Dimensions' label across Width(7), Height(8) */
 .visage .header-group-label.dimensions {
     grid-column: 7 / span 2;
     text-align: center;
     border-bottom: 2px solid var(--filroden-color-border);
     padding-bottom: var(--filroden-space-xxs);
 }
-
-.visage .header-spacer {
-    /* Empty spans for alignment */
-}
-
-/* --- Column Specifics --- */
 
 .visage .visage-list-header .centered,
 .visage .visage-list-item .centered {
@@ -923,14 +751,13 @@
     padding-inline-start: var(--filroden-space-s); 
 }
 
-.visage .visage-list-header > span:nth-child(4), /* Flip */
-.visage .visage-list-header > span:nth-child(6)  /* Ring */ {
+.visage .visage-list-header > span:nth-child(4),
+.visage .visage-list-header > span:nth-child(6) {
     text-align: center !important;
     padding-inline-start: 0 !important;
     padding-inline-end: 0 !important;
 }
 
-/* Default Row */
 .visage .visage-list-item.default-row input[disabled],
 .visage .visage-list-item.default-row button[disabled] {
     border: none;
@@ -944,7 +771,6 @@
     filter: grayscale(1) opacity(0.5);
 }
 
-/* Scale Group */
 .visage .visage-scale-group {
     display: flex;
     align-items: center;
@@ -984,7 +810,6 @@
     align-items: center;
 }
 
-/* Disposition Controls */
 .visage .visage-disposition-cell {
     position: relative;
     grid-column: 5;
@@ -994,7 +819,6 @@
 }
 
 .visage .visage-disposition-button {
-    /* font-size: var(--filroden-font-size-xs); */
     width: 100%;
     display: flex;
     justify-content: flex-start;
@@ -1073,7 +897,6 @@
     color: var(--filroden-color-text-main-solid);
 }
 
-/* Ring Button */
 .visage .visage-ring-cell { grid-column: 6; }
 
 .visage .visage-ring-button {
@@ -1111,7 +934,6 @@
     pointer-events: none;
 }
 
-/* Empty State */
 .visage .visage-empty-state {
     display: flex;
     flex-direction: column;
@@ -1126,7 +948,6 @@
     text-align: center;
 }
 
-/* Tooltip icon */
 .visage .visage-info-icon {
     margin-left: var(--filroden-space-xxs);
     color: var(--filroden-color-text-muted);
@@ -1137,6 +958,7 @@
 .visage .visage-info-icon:hover {
     color: var(--filroden-color-text-accent);
 }
+
 
 /* ==========================================================================
    5. APPLICATION: VISAGE RING EDITOR (Sub-App)
@@ -1201,7 +1023,6 @@
     padding-inline: var(--filroden-space-xs);
 }
 
-/* Editor Forms */
 .visage.visage-ring-editor .form-group {
     display: contents; 
 }
@@ -1226,7 +1047,6 @@
     width: 100%;
 }
 
-/* Stacked Group (Effects) */
 .visage.visage-ring-editor .form-group.stacked {
     display: block;
     grid-column: 1 / -1;
@@ -1265,12 +1085,28 @@
     padding-inline: var(--filroden-space-m);
 }
 
+.visage .visage-warning-box {
+    background: rgba(255, 193, 7, 0.15); 
+    border: 1px solid var(--filroden-color-warning);
+    border-radius: var(--filroden-radius-small);
+    padding: var(--filroden-space-s);
+    margin-bottom: var(--filroden-space-m);
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-m);
+    color: #ffc107; 
+    font-size: var(--filroden-font-size-xs);
+}
+
+.visage .visage-warning-box i {
+    font-size: var(--filroden-font-size-m);
+}
+
 
 /* ==========================================================================
-   6. Actor Sheet Header Icon and Context Menu Icon
+   6. Actor Sheet Header Icon
    ========================================================================== */
 
-/* Applies the switch_account.svg as a mask to the <i> tag in the header button. */
 .visage-icon-mask {
     display: inline-block;
     width: 1em;
@@ -1292,10 +1128,9 @@
 
 
 /* ==========================================================================
-   7. GLOBAL EDITOR FIXES
+   7. GLOBAL EDITOR FIXES (The Editor Window)
    ========================================================================== */
 
-/* Force Background Color */
 .visage.visage-global-editor .window-content {
     background: var(--filroden-color-bg-darkest) !important;
     background-image: none !important;
@@ -1307,13 +1142,11 @@
     max-width: 95vw;
 }
 
-/* Labels */
 .visage.visage-global-editor label {
     color: var(--filroden-color-text-muted-solid) !important;
     font-weight: bold;
 }
 
-/* Hint Text */
 .visage.visage-global-editor .hint,
 .visage.visage-global-editor .visage-notes {
     color: var(--filroden-color-text-main-solid) !important;
@@ -1322,7 +1155,6 @@
     margin-top: var(--filroden-space-xxs);
 }
 
-/* Disabled Inputs */
 .visage.visage-global-editor input:disabled,
 .visage.visage-global-editor select:disabled,
 .visage.visage-global-editor button:disabled {
@@ -1345,7 +1177,7 @@
 }
 
 .visage.visage-global-editor select option {
-    background-color: #1a1a1a !important; /* Hardcoded dark hex for max compatibility */
+    background-color: #1a1a1a !important; 
     color: #ffffff !important;
 }
 
@@ -1386,7 +1218,6 @@
     gap: var(--filroden-space-s);
 }
 
-/* Stacked Selects Class */
 .visage .checkbox-input-group .stacked-selects {
     display: flex;
     flex-direction: column;
@@ -1410,9 +1241,43 @@
     gap: var(--filroden-space-xs);
 }
 
+/* Live Preview Container */
+.visage .visage-live-preview-stage {
+    width: 100%;
+    height: 192px; 
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--filroden-color-border);
+    border-radius: var(--filroden-radius-medium);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--filroden-space-xs);
+    overflow: hidden;
+}
+
+.visage .visage-live-preview-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    background-image: 
+        linear-gradient(var(--filroden-color-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--filroden-color-border) 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: 0;
+}
+
+/* This is essential for the ring to sit behind the card correctly */
+.visage .visage-live-preview-stage .visage-card {
+    position: relative;
+    z-index: 1;
+    width: 95%; 
+}
+
 
 /* ==========================================================================
-   8. GLOBAL DIRECTORY (FINAL FIXED LAYOUT)
+   8. GLOBAL DIRECTORY (The Card Styles)
    ========================================================================== */
 
 div#visage-global-directory {
@@ -1451,7 +1316,7 @@ div#visage-global-directory .window-content {
     gap: var(--filroden-space-m);
 }
 
-/* Main Browser - SCROLLS INTERNALLY */
+/* Main Browser */
 .visage-browser {
     flex: 1;
     padding: var(--filroden-space-l);
@@ -1513,7 +1378,6 @@ div#visage-global-directory .window-content {
     color: #000; border: none; font-weight: bold; width: 100%;
 }
 
-/* FIX 3: Category Pills */
 .category-list ul {
     list-style: none; padding: 0; margin: 0;
     display: flex; flex-direction: column; gap: 4px;
@@ -1536,23 +1400,9 @@ div#visage-global-directory .window-content {
     color: #000; font-weight: bold;
 }
 
-/* --- MAIN BROWSER --- */
-.visage-browser {
-    flex: 1;
-    padding: var(--filroden-space-l);
-    background: var(--filroden-color-bg-darkest);
-    overflow-y: auto; 
-    height: 100%; 
-}
+/* --- VISAGE CARD & SHARED VISUALS (The Source of Truth) --- */
 
-.visage-browser-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--filroden-space-m);
-    align-content: start;
-}
-
-/* --- CARD (3-ZONE LAYOUT) --- */
+/* 1. The Card Container */
 .visage-card {
     background: var(--filroden-color-bg-light);
     border: 1px solid var(--filroden-color-border);
@@ -1561,11 +1411,13 @@ div#visage-global-directory .window-content {
     display: flex;
     flex-direction: column;
     height: 190px;
+    width: 100%;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     transition: border-color 0.2s;
 }
 .visage-card:hover { border-color: var(--filroden-color-text-accent); }
 
+/* 2. Card Body */
 .card-body {
     flex: 1;
     display: flex;
@@ -1577,7 +1429,7 @@ div#visage-global-directory .window-content {
     border-bottom: none;
 }
 
-/* ZONE 1: LEFT (Metadata Lightbox) */
+/* ZONE 1: LEFT (Metadata) */
 .card-zone-left {
     width: 100px; 
     background: rgba(0,0,0,0.4);
@@ -1589,7 +1441,6 @@ div#visage-global-directory .window-content {
     flex-shrink: 0;
 }
 
-/* Fixed Slots */
 .metadata-slot {
     display: flex;
     align-items: center;
@@ -1617,7 +1468,6 @@ div#visage-global-directory .window-content {
     white-space: nowrap;
 }
 
-/* Disposition Slot */
 .metadata-slot.disposition-slot {
     margin-top: auto;
     width: 100%;
@@ -1636,7 +1486,6 @@ div#visage-global-directory .window-content {
     border: 1px solid rgba(255,255,255,0.1);
     letter-spacing: 0.05em;
 }
-
 .visage-disposition-chip.friendly { background: #1c6b2a; color: #fff; border-color: #4ade80; }
 .visage-disposition-chip.neutral { background: #856404; color: #fff; border-color: #facc15; }
 .visage-disposition-chip.hostile { background: #7f1d1d; color: #fff; border-color: #f87171; }
@@ -1668,49 +1517,49 @@ div#visage-global-directory .window-content {
     flex-shrink: 0;
 }
 
-/* --- RING PREVIEWS --- */
+/* --- SHARED VISUALS (RINGS / ANIMATIONS) --- */
+/* This is the key fix: Defines Z-Index context so Ring (1) is behind Image (2) */
 
-/* 1. THE WRAPPER (Parent) */
 .visage-preview-content {
-    position: relative; /* Established stacking context */
+    position: relative;
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border-radius: 50%; /* Ensures ring and image get clipped to circle */
-    z-index: 10; /* Keeps the whole unit above other UI elements */
+    border-radius: 50%;
+    z-index: 10;
 }
 
-/* 2. THE RING (Layer 1 - Bottom) */
 .visage-ring-preview {
     position: absolute;
     inset: 0;
-    z-index: 1; /* Low Priority */
+    z-index: 1; /* Sits behind image */
     pointer-events: none;
     border-radius: 50%;
+    /* Standard background for basic rings */
+    background: radial-gradient(circle, color-mix(in srgb, var(--ring-bkg), black 70%) 0%, black 100%);
+    transform: scale(0.9);
 }
 
-/* 3. THE IMAGE/VIDEO (Layer 2 - Top) */
 .visage-preview-content img,
 .visage-preview-content video {
-    position: relative; /* Required for z-index to take effect */
-    z-index: 2; /* High Priority - Sits on top of Ring */
+    position: relative; 
+    z-index: 2; /* Sits on top of ring */
     object-fit: contain;
     width: 100%; 
     height: 100%;
 }
 
-/* IMPORTANT: Ensure gradient effects don't fill the center opaquely */
-/* Your .gradient effect uses a mask to make the center transparent.
-   We just need to make sure the standard ring borders don't have a background. */
-
-.visage-ring-preview .ring-band {
-    background: transparent; /* Ensure bands don't have fills */
+.visage-preview-content .fallback-icon {
+    font-size: 3rem; 
+    color: var(--filroden-color-text-muted); 
+    opacity: 0.5;
+    position: relative; 
+    z-index: 2;
 }
 
-/* THE BANDS (Structure) */
 .ring-band {
     position: absolute;
     border-radius: 50%;
@@ -1718,16 +1567,10 @@ div#visage-global-directory .window-content {
     border: 2px solid var(--ring-color);
     transform-origin: center;
 }
-
-/* Outer Ring: 2px wide, sits at the edge */
 .ring-band.outer { inset: 0; }
-
-/* Inner Ring: 2px wide, sits 4px inside (creating 2px black gap) */
 .ring-band.inner { inset: 4px; }
 
-/* --- ANIMATIONS --- */
-
-/* 1. Pulse Effect */
+/* Pulse Animation */
 @keyframes visage-ring-pulse-border {
     0%, 100% { border-color: var(--ring-color); }
     50% { border-color: #000; }
@@ -1736,7 +1579,7 @@ div#visage-global-directory .window-content {
     animation: visage-ring-pulse-border 3s ease-in-out infinite;
 }
 
-/* 2. Gradient Effect */
+/* Gradient Animation */
 .visage-ring-preview.gradient .ring-band {
     border: none; 
     background: conic-gradient(
@@ -1753,7 +1596,7 @@ div#visage-global-directory .window-content {
     to { transform: rotate(360deg); }
 }
 
-/* 3. Wave Effect */
+/* Wave Animation */
 .visage-ring-preview.wave::after {
     content: "";
     position: absolute;
@@ -1771,38 +1614,13 @@ div#visage-global-directory .window-content {
     100% { transform: scale(1); opacity: 0; }
 }
 
-/* --- PREVIEW CONTENT (Image) --- */
-.visage-preview-content {
-    position: absolute;
-    inset: 4px; /* Matches inner ring inset to sit inside */
-    z-index: 5; /* Below Ring, Above Wave */
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    border-radius: 50%; /* Clip image to circle */
-    overflow: hidden;
-}
-
-.visage-preview-content img { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover; /* Fill the circle */
-}
-
-.visage-preview-content .fallback-icon {
-    font-size: 3rem; 
-    color: var(--filroden-color-text-muted); 
-    opacity: 0.5;
-}
-
-/* 4. Invisibility Effect */
+/* Invisibility */
 .visage-preview-content.invisible img {
     opacity: 0.5;
     filter: blur(1px) grayscale(0.5);
     transition: opacity 0.2s ease;
 }
 
-/* --- TOKEN NAME (Below Ring) --- */
 .token-name-label {
     font-size: 0.8rem;
     font-weight: bold;
@@ -1817,22 +1635,21 @@ div#visage-global-directory .window-content {
 
 /* ZONE 3: RIGHT (Actions) */
 .card-zone-right {
-    width: 44px; /* Slightly wider for the square buttons */
+    width: 44px;
     background: rgba(0,0,0,0.3);
     border-left: 1px solid rgba(255,255,255,0.05);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px; /* Nice spacing */
+    gap: 10px;
     padding: 8px 0;
 }
 
-/* FIX: Rounded Box Buttons */
 .card-zone-right button {
     width: 30px; height: 30px;
-    border-radius: 4px; /* The Requested Change */
-    border: 1px solid transparent; /* Invisible border by default */
+    border-radius: 4px;
+    border: 1px solid transparent;
     background: transparent;
     color: var(--filroden-color-text-muted);
     display: flex; align-items: center; justify-content: center;
@@ -1853,7 +1670,6 @@ div#visage-global-directory .window-content {
     border-color: #ff6b6b;
 }
 
-/* Apply Button - Slightly more visible by default */
 .card-zone-right button[data-action="apply"] {
     color: var(--filroden-color-text-main-solid);
     opacity: 0.9;
@@ -1909,7 +1725,6 @@ div#visage-global-directory .window-content {
     mask-size: contain;
 }
 
-/* 2. Ensure the parent button centers our pseudo-element */
 button.visage-tool-icon {
     display: flex;
     align-items: center;
