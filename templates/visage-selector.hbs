@@ -6,15 +6,27 @@
         </button>
     </div>
 
-    {{!-- Global Override Banner --}}
-    {{#if hasGlobalOverride}}
-    <div class="visage-global-banner">
-        <div class="banner-info" data-tooltip="{{localize 'VISAGE.Selector.GlobalContext'}}">
-            <i class="fas fa-globe"></i>
-            <span>{{globalLabel}}</span>
-        </div>
-        <button type="button" class="revert-btn" data-action="revertGlobal" data-tooltip="{{localize 'VISAGE.Selector.Tooltip.Revert'}}">
-            <i class="fas fa-undo"></i>
+    {{!-- Global Stack List --}}
+    {{#if activeStack.length}}
+    <div class="visage-stack-list">
+        <div class="stack-header">{{localize "VISAGE.Selector.ActiveEffects"}}</div>
+        <ul>
+            {{#each activeStack}}
+            <li class="stack-item">
+                <span class="effect-label" data-tooltip="{{this.label}}">
+                    <i class="fas fa-layer-group"></i> {{this.label}}
+                </span>
+                <button type="button" class="remove-layer-btn" 
+                        data-action="removeLayer" 
+                        data-layer-id="{{this.id}}"
+                        data-tooltip="Remove Effect">
+                    <i class="fas fa-times"></i>
+                </button>
+            </li>
+            {{/each}}
+        </ul>
+        <button type="button" class="revert-all-btn" data-action="revertGlobal">
+            {{localize "VISAGE.Selector.ClearAll"}}
         </button>
     </div>
     {{/if}}
@@ -22,6 +34,7 @@
     <div class="visage-selector-grid-wrapper">
         <div class="visage-selector">
             {{#each forms}}
+
             <div class="visage-tile {{#if this.isActive}}active{{/if}}" 
                  data-action="selectVisage" 
                  data-form-key="{{this.key}}"
@@ -30,20 +43,9 @@
                  aria-label="{{this.name}}" 
                  aria-pressed="{{this.isActive}}">
  
-                <div class="visage-image-wrapper {{#if this.hasInvisibility}}invisible{{/if}}">
-                    {{#if this.hasRing}}
-                        <div class="visage-ring-preview {{#if this.hasPulse}}pulse{{/if}} {{#if this.hasGradient}}gradient{{/if}} {{#if this.hasWave}}wave{{/if}}" 
-                             style="--ring-color: {{this.ringColor}}; --ring-bkg: {{this.ringBkg}};">
-                             <div class="ring-band outer"></div>
-                             <div class="ring-band inner"></div>
-                        </div>
-                    {{/if}}
-                    
-                    {{#if this.isVideo}}
-                        <video class="{{#if this.hasRing}}circular{{/if}}" src="{{this.resolvedPath}}" autoplay loop muted playsinline></video>
-                    {{else}}
-                        <img class="{{#if this.hasRing}}circular{{/if}}" src="{{this.resolvedPath}}" alt="{{this.name}}"/>
-                    {{/if}}
+                <div class="visage-image-wrapper">
+                    {{!-- Pass 'visage-hud-content' to override the default class --}}
+                    {{> "modules/visage/templates/parts/visage-preview.hbs" this wrapperClass="visage-hud-content"}}
                 </div>
 
                 <span class="visage-tile-name" data-tooltip="{{this.name}}">{{this.name}}</span>

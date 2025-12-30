@@ -6,6 +6,7 @@
 import { Visage } from "./visage.js";
 import { VisageGlobalData } from "./visage-global-data.js";
 import { VisageGlobalEditor } from "./visage-global-editor.js";
+import { VisageComposer } from "./visage-composer.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -242,13 +243,16 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
         const id = target.closest(".visage-card").dataset.id;
         await VisageGlobalData.restore(id);
     }
-    async _onDestroy(event, target) {
-        const id = target.closest(".visage-card").dataset.id;
-        const confirm = await Dialog.confirm({
-            title: game.i18n.localize("VISAGE.Dialog.Destroy.Title"),
-            content: game.i18n.localize("VISAGE.Dialog.Destroy.Content")
+    async _onDestroy(id) {
+        const confirmed = await foundry.applications.api.DialogV2.confirm({
+            window: { title: game.i18n.localize("VISAGE.Dialog.Destroy.Title") },
+            content: `<p>${game.i18n.localize("VISAGE.Dialog.Destroy.Content")}</p>`,
+            modal: true
         });
-        if (confirm) await VisageGlobalData.destroy(id);
+
+        if (confirmed) {
+            await VisageGlobalData.destroy(id);
+        }
     }
     _onSelectCategory(event, target) {
         const cat = target.dataset.category;
@@ -273,87 +277,29 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
         if (!visage) return;
         
         const tokens = canvas.tokens.controlled;
-        if (!tokens.length) { 
-            ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.NoTokens")); 
-            return; 
+        if (!tokens.length) {
+             ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.NoTokens"));
+             return;
         }
 
-        const updates = tokens.map(t => this._calculateTokenUpdate(t, visage.changes, visage.label)).filter(u => u);
-        
-        if (updates.length) {
-            await canvas.scene.updateEmbeddedDocuments("Token", updates);
-            ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { label: visage.label, count: updates.length }));
-        }
-    }
-    
-    // Snapshot Logic (Saves state, doesn't revert)
-    _calculateTokenUpdate(token, changes, label) {
-        const update = { _id: token.id };
-        const c = changes;
-        
-        // 1. SNAPSHOT LOGIC
-        const currentFlags = token.document.flags?.visage || {};
-        const isAlreadyOverridden = !!currentFlags.activeVisage;
-        
-        if (!isAlreadyOverridden) {
-            let ringData = undefined;
-            if (token.document.ring) {
-                ringData = (typeof token.document.ring.toObject === "function") 
-                    ? token.document.ring.toObject() 
-                    : token.document.ring;
-            }
-
-            const originalState = {
-                name: token.document.name,
-                disposition: token.document.disposition,
-                "texture.src": token.document.texture.src,
-                "texture.scaleX": token.document.texture.scaleX,
-                "texture.scaleY": token.document.texture.scaleY,
-                width: token.document.width,
-                height: token.document.height,
-                ring: ringData
-            };
-            
-            Object.keys(originalState).forEach(key => originalState[key] === undefined && delete originalState[key]);
-            update["flags.visage.originalState"] = originalState;
-        }
-
-        // 2. APPLY OVERRIDES
-        if (c.name) update.name = c.name;
-        if (c.disposition !== null) update.disposition = c.disposition;
-        
-        const textureUpdate = {};
-        if (c.img) textureUpdate.src = c.img;
-
-        const currentScaleX = token.document.texture.scaleX;
-        const currentScaleY = token.document.texture.scaleY;
-        const currentAbsScale = Math.abs(currentScaleX);
-        
-        const newAbsScale = (c.scale !== null) ? c.scale : currentAbsScale;
-
-        let newIsFlippedX = currentScaleX < 0; 
-        if (c.isFlippedX === true) newIsFlippedX = true;
-        if (c.isFlippedX === false) newIsFlippedX = false;
-        
-        let newIsFlippedY = currentScaleY < 0; 
-        if (c.isFlippedY === true) newIsFlippedY = true;
-        if (c.isFlippedY === false) newIsFlippedY = false;
-
-        textureUpdate.scaleX = newAbsScale * (newIsFlippedX ? -1 : 1);
-        textureUpdate.scaleY = newAbsScale * (newIsFlippedY ? -1 : 1);
-
-        if (Object.keys(textureUpdate).length > 0) update.texture = textureUpdate;
-        if (c.width) update.width = c.width;
-        if (c.height) update.height = c.height;
-        if (c.ring) update.ring = c.ring;
-
-        // 3. FLAG AS ACTIVE
-        update["flags.visage.activeVisage"] = { 
-            id: "global", 
-            source: "global",
-            label: label || "Global Visage" 
+        // Create the new stack layer
+        const newLayer = {
+            id: visage.id,
+            label: visage.label,
+            changes: visage.changes
         };
 
-        return update;
+        for (const token of tokens) {
+            // getFlag automatically scopes to the module ID.
+            const currentStack = token.document.getFlag(Visage.MODULE_ID, "stack") || [];
+            
+            // Append the new layer to the existing stack
+            const newStack = [...currentStack, newLayer];
+
+            // Re-compose with the combined stack
+            await VisageComposer.compose(token, newStack);
+        }
+
+        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { label: visage.label, count: tokens.length }));
     }
 }

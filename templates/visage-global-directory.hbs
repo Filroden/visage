@@ -92,25 +92,19 @@
                     {{!-- CENTER: VISUAL PREVIEW --}}
                     <div class="card-zone-center">
                         <div class="visual-target">
-                            
-                            {{!-- LAYER 1: IMAGE (Bottom) --}}
-                            <div class="visage-preview-content {{#if this.meta.hasInvisibility}}invisible{{/if}}">
-                                {{#if this.changes.img}}
-                                    <img src="{{this.changes.img}}" alt="{{this.label}}"
-                                         style="transform: scale({{#if this.meta.forceFlipX}}-1{{else}}1{{/if}}, {{#if this.meta.forceFlipY}}-1{{else}}1{{/if}});">
-                                {{else}}
-                                    <i class="visage-icon-mask fallback-icon"></i>
-                                {{/if}}
-                            </div>
-
-                            {{!-- LAYER 2: RING (Top) --}}
-                            {{#if this.meta.hasRing}}
-                                <div class="visage-ring-preview {{#if this.meta.hasPulse}}pulse{{/if}} {{#if this.meta.hasGradient}}gradient{{/if}} {{#if this.meta.hasWave}}wave{{/if}}" 
-                                     style="--ring-color: {{this.meta.ringColor}}; --ring-bkg: {{this.meta.ringBkg}};">
-                                     <div class="ring-band outer"></div>
-                                     <div class="ring-band inner"></div>
-                                </div>
-                            {{/if}}
+                            {{> "modules/visage/templates/parts/visage-preview.hbs" 
+                                resolvedPath=this.changes.img 
+                                name=this.label
+                                hasRing=this.meta.hasRing 
+                                hasInvisibility=this.meta.hasInvisibility
+                                hasPulse=this.meta.hasPulse
+                                hasGradient=this.meta.hasGradient
+                                hasWave=this.meta.hasWave
+                                ringColor=this.meta.ringColor
+                                ringBkg=this.meta.ringBkg
+                                forceFlipX=this.meta.forceFlipX
+                                forceFlipY=this.meta.forceFlipY
+                            }}
                         </div>
                         
                         {{!-- Token Name --}}

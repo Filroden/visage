@@ -347,9 +347,36 @@
     opacity: 1;
 }
 
-/* --- Global Override Banner --- */
-.visage .visage-global-banner {
-    flex: none;
+/* --- Global Stack List Container --- */
+.visage .visage-stack-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: var(--filroden-space-m);
+}
+
+/* Header Label */
+.visage .stack-header {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--filroden-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+/* Reset the list style */
+.visage .visage-stack-list ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* --- The Row --- */
+.visage .stack-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -357,50 +384,65 @@
     border: 1px solid var(--filroden-color-text-accent);
     border-radius: var(--filroden-radius-small);
     padding: 4px 8px;
-    margin-bottom: var(--filroden-space-m);
-    gap: var(--filroden-space-s);
-    min-height: 32px;
+    min-height: 28px;
 }
 
-.visage .visage-global-banner .banner-info {
+/* The Label + Icon */
+.visage .stack-item .effect-label {
     display: flex;
     align-items: center;
     gap: 6px;
     color: var(--filroden-color-text-accent);
     font-weight: bold;
     font-size: var(--filroden-font-size-xs);
-    overflow: hidden;
-    cursor: help;
-}
-
-.visage .visage-global-banner .banner-info span {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 140px;
+    flex: 1;
+    margin-right: 8px;
+    cursor: help;
 }
 
-.visage .visage-global-banner .revert-btn {
-    flex: 0 0 24px;
-    width: 24px;
-    height: 24px;
+/* The "X" Button */
+.visage .stack-item .remove-layer-btn {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;    
     background: var(--filroden-color-text-accent);
-    color: var(--filroden-color-bg-darkest);
+    color: var(--filroden-color-bg-darkest);    
     border: none;
     border-radius: var(--filroden-radius-small);
     padding: 0;
-    font-size: 12px;
-    cursor: pointer;
+    font-size: 10px;
+    cursor: pointer;    
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
 }
 
-.visage .visage-global-banner .revert-btn:hover {
+.visage .stack-item .remove-layer-btn:hover {
     background: var(--filroden-color-text-accent-hover);
     box-shadow: 0 0 5px var(--filroden-color-text-accent);
     color: #fff;
+}
+
+/* --- Clear All Button --- */
+.visage .revert-all-btn {
+    align-self: flex-end;    
+    background: transparent;
+    border: none;
+    color: var(--filroden-color-text-muted);
+    font-size: 0.7rem;
+    cursor: pointer;
+    padding: 2px 4px;
+    opacity: 0.8;
+}
+
+.visage .revert-all-btn:hover {
+    opacity: 1;
+    text-decoration: underline;
+    color: var(--filroden-color-text-warning);
 }
 
 /* Grid Layout */
@@ -482,6 +524,25 @@
 .visage-image-wrapper img.circular,
 .visage-image-wrapper video.circular {
     border-radius: 50%;
+}
+
+/* Ensure the partial fills the HUD wrapper */
+.visage .visage-hud-content {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: var(--filroden-radius-small);
+}
+
+/* Ensure invisibility works on the new class */
+.visage .visage-hud-content.invisible {
+    opacity: 0.5;
+    filter: blur(1px) grayscale(0.5);
 }
 
 /* The Ring Container */
@@ -594,7 +655,7 @@
     background: var(--filroden-color-bg-darkest);
     color: var(--filroden-color-text-main-solid);
     border-radius: var(--filroden-radius-large);
-    width: 54rem;        
+    width: 64rem;        
     max-width: 1200px;
     height: auto;
     max-height: 80vh;
@@ -681,6 +742,31 @@
     font-weight: var(--filroden-font-weight-bold);
 }
 
+/* --- Flip Column Alignment --- */
+
+/* Align the header icons */
+.visage-flip-header {
+    display: flex;
+    justify-content: center;
+    gap: var(--filroden-space-l);
+    color: var(--filroden-color-text-muted);
+}
+
+/* Align the checkboxes in the rows */
+.visage-flip-group {
+    display: flex;
+    gap: var(--filroden-space-xxs);
+    justify-content: center;
+}
+
+.visage-flip-group .checkbox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: var(--filroden-font-size-xs);
+    cursor: pointer;
+}
+
 /* --- Inputs & Buttons --- */
 
 .visage input[type="text"],
@@ -720,7 +806,6 @@
 }
 
 .visage .visage-delete {
-    background: var(--filroden-color-bg-light-solid);
     color: var(--filroden-color-text-main-solid);
     text-align: center;
     cursor: pointer;
@@ -1583,28 +1668,38 @@ div#visage-global-directory .window-content {
     flex-shrink: 0;
 }
 
-/* --- RING PREVIEWS (The User's Exact CSS) --- */
+/* --- RING PREVIEWS --- */
 
-/* LAYER 1: RING */
+/* 1. THE WRAPPER (Parent) */
+.visage-preview-content {
+    position: relative; /* Established stacking context */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 50%; /* Ensures ring and image get clipped to circle */
+    z-index: 10; /* Keeps the whole unit above other UI elements */
+}
+
+/* 2. THE RING (Layer 1 - Bottom) */
 .visage-ring-preview {
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 1; /* Low Priority */
     pointer-events: none;
     border-radius: 50%;
 }
 
-/* LAYER 2: IMAGE */
-.visage-preview-content {
-    position: absolute;
-    inset: 0; 
-    z-index: 10; /* Top */
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    border-radius: 50%;
-    overflow: hidden;
-    pointer-events: none;
+/* 3. THE IMAGE/VIDEO (Layer 2 - Top) */
+.visage-preview-content img,
+.visage-preview-content video {
+    position: relative; /* Required for z-index to take effect */
+    z-index: 2; /* High Priority - Sits on top of Ring */
+    object-fit: contain;
+    width: 100%; 
+    height: 100%;
 }
 
 /* IMPORTANT: Ensure gradient effects don't fill the center opaquely */

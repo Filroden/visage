@@ -3,6 +3,8 @@
  * @module visage
  */
 
+import { VisageComposer } from "./visage-composer.js";
+
 /**
  * The primary class responsible for all Visage module logic.
  * It handles data normalization, token modifications, and API exposure.
@@ -77,6 +79,42 @@ export class Visage {
     }
 
     /**
+     * Prepares the context for a dynamic ring, mapping bitwise effects to an array of active states.
+     * This centralized helper ensures both the Ring Editor and Global Editor use identical logic.
+     * @param {object} ringData The raw ring data object (from database or flags).
+     * @returns {object} The processed context containing colors, subject, and the effects array.
+     */
+    static prepareRingContext(ringData) {
+        const data = ringData || {};
+        const currentEffects = data.effects || 0;
+        
+        // Define the standard effects map
+        const availableEffects = [
+            { value: 2, label: "VISAGE.RingConfig.Effects.Pulse", key: "RING_PULSE" },
+            { value: 4, label: "VISAGE.RingConfig.Effects.Gradient", key: "RING_GRADIENT" },
+            { value: 8, label: "VISAGE.RingConfig.Effects.Wave", key: "BKG_WAVE" },
+            { value: 16, label: "VISAGE.RingConfig.Effects.Invisibility", key: "INVISIBILITY" }
+        ];
+
+        return {
+            enabled: data.enabled ?? false,
+            colors: {
+                ring: data.colors?.ring ?? "#FFFFFF",
+                background: data.colors?.background ?? "#000000"
+            },
+            subject: {
+                texture: data.subject?.texture ?? "",
+                scale: data.subject?.scale ?? 1.0
+            },
+            // Map the bitwise integer to an array of objects with 'isActive' boolean
+            effects: availableEffects.map(eff => ({
+                ...eff,
+                isActive: (currentEffects & eff.value) !== 0
+            }))
+        };
+    }
+
+    /**
      * Initializes the module and exposes the public API.
      * This method is called once when the module is ready.
      */
@@ -92,15 +130,8 @@ export class Visage {
 
     /**
      * Retrieves, normalizes, and sorts all visages for a given actor.
-     * This function is responsible for ensuring data consistency. It reads visage data from actor flags,
-     * gracefully handling both modern (object-based) and legacy (string-based) formats.
-     * For each entry, it guarantees a unique `id`. If an entry is from a legacy data source and lacks a
-     * stable 16-character ID as its key, a new random ID is generated. This ensures that all visages,
-     * regardless of their original format, can be uniquely identified and referenced throughout the system.
-     *
      * @param {Actor} actor The actor document to retrieve visages from.
-     * @returns {Array<object>} A sorted array of normalized visage objects. Each object includes
-     *                          `id`, `name`, `path`, `scale`, `disposition`, and `ring`.
+     * @returns {Array<object>} A sorted array of normalized visage objects.
      */
     static getVisages(actor) {
         if (!actor) return [];
@@ -113,13 +144,23 @@ export class Visage {
 
         for (const [key, data] of Object.entries(sourceData)) {
             const isObject = typeof data === 'object' && data !== null;
-            // Ensure a unique ID. If the key isn't a proper ID, generate one.
+            // Ensure a unique ID.
             const id = (key.length === 16) ? key : foundry.utils.randomID(16);
             const name = (isObject && data.name) ? data.name : key;
             const path = isObject ? (data.path || "") : (data || "");
-            const scale = isObject ? (data.scale ?? 1.0) : 1.0;
+            
+            // --- Normalize Scale & Flips ---
+            const rawScale = isObject ? (data.scale ?? 1.0) : 1.0;
+            const scale = Math.abs(rawScale); // Always positive
 
-            // Normalize disposition: secret flag maps to -2, 2 is an invalid value.
+            // 1. Check for explicit boolean. 2. Fallback to negative scale (Legacy)
+            let isFlippedX = false;
+            if (isObject && data.isFlippedX !== undefined) isFlippedX = data.isFlippedX;
+            else isFlippedX = rawScale < 0;
+
+            let isFlippedY = false;
+            if (isObject && data.isFlippedY !== undefined) isFlippedY = data.isFlippedY;
+
             let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
             if (disposition === 2) disposition = -2;
             if (isObject && data.secret === true) disposition = -2;
@@ -129,7 +170,9 @@ export class Visage {
             const height = isObject ? (data.height ?? 1) : 1;
 
             results.push({
-                id, name, path, scale, disposition, ring, width, height
+                id, name, path, scale, 
+                isFlippedX, isFlippedY,
+                disposition, ring, width, height
             });
         }
 
@@ -182,108 +225,88 @@ export class Visage {
     }
 
     /**
-     * Applies a selected visage or reverts to the default state for a specific token.
+     * Applies a specific visage to a token, updating its appearance and state.
      * @param {string} actorId The ID of the actor.
-     * @param {string} tokenId The ID of the token to modify.
-     * @param {string} formKey The key of the form to apply, or 'default' to revert.
-     * @returns {Promise<boolean>} True if the update was successful, false otherwise.
+     * @param {string} tokenId The ID of the token.
+     * @param {string} formKey The key of the form to apply ("default" or a UUID).
      */
     static async setVisage(actorId, tokenId, formKey) {
         const token = canvas.tokens.get(tokenId);
-        if (!token?.actor) return false;
+        if (!token) return;
         const actor = token.actor;
 
-        const moduleData = actor.flags?.[this.DATA_NAMESPACE] || {};
-        const tokenData = moduleData[tokenId] || {};
-        
-        let newName, newTokenPath, newScale, newDisposition, newRing, newWidth, newHeight;
+        let data = null;
 
-        if (formKey === 'default') {
-            const defaults = tokenData.defaults;
-            if (!defaults) {
-                this.log(`Cannot reset to default; no defaults saved for token ${tokenId}.`, true);
-                return false;
-            }
+        // CASE 1: APPLYING DEFAULT
+        if (formKey === "default") {
+            const ns = this.DATA_NAMESPACE;
+            // 1. Try to get saved defaults specific to this token instance
+            const savedDefaults = actor.flags?.[ns]?.[tokenId]?.defaults || {};
             
-            newName = defaults.name;
-            newTokenPath = defaults.token;
-            newScale = defaults.scale ?? 1.0;
-            newDisposition = defaults.disposition ?? 0;
-            newRing = defaults.ring;
-            newWidth = defaults.width ?? 1;
-            newHeight = defaults.height ?? 1;
+            // 2. Fallback to Prototype Token (e.g. if no specific default saved yet)
+            const proto = actor.prototypeToken;
+            
+            // Robustly determine Scale & Flip from saved defaults or prototype
+            // (Similar logic to _getTokenDefaults in config)
+            const defScaleRaw = savedDefaults.scale ?? proto.texture.scaleX ?? 1.0;
+            const defScaleYRaw = savedDefaults.scaleY ?? proto.texture.scaleY ?? 1.0;
 
-        } else {
-            const allVisages = this.getVisages(actor);
-            const visageData = allVisages.find(v => v.id === formKey);
-            
-            // Fallback for legacy keys if a direct ID match fails.
-            let rawData = visageData;
-            if (!rawData) {
-                const rawSource = (moduleData[this.ALTERNATE_FLAG_KEY] || moduleData[this.LEGACY_FLAG_KEY] || {});
-                const legacyEntry = rawSource[formKey];
-                if (legacyEntry) {
-                   const isObject = typeof legacyEntry === 'object';
-                   rawData = {
-                       name: isObject ? (legacyEntry.name || formKey) : formKey,
-                       path: isObject ? (legacyEntry.path || "") : legacyEntry,
-                       scale: isObject ? (legacyEntry.scale ?? 1.0) : 1.0,
-                       disposition: isObject ? legacyEntry.disposition : null,
-                       ring: isObject ? legacyEntry.ring : null,
-                       width: isObject ? (legacyEntry.width ?? 1) : 1,
-                       height: isObject ? (legacyEntry.height ?? 1) : 1
-                   };
-                } else {
-                    this.log(`Form key "${formKey}" not found`, true);
-                    return false;
-                }
-            }
+            data = {
+                name: savedDefaults.name || proto.name,
+                path: savedDefaults.token || proto.texture.src,
+                // Normalize Scale/Flip
+                scale: Math.abs(defScaleRaw),
+                isFlippedX: savedDefaults.isFlippedX ?? (defScaleRaw < 0),
+                isFlippedY: savedDefaults.isFlippedY ?? (defScaleYRaw < 0),
+                width: savedDefaults.width ?? proto.width ?? 1,
+                height: savedDefaults.height ?? proto.height ?? 1,
+                disposition: savedDefaults.disposition ?? proto.disposition ?? 0,
+                // Ensure Ring object structure
+                ring: savedDefaults.ring || (proto.ring?.toObject ? proto.ring.toObject() : proto.ring) || {}
+            };
 
-            const defaults = tokenData.defaults;
-            if (!defaults) return false;
-            
-            newName = rawData.name || defaults.name;
-            newTokenPath = rawData.path || defaults.token;
-            newScale = rawData.scale ?? 1.0;
-            newDisposition = rawData.disposition;
-            
-            // If the visage has no specific ring configuration, use the token's default.
-            const hasRingConfig = rawData.ring && !foundry.utils.isEmpty(rawData.ring);
-            newRing = hasRingConfig ? rawData.ring : defaults.ring;
-            
-            newWidth = rawData.width ?? defaults.width ?? 1;
-            newHeight = rawData.height ?? defaults.height ?? 1;
+        } 
+        // CASE 2: APPLYING ALTERNATE
+        else {
+            const alternates = this.getVisages(actor);
+            data = alternates.find(v => v.id === formKey);
         }
 
-        const finalTokenPath = await this.resolvePath(newTokenPath);
+        if (!data) {
+            console.warn(`Visage | Could not find form data for key: ${formKey}`);
+            return;
+        }
 
-        const updateData = {
-            "name": newName,
-            "texture.src": finalTokenPath,
-            "texture.scaleX": newScale,
-            "texture.scaleY": Math.abs(newScale),
-            "width": newWidth,
-            "height": newHeight
+        // Resolve the image path (Handles Wildcards)
+        const resolvedPath = await this.resolvePath(data.path);
+
+        // Construct the Base Update for the Composer
+        const baseUpdate = {
+            name: data.name,
+            texture: {
+                src: resolvedPath,
+                // Apply Scale & Flip logic
+                scaleX: Math.abs(data.scale) * (data.isFlippedX ? -1 : 1),
+                scaleY: Math.abs(data.scale) * (data.isFlippedY ? -1 : 1)
+            },
+            width: data.width || 1,
+            height: data.height || 1,
+            disposition: data.disposition ?? token.document.disposition,
+            // Full Ring Override
+            ring: data.ring ? {
+                 enabled: data.ring.enabled === true,
+                 colors: data.ring.colors,
+                 effects: data.ring.effects,
+                 subject: data.ring.subject
+            } : { enabled: false }
         };
 
-        if (newDisposition !== null && newDisposition !== undefined) {
-            updateData.disposition = newDisposition;
-        }
+        // Update the Actor Flag to remember selection
+        const flagKey = `flags.${this.DATA_NAMESPACE}.${tokenId}.currentFormKey`;
+        await token.actor.update({ [flagKey]: formKey });
 
-        if (newRing !== undefined) {
-            updateData.ring = newRing;
-        }
-
-        try {
-            await token.document.update(updateData, { visageUpdate: true });
-            await actor.update({
-                [`flags.${this.DATA_NAMESPACE}.${tokenId}.currentFormKey`]: formKey
-            });
-            return true;
-        } catch (error) {
-            this.log(`Failed to update token ${tokenId}: ${error}`, true);
-            return false;
-        }
+        // Trigger the Composer to layer Global Effects on top of this new Base
+        await VisageComposer.compose(token, null, baseUpdate);
     }
 
     /**
@@ -339,4 +362,89 @@ export class Visage {
         if (currentFormKey === undefined && formKey === 'default') return true;
         return currentFormKey === formKey;
     }
+
+    /**
+     * Handles token updates to manage state synchronization.
+     * 1. Captures "Default" state when a token is manually modified.
+     * 2. Detects manual edits on tokens with active Global Visages, updates the 'originalState' 
+     * snapshot, and re-applies the stack so the global effects persist correctly.
+     * * @param {TokenDocument} tokenDocument The document of the token being updated.
+     * @param {object} change The differential data that is changing.
+     * @param {object} options Additional options.
+     * @param {string} userId The ID of the user triggering the update.
+     */
+    static async handleTokenUpdate(tokenDocument, change, options, userId) {
+        // 1. Filter: Ignore updates triggered by Visage itself (prevent infinite loops)
+        if (options.visageUpdate) return;
+
+        // 2. Filter: Only run for the triggering user to avoid race conditions (One client handles the logic)
+        if (game.user.id !== userId) return;
+
+        const actor = tokenDocument.actor;
+        if (!actor) return;
+        const tokenId = tokenDocument.id;
+
+        // --- PART A: CAPTURE DEFAULTS (Existing Logic) ---
+        // Checks if core properties changed, and updates the 'default' visage flag.
+        const hasChangedName = "name" in change;
+        const hasChangedTextureSrc = "texture" in change && "src" in change.texture;
+        const hasChangedTextureScale = "texture" in change && ("scaleX" in change.texture || "scaleY" in change.texture);
+        const hasChangedDisposition = "disposition" in change;
+        const hasChangedRing = "ring" in change;
+        const hasChangedSize = "width" in change || "height" in change;
+
+        if (hasChangedName || hasChangedTextureSrc || hasChangedTextureScale || hasChangedDisposition || hasChangedRing || hasChangedSize) {
+            const updateData = {};
+
+            if (hasChangedName) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.name`] = change.name;
+            if (hasChangedTextureSrc) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.token`] = change.texture.src;
+            if (hasChangedTextureScale) {
+                const newScale = change.texture.scaleX ?? change.texture.scaleY; 
+                if (newScale !== undefined) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.scale`] = newScale;
+            }
+            if (hasChangedDisposition) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.disposition`] = change.disposition;
+            if (hasChangedRing) {
+                updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.ring`] = change.ring;
+            }
+            if (hasChangedSize) {
+                if ("width" in change) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.width`] = change.width;
+                if ("height" in change) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.height`] = change.height;
+            }
+
+            if (Object.keys(updateData).length > 0) {
+                // Update actor defaults (fire and forget)
+                actor.update(updateData);
+            }
+        }
+
+        // --- PART B: MAINTAIN GLOBAL STACK (New Logic) ---
+        // If a stack exists, we assume the manual edit was intended for the "Base" token.
+        // We update 'originalState' and then re-compose the stack on top.
+        const flags = tokenDocument.flags[this.MODULE_ID] || {};
+        const stack = flags.stack || [];
+
+        if (stack.length > 0) {
+            // Import Composer dynamically to avoid circular dependency issues
+            const { VisageComposer } = await import("./visage-composer.js");
+
+            // 1. Get the current saved base, or snapshot if missing
+            let base = flags.originalState;
+            if (!base) {
+                base = VisageComposer._captureSnapshot(tokenDocument.object);
+            }
+
+            // 2. Merge the manual 'change' into the 'base'
+            // We use foundry.utils.mergeObject to handle nested data (like texture.src) correctly
+            const newBase = foundry.utils.mergeObject(base, change, { 
+                insertKeys: false, 
+                inplace: false 
+            });
+
+            // 3. Re-Compose
+            // We trigger the Composer with the NEW base.
+            // This ensures the Stack effects are re-calculated on top of the user's manual changes.
+            await VisageComposer.compose(tokenDocument.object, null, newBase);
+        }
+    }
+
 }

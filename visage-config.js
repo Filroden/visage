@@ -129,16 +129,26 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const scene = game.scenes.get(this.sceneId);
         const tokenDocument = scene?.tokens.get(this.tokenId);
         
-        // 2. If token exists, return its specific data (Current Behavior)
+        // 2. If token exists, return its specific data
         if (tokenDocument) {
             const ns = Visage.DATA_NAMESPACE;
             const moduleData = tokenDocument.actor?.flags?.[ns] || {};
             const savedDefaults = moduleData[this.tokenId]?.defaults || {};
 
+            // Determine orientation
+            // 1. Use saved scale if available, else live token scale
+            const rawScaleX = savedDefaults.scale ?? tokenDocument.texture.scaleX ?? 1.0;
+            const rawScaleY = savedDefaults.scaleY ?? tokenDocument.texture.scaleY ?? 1.0;
+
             return {
                 name: savedDefaults.name || tokenDocument.name,
                 token: savedDefaults.token || tokenDocument.texture.src,
-                scale: savedDefaults.scale ?? tokenDocument.texture.scaleX ?? 1.0,
+                
+                scale: Math.abs(rawScaleX), 
+                // 2. Derive flips from negative scale (standard Foundry behavior)
+                isFlippedX: rawScaleX < 0,
+                isFlippedY: rawScaleY < 0,
+                
                 disposition: savedDefaults.disposition ?? tokenDocument.disposition ?? 0,
                 width: savedDefaults.width ?? tokenDocument.width ?? 1,
                 height: savedDefaults.height ?? tokenDocument.height ?? 1,
@@ -151,15 +161,20 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const proto = actor?.prototypeToken;
         if (!proto) return {};
 
-        // Check if .toObject exists before calling it
         const ringData = (proto.ring && typeof proto.ring.toObject === "function") 
             ? proto.ring.toObject() 
             : (proto.ring || {});
 
+        // Prototype Flips
+        const protoScaleX = proto.texture.scaleX ?? 1.0;
+        const protoScaleY = proto.texture.scaleY ?? 1.0;
+
         return {
             name: proto.name,
             token: proto.texture.src,
-            scale: proto.texture.scaleX ?? 1.0,
+            scale: Math.abs(proto.texture.scaleX ?? 1.0),
+            isFlippedX: (proto.texture.scaleX ?? 1.0) < 0,
+            isFlippedY: (proto.texture.scaleY ?? 1.0) < 0,
             disposition: proto.disposition ?? 0,
             width: proto.width ?? 1,
             height: proto.height ?? 1,
@@ -194,11 +209,12 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             tokenDefaults.name, 
             tokenDefaults.token, 
             tokenDefaults.scale || 1.0, 
-            false,
+            tokenDefaults.isFlippedX,
             tokenDefaults.disposition, 
             tokenDefaults.ring,
             tokenDefaults.width || 1,
-            tokenDefaults.height || 1
+            tokenDefaults.height || 1,
+            tokenDefaults.isFlippedY
         );
 
         if (defaultVisage.hasRing) {
@@ -225,11 +241,12 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
                     data.name,
                     data.path,
                     data.scale,
-                    false,
+                    data.isFlippedX,
                     data.disposition,
                     data.ring,
                     data.width,
-                    data.height
+                    data.height,
+                    data.isFlippedY
                 );
             }));
         }
@@ -281,7 +298,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @returns {Promise<object>} A promise that resolves to the processed context object for the template.
      * @private
      */
-    async _processVisageEntry(id, name, path, scale, isFlippedX, disposition, ring, width = 1, height = 1) {
+    async _processVisageEntry(id, name, path, scale, isFlippedX, disposition, ring, width = 1, height = 1, isFlippedY = false) {
         let dispositionType = "none";
         let dispositionValue = 0; 
         let buttonText = game.i18n.localize("VISAGE.Config.Disposition.Button.Default");
@@ -312,7 +329,8 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             name,
             path,
             scale: Math.round(Math.abs(scale) * 100),
-            isFlippedX: (scale < 0) || isFlippedX,
+            isFlippedX: isFlippedX,
+            isFlippedY: isFlippedY,
             dispositionType,
             dispositionValue,
             dispositionButtonText: buttonText,
@@ -609,9 +627,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const newVisages = {};
         for (const v of visagesToSave) {
-            let scale = v.scale / 100;
-            if (v.isFlippedX) scale = -Math.abs(scale);
-            else scale = Math.abs(scale);
+            const scale = Math.abs(v.scale / 100);
 
             let disposition = null;
             if (v.dispositionType === "illusion") {
@@ -626,8 +642,10 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 name: v.name,
                 path: v.path,
                 scale: scale,
+                isFlippedX: v.isFlippedX,
+                isFlippedY: v.isFlippedY,
                 disposition: disposition,
-                ring: ringToSave,
+                ring: (v.ring && !foundry.utils.isEmpty(v.ring)) ? v.ring : null,
                 width: v.width || 1,
                 height: v.height || 1
             };
@@ -687,6 +705,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const rawScale = formData[`visages.${i}.scale`];
             const scale = (rawScale ? parseFloat(rawScale) : 100) / 100;
             const isFlippedX = formData[`visages.${i}.isFlippedX`] || false;
+            const isFlippedY = formData[`visages.${i}.isFlippedY`] || false;
             const dispositionType = formData[`visages.${i}.dispositionType`];
             const dispositionValue = formData[`visages.${i}.dispositionValue`];
             const width = formData[`visages.${i}.width`] ? parseFloat(formData[`visages.${i}.width`]) : 1;
@@ -706,7 +725,7 @@ export class VisageConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
 
             visages.push(await this._processVisageEntry(
-                id, name, path, scale, isFlippedX, disposition, ring, width, height
+                id, name, path, scale, isFlippedX, disposition, ring, width, height, isFlippedY
             ));
         }
         return visages;

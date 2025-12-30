@@ -13,6 +13,7 @@ import { VisageGlobalDirectory } from "./visage-global-directory.js"; // Import 
 import { handleTokenHUD } from "./visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./visage-cleanup.js";
 import { migrateWorldData } from "./visage-migration.js";
+import { VisageComposer } from "./visage-composer.js";
 
 // Track the directory instance globally so we can toggle it
 let globalDirectoryInstance = null;
@@ -77,7 +78,8 @@ Hooks.once("init", () => {
             "modules/visage/templates/visage-config-app.hbs",
             "modules/visage/templates/visage-ring-editor.hbs",
             "modules/visage/templates/visage-global-editor.hbs",
-            "modules/visage/templates/visage-global-directory.hbs"
+            "modules/visage/templates/visage-global-directory.hbs",
+            "modules/visage/templates/parts/visage-preview.hbs"
         ]);
 
         registerSettings();
@@ -279,6 +281,6 @@ Hooks.on("closeApplication", (app) => {
 
 Hooks.on("renderTokenHUD", handleTokenHUD);
 
-Hooks.on("preUpdateToken", (document, change, options) => {
-    Visage.handleTokenUpdate(document, change, options);
+Hooks.on("updateToken", (document, change, options, userId) => {
+    Visage.handleTokenUpdate(document, change, options, userId);
 });

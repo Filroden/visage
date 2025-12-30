@@ -166,8 +166,14 @@
 
     "VISAGE.Dialog.Destroy.Title": "Permanently Delete",
     "VISAGE.Dialog.Destroy.Content": "This action cannot be undone. Are you sure you want to destroy this visage?",
+ 
+    "VISAGE.Notifications.Reverted": "Token reverted to original state.",
+    "VISAGE.Notifications.Applied": "Applied Global Visage: {label}",
+    "VISAGE.Notifications.NoTokens": "You must select at least one token.",
+    "VISAGE.Notifications.Updated": "Visage Updated: {name}",
 
     "VISAGE.Selector.Tooltip.Revert": "Remove global visage and restore original token data",
-    "VISAGE.Notifications.Reverted": "Token reverted to original state.",
+    "VISAGE.Selector.ActiveEffects": "Active Global Effects",
+    "VISAGE.Selector.ClearAll": "Clear All Effects",
     "VISAGE.Selector.GlobalContext": "Active Global Override"
 }

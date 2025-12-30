@@ -5,6 +5,7 @@
 
 import { Visage } from "./visage.js";
 import { VisageConfigApp } from "./visage-config.js";
+import { VisageComposer } from "./visage-composer.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -85,30 +86,16 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
+    /**
+     * revert all global effects by clearing the stack.
+     */
     async _onRevertGlobal(event, target) {
-        // Fetch the token object dynamically using the stored ID
         const token = canvas.tokens.get(this.tokenId);
-        if (!token) {
-            ui.notifications.error(game.i18n.localize("VISAGE.Notifications.ErrorTokenNotFound"));
-            return;
-        }
+        if (!token) return;
 
-        const originalState = token.document.getFlag("visage", "originalState");
-        if (!originalState) return;
-
-        // Construct update using the token's ID and the saved state
-        const update = { _id: token.id, ...originalState };
-        
-        // Clear flags
-        update["flags.visage"] = {
-            activeVisage: null,
-            originalState: null
-        };
-        update["flags.visage.-=activeVisage"] = null;
-        update["flags.visage.-=originalState"] = null;
-
-        await token.document.update(update);
-        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.Reverted"));
+        // Pass an empty array to clear the stack
+        // This triggers the _revert logic in VisageComposer
+        await VisageComposer.compose(token, []);
     }
 
     /**
@@ -147,54 +134,35 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         // --- 1. Fallback Data Capture ---
         if (!defaults) {
             const currentToken = canvas.tokens.get(this.tokenId);
-            if (!currentToken) return { forms: [] };
-
-            const updates = {};
-            updates[`flags.${ns}.${this.tokenId}.defaults`] = {
-                name: currentToken.document.name,
-                token: currentToken.document.texture.src,
-                scale: currentToken.document.texture.scaleX ?? 1.0,
-                disposition: currentToken.document.disposition ?? 0,
-                secret: currentToken.document.secret ?? false,
-                ring: currentToken.document.ring ? currentToken.document.ring.toObject() : undefined,
-                width: currentToken.document.width ?? 1,
-                height: currentToken.document.height ?? 1
-            };
-            updates[`flags.${ns}.${this.tokenId}.currentFormKey`] = 'default';
-            
-            await actor.update(updates);
             defaults = actor.flags?.[ns]?.[this.tokenId]?.defaults;
-
-            if (!defaults) {
-                ui.notifications.error(game.i18n.format("VISAGE.Notifications.ErrorDefaultsFailed", { id: this.tokenId }));
-                return { forms: [] };
-            }
+            if (!defaults) return { forms: [] };
         }
 
         const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
         const forms = {};
 
-        const defScale = defaults.scale ?? 1.0;
-        const defaultIsFlipped = defScale < 0;
+        // --- Normalize Default Flips ---
+        // If defaults are legacy, infer flip from negative scale. Otherwise use explicit booleans.
+        const defScaleRaw = defaults.scale ?? 1.0;
+        const defScale = Math.abs(defScaleRaw);
+        
+        const defFlipX = defaults.isFlippedX ?? (defScaleRaw < 0);
+        const defFlipY = defaults.isFlippedY ?? false; // Legacy never had Y flip
 
         // Helper to generate the Smart Chip labels
-        const getSmartData = (scale, width, height, matchesDefaultFlip) => {
+        const getSmartData = (scale, width, height, isFlippedX, isFlippedY) => {
             const absScale = Math.abs(scale);
-            
-            // Scale Label: Hide if 100% (1.0)
             const isScaleDefault = absScale === 1.0;
             const scaleLabel = isScaleDefault ? "" : `${Math.round(absScale * 100)}%`;
 
-            // Size Label: Hide if 1x1
-            // Use fallback to 1 to ensure we don't display "undefinedxundefined"
             const safeW = width || 1;
             const safeH = height || 1;
             const isSizeDefault = safeW === 1 && safeH === 1;
             const sizeLabel = isSizeDefault ? "" : `${safeW}x${safeH}`;
 
-            // Logic Flags
-            // Badge Logic: Only show if this visage's flip state DIFFERS from the default.
-            const showFlipBadge = !matchesDefaultFlip;
+            // Badge Logic: Show if EITHER X or Y differs from the default state
+            const matchesDefault = (isFlippedX === defFlipX) && (isFlippedY === defFlipY);
+            const showFlipBadge = !matchesDefault;
             
             const showDataChip = (scaleLabel !== "") || (sizeLabel !== "");
 
@@ -204,16 +172,14 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         // --- 2. Prepare "Default" Visage ---
         {
             const defaultPath = defaults.token || "";
-            const defScale = defaults.scale ?? 1.0; 
             const defWidth = defaults.width ?? 1; 
             const defHeight = defaults.height ?? 1;
-            const isFlipped = defScale < 0;
-
-            const smartData = getSmartData(defScale, defWidth, defHeight, true);
+            
+            // Check default against itself (Badge will always be false)
+            const smartData = getSmartData(defScale, defWidth, defHeight, defFlipX, defFlipY);
 
             const hasRing = defaults.ring?.enabled === true;
             let ringColor = "", ringBkg = "", hasPulse = false, hasGradient = false, hasWave = false, hasInvisibility = false;
-
             if (hasRing) {
                 ringColor = defaults.ring.colors?.ring || "#FFFFFF";
                 ringBkg = defaults.ring.colors?.background || "#000000";
@@ -231,7 +197,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 isActive: currentFormKey === "default",
                 isDefault: true,
                 scale: defScale,
-                isFlippedX: isFlipped,
+                isFlippedX: defFlipX,
+                isFlippedY: defFlipY,
+                forceFlipX: defFlipX,
+                forceFlipY: defFlipY,
                 showDataChip: smartData.showDataChip,
                 showFlipBadge: smartData.showFlipBadge,
                 sizeLabel: smartData.sizeLabel,
@@ -254,19 +223,14 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const normalizedData = Visage.getVisages(actor);
 
         for (const data of normalizedData) {
-            const isFlippedX = data.scale < 0;
             const isActive = data.id === currentFormKey;
             const dispositionInfo = (data.disposition !== null) ? this._dispositionMap[data.disposition] : null;
 
-            const matchesDefaultFlip = isFlippedX === defaultIsFlipped;
+            // Generate Labels using the new Y-aware logic
+            const smartData = getSmartData(data.scale, data.width, data.height, data.isFlippedX, data.isFlippedY);
 
-            // Generate Labels for this visage
-            const smartData = getSmartData(data.scale, data.width, data.height, matchesDefaultFlip);
-
-            // Ring Logic
             const hasRing = data.ring?.enabled === true;
             let ringColor = "", ringBkg = "", hasPulse = false, hasGradient = false, hasWave = false, hasInvisibility = false;
-            
             if (hasRing) {
                 ringColor = data.ring.colors?.ring || "#FFFFFF";
                 ringBkg = data.ring.colors?.background || "#000000";
@@ -277,8 +241,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasInvisibility = (effects & 16) !== 0; 
             }
 
-            const isVideo = foundry.helpers.media.VideoHelper.hasVideoExtension(data.path);
-
             forms[data.id] = {
                 key: data.id,
                 name: data.name,
@@ -286,7 +248,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 scale: data.scale,
                 isActive: isActive,
                 isDefault: false,
-                isFlippedX: isFlippedX,
+                isFlippedX: data.isFlippedX,
+                isFlippedY: data.isFlippedY,
+                forceFlipX: data.isFlippedX,
+                forceFlipY: data.isFlippedY,
                 showDataChip: smartData.showDataChip,
                 showFlipBadge: smartData.showFlipBadge,
                 sizeLabel: smartData.sizeLabel,
@@ -302,7 +267,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasGradient: hasGradient,
                 hasWave: hasWave,
                 hasInvisibility: hasInvisibility,
-                isVideo: isVideo
+                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(data.path)
             };
         }
 
@@ -320,17 +285,22 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             form.resolvedPath = await Visage.resolvePath(form.path);
         }
 
-        // --- DETECT GLOBAL OVERRIDE ---
+        // --- DETECT GLOBAL STACK (NEW) ---
         const flags = token.document.flags.visage || {};
-        const activeVisage = flags.activeVisage;
-        // It is a global override ONLY if the source is 'global' AND we have a saved original state
-        const hasGlobalOverride = activeVisage?.source === "global" && !!flags.originalState;
+        const activeStack = flags.stack || [];
+
+        // Map the stack to a format the template can iterate
+        const stackDisplay = activeStack.map(layer => ({
+            id: layer.id,
+            label: layer.label,
+            icon: layer.changes.img || "icons/svg/aura.svg" // Fallback icon
+        })).reverse(); // Show newest on top
 
         return { 
             forms: orderedForms,
-            hasGlobalOverride: hasGlobalOverride,
-            globalLabel: activeVisage?.label || "Global Visage"
-        };  
+            activeStack: stackDisplay, 
+            hasGlobalOverride: stackDisplay.length > 0 
+        };
     }
     
     /**
@@ -368,6 +338,33 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             configApp.render(true);
         }
         this.close();
+    }
+
+    /**
+     * Handle removing a specific layer from the global stack.
+     */
+    async _onRemoveLayer(event, target) {
+        const layerId = target.dataset.layerId;
+        const token = canvas.tokens.get(this.tokenId);
+        if (!token) return;
+
+        // Get current stack
+        const currentStack = token.document.getFlag(Visage.MODULE_ID, "stack") || [];
+        
+        // Filter out the target layer
+        const newStack = currentStack.filter(layer => layer.id !== layerId);
+
+        // Re-compose
+        await VisageComposer.compose(token, newStack);
+    }
+
+    // Update standard _onClickAction to route this new action
+    _onClickAction(event, target) {
+        const action = target.dataset.action;
+        if (action === "selectVisage") this._onSelectVisage(event, target);
+        else if (action === "openConfig") this._onOpenConfig(event, target);
+        else if (action === "revertGlobal") this._onRevertGlobal(event, target);
+        else if (action === "removeLayer") this._onRemoveLayer(event, target);
     }
 
     /**
@@ -421,6 +418,14 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             this.close();
         };
         document.addEventListener('pointerdown', this._onDocPointerDown, true);
+
+        // Listen for token updates to trigger reactivity
+        this._onTokenUpdate = (document, change, options, userId) => {
+            if (document.id === this.tokenId) {
+                this.render();
+            }
+        };
+        Hooks.on("updateToken", this._onTokenUpdate);
     }
 
     /**
@@ -431,6 +436,12 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this._onDocPointerDown) {
             document.removeEventListener('pointerdown', this._onDocPointerDown, true);
             this._onDocPointerDown = null;
+        }
+
+        // Remove hook
+        if (this._onTokenUpdate) {
+            Hooks.off("updateToken", this._onTokenUpdate);
+            this._onTokenUpdate = null;
         }
     }
 }

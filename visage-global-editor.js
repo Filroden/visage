@@ -58,14 +58,18 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             this._currentLabel = data.label;
         } else {
             data = {
-                label: "",
+                label: game.i18n.localize("VISAGE.GlobalEditor.TitleNew"),
                 category: "",
                 tags: [],
-                changes: {}
+                changes: {} 
             };
+            this._currentLabel = "";
         }
 
         const c = data.changes || {};
+
+        const ringActive = !!c.ring;
+        const ringContext = Visage.prepareRingContext(c.ring);
 
         const prep = (val, def) => ({
             value: val ?? def,
@@ -78,24 +82,9 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         const prepFlip = (val) => ({
             value: val ?? null
         });
-
-        const ring = c.ring || {};
-        const ringActive = !!ring;
         
-        const currentEffects = ring.effects || 0;
-        const availableEffects = [
-            { value: 2, label: "VISAGE.RingConfig.Effects.Pulse", key: "RING_PULSE" },
-            { value: 4, label: "VISAGE.RingConfig.Effects.Gradient", key: "RING_GRADIENT" },
-            { value: 8, label: "VISAGE.RingConfig.Effects.Wave", key: "BKG_WAVE" },
-            { value: 16, label: "VISAGE.RingConfig.Effects.Invisibility", key: "INVISIBILITY" }
-        ].map(eff => ({
-            ...eff,
-            isActive: (currentEffects & eff.value) !== 0
-        }));
-
         return {
-            isEdit: !!this.visageId,
-            
+            isEdit: !!this.visageId,            
             label: data.label,
             category: data.category,
             tags: (data.tags || []).join(", "),
@@ -114,16 +103,8 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
 
             // Ring
             ring: {
-                active: ringActive,
-                colors: {
-                    ring: ring.colors?.ring || "#FFFFFF",
-                    background: ring.colors?.background || "#000000"
-                },
-                subject: {
-                    texture: ring.subject?.texture || "",
-                    scale: ring.subject?.scale ?? 1.0
-                },
-                effects: availableEffects
+                active: ringActive, // Editor toggle state
+                ...ringContext      // Spreads: colors, subject, effects (pre-calculated)
             }
         };
     }

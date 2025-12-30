@@ -27,85 +27,77 @@ import { Visage } from "./visage.js";
  * @returns {Promise<void>} A promise that resolves when the migration is complete.
  */
 export async function migrateWorldData() {
-    Visage.log("Starting Visage Data Migration...");
-
-    const ns = Visage.DATA_NAMESPACE;
-    const legacyKey = Visage.LEGACY_FLAG_KEY;
-    const newKey = Visage.ALTERNATE_FLAG_KEY;
-    
-    // Use a Map to store unique actors to update, preventing duplicate processing.
     const actorsToUpdate = new Map();
 
-    // 1. Scan World Actors (in the sidebar).
+    // 1. Scan World Actors
     for (const actor of game.actors) {
-        const legacyData = actor.getFlag(ns, legacyKey);
-        if (legacyData && typeof legacyData === 'object' && Object.keys(legacyData).length > 0) {
-            actorsToUpdate.set(actor.uuid, actor);
+        if (actor.flags?.[Visage.DATA_NAMESPACE]?.[Visage.LEGACY_FLAG_KEY]) {
+            actorsToUpdate.set(actor.id, actor);
         }
     }
 
-    // 2. Scan for Unlinked Tokens on all scenes.
-    // This is crucial as their actor data is stored with the token, not in `game.actors`.
+    // 2. Scan Unlinked Tokens in Scenes
     for (const scene of game.scenes) {
         for (const token of scene.tokens) {
-            if (!token.actorLink && token.actor) {
-                const legacyData = token.actor.getFlag(ns, legacyKey);
-                if (legacyData && typeof legacyData === 'object' && Object.keys(legacyData).length > 0) {
-                    actorsToUpdate.set(token.actor.uuid, token.actor);
-                }
+            if (!token.actorLink && token.actor?.flags?.[Visage.DATA_NAMESPACE]?.[Visage.LEGACY_FLAG_KEY]) {
+                // Use token ID as unique key for unlinked actors
+                actorsToUpdate.set(token.id, token.actor);
             }
         }
     }
 
-    if (actorsToUpdate.size === 0) {
-        Visage.log("No legacy Visage data found. Migration not needed.");
-        return;
-    }
+    if (actorsToUpdate.size === 0) return;
 
-    Visage.log(`Found ${actorsToUpdate.size} unique actors/tokens with legacy data. Migrating...`);
+    const ns = Visage.DATA_NAMESPACE;
+    const legacyKey = Visage.LEGACY_FLAG_KEY;
+    const newKey = Visage.ALTERNATE_FLAG_KEY;
 
-    // 3. Iterate through the unique set of actors and perform the migration.
+    ui.notifications.info("Visage: Migrating data to version 2.0...");
+
     for (const actor of actorsToUpdate.values()) {
         const legacyVisages = actor.getFlag(ns, legacyKey);
-        // Preserve any existing modern data to avoid data loss if migration is re-run.
         const newVisages = actor.getFlag(ns, newKey) || {};
         
         const updates = {
-            [`flags.${ns}.-=${legacyKey}`]: null // Prepare to delete the old key.
+            [`flags.${ns}.-=${legacyKey}`]: null
         };
 
         const getUUID = () => foundry.utils.randomID(16);
         
         for (const [key, data] of Object.entries(legacyVisages)) {
-            // A legacy key is the visage name; a modern key is a 16-char ID.
             const isLegacyKey = key.length !== 16;
             const uuid = isLegacyKey ? getUUID() : key;
-
-            // Handle both legacy string-only data and object-based data.
             const isObject = typeof data === 'object' && data !== null;
             
-            const path = isObject ? (data.path || data) : data;
-            const scale = isObject ? (data.scale ?? 1.0) : 1.0;
+            // --- v2.0 NORMALIZATION LOGIC ---
+            const rawScale = isObject ? (data.scale ?? 1.0) : 1.0;
+            const scale = Math.abs(rawScale); 
+            const isFlippedX = rawScale < 0; // Convert negative scale to flip flag
             
-            // Normalize disposition: a value of 2 was used for "Secret" in legacy versions.
+            const path = isObject ? (data.path || data) : data;
+            
             let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
             if (disposition === 2) disposition = -2;
 
             const secret = (isObject && data.secret === true);
             
             newVisages[uuid] = {
-                name: isObject && data.name ? data.name : key, // Use old key as name if no name is set.
+                name: isObject && data.name ? data.name : key,
                 path: path,
                 scale: scale,
+                isFlippedX: isFlippedX, 
+                isFlippedY: false, // Default for legacy
                 disposition: disposition,
-                secret: secret
+                secret: secret,
+                ring: isObject ? data.ring : null, 
+                width: isObject ? (data.width ?? 1) : 1,
+                height: isObject ? (data.height ?? 1) : 1
             };
 
-            // Update any tokens that were actively using the old name-based key.
+            // Update active tokens referencing old keys
             const actorFlags = actor.flags[ns];
             if (actorFlags) {
                 for (const [flagKey, flagValue] of Object.entries(actorFlags)) {
-                    // Check if a token-specific flag has a `currentFormKey` matching the old name.
                     if (flagKey.length === 16 && flagValue?.currentFormKey === key) {
                         updates[`flags.${ns}.${flagKey}.currentFormKey`] = uuid;
                     }
@@ -114,7 +106,6 @@ export async function migrateWorldData() {
         }
 
         updates[`flags.${ns}.${newKey}`] = newVisages;
-        
         await actor.update(updates);
         Visage.log(`Migrated actor: ${actor.name} (${actor.id})`);
     }

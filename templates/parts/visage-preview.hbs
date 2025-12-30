@@ -1,0 +1,24 @@
+{{!-- Defaults to "visage-preview-content" if no wrapperClass is provided --}}
+<div class="{{#if wrapperClass}}{{wrapperClass}}{{else}}visage-preview-content{{/if}} {{#if hasInvisibility}}invisible{{/if}}">
+    
+    {{!-- LAYER 1: RING (Top) --}}
+    {{#if hasRing}}
+        <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}" 
+             style="--ring-color: {{ringColor}}; --ring-bkg: {{ringBkg}};">
+             <div class="ring-band outer"></div>
+             <div class="ring-band inner"></div>
+        </div>
+    {{/if}}
+
+    {{!-- LAYER 2: IMAGE/VIDEO (Bottom) --}}
+    {{#if isVideo}}
+        <video class="{{#if hasRing}}circular{{/if}}" src="{{resolvedPath}}" autoplay loop muted playsinline></video>
+    {{else}}
+        {{#if resolvedPath}}
+            <img class="{{#if hasRing}}circular{{/if}}" src="{{resolvedPath}}" alt="{{name}}"
+                 style="transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"/>
+        {{else}}
+            <i class="visage-icon-mask fallback-icon"></i>
+        {{/if}}
+    {{/if}}
+</div>
