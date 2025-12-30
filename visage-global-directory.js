@@ -66,11 +66,10 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
     async _prepareContext(options) {
         const source = this.filters.showBin ? VisageGlobalData.bin : VisageGlobalData.all;
         
+        // ... (Category logic remains the same) ...
         const allActive = VisageGlobalData.all;
         const categories = new Set();
-        allActive.forEach(v => {
-            if (v.category) categories.add(v.category);
-        });
+        allActive.forEach(v => { if (v.category) categories.add(v.category); });
         const categoryList = Array.from(categories).sort().map(c => ({
             label: c,
             active: this.filters.category === c
@@ -90,13 +89,15 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
 
         items.sort((a, b) => a.label.localeCompare(b.label));
 
-        // Use Promise.all to handle async image resolution for wildcards
+        // ASYNC MAP: Use Promise.all to resolve wildcards
         const preparedItems = await Promise.all(items.map(async (entry) => {
             const c = entry.changes;
 
-            // Resolve Image Path (Wildcard Support)
-            // This ensures the card shows a random image from the wildcard set
+            // 1. USE HELPER: Resolve Wildcards
             const resolvedImg = await Visage.resolvePath(c.img);
+
+            // 2. USE HELPER: Prepare Ring (No more manual bitwise &)
+            const ringCtx = Visage.prepareRingContext(c.ring);
 
             // SLOT 1: SCALE
             const scaleVal = (c.scale !== null) ? Math.round(c.scale * 100) : 100;
@@ -117,7 +118,6 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
 
             if (c.isFlippedX !== null || c.isFlippedY !== null) {
                 flipActive = true;
-                
                 if (c.isFlippedX !== null && c.isFlippedY === null) {
                     flipIcon = c.isFlippedX ? "fas fa-arrow-left" : "fas fa-arrow-right";
                     flipLabel = c.isFlippedX ? game.i18n.localize("VISAGE.Mirror.Horizontal.Label") : game.i18n.localize("VISAGE.Mirror.Label.Standard");
@@ -128,7 +128,6 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
                     flipIcon = "fas fa-expand-arrows-alt";
                     const hState = c.isFlippedX ? "H" : "";
                     const vState = c.isFlippedY ? "V" : "";
-                    
                     if (hState && vState) flipLabel = game.i18n.localize("VISAGE.Mirror.Label.Combined");
                     else if (hState) flipLabel = game.i18n.localize("VISAGE.Mirror.Horizontal.Label");
                     else if (vState) flipLabel = game.i18n.localize("VISAGE.Mirror.Vertical.Label");
@@ -148,13 +147,6 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
                 }
             }
 
-            const ring = c.ring || {};
-            const hasRing = !!c.ring;
-            const hasPulse = hasRing && (ring.effects & 2); 
-            const hasGradient = hasRing && (ring.effects & 4);
-            const hasWave = hasRing && (ring.effects & 8);
-            const hasInvisibility = hasRing && (ring.effects & 16);
-
             const forceFlipX = c.isFlippedX === true; 
             const forceFlipY = c.isFlippedY === true;
 
@@ -162,16 +154,15 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
                 ...entry,
                 changes: {
                     ...entry.changes,
-                    img: resolvedImg // Override just for display so HBS uses the resolved path
+                    img: resolvedImg // Override for display
                 },
                 meta: {
-                    hasRing,
-                    hasPulse,
-                    hasGradient,
-                    hasWave,
-                    hasInvisibility,
-                    ringColor: ring.colors?.ring,
-                    ringBkg: ring.colors?.background,
+                    // Spread the ring context directly (hasPulse, hasWave, colors, etc.)
+                    hasRing: !!c.ring,
+                    ...ringCtx, 
+                    ringColor: ringCtx.colors.ring,
+                    ringBkg: ringCtx.colors.background,
+                    
                     forceFlipX,
                     forceFlipY,
                     tokenName: c.name || null,

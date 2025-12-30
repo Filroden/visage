@@ -51,7 +51,6 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
     }
 
     async _prepareContext(options) {
-        // --- 1. DATA RETRIEVAL ---
         let data;
         if (this.visageId) {
             data = VisageGlobalData.get(this.visageId);
@@ -69,18 +68,15 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
 
         const c = data.changes || {};
 
-        // --- 2. RING CONTEXT ---
+        // USE HELPER: Prepare Ring Context (includes booleans now)
         const ringActive = !!c.ring;
         const ringContext = Visage.prepareRingContext(c.ring);
 
-        // --- 3. PREPARE PREVIEW DATA ---
-        
-        // Scale: Convert 1.0 -> 100 for display
+        // ... (Scale, Dimensions, Flip, Disposition logic remains identical to previous snippet) ...
         const rawScale = c.scale ?? 1.0; 
         const displayScale = Math.round(rawScale * 100);
         const scaleActive = (rawScale !== 1.0);
 
-        // Dimensions
         let dimLabel = "-";
         let dimActive = false;
         if ((c.width && c.width !== 1) || (c.height && c.height !== 1)) {
@@ -88,11 +84,9 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             dimActive = true;
         }
 
-        // Mirroring
         let flipIcon = "fas fa-arrows-alt-h"; 
         let flipLabel = "-";
         let flipActive = false;
-
         if (c.isFlippedX || c.isFlippedY) {
             flipActive = true;
             if (c.isFlippedX && !c.isFlippedY) {
@@ -107,10 +101,8 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             }
         }
 
-        // Disposition
         let dispositionClass = "none";
         let dispositionLabel = game.i18n.localize("VISAGE.Disposition.NoChange");
-        
         if (c.disposition !== null && c.disposition !== undefined) {
              switch (c.disposition) {
                 case 1: dispositionClass = "friendly"; dispositionLabel = game.i18n.localize("VISAGE.Disposition.Friendly"); break;
@@ -120,57 +112,41 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             }
         }
 
-        // Ring Preview Data
-        const pRing = c.ring || {};
-        const pEff = pRing.effects || 0;
-
+        // PREVIEW OBJECT: Use data directly from the helper
         const previewData = {
-            // Visuals
             img: c.img || "",
             isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(c.img || ""),
             flipX: c.isFlippedX === true,
             flipY: c.isFlippedY === true,
             
-            // Ring Visuals
             hasRing: !!ringActive,
-            ringColor: pRing.colors?.ring || "#FFFFFF",
-            ringBkg: pRing.colors?.background || "#000000",
-            hasPulse: (pEff & 2) !== 0,
-            hasGradient: (pEff & 4) !== 0,
-            hasWave: (pEff & 8) !== 0,
-            hasInvisibility: (pEff & 16) !== 0,
+            ringColor: ringContext.colors.ring,
+            ringBkg: ringContext.colors.background,
+            // Helper provides these booleans now!
+            hasPulse: ringContext.hasPulse,
+            hasGradient: ringContext.hasGradient,
+            hasWave: ringContext.hasWave,
+            hasInvisibility: ringContext.hasInvisibility,
             
-            // Metadata Slots
             slots: {
                 scale: { val: `${displayScale}%`, active: scaleActive },
                 dim: { val: dimLabel, active: dimActive },
                 flip: { icon: flipIcon, val: flipLabel, active: flipActive },
                 disposition: { class: dispositionClass, val: dispositionLabel }
             },
-            
-            // Name: Using the token name override (c.name)
             name: c.name || "",
             tagList: data.tags || [] 
         };
 
-        // --- 4. PREPARE FORM INPUTS ---
-        const prep = (val, def) => ({
-            value: val ?? def,
-            active: val !== null && val !== undefined
-        });
-        const prepFlip = (val) => ({
-            value: val ?? null
-        });
+        const prep = (val, def) => ({ value: val ?? def, active: val !== null && val !== undefined });
+        const prepFlip = (val) => ({ value: val ?? null });
 
         return {
             isEdit: !!this.visageId,            
             label: data.label,
             category: data.category,
             tags: (data.tags || []).join(", "), 
-            
-            // Form Inputs
             img: prep(c.img, ""),
-            // Important: Input needs the percentage (e.g. 100), not the raw 1.0
             scale: { value: displayScale, active: c.scale !== null && c.scale !== undefined },
             isFlippedX: prepFlip(c.isFlippedX),
             isFlippedY: prepFlip(c.isFlippedY),
@@ -178,13 +154,12 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             disposition: prep(c.disposition, 0),
             width: prep(c.width, 1),
             height: prep(c.height, 1),
-
-            // Ring Inputs
+            
+            // Editor Inputs rely on the same helper context
             ring: {
                 active: ringActive,
                 ...ringContext
             },
-
             preview: previewData
         };
     }
@@ -197,48 +172,30 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
         const el = this.element;
 
-        // --- 1. EXTRACT DATA ---
-        
-        // Scale
+        // ... (Extraction logic same as before) ...
         const scaleVal = formData.scale; 
         const displayScale = scaleVal ? Math.round(scaleVal) : 100;
         const scaleActive = displayScale !== 100;
         
-        // Dimensions
         const w = formData.width;
         const h = formData.height;
-        
-        // Flip
         const isFlippedX = formData.isFlippedX === "true";
         const isFlippedY = formData.isFlippedY === "true";
-        
-        // Disposition
-        const disposition = (formData.disposition !== "" && formData.disposition !== null) 
-            ? parseInt(formData.disposition) 
-            : null;
-
-        // Name & Identity
+        const disposition = (formData.disposition !== "" && formData.disposition !== null) ? parseInt(formData.disposition) : null;
         const nameOverride = formData.nameOverride || "";
         const label = formData.label || "";
         const tagsStr = formData.tags || "";
-
-        // Ring Data
         const ringEnabled = formData["ring.enabled"]; 
         const ringColor = formData.ringColor || "#FFFFFF"; 
         const ringBkg = formData.ringBackgroundColor || "#000000";
         
-        // --- 2. ASYNC RESOLUTION ---
-        
-        // Use existing helper to resolve wildcards (e.g. "goblin*.png" -> "goblin_01.png")
+        // --- 2. ASYNC RESOLUTION (USE HELPER) ---
         const rawImgPath = formData.img || "";
-        const resolvedPath = await Visage.resolvePath(rawImgPath);
-
-        // Determine Media Type based on the RESOLVED path (so .webm works even inside a wildcard)
+        // Resolves * -> random file
+        const resolvedPath = await Visage.resolvePath(rawImgPath); 
         const isVideo = foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedPath);
         
-        // --- 3. CALCULATE SLOTS ---
-        
-        // Dims
+        // ... (Calculate slots logic same as before) ...
         let dimLabel = "-";
         let dimActive = false;
         if ((w && w != 1) || (h && h != 1)) {
@@ -246,7 +203,6 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             dimActive = true;
         }
 
-        // Flip
         let flipIcon = "fas fa-arrows-alt-h"; 
         let flipLabel = "-";
         let flipActive = false;
@@ -264,7 +220,6 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             }
         }
 
-        // Disposition
         let dispClass = "none";
         let dispLabel = game.i18n.localize("VISAGE.Disposition.NoChange");
         if (disposition !== null && !isNaN(disposition)) {
@@ -276,8 +231,7 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             }
         }
 
-        // --- 4. DOM UPDATE ---
-        
+        // --- DOM UPDATE ---
         const updateSlot = (cls, val, active, icon) => {
             const slot = el.querySelector(`.card-zone-left .${cls}`);
             if (!slot) return;
@@ -297,14 +251,12 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             dispSlot.className = `visage-disposition-chip ${dispClass}`;
         }
 
-        // Name Display
         const nameEl = el.querySelector(".token-name-label");
         if (nameEl) {
             nameEl.textContent = nameOverride;
             nameEl.style.display = nameOverride ? "block" : "none";
         }
 
-        // Footer Title & Tags
         const titleEl = el.querySelector(".card-title");
         if (titleEl) titleEl.textContent = label || game.i18n.localize("VISAGE.GlobalEditor.TitleNew");
 
@@ -320,25 +272,20 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             });
         }
 
-        // --- 5. VISUAL UPDATE (Ring & Media) ---
-        
+        // Visual Updates
         const ringEl = el.querySelector(".visage-ring-preview");
         if (ringEl) {
             ringEl.style.display = ringEnabled ? "block" : "none";
-            
             if (ringEnabled) {
                 ringEl.style.setProperty("--ring-color", ringColor);
                 ringEl.style.setProperty("--ring-bkg", ringBkg);
-                
                 const toggle = (k, c) => {
-                    // Checkboxes return true in FormDataExtended
                     if (formData[`effect_${k}`] === true) ringEl.classList.add(c);
                     else ringEl.classList.remove(c);
                 };
                 toggle("2", "pulse");
                 toggle("4", "gradient");
                 toggle("8", "wave");
-                
                 const content = el.querySelector(".visage-preview-content");
                 if (content) {
                     if (formData["effect_16"] === true) content.classList.add("invisible");
@@ -347,9 +294,8 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             }
         }
         
-        // Media Update - Using the RESOLVED path
+        // Media Update (Using Resolved Path)
         const transform = `scale(${isFlippedX ? -1 : 1}, ${isFlippedY ? -1 : 1})`;
-
         const vidEl = el.querySelector(".visage-preview-video");
         const imgEl = el.querySelector(".visage-preview-img");
         const iconEl = el.querySelector(".fallback-icon");

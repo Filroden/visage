@@ -127,43 +127,33 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         
         const actor = token.actor; 
         const ns = Visage.DATA_NAMESPACE;
-        const moduleData = actor.flags?.[ns] || {};
-        let tokenData = moduleData[this.tokenId] || {};
-        let defaults = tokenData.defaults;
+        let defaults = actor.flags?.[ns]?.[this.tokenId]?.defaults;
 
-        // --- 1. Fallback Data Capture ---
         if (!defaults) {
-            const currentToken = canvas.tokens.get(this.tokenId);
-            defaults = actor.flags?.[ns]?.[this.tokenId]?.defaults;
-            if (!defaults) return { forms: [] };
+            // Fallback if data missing
+            return { forms: [] };
         }
 
         const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
         const forms = {};
 
-        // --- Normalize Default Flips ---
-        // If defaults are legacy, infer flip from negative scale. Otherwise use explicit booleans.
         const defScaleRaw = defaults.scale ?? 1.0;
         const defScale = Math.abs(defScaleRaw);
-        
         const defFlipX = defaults.isFlippedX ?? (defScaleRaw < 0);
-        const defFlipY = defaults.isFlippedY ?? false; // Legacy never had Y flip
+        const defFlipY = defaults.isFlippedY ?? false;
 
-        // Helper to generate the Smart Chip labels
         const getSmartData = (scale, width, height, isFlippedX, isFlippedY) => {
             const absScale = Math.abs(scale);
             const isScaleDefault = absScale === 1.0;
             const scaleLabel = isScaleDefault ? "" : `${Math.round(absScale * 100)}%`;
-
+            
             const safeW = width || 1;
             const safeH = height || 1;
             const isSizeDefault = safeW === 1 && safeH === 1;
             const sizeLabel = isSizeDefault ? "" : `${safeW}x${safeH}`;
 
-            // Badge Logic: Show if EITHER X or Y differs from the default state
             const matchesDefault = (isFlippedX === defFlipX) && (isFlippedY === defFlipY);
             const showFlipBadge = !matchesDefault;
-            
             const showDataChip = (scaleLabel !== "") || (sizeLabel !== "");
 
             return { scaleLabel, sizeLabel, showFlipBadge, showDataChip };
@@ -174,21 +164,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             const defaultPath = defaults.token || "";
             const defWidth = defaults.width ?? 1; 
             const defHeight = defaults.height ?? 1;
-            
-            // Check default against itself (Badge will always be false)
             const smartData = getSmartData(defScale, defWidth, defHeight, defFlipX, defFlipY);
 
-            const hasRing = defaults.ring?.enabled === true;
-            let ringColor = "", ringBkg = "", hasPulse = false, hasGradient = false, hasWave = false, hasInvisibility = false;
-            if (hasRing) {
-                ringColor = defaults.ring.colors?.ring || "#FFFFFF";
-                ringBkg = defaults.ring.colors?.background || "#000000";
-                const effects = defaults.ring.effects || 0;
-                hasPulse = (effects & 2) !== 0;        
-                hasGradient = (effects & 4) !== 0;     
-                hasWave = (effects & 8) !== 0;         
-                hasInvisibility = (effects & 16) !== 0; 
-            }
+            // HELPER: Use centralized ring logic
+            const ringCtx = Visage.prepareRingContext(defaults.ring);
 
             forms["default"] = {
                 key: "default",
@@ -207,15 +186,16 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 scaleLabel: smartData.scaleLabel,
                 isWildcard: defaultPath.includes('*'),
                 showDispositionChip: false,
-                isSecret: false,
-                hasRing: hasRing,
-                ringColor: ringColor,
-                ringBkg: ringBkg,
-                hasPulse: hasPulse,
-                hasGradient: hasGradient,
-                hasWave: hasWave,
-                hasInvisibility: hasInvisibility,
-                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(defaultPath)
+                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(defaultPath),
+                
+                // Ring Data from Helper
+                hasRing: ringCtx.enabled,
+                ringColor: ringCtx.colors.ring,
+                ringBkg: ringCtx.colors.background,
+                hasPulse: ringCtx.hasPulse,
+                hasGradient: ringCtx.hasGradient,
+                hasWave: ringCtx.hasWave,
+                hasInvisibility: ringCtx.hasInvisibility
             };
         }
         
@@ -225,21 +205,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         for (const data of normalizedData) {
             const isActive = data.id === currentFormKey;
             const dispositionInfo = (data.disposition !== null) ? this._dispositionMap[data.disposition] : null;
-
-            // Generate Labels using the new Y-aware logic
             const smartData = getSmartData(data.scale, data.width, data.height, data.isFlippedX, data.isFlippedY);
 
-            const hasRing = data.ring?.enabled === true;
-            let ringColor = "", ringBkg = "", hasPulse = false, hasGradient = false, hasWave = false, hasInvisibility = false;
-            if (hasRing) {
-                ringColor = data.ring.colors?.ring || "#FFFFFF";
-                ringBkg = data.ring.colors?.background || "#000000";
-                const effects = data.ring.effects || 0;
-                hasPulse = (effects & 2) !== 0;        
-                hasGradient = (effects & 4) !== 0;     
-                hasWave = (effects & 8) !== 0;         
-                hasInvisibility = (effects & 16) !== 0; 
-            }
+            // HELPER: Use centralized ring logic
+            const ringCtx = Visage.prepareRingContext(data.ring);
 
             forms[data.id] = {
                 key: data.id,
@@ -260,18 +229,20 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 showDispositionChip: !!dispositionInfo,
                 dispositionName: dispositionInfo?.name || "",
                 dispositionClass: dispositionInfo?.class || "",
-                hasRing: hasRing,
-                ringColor: ringColor,
-                ringBkg: ringBkg,
-                hasPulse: hasPulse,
-                hasGradient: hasGradient,
-                hasWave: hasWave,
-                hasInvisibility: hasInvisibility,
-                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(data.path)
+                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(data.path),
+
+                // Ring Data from Helper
+                hasRing: ringCtx.enabled,
+                ringColor: ringCtx.colors.ring,
+                ringBkg: ringCtx.colors.background,
+                hasPulse: ringCtx.hasPulse,
+                hasGradient: ringCtx.hasGradient,
+                hasWave: ringCtx.hasWave,
+                hasInvisibility: ringCtx.hasInvisibility
             };
         }
 
-        // --- 4. Sort and Resolve ---
+        // --- 4. Sort and Resolve (No Changes) ---
         const orderedForms = [forms["default"]];
         const alternateKeys = Object.keys(forms)
             .filter(k => k !== "default")
@@ -285,16 +256,13 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             form.resolvedPath = await Visage.resolvePath(form.path);
         }
 
-        // --- DETECT GLOBAL STACK (NEW) ---
         const flags = token.document.flags.visage || {};
         const activeStack = flags.stack || [];
-
-        // Map the stack to a format the template can iterate
         const stackDisplay = activeStack.map(layer => ({
             id: layer.id,
             label: layer.label,
-            icon: layer.changes.img || "icons/svg/aura.svg" // Fallback icon
-        })).reverse(); // Show newest on top
+            icon: layer.changes.img || "icons/svg/aura.svg"
+        })).reverse();
 
         return { 
             forms: orderedForms,

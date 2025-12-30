@@ -79,22 +79,27 @@ export class Visage {
     }
 
     /**
-     * Prepares the context for a dynamic ring, mapping bitwise effects to an array of active states.
-     * This centralized helper ensures both the Ring Editor and Global Editor use identical logic.
-     * @param {object} ringData The raw ring data object (from database or flags).
-     * @returns {object} The processed context containing colors, subject, and the effects array.
+     * Prepares the context for a dynamic ring.
+     * Returns both an array for UI loops (effects) and flat booleans for logic/templates.
      */
     static prepareRingContext(ringData) {
         const data = ringData || {};
         const currentEffects = data.effects || 0;
         
-        // Define the standard effects map
         const availableEffects = [
             { value: 2, label: "VISAGE.RingConfig.Effects.Pulse", key: "RING_PULSE" },
             { value: 4, label: "VISAGE.RingConfig.Effects.Gradient", key: "RING_GRADIENT" },
             { value: 8, label: "VISAGE.RingConfig.Effects.Wave", key: "BKG_WAVE" },
             { value: 16, label: "VISAGE.RingConfig.Effects.Invisibility", key: "INVISIBILITY" }
         ];
+
+        // Calculate booleans once, centrally
+        const flags = {
+            hasPulse: (currentEffects & 2) !== 0,
+            hasGradient: (currentEffects & 4) !== 0,
+            hasWave: (currentEffects & 8) !== 0,
+            hasInvisibility: (currentEffects & 16) !== 0
+        };
 
         return {
             enabled: data.enabled ?? false,
@@ -106,7 +111,11 @@ export class Visage {
                 texture: data.subject?.texture ?? "",
                 scale: data.subject?.scale ?? 1.0
             },
-            // Map the bitwise integer to an array of objects with 'isActive' boolean
+            // The bitmask integer itself (useful for saving)
+            rawEffects: currentEffects, 
+            // Flat booleans for easy checking (e.g. ctx.hasPulse)
+            ...flags, 
+            // Array for building UI checkboxes
             effects: availableEffects.map(eff => ({
                 ...eff,
                 isActive: (currentEffects & eff.value) !== 0
