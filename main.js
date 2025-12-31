@@ -267,6 +267,29 @@ Hooks.on("renderApplication", (app) => {
     }
 });
 
+/**
+ * Handle dropping a Visage card onto the canvas.
+ */
+Hooks.on("dropCanvasData", async (canvas, data) => {
+    if (data.type !== "Visage" || !data.id) return;
+    
+    const { VisageGlobalData } = await import("./visage-global-data.js");
+    const { Visage } = await import("./visage.js");
+    
+    const visageData = VisageGlobalData.get(data.id);
+    if (!visageData) return;
+
+    const target = canvas.tokens.placeables.find(t => {
+        return t.visible && 
+               data.x >= t.x && data.x < t.x + t.w &&
+               data.y >= t.y && data.y < t.y + t.h;
+    });
+
+    if (target) {
+        await Visage.applyGlobalVisage(target, visageData);
+    }
+});
+
 Hooks.on("closeApplication", (app) => {
     if (app instanceof VisageSelector || 
         app instanceof VisageConfigApp || 

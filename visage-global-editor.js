@@ -83,14 +83,27 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
 
         const c = data.changes || {};
 
-        // --- 2. HELPER: Ring Context ---
+        // --- 2. EXTRACT DATA FROM UNIFIED MODEL ---
+        // Extract Ring
         const ringActive = !!c.ring;
         const ringContext = Visage.prepareRingContext(c.ring);
 
-        // ... (Scale, Dims, Flip, Disposition Logic - NO CHANGES) ...
-        const rawScale = c.scale ?? 1.0; 
-        const displayScale = Math.round(rawScale * 100);
-        const scaleActive = (rawScale !== 1.0);
+        // Extract Scale & Flip from texture.scaleX/Y
+        const tx = c.texture || {};
+        const rawScaleX = tx.scaleX ?? 1.0;
+        const rawScaleY = tx.scaleY ?? 1.0;
+        
+        // Logic: If scaleX is negative, it's flipped X. Magnitude is scale.
+        // We use the 'scale' property in changes (legacy) as fallback or derive from texture
+        const derivedScale = Math.abs(rawScaleX);
+        const derivedFlipX = rawScaleX < 0;
+        const derivedFlipY = rawScaleY < 0;
+        
+        // Determine if these fields should be "Active" in the UI
+        // If texture object exists, we assume visual props are active
+        const hasTexture = !!c.texture;
+        
+        const displayScale = Math.round(derivedScale * 100);
 
         let dimLabel = "-";
         let dimActive = false;
@@ -102,12 +115,12 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         let flipIcon = "fas fa-arrows-alt-h"; 
         let flipLabel = "-";
         let flipActive = false;
-        if (c.isFlippedX || c.isFlippedY) {
+        if (derivedFlipX || derivedFlipY) {
             flipActive = true;
-            if (c.isFlippedX && !c.isFlippedY) {
+            if (derivedFlipX && !derivedFlipY) {
                 flipIcon = "fas fa-arrow-left";
                 flipLabel = game.i18n.localize("VISAGE.Mirror.Horizontal.Label");
-            } else if (c.isFlippedY && !c.isFlippedX) {
+            } else if (derivedFlipY && !derivedFlipX) {
                 flipIcon = "fas fa-arrow-down";
                 flipLabel = game.i18n.localize("VISAGE.Mirror.Vertical.Label");
             } else {
@@ -131,8 +144,8 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         const previewData = {
             img: c.img || "",
             isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(c.img || ""),
-            flipX: c.isFlippedX === true,
-            flipY: c.isFlippedY === true,
+            flipX: derivedFlipX,
+            flipY: derivedFlipY,
             
             hasRing: !!ringActive,
             ringColor: ringContext.colors.ring,
@@ -143,7 +156,7 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             hasInvisibility: ringContext.hasInvisibility,
             
             slots: {
-                scale: { val: `${displayScale}%`, active: scaleActive },
+                scale: { val: `${displayScale}%`, active: hasTexture },
                 dim: { val: dimLabel, active: dimActive },
                 flip: { icon: flipIcon, val: flipLabel, active: flipActive },
                 disposition: { class: dispositionClass, val: dispositionLabel }
@@ -159,13 +172,15 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             isEdit: !!this.visageId,            
             label: data.label,
             category: data.category,
-            categories: categories, // PASSING THE LIST TO TEMPLATE
+            categories: categories,
             tags: (data.tags || []).join(", "), 
-            allTags: allTags, // PASSING THE LIST TO TEMPLATE
+            allTags: allTags,
             img: prep(c.img, ""),
-            scale: { value: displayScale, active: c.scale !== null && c.scale !== undefined },
-            isFlippedX: prepFlip(c.isFlippedX),
-            isFlippedY: prepFlip(c.isFlippedY),
+            // UI State Mapped from Unified Model
+            scale: { value: displayScale, active: hasTexture },
+            isFlippedX: { value: derivedFlipX, active: hasTexture && derivedFlipX }, 
+            isFlippedY: { value: derivedFlipY, active: hasTexture && derivedFlipY },
+            
             nameOverride: prep(c.name, ""),
             disposition: prep(c.disposition, 0),
             width: prep(c.width, 1),
@@ -180,39 +195,42 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
 
     /**
      * Updates the live preview DOM based on current form state.
-     * ASYNC: Resolves wildcards using Visage.resolvePath before rendering.
      */
     async _updatePreview() {
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
         const el = this.element;
 
-        // ... (Extraction logic same as before) ...
         const scaleVal = formData.scale; 
         const displayScale = scaleVal ? Math.round(scaleVal) : 100;
-        const scaleActive = displayScale !== 100;
+        const scaleActive = formData.scale_active; 
         
         const w = formData.width;
         const h = formData.height;
+        const wActive = formData.width_active;
+        const hActive = formData.height_active;
+
         const isFlippedX = formData.isFlippedX === "true";
         const isFlippedY = formData.isFlippedY === "true";
+        const flipXActive = formData.isFlippedX_active;
+        const flipYActive = formData.isFlippedY_active;
+
         const disposition = (formData.disposition !== "" && formData.disposition !== null) ? parseInt(formData.disposition) : null;
         const nameOverride = formData.nameOverride || "";
         const label = formData.label || "";
         const tagsStr = formData.tags || "";
+        
         const ringEnabled = formData["ring.enabled"]; 
         const ringColor = formData.ringColor || "#FFFFFF"; 
         const ringBkg = formData.ringBackgroundColor || "#000000";
         
-        // --- 2. ASYNC RESOLUTION (USE HELPER) ---
+        // --- 2. ASYNC RESOLUTION ---
         const rawImgPath = formData.img || "";
-        // Resolves * -> random file
         const resolvedPath = await Visage.resolvePath(rawImgPath); 
         const isVideo = foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedPath);
         
-        // ... (Calculate slots logic same as before) ...
         let dimLabel = "-";
         let dimActive = false;
-        if ((w && w != 1) || (h && h != 1)) {
+        if ((wActive && w && w != 1) || (hActive && h && h != 1)) {
             dimLabel = `${w || 1} x ${h || 1}`;
             dimActive = true;
         }
@@ -220,23 +238,31 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         let flipIcon = "fas fa-arrows-alt-h"; 
         let flipLabel = "-";
         let flipActive = false;
+        
         if (isFlippedX || isFlippedY) {
-            flipActive = true;
-            if (isFlippedX && !isFlippedY) {
-                flipIcon = "fas fa-arrow-left";
-                flipLabel = game.i18n.localize("VISAGE.Mirror.Horizontal.Label");
-            } else if (isFlippedY && !isFlippedX) {
-                flipIcon = "fas fa-arrow-down";
-                flipLabel = game.i18n.localize("VISAGE.Mirror.Vertical.Label");
-            } else {
-                flipIcon = "fas fa-expand-arrows-alt";
-                flipLabel = game.i18n.localize("VISAGE.Mirror.Label.Combined");
+            // In preview, we show it active if the checkboxes are checked, regardless of the 'active' toggle
+            // to give immediate feedback, but visually gray it out if the toggle is off? 
+            // Actually, keep logic simple:
+            if (flipXActive || flipYActive) {
+                flipActive = true;
+                if (isFlippedX && !isFlippedY) {
+                    flipIcon = "fas fa-arrow-left";
+                    flipLabel = game.i18n.localize("VISAGE.Mirror.Horizontal.Label");
+                } else if (isFlippedY && !isFlippedX) {
+                    flipIcon = "fas fa-arrow-down";
+                    flipLabel = game.i18n.localize("VISAGE.Mirror.Vertical.Label");
+                } else {
+                    flipIcon = "fas fa-expand-arrows-alt";
+                    flipLabel = game.i18n.localize("VISAGE.Mirror.Label.Combined");
+                }
             }
         }
 
         let dispClass = "none";
         let dispLabel = game.i18n.localize("VISAGE.Disposition.NoChange");
-        if (disposition !== null && !isNaN(disposition)) {
+        const dispActive = formData.disposition_active;
+        
+        if (dispActive && disposition !== null && !isNaN(disposition)) {
             switch (disposition) {
                 case 1: dispClass = "friendly"; dispLabel = game.i18n.localize("VISAGE.Disposition.Friendly"); break;
                 case 0: dispClass = "neutral"; dispLabel = game.i18n.localize("VISAGE.Disposition.Neutral"); break;
@@ -263,12 +289,15 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         if (dispSlot) {
             dispSlot.textContent = dispLabel;
             dispSlot.className = `visage-disposition-chip ${dispClass}`;
+            if (!dispActive) dispSlot.classList.add("inactive");
+            else dispSlot.classList.remove("inactive");
         }
 
         const nameEl = el.querySelector(".token-name-label");
         if (nameEl) {
             nameEl.textContent = nameOverride;
-            nameEl.style.display = nameOverride ? "block" : "none";
+            const nameActive = formData.nameOverride_active;
+            nameEl.style.display = (nameActive && nameOverride) ? "block" : "none";
         }
 
         const titleEl = el.querySelector(".card-title");
@@ -308,8 +337,10 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             }
         }
         
-        // Media Update (Using Resolved Path)
+        // Media Update
+        // Apply flip to transform
         const transform = `scale(${isFlippedX ? -1 : 1}, ${isFlippedY ? -1 : 1})`;
+        
         const vidEl = el.querySelector(".visage-preview-video");
         const imgEl = el.querySelector(".visage-preview-img");
         const iconEl = el.querySelector(".fallback-icon");
@@ -351,6 +382,7 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             if (button) button.disabled = !target.checked;
         }
         this._markDirty();
+        this._updatePreview(); // Ensure toggles update preview state
     }
 
     _onOpenFilePicker(event, target) {
@@ -378,52 +410,37 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
     _onRender(context, options) {
         this.element.addEventListener("change", () => this._markDirty());
         this.element.addEventListener("input", () => this._markDirty());
-
-        // Initialise the Tag Pills
         this._bindTagInput();
-
-        // Attach generic change listener for preview updates
         this.element.addEventListener("change", () => {
             this._markDirty();
-            this._updatePreview(); // Trigger Live Update
+            this._updatePreview();
         });
-        
-        // Attach input listener for smooth color/text updates
         this.element.addEventListener("input", (event) => {
             this._markDirty();
-            // Only update preview on input for specific fields to avoid lag
             if (event.target.matches("input[type='text'], color-picker")) {
                  this._updatePreview();
             }
         });
-        
-        // Run once to ensure sync
         this._updatePreview();
     }
 
     _bindTagInput() {
         const container = this.element.querySelector(".visage-tag-container");
         if (!container) return;
-
         const input = container.querySelector(".visage-tag-input");
         const hidden = container.querySelector("input[name='tags']");
         const pillsDiv = container.querySelector(".visage-tag-pills");
         
-        // Helper: Update Hidden Input based on current pills
         const updateHidden = () => {
             const tags = Array.from(pillsDiv.querySelectorAll(".visage-tag-pill"))
                 .map(p => p.dataset.tag);
             hidden.value = tags.join(",");
             this._markDirty();
-            // Trigger preview update if needed (optional)
         };
 
-        // Helper: Create a Pill Element
         const addPill = (text) => {
             const clean = text.trim();
             if (!clean) return;
-            
-            // Prevent Duplicates
             const existing = Array.from(pillsDiv.querySelectorAll(".visage-tag-pill"))
                 .map(p => p.dataset.tag.toLowerCase());
             if (existing.includes(clean.toLowerCase())) return;
@@ -432,29 +449,24 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             pill.className = "visage-tag-pill";
             pill.dataset.tag = clean;
             pill.innerHTML = `${clean} <i class="fas fa-times"></i>`;
-            
             pill.querySelector("i").addEventListener("click", () => {
                 pill.remove();
                 updateHidden();
             });
-
             pillsDiv.appendChild(pill);
             updateHidden();
         };
 
-        // 1. Initial Load: Create pills from hidden value
         if (hidden.value) {
             hidden.value.split(",").forEach(t => addPill(t));
         }
 
-        // 2. Input Events
         input.addEventListener("keydown", (ev) => {
             if (ev.key === "Enter" || ev.key === "," || ev.key === "Tab") {
                 ev.preventDefault();
                 addPill(input.value);
                 input.value = "";
             } else if (ev.key === "Backspace" && !input.value) {
-                // Delete last tag on backspace if input is empty
                 const last = pillsDiv.lastElementChild;
                 if (last) {
                     last.remove();
@@ -463,23 +475,22 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             }
         });
         
-        // Handle "Focus" to make the whole container look active
         input.addEventListener("focus", () => container.classList.add("focused"));
         input.addEventListener("blur", () => {
-            // If user left text hanging, add it as a tag
             if (input.value.trim()) {
                 addPill(input.value);
                 input.value = "";
             }
             container.classList.remove("focused");
         });
-        
-        // Clicking container focuses input
         container.addEventListener("click", (e) => {
             if(e.target === container || e.target === pillsDiv) input.focus();
         });
     }
 
+    /**
+     * Handles Save - REFACTORED TO USE UNIFIED MODEL
+     */
     async _onSave(event, target) {
         event.preventDefault();
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
@@ -487,23 +498,38 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         const getVal = (key, type = String) => {
             const isActive = formData[`${key}_active`];
             if (!isActive) return null;
-            
             const raw = formData[key];
             if (type === Number) return parseFloat(raw);
             if (type === Boolean) return !!raw;
             return raw;
         };
 
-        let finalScale = null;
-        if (formData.scale_active) {
-            finalScale = parseFloat(formData.scale) / 100;
+        // --- PREPARE UNIFIED TEXTURE OBJECT ---
+        // Scale and Flip now map to texture.scaleX / scaleY
+        let texture = undefined;
+        
+        // We check if ANY visual property is active.
+        // In Foundry, you cannot partially update scaleX (sign vs magnitude).
+        // So if either Scale OR Flip is active, we write the texture object.
+        const isScaleActive = formData.scale_active;
+        const isFlipXActive = formData.isFlippedX_active;
+        const isFlipYActive = formData.isFlippedY_active;
+
+        if (isScaleActive || isFlipXActive || isFlipYActive) {
+            // Get base values (default to standard if inactive)
+            const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
+            const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
+            const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
+            
+            texture = {
+                scaleX: rawScale * (flipX ? -1 : 1),
+                scaleY: rawScale * (flipY ? -1 : 1)
+            };
         }
 
         const label = formData.label ? formData.label.trim() : game.i18n.localize("VISAGE.GlobalEditor.DefaultLabel");
 
-        // --- CATEGORY SANITISATION ---
-        // 1. Trim whitespace
-        // 2. Enforce Title Case (e.g. "bosses" -> "Bosses") to prevent duplicates
+        // Category Sanitisation
         let cleanCategory = "";
         if (formData.category) {
             cleanCategory = formData.category.trim().replace(
@@ -512,24 +538,16 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             );
         }
 
-        const getFlipVal = (key) => {
-            const val = formData[key];
-            if (val === "true") return true;
-            if (val === "false") return false;
-            return null;
-        };
-
         const payload = {
             label: label,
-            category: cleanCategory, // Use sanitised version
+            category: cleanCategory,
             tags: formData.tags.split(",").map(t => t.trim()).filter(t => t),
             
+            // --- THE UNIFIED CHANGES OBJECT ---
             changes: {
                 name: getVal("nameOverride"),
                 img: getVal("img"),
-                scale: finalScale,
-                isFlippedX: getFlipVal("isFlippedX"),
-                isFlippedY: getFlipVal("isFlippedY"),
+                texture: texture, // Now passed as nested object
                 width: getVal("width", Number),
                 height: getVal("height", Number),
                 disposition: getVal("disposition", Number),
@@ -537,7 +555,6 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             }
         };
 
-        // Ring Logic (No changes needed here, assuming previous fix applied)
         if (formData["ring.enabled"]) {
             let effectsMask = 0;
             for (const [k, v] of Object.entries(formData)) {

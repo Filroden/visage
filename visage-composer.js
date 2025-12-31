@@ -17,30 +17,25 @@ export class VisageComposer {
     static async compose(token, stackOverride = null, baseOverride = null) {
         if (!token) return;
 
-        // 1. Get Current Flags (Correctly accessing the module scope)
+        // 1. Get Current Flags
         const allFlags = token.document.flags[Visage.MODULE_ID] || {};
-        const currentStack = stackOverride ?? (allFlags.stack || []);
+        // Check 'activeStack', then fallback to 'stack', then default to empty.
+        const currentStack = stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
         
         // 2. Revert Logic
-        // We ONLY revert if the stack is empty AND we are NOT applying a new base visage.
-        // This handles the "Clear All" case.
+        // Only revert if the stack is TRULY empty
         if (currentStack.length === 0 && !baseOverride) {
             return this._revert(token, allFlags);
         }
 
-        // 3. Establish Base State (Original State)
+        // 3. Establish Base State
         let base = baseOverride ?? allFlags.originalState;
-        
-        // If no base exists yet, capture the current token state as the base
         if (!base) {
             base = this._captureSnapshot(token);
         }
 
         // 4. Layer Changes
-        // Deep clone base to avoid mutating the snapshot
         const finalData = foundry.utils.deepClone(base);
-        
-        // Ensure structure exists
         if (!finalData.texture) finalData.texture = {};
 
         for (const layer of currentStack) {
@@ -49,21 +44,28 @@ export class VisageComposer {
             // A. Texture/Image
             if (changes.img) {
                 finalData.texture.src = changes.img;
+            } else if (changes.texture?.src) {
+                // Handle Unified Model where src might be inside texture
+                finalData.texture.src = changes.texture.src;
             }
 
-            // B. Scale & Orientation
-            if (changes.scale !== undefined && changes.scale !== null) {
-                // Determine Flip State for this layer
-                // If layer has explicit flip, use it. Else fall back to Base state.
+            // B. Scale & Orientation (Unified Model Support)
+            // Check for Unified Model (texture object) first
+            if (changes.texture && (changes.texture.scaleX !== undefined || changes.texture.scaleY !== undefined)) {
+                // Apply absolute scale logic if present
+                if (changes.texture.scaleX !== undefined) finalData.texture.scaleX = changes.texture.scaleX;
+                if (changes.texture.scaleY !== undefined) finalData.texture.scaleY = changes.texture.scaleY;
+            } 
+            // Fallback for Legacy Data (flat scale)
+            else if (changes.scale !== undefined && changes.scale !== null) {
                 const flipX = (changes.isFlippedX !== undefined) ? changes.isFlippedX : (finalData.texture.scaleX < 0);
                 const flipY = (changes.isFlippedY !== undefined) ? changes.isFlippedY : (finalData.texture.scaleY < 0);
-                
                 const absScale = Math.abs(changes.scale);
                 finalData.texture.scaleX = absScale * (flipX ? -1 : 1);
                 finalData.texture.scaleY = absScale * (flipY ? -1 : 1);
             }
 
-            // C. Ring (Override)
+            // C. Ring
             if (changes.ring && changes.ring.enabled) {
                 finalData.ring = changes.ring;
             }
@@ -87,48 +89,37 @@ export class VisageComposer {
             }
         }
 
-        // DEBUG: Log what we are sending to Foundry
         console.log("Visage | Composing Update:", finalData);
 
         // 5. Apply Update
         const updateData = {
             ...finalData,
-            [`flags.${Visage.MODULE_ID}.stack`]: currentStack,
-            [`flags.${Visage.MODULE_ID}.originalState`]: base // Ensure base is saved
+            [`flags.${Visage.MODULE_ID}.activeStack`]: currentStack, // CHANGED: activeStack
+            [`flags.${Visage.MODULE_ID}.originalState`]: base
         };
 
         await token.document.update(updateData, { visageUpdate: true, animation: { duration: 0 } });
     }
 
-    /**
-     * Reverts the token to its original state and clears flags.
-     */
     static async _revert(token, flags) {
-        // If we don't have an original state, there is nothing to revert to.
-        // We just clear the flags to be safe.
         if (!flags.originalState) {
             const clearFlags = {
-                [`flags.${Visage.MODULE_ID}.-=stack`]: null,
+                [`flags.${Visage.MODULE_ID}.-=activeStack`]: null, // CHANGED
                 [`flags.${Visage.MODULE_ID}.-=originalState`]: null
             };
             return token.document.update(clearFlags, { visageUpdate: true });
         }
 
-        // Restore original state and delete flags
         const updateData = {
             ...flags.originalState,
-            [`flags.${Visage.MODULE_ID}.-=stack`]: null,
-            [`flags.${Visage.MODULE_ID}.-=originalState`]: null,
-            // Also clear legacy flags if they exist to be clean
-            [`flags.${Visage.MODULE_ID}.-=activeVisage`]: null 
+            [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
+            [`flags.${Visage.MODULE_ID}.-=stack`]: null, // Clean legacy
+            [`flags.${Visage.MODULE_ID}.-=originalState`]: null
         };
 
         await token.document.update(updateData, { visageUpdate: true });
     }
 
-    /**
-     * Captures the current token state to serve as the "Base Layer".
-     */
     static _captureSnapshot(token) {
         const doc = token.document;
         return {

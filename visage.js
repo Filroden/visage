@@ -344,6 +344,67 @@ export class Visage {
     }
 
     /**
+     * Applies a Global Visage object as a STACK LAYER to a token.
+     */
+    static async applyGlobalVisage(token, globalVisageData) {
+        if (!token || !globalVisageData) return;
+        
+        // Handle both Token Placeable and TokenDocument
+        const doc = (token instanceof Token) ? token.document : token;
+
+        // 1. Prepare the Stack Layer Object
+        const layer = {
+            id: globalVisageData.id,
+            label: globalVisageData.label,
+            changes: foundry.utils.deepClone(globalVisageData.changes),
+            active: true
+        };
+        
+        // 2. Resolve Wildcards
+        if (layer.changes.img) {
+            layer.changes.texture = layer.changes.texture || {};
+            layer.changes.texture.src = await this.resolvePath(layer.changes.img);
+            delete layer.changes.img;
+        }
+        
+        // 3. Ring Cleanup
+        if (layer.changes.ring) {
+            layer.changes.ring = {
+                 enabled: layer.changes.ring.enabled === true,
+                 colors: layer.changes.ring.colors,
+                 effects: layer.changes.ring.effects,
+                 subject: layer.changes.ring.subject
+            };
+        }
+
+        // 4. Update the Token Stack Flag
+        const ns = this.DATA_NAMESPACE;
+        
+        // FIX: Read from TOKEN. Fallback to 'stack' (Legacy) if 'activeStack' is missing.
+        let stack = foundry.utils.deepClone(
+            doc.getFlag(ns, "activeStack") || doc.getFlag(ns, "stack") || []
+        );
+
+        const existingIndex = stack.findIndex(l => l.id === layer.id);
+        if (existingIndex > -1) {
+            stack[existingIndex] = layer; 
+        } else {
+            stack.push(layer); 
+        }
+
+        // FIX: Write to TOKEN. This implicitly migrates legacy data to the new key.
+        await doc.setFlag(ns, "activeStack", stack);
+
+        // 5. Trigger Composer
+        const { VisageComposer } = await import("./visage-composer.js");
+        await VisageComposer.compose(token); // Pass the placeable if possible
+        
+        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { 
+            label: layer.label 
+        }));
+    }
+
+    /**
      * Gets a list of all available forms for a given actor, including default values.
      * @param {string} actorId The ID of the actor.
      * @param {string|null} [tokenId=null] The ID of the token, used to retrieve token-specific defaults.

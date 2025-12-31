@@ -260,47 +260,81 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
         });
     }
 
+    /**
+     * Handle the start of a drag workflow.
+     * Attaches the Global Visage ID and Type to the drag event.
+     */
     _onDragStart(event) {
-        const id = event.currentTarget.dataset.id;
-        const visage = VisageGlobalData.get(id);
-        if (!visage) return;
+        const card = event.target.closest(".visage-card");
+        if (!card) return;
+        
+        // Create the standard Drag Data object
         const dragData = {
-            type: "Visage",
-            payload: visage, 
-            id: id
+            type: "Visage", // Unique type identifier for our module
+            id: card.dataset.id
         };
+        
+        // Attach to the event
         event.dataTransfer.setData("text/plain", JSON.stringify(dragData));
     }
 
     async _onCreate() { new VisageGlobalEditor().render(true); }
+
     async _onEdit(event, target) {
         const id = target.closest(".visage-card").dataset.id;
         new VisageGlobalEditor({ visageId: id }).render(true);
     }
+
+    /**
+     * Action: Move to Recycle Bin (Soft Delete)
+     */
     async _onDelete(event, target) {
-        const id = target.closest(".visage-card").dataset.id;
-        await VisageGlobalData.delete(id);
+        const card = target.closest(".visage-card");
+        if (!card) return;
+        const id = card.dataset.id;
+        
+        await VisageGlobalData.delete(id); // Performs the soft delete
+        this.render(); // <--- ADD THIS: Force the UI to update immediately
     }
+
+    /**
+     * Action: Restore from Recycle Bin
+     */
     async _onRestore(event, target) {
-        const id = target.closest(".visage-card").dataset.id;
+        const card = target.closest(".visage-card");
+        if (!card) return;
+        const id = card.dataset.id;
+        
         await VisageGlobalData.restore(id);
+        this.render(); // <--- ADD THIS
     }
-    async _onDestroy(id) {
-        const confirmed = await foundry.applications.api.DialogV2.confirm({
+
+    /**
+     * Action: Permanently Destroy (Hard Delete)
+     */
+    async _onDestroy(event, target) {
+        const card = target.closest(".visage-card");
+        if (!card) return;
+        const id = card.dataset.id;
+
+        const confirm = await foundry.applications.api.DialogV2.confirm({
             window: { title: game.i18n.localize("VISAGE.Dialog.Destroy.Title") },
-            content: `<p>${game.i18n.localize("VISAGE.Dialog.Destroy.Content")}</p>`,
+            content: game.i18n.localize("VISAGE.Dialog.Destroy.Content"),
             modal: true
         });
 
-        if (confirmed) {
+        if (confirm) {
             await VisageGlobalData.destroy(id);
+            this.render(); // <--- ADD THIS
         }
     }
+
     _onSelectCategory(event, target) {
         const cat = target.dataset.category;
         this.filters.category = (this.filters.category === cat) ? null : cat;
         this.render();
     }
+
     _onToggleBin(event, target) {
         const mode = target.dataset.mode;
         const requestingBin = mode === "bin";
@@ -309,39 +343,34 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
         this.filters.category = null; 
         this.render();
     }
+
     _onClearSearch() {
         this.filters.search = "";
         this.render();
     }
+
+    /**
+     * Action: Apply Visage to Selected Tokens
+     */
     async _onApply(event, target) {
-        const id = target.closest(".visage-card").dataset.id;
-        const visage = VisageGlobalData.get(id);
-        if (!visage) return;
+        // 1. Get currently selected tokens (Placeables)
+        const tokens = canvas.tokens.controlled.filter(t => t.document.isOwner);
         
-        const tokens = canvas.tokens.controlled;
-        if (!tokens.length) {
-             ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.NoTokens"));
-             return;
+        if (tokens.length === 0) {
+            return ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
         }
+        
+        // 2. Get the Visage Data
+        const card = target.closest(".visage-card");
+        const visageId = card.dataset.id;
+        const visageData = VisageGlobalData.get(visageId);
+        
+        if (!visageData) return;
 
-        // Create the new stack layer
-        const newLayer = {
-            id: visage.id,
-            label: visage.label,
-            changes: visage.changes
-        };
-
+        // 3. Apply to tokens (Pass the Placeable, NOT the Document)
         for (const token of tokens) {
-            // getFlag automatically scopes to the module ID.
-            const currentStack = token.document.getFlag(Visage.MODULE_ID, "stack") || [];
-            
-            // Append the new layer to the existing stack
-            const newStack = [...currentStack, newLayer];
-
-            // Re-compose with the combined stack
-            await VisageComposer.compose(token, newStack);
+            // CHANGED: Removed .document
+            await Visage.applyGlobalVisage(token, visageData);
         }
-
-        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { label: visage.label, count: tokens.length }));
     }
 }

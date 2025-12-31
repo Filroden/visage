@@ -1401,6 +1401,20 @@ div#visage-global-directory .window-content {
     gap: var(--filroden-space-m);
 }
 
+/* --- Sidebar Headers (Categories) --- */
+.visage-sidebar .sidebar-header {
+    border-bottom: 2px solid var(--filroden-color-text-accent);
+    font-family: var(--font-primary);
+    font-size: var(--filroden-font-size-m);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--filroden-color-text-main-solid);
+    margin: var(--filroden-space-l) 0 var(--filroden-space-s) 0;
+    padding-bottom: var(--filroden-space-xs);
+    line-height: 1;
+}
+
 /* Main Browser */
 .visage-browser {
     flex: 1;
@@ -1742,6 +1756,14 @@ div#visage-global-directory .window-content {
     height: 100px;
     position: relative;
     flex-shrink: 0;
+}
+
+/* --- Fix Drag & Drop on Preview Zone (Universal) --- */
+.visage-card .card-zone-center * {
+    -webkit-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+    user-select: none;
 }
 
 /* --- SHARED VISUALS (RINGS / ANIMATIONS) --- */
