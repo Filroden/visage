@@ -66,13 +66,23 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             this._currentLabel = "";
         }
 
+        // --- 1. PREPARE CATEGORIES (Autocomplete) ---
+        // Fetch all existing visages to build the unique category list
+        const allVisages = VisageGlobalData.all; 
+        const categorySet = new Set();
+        allVisages.forEach(v => {
+            if (v.category) categorySet.add(v.category);
+        });
+        // Sort alphabetically for the dropdown
+        const categories = Array.from(categorySet).sort();
+
         const c = data.changes || {};
 
-        // USE HELPER: Prepare Ring Context (includes booleans now)
+        // --- 2. HELPER: Ring Context ---
         const ringActive = !!c.ring;
         const ringContext = Visage.prepareRingContext(c.ring);
 
-        // ... (Scale, Dimensions, Flip, Disposition logic remains identical to previous snippet) ...
+        // ... (Scale, Dims, Flip, Disposition Logic - NO CHANGES) ...
         const rawScale = c.scale ?? 1.0; 
         const displayScale = Math.round(rawScale * 100);
         const scaleActive = (rawScale !== 1.0);
@@ -112,7 +122,7 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             }
         }
 
-        // PREVIEW OBJECT: Use data directly from the helper
+        // PREVIEW OBJECT
         const previewData = {
             img: c.img || "",
             isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(c.img || ""),
@@ -122,7 +132,6 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             hasRing: !!ringActive,
             ringColor: ringContext.colors.ring,
             ringBkg: ringContext.colors.background,
-            // Helper provides these booleans now!
             hasPulse: ringContext.hasPulse,
             hasGradient: ringContext.hasGradient,
             hasWave: ringContext.hasWave,
@@ -145,7 +154,9 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             isEdit: !!this.visageId,            
             label: data.label,
             category: data.category,
+            categories: categories, // PASSING THE LIST TO TEMPLATE
             tags: (data.tags || []).join(", "), 
+            
             img: prep(c.img, ""),
             scale: { value: displayScale, active: c.scale !== null && c.scale !== undefined },
             isFlippedX: prepFlip(c.isFlippedX),
@@ -154,8 +165,6 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             disposition: prep(c.disposition, 0),
             width: prep(c.width, 1),
             height: prep(c.height, 1),
-            
-            // Editor Inputs rely on the same helper context
             ring: {
                 active: ringActive,
                 ...ringContext
@@ -389,8 +398,6 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
 
         const getVal = (key, type = String) => {
-            // Check for the "active" checkbox using the naming convention from HBS
-            // e.g. "nameOverride_active"
             const isActive = formData[`${key}_active`];
             if (!isActive) return null;
             
@@ -400,13 +407,23 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             return raw;
         };
 
-        // Scale Logic
         let finalScale = null;
         if (formData.scale_active) {
             finalScale = parseFloat(formData.scale) / 100;
         }
 
         const label = formData.label ? formData.label.trim() : game.i18n.localize("VISAGE.GlobalEditor.DefaultLabel");
+
+        // --- CATEGORY SANITISATION ---
+        // 1. Trim whitespace
+        // 2. Enforce Title Case (e.g. "bosses" -> "Bosses") to prevent duplicates
+        let cleanCategory = "";
+        if (formData.category) {
+            cleanCategory = formData.category.trim().replace(
+                /\w\S*/g,
+                (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+            );
+        }
 
         const getFlipVal = (key) => {
             const val = formData[key];
@@ -417,7 +434,7 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
 
         const payload = {
             label: label,
-            category: formData.category,
+            category: cleanCategory, // Use sanitised version
             tags: formData.tags.split(",").map(t => t.trim()).filter(t => t),
             
             changes: {
@@ -433,10 +450,9 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             }
         };
 
-        // FIX: Check "ring.enabled" (matches HTML name), not "ring_active"
+        // Ring Logic (No changes needed here, assuming previous fix applied)
         if (formData["ring.enabled"]) {
             let effectsMask = 0;
-            // Iterate over formData to find effects
             for (const [k, v] of Object.entries(formData)) {
                 if (k.startsWith("effect_") && v === true) {
                     effectsMask |= parseInt(k.split("_")[1]);
@@ -446,7 +462,6 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             payload.changes.ring = {
                 enabled: true,
                 colors: {
-                    // Match HTML names: ringColor, ringBackgroundColor
                     ring: formData.ringColor,
                     background: formData.ringBackgroundColor
                 },

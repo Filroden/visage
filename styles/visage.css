@@ -92,6 +92,66 @@
     font-style: italic;
 }
 
+/* --- Datalist/Autofill --- */
+.visage input:-webkit-autofill,
+.visage input:-webkit-autofill:hover, 
+.visage input:-webkit-autofill:focus, 
+.visage input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--filroden-color-bg-medium-solid) inset !important;
+    -webkit-text-fill-color: var(--filroden-color-text-main-solid) !important;
+    border: 1px solid var(--filroden-color-border) !important;
+    caret-color: var(--filroden-color-text-main-solid);
+    transition: background-color 5000s ease-in-out 0s; /* Delays the white flash */
+}
+
+.visage input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.8;
+    filter: none;
+}
+.visage input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+.visage input:-webkit-autofill::-webkit-calendar-picker-indicator {
+    filter: invert(1); 
+}
+
+/* --- Application Headers --- */
+
+.visage.visage-config-app .window-header,
+.visage.visage-ring-editor .window-header,
+.visage.visage.visage-global-editor .window-header,
+.visage.visage-global-directory .window-header {
+    background: var(--filroden-color-bg-darkest);
+    color: var(--filroden-color-text-main-solid);
+    flex: 0 0 auto !important; 
+    min-height: 34px; 
+    height: auto !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.visage.visage-config-app .window-header .window-title,
+.visage.visage-ring-editor .window-header .window-title,
+.visage.visage.visage-global-editor .window-header .window-title,
+.visage.visage-global-directory .window-header .window-title {
+    font-size: var(--filroden-font-size-s);
+    line-height: 1.2;
+    text-align: start; 
+    padding-inline-start: var(--filroden-space-s);
+    padding-inline-end: 0;
+    flex: 1;
+}
+
+.visage.visage-config-app .window-header .window-icon,
+.visage.visage-ring-editor .window-header .window-icon,
+.visage.visage.visage-global-editor .window-header .window-icon,
+.visage.visage-global-directory .window-header .window-icon {
+    margin-inline-start: var(--filroden-space-xxs);
+    margin-inline-end: 0;
+}
+
 /* --- Icons --- */
 
 .visage .visage-header-icon {
@@ -512,31 +572,6 @@
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-}
-
-.visage.visage-config-app .window-header {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    flex: 0 0 auto !important; 
-    min-height: 30px; 
-    height: auto !important;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.visage.visage-config-app .window-header .window-title {
-    font-size: var(--filroden-font-size-s);
-    line-height: 1.2;
-    text-align: start; 
-    padding-inline-start: var(--filroden-space-s);
-    padding-inline-end: 0;
-    flex: 1;
-}
-
-.visage.visage-config-app .window-header .window-icon {
-    margin-inline-start: var(--filroden-space-xxs);
-    margin-inline-end: 0;
 }
 
 .visage.visage-config-app .window-content {
@@ -976,31 +1011,6 @@
     width: 28rem;
 }
 
-.visage.visage-ring-editor .window-header {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    flex: 0 0 auto !important; 
-    min-height: 30px; 
-    height: auto !important;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.visage.visage-ring-editor .window-header .window-title {
-    font-size: var(--filroden-font-size-s);
-    line-height: 1.2;
-    text-align: start; 
-    padding-inline-start: var(--filroden-space-s);
-    padding-inline-end: 0;
-    flex: 1;
-}
-
-.visage.visage-ring-editor .window-header .window-icon {
-    margin-inline-start: var(--filroden-space-xxs);
-    margin-inline-end: 0;
-}
-
 .visage.visage-ring-editor .window-content {
     background: var(--filroden-color-bg-darkest);
     color: var(--filroden-color-text-main-solid);
@@ -1151,8 +1161,15 @@
 .visage.visage-global-editor .visage-notes {
     color: var(--filroden-color-text-main-solid) !important;
     opacity: 0.8;
-    font-size: var(--filroden-font-size-xs);
     margin-top: var(--filroden-space-xxs);
+}
+
+.visage.visage-global-editor .hint {
+    font-size: var(--filroden-font-size-xs);
+}
+
+.visage.visage-global-editor .visage-notes {
+    margin-bottom: var(--filroden-space-l);
 }
 
 .visage.visage-global-editor input:disabled,
@@ -1223,6 +1240,7 @@
     flex-direction: column;
     gap: var(--filroden-space-s);
     width: 100%;
+    height: 4rem;
 }
 
 .visage .master-toggle {
