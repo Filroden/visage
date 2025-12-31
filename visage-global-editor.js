@@ -66,15 +66,20 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             this._currentLabel = "";
         }
 
-        // --- 1. PREPARE CATEGORIES (Autocomplete) ---
-        // Fetch all existing visages to build the unique category list
+        // --- 1. PREPARE AUTOCOMPLETE DATA ---
         const allVisages = VisageGlobalData.all; 
         const categorySet = new Set();
+        const tagSet = new Set();
+
         allVisages.forEach(v => {
             if (v.category) categorySet.add(v.category);
+            if (v.tags && Array.isArray(v.tags)) {
+                v.tags.forEach(t => tagSet.add(t));
+            }
         });
-        // Sort alphabetically for the dropdown
+        
         const categories = Array.from(categorySet).sort();
+        const allTags = Array.from(tagSet).sort();
 
         const c = data.changes || {};
 
@@ -156,7 +161,7 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
             category: data.category,
             categories: categories, // PASSING THE LIST TO TEMPLATE
             tags: (data.tags || []).join(", "), 
-            
+            allTags: allTags, // PASSING THE LIST TO TEMPLATE
             img: prep(c.img, ""),
             scale: { value: displayScale, active: c.scale !== null && c.scale !== undefined },
             isFlippedX: prepFlip(c.isFlippedX),
@@ -374,6 +379,9 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         this.element.addEventListener("change", () => this._markDirty());
         this.element.addEventListener("input", () => this._markDirty());
 
+        // Initialise the Tag Pills
+        this._bindTagInput();
+
         // Attach generic change listener for preview updates
         this.element.addEventListener("change", () => {
             this._markDirty();
@@ -391,6 +399,85 @@ export class VisageGlobalEditor extends HandlebarsApplicationMixin(ApplicationV2
         
         // Run once to ensure sync
         this._updatePreview();
+    }
+
+    _bindTagInput() {
+        const container = this.element.querySelector(".visage-tag-container");
+        if (!container) return;
+
+        const input = container.querySelector(".visage-tag-input");
+        const hidden = container.querySelector("input[name='tags']");
+        const pillsDiv = container.querySelector(".visage-tag-pills");
+        
+        // Helper: Update Hidden Input based on current pills
+        const updateHidden = () => {
+            const tags = Array.from(pillsDiv.querySelectorAll(".visage-tag-pill"))
+                .map(p => p.dataset.tag);
+            hidden.value = tags.join(",");
+            this._markDirty();
+            // Trigger preview update if needed (optional)
+        };
+
+        // Helper: Create a Pill Element
+        const addPill = (text) => {
+            const clean = text.trim();
+            if (!clean) return;
+            
+            // Prevent Duplicates
+            const existing = Array.from(pillsDiv.querySelectorAll(".visage-tag-pill"))
+                .map(p => p.dataset.tag.toLowerCase());
+            if (existing.includes(clean.toLowerCase())) return;
+
+            const pill = document.createElement("span");
+            pill.className = "visage-tag-pill";
+            pill.dataset.tag = clean;
+            pill.innerHTML = `${clean} <i class="fas fa-times"></i>`;
+            
+            pill.querySelector("i").addEventListener("click", () => {
+                pill.remove();
+                updateHidden();
+            });
+
+            pillsDiv.appendChild(pill);
+            updateHidden();
+        };
+
+        // 1. Initial Load: Create pills from hidden value
+        if (hidden.value) {
+            hidden.value.split(",").forEach(t => addPill(t));
+        }
+
+        // 2. Input Events
+        input.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter" || ev.key === "," || ev.key === "Tab") {
+                ev.preventDefault();
+                addPill(input.value);
+                input.value = "";
+            } else if (ev.key === "Backspace" && !input.value) {
+                // Delete last tag on backspace if input is empty
+                const last = pillsDiv.lastElementChild;
+                if (last) {
+                    last.remove();
+                    updateHidden();
+                }
+            }
+        });
+        
+        // Handle "Focus" to make the whole container look active
+        input.addEventListener("focus", () => container.classList.add("focused"));
+        input.addEventListener("blur", () => {
+            // If user left text hanging, add it as a tag
+            if (input.value.trim()) {
+                addPill(input.value);
+                input.value = "";
+            }
+            container.classList.remove("focused");
+        });
+        
+        // Clicking container focuses input
+        container.addEventListener("click", (e) => {
+            if(e.target === container || e.target === pillsDiv) input.focus();
+        });
     }
 
     async _onSave(event, target) {

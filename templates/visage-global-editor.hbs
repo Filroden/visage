@@ -112,7 +112,20 @@
                 <div class="form-group">
                     <label>{{localize "VISAGE.GlobalEditor.Tags"}}</label>
                     <div class="form-fields">
-                        <input type="text" name="tags" value="{{tags}}" placeholder="boss, fire, huge">
+                        {{!-- Pill Container --}}
+                        <div class="visage-tag-container">
+                            <div class="visage-tag-pills"></div>
+                            <input type="text" class="visage-tag-input" list="visage-all-tags" placeholder="Add tags...">
+                            {{!-- Hidden input stores the actual comma-separated data --}}
+                            <input type="hidden" name="tags" value="{{tags}}">
+                        </div>
+                        
+                        {{!-- Autocomplete Datalist --}}
+                        <datalist id="visage-all-tags">
+                            {{#each allTags}}
+                            <option value="{{this}}"></option>
+                            {{/each}}
+                        </datalist>
                     </div>
                     <p class="hint">{{localize "VISAGE.GlobalEditor.TagsHint"}}</p>
                 </div>

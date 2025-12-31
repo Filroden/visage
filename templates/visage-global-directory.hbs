@@ -47,6 +47,41 @@
 
     {{!-- MAIN BROWSER --}}
     <main class="visage-browser">
+
+        {{!-- TAG FILTER BAR --}}
+        {{#if hasFilterBar}}
+        <div class="visage-filter-bar">
+            <i class="fas fa-filter filter-icon" title="{{localize 'VISAGE.Directory.Filters'}}"></i>
+            
+            <div class="filter-pills">
+                {{!-- 1. ACTIVE FILTERS (Solid Accent) --}}
+                {{#each activeTags}}
+                <button class="visage-pill active" data-action="toggleTag" data-tag="{{this.label}}">
+                    {{this.label}} <i class="fas fa-times"></i>
+                </button>
+                {{/each}}
+
+                {{!-- Divider if both exist --}}
+                {{#if (and activeTags.length popularTags.length)}}
+                <div class="filter-divider"></div>
+                {{/if}}
+
+                {{!-- 2. POPULAR SUGGESTIONS (Ghost/Outline) --}}
+                {{#each popularTags}}
+                <button class="visage-pill suggestion" data-action="toggleTag" data-tag="{{this.label}}">
+                    <i class="fas fa-plus"></i> {{this.label}}
+                </button>
+                {{/each}}
+            </div>
+
+            {{!-- Clear All Button --}}
+            {{#if activeTags.length}}
+            <button class="clear-filters" data-action="clearTags" data-tooltip="{{localize 'VISAGE.Directory.ClearTags'}}">
+                <span class="visage-icon-clear"></span>
+            </button>
+            {{/if}}
+        </div>
+        {{/if}}
         
         {{#if items.length}}
         <div class="visage-browser-grid">
@@ -128,16 +163,36 @@
 
                 </div>
 
-                {{!-- FOOTER: LABEL --}}
+                {{!-- FOOTER --}}
                 <div class="card-footer">
-                    <h4 class="card-title">{{this.label}}</h4>
-                    {{#if this.tags}}
-                    <div class="card-tags">
-                        {{#each this.tags}}
-                        <span class="tag">{{this}}</span>
-                        {{/each}}
+                    {{!-- The Sliding Container --}}
+                    <div class="footer-slider">
+                        
+                        {{!-- SLIDE 1: The Name (Default Visible) --}}
+                        <div class="footer-slide title-slide">
+                            <h4 class="card-title">{{this.label}}</h4>
+                        </div>
+
+                        {{!-- SLIDE 2: The Tags (Visible on Hover) --}}
+                        <div class="footer-slide tags-slide">
+                            <div class="card-tags">
+                                {{#each this.meta.itemTags}}
+                                {{!-- Clicking a tag toggles the filter --}}
+                                <span class="tag {{#if this.active}}active{{/if}}" 
+                                    data-action="toggleTag" 
+                                    data-tag="{{this.label}}">
+                                    {{this.label}}
+                                </span>
+                                {{/each}}
+                                
+                                {{!-- Empty State if no tags --}}
+                                {{#unless this.meta.itemTags}}
+                                <span class="no-tags">{{localize "VISAGE.Directory.NoTags"}}</span>
+                                {{/unless}}
+                            </div>
+                        </div>
+                        
                     </div>
-                    {{/if}}
                 </div>
             </div>
             {{/each}}

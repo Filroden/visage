@@ -152,6 +152,9 @@
     "VISAGE.Directory.Tooltip.Apply": "Apply to Selected",
     "VISAGE.Directory.Tooltip.Edit": "Edit",
     "VISAGE.Directory.Tooltip.Delete": "Move to Recycle Bin",
+    "VISAGE.Directory.NoTags": "No Tags Applied",
+    "VISAGE.Directory.Filters": "Filters",
+    "VISAGE.Directory.ClearTags": "Clear Tags",
 
     "VISAGE.Mirror.Horizontal.Unchanged": "Horizontal: Unchanged",
     "VISAGE.Mirror.Horizontal.Standard": "Force Right (Standard)",
