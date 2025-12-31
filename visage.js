@@ -139,53 +139,81 @@ export class Visage {
 
     /**
      * Retrieves, normalizes, and sorts all visages for a given actor.
-     * @param {Actor} actor The actor document to retrieve visages from.
-     * @returns {Array<object>} A sorted array of normalized visage objects.
+     * Returns data in the UNIFIED MODEL (Label/Category/Tags + Nested Changes).
+     * @param {Actor} actor The actor document.
+     * @returns {Array<object>} Sorted array of unified visage objects.
      */
     static getVisages(actor) {
         if (!actor) return [];
 
         const ns = this.DATA_NAMESPACE;
         const flags = actor.flags?.[ns] || {};
+        // Support both keys during transition
         const sourceData = flags[this.ALTERNATE_FLAG_KEY] || flags[this.LEGACY_FLAG_KEY] || {};
 
         const results = [];
 
         for (const [key, data] of Object.entries(sourceData)) {
-            const isObject = typeof data === 'object' && data !== null;
-            // Ensure a unique ID.
+            // 1. Basic ID & Label
             const id = (key.length === 16) ? key : foundry.utils.randomID(16);
-            const name = (isObject && data.name) ? data.name : key;
-            const path = isObject ? (data.path || "") : (data || "");
-            
-            // --- Normalize Scale & Flips ---
-            const rawScale = isObject ? (data.scale ?? 1.0) : 1.0;
-            const scale = Math.abs(rawScale); // Always positive
+            const label = (typeof data === 'object' && data.name) ? data.name : key;
 
-            // 1. Check for explicit boolean. 2. Fallback to negative scale (Legacy)
-            let isFlippedX = false;
-            if (isObject && data.isFlippedX !== undefined) isFlippedX = data.isFlippedX;
-            else isFlippedX = rawScale < 0;
+            let category = "";
+            let tags = [];
+            let changes = {};
 
-            let isFlippedY = false;
-            if (isObject && data.isFlippedY !== undefined) isFlippedY = data.isFlippedY;
+            // 2. DETECT SCHEMA
+            if (data.changes) {
+                // --- ALREADY MODERN ---
+                changes = data.changes;
+                // Capture metadata if it exists
+                category = data.category || "";
+                tags = Array.isArray(data.tags) ? data.tags : [];
+            } else {
+                // --- LAZY MIGRATION (Legacy -> Modern) ---
+                const isObject = typeof data === 'object' && data !== null;
+                const path = isObject ? (data.path || "") : (data || "");
+                const rawScale = isObject ? (data.scale ?? 1.0) : 1.0;
+                
+                const scale = Math.abs(rawScale);
+                let isFlippedX = false;
+                if (isObject && data.isFlippedX !== undefined) isFlippedX = data.isFlippedX;
+                else isFlippedX = rawScale < 0; // Legacy negative scale check
 
-            let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
-            if (disposition === 2) disposition = -2;
-            if (isObject && data.secret === true) disposition = -2;
+                let isFlippedY = (isObject && data.isFlippedY) || false;
+                
+                let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
+                if (disposition === 2 || (isObject && data.secret === true)) disposition = -2;
 
-            const ring = (isObject && data.ring) ? data.ring : null;
-            const width = isObject ? (data.width ?? 1) : 1;
-            const height = isObject ? (data.height ?? 1) : 1;
+                // Construct the modern 'changes' object from flat props
+                changes = {
+                    name: label,
+                    img: path,
+                    texture: {
+                        scaleX: scale * (isFlippedX ? -1 : 1),
+                        scaleY: scale * (isFlippedY ? -1 : 1)
+                    },
+                    width: isObject ? (data.width ?? 1) : 1,
+                    height: isObject ? (data.height ?? 1) : 1,
+                    disposition: disposition,
+                    ring: (isObject && data.ring) ? data.ring : null
+                };
 
-            results.push({
-                id, name, path, scale, 
-                isFlippedX, isFlippedY,
-                disposition, ring, width, height
+                // Initialize Metadata (Blank for legacy, but present in schema)
+                category = "";
+                tags = [];
+            }
+
+            results.push({ 
+                id, 
+                label, 
+                category, 
+                tags, 
+                changes 
             });
         }
 
-        return results.sort((a, b) => a.name.localeCompare(b.name));
+        return results.sort((a, b) => a.label.localeCompare(b.label));
     }
 
     /**
@@ -234,87 +262,84 @@ export class Visage {
     }
 
     /**
-     * Applies a specific visage to a token, updating its appearance and state.
-     * @param {string} actorId The ID of the actor.
-     * @param {string} tokenId The ID of the token.
-     * @param {string} formKey The key of the form to apply ("default" or a UUID).
+     * Applies a specific visage to a token.
+     * Refactored to consume the Unified Model.
      */
     static async setVisage(actorId, tokenId, formKey) {
         const token = canvas.tokens.get(tokenId);
         if (!token) return;
         const actor = token.actor;
 
-        let data = null;
+        let baseUpdate = null;
 
         // CASE 1: APPLYING DEFAULT
         if (formKey === "default") {
             const ns = this.DATA_NAMESPACE;
-            // 1. Try to get saved defaults specific to this token instance
             const savedDefaults = actor.flags?.[ns]?.[tokenId]?.defaults || {};
-            
-            // 2. Fallback to Prototype Token (e.g. if no specific default saved yet)
             const proto = actor.prototypeToken;
             
-            // Robustly determine Scale & Flip from saved defaults or prototype
-            // (Similar logic to _getTokenDefaults in config)
-            const defScaleRaw = savedDefaults.scale ?? proto.texture.scaleX ?? 1.0;
-            const defScaleYRaw = savedDefaults.scaleY ?? proto.texture.scaleY ?? 1.0;
+            // Reconstruct a 'changes' object from the saved default flags
+            const defScale = savedDefaults.scale ?? proto.texture.scaleX ?? 1.0;
+            const defScaleY = savedDefaults.scaleY ?? proto.texture.scaleY ?? 1.0; // Fallback
+            
+            // Check for saved flip override or infer from negative scale
+            const flipX = savedDefaults.isFlippedX ?? (defScale < 0);
+            const flipY = savedDefaults.isFlippedY ?? (defScaleY < 0);
+            
+            const absScaleX = Math.abs(defScale);
+            const absScaleY = Math.abs(defScale); // Usually uniform
 
-            data = {
+            baseUpdate = {
                 name: savedDefaults.name || proto.name,
-                path: savedDefaults.token || proto.texture.src,
-                // Normalize Scale/Flip
-                scale: Math.abs(defScaleRaw),
-                isFlippedX: savedDefaults.isFlippedX ?? (defScaleRaw < 0),
-                isFlippedY: savedDefaults.isFlippedY ?? (defScaleYRaw < 0),
-                width: savedDefaults.width ?? proto.width ?? 1,
-                height: savedDefaults.height ?? proto.height ?? 1,
+                texture: {
+                    src: savedDefaults.token || proto.texture.src,
+                    scaleX: absScaleX * (flipX ? -1 : 1),
+                    scaleY: absScaleY * (flipY ? -1 : 1)
+                },
+                width: savedDefaults.width || proto.width || 1,
+                height: savedDefaults.height || proto.height || 1,
                 disposition: savedDefaults.disposition ?? proto.disposition ?? 0,
-                // Ensure Ring object structure
                 ring: savedDefaults.ring || (proto.ring?.toObject ? proto.ring.toObject() : proto.ring) || {}
             };
 
         } 
         // CASE 2: APPLYING ALTERNATE
         else {
-            const alternates = this.getVisages(actor);
-            data = alternates.find(v => v.id === formKey);
+            const visages = this.getVisages(actor);
+            const target = visages.find(v => v.id === formKey);
+            if (!target) {
+                console.warn(`Visage | Could not find form data for key: ${formKey}`);
+                return;
+            }
+            
+            // Deep copy to avoid mutating the source
+            const c = foundry.utils.deepClone(target.changes);
+            
+            // Resolve Wildcards on the 'img' property
+            c.texture.src = await this.resolvePath(c.img);
+            delete c.img; // Cleanup: tokens use texture.src, not img
+            
+            // Default Ring handling
+            if (!c.ring) c.ring = { enabled: false };
+            else {
+                // Ensure ring structure is complete
+                c.ring = {
+                     enabled: c.ring.enabled === true,
+                     colors: c.ring.colors,
+                     effects: c.ring.effects,
+                     subject: c.ring.subject
+                };
+            }
+            
+            baseUpdate = c;
         }
-
-        if (!data) {
-            console.warn(`Visage | Could not find form data for key: ${formKey}`);
-            return;
-        }
-
-        // Resolve the image path (Handles Wildcards)
-        const resolvedPath = await this.resolvePath(data.path);
-
-        // Construct the Base Update for the Composer
-        const baseUpdate = {
-            name: data.name,
-            texture: {
-                src: resolvedPath,
-                // Apply Scale & Flip logic
-                scaleX: Math.abs(data.scale) * (data.isFlippedX ? -1 : 1),
-                scaleY: Math.abs(data.scale) * (data.isFlippedY ? -1 : 1)
-            },
-            width: data.width || 1,
-            height: data.height || 1,
-            disposition: data.disposition ?? token.document.disposition,
-            // Full Ring Override
-            ring: data.ring ? {
-                 enabled: data.ring.enabled === true,
-                 colors: data.ring.colors,
-                 effects: data.ring.effects,
-                 subject: data.ring.subject
-            } : { enabled: false }
-        };
 
         // Update the Actor Flag to remember selection
         const flagKey = `flags.${this.DATA_NAMESPACE}.${tokenId}.currentFormKey`;
         await token.actor.update({ [flagKey]: formKey });
 
-        // Trigger the Composer to layer Global Effects on top of this new Base
+        // Trigger the Composer
+        const { VisageComposer } = await import("./visage-composer.js");
         await VisageComposer.compose(token, null, baseUpdate);
     }
 

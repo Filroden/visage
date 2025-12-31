@@ -204,41 +204,56 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
         for (const data of normalizedData) {
             const isActive = data.id === currentFormKey;
-            const dispositionInfo = (data.disposition !== null) ? this._dispositionMap[data.disposition] : null;
-            const smartData = getSmartData(data.scale, data.width, data.height, data.isFlippedX, data.isFlippedY);
+            
+            // EXTRACT FROM UNIFIED MODEL
+            const c = data.changes; // This is the new nested object
+            const dispositionInfo = (c.disposition !== null) ? this._dispositionMap[c.disposition] : null;
 
-            // HELPER: Use centralized ring logic
-            const ringCtx = Visage.prepareRingContext(data.ring);
+            // Extract Scale/Flip from texture
+            const scaleX = c.texture?.scaleX ?? 1.0;
+            const scaleY = c.texture?.scaleY ?? 1.0;
+            const absScale = Math.abs(scaleX);
+            const isFlippedX = scaleX < 0;
+            const isFlippedY = scaleY < 0;
+
+            const smartData = getSmartData(absScale, c.width, c.height, isFlippedX, isFlippedY);
+
+            // Ring Helper
+            const ringCtx = Visage.prepareRingContext(c.ring);
 
             forms[data.id] = {
                 key: data.id,
-                name: data.name,
-                path: data.path,
-                scale: data.scale,
+                name: data.label, // Unified model uses 'label'
+                path: c.img,      // Unified model uses 'img' for the source path
+                scale: absScale,
                 isActive: isActive,
                 isDefault: false,
-                isFlippedX: data.isFlippedX,
-                isFlippedY: data.isFlippedY,
-                forceFlipX: data.isFlippedX,
-                forceFlipY: data.isFlippedY,
+                isFlippedX: isFlippedX,
+                isFlippedY: isFlippedY,
+                forceFlipX: isFlippedX,
+                forceFlipY: isFlippedY,
+                
+                // Smart Data Chips
                 showDataChip: smartData.showDataChip,
                 showFlipBadge: smartData.showFlipBadge,
                 sizeLabel: smartData.sizeLabel,
                 scaleLabel: smartData.scaleLabel,
-                isWildcard: data.path.includes('*'),
+                
+                isWildcard: (c.img || "").includes('*'),
                 showDispositionChip: !!dispositionInfo,
                 dispositionName: dispositionInfo?.name || "",
                 dispositionClass: dispositionInfo?.class || "",
-                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(data.path),
-
-                // Ring Data from Helper
+                
+                // Ring Data (From Helper)
                 hasRing: ringCtx.enabled,
                 ringColor: ringCtx.colors.ring,
                 ringBkg: ringCtx.colors.background,
                 hasPulse: ringCtx.hasPulse,
                 hasGradient: ringCtx.hasGradient,
                 hasWave: ringCtx.hasWave,
-                hasInvisibility: ringCtx.hasInvisibility
+                hasInvisibility: ringCtx.hasInvisibility,
+                
+                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(c.img || "")
             };
         }
 
