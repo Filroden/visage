@@ -1,11 +1,11 @@
 {{!-- modules/visage/templates/visage-config-app.hbs --}}
 
 <div class="visage-config-container">
-    <div class="visage-config-wrapper">
+    <div class="visage-config-wrapper visage-scrollable">
         <div class="visage-config-pane">
             
             {{!-- DEFAULT STATE SECTION --}}
-            <fieldset class="visage-config-fieldset default-section">
+            <fieldset class="visage-fieldset default-section">
                 <legend>{{defaultLegend}}</legend>
                 <p class="visage-notes">{{defaultHint}}</p>
 
@@ -91,7 +91,7 @@
             </fieldset>
             
             {{!-- ALTERNATE VISAGES SECTION --}}
-            <fieldset class="visage-config-fieldset">
+            <fieldset class="visage-fieldset">
                 <legend>{{localize "VISAGE.Config.Legend"}}</legend>
                 <p class="visage-notes">{{localize "VISAGE.Config.LegendHint"}}</p>
                 

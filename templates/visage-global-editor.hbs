@@ -88,7 +88,7 @@
 
             {{!-- B. IDENTITY INPUTS --}}
             <h3 class="column-header">{{localize "VISAGE.GlobalEditor.Col.Identity"}}</h3>
-            <fieldset class="visage-config-fieldset">
+            <fieldset class="visage-fieldset">
                 <div class="form-group">
                     <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
                     <div class="form-fields">
@@ -136,7 +136,7 @@
         <div class="visage-column token-data">
             <h3 class="column-header">{{localize "VISAGE.GlobalEditor.Col.Appearance"}}</h3>
             
-            <fieldset class="visage-config-fieldset">
+            <fieldset class="visage-fieldset">
                 {{!-- 1. Name Override --}}
                 <div class="form-group checkbox-input-group">
                     <input type="checkbox" name="nameOverride_active" data-action="toggleField" data-target="nameOverride" {{checked nameOverride.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
@@ -223,7 +223,7 @@
         <div class="visage-column ring-data">
             <h3 class="column-header">{{localize "VISAGE.GlobalEditor.Col.Ring"}}</h3>
             
-            <fieldset class="visage-config-fieldset">
+            <fieldset class="visage-fieldset">
                 <div class="form-group">
                     <label class="master-toggle">
                         <input type="checkbox" name="ring.enabled" {{checked ring.active}}>
