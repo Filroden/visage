@@ -3,6 +3,8 @@
  * @module visage
  */
 
+import { Visage } from "./visage.js";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
@@ -113,29 +115,14 @@ export class VisageRingEditor extends HandlebarsApplicationMixin(ApplicationV2) 
      * @override
      */
     async _prepareContext(options) {
-        const data = this.ringData;
-        
-        const currentEffects = data.effects || 0;
-        const effects = this.availableEffects.map(eff => ({
-            ...eff,
-            isActive: (currentEffects & eff.value) !== 0
-        }));
+        const ringContext = Visage.prepareRingContext(this.ringData);
 
         // Check if the effective path is a video file.
         // If so, enabling the ring will freeze the video, so must warn the user.
         const showVideoWarning = foundry.helpers.media.VideoHelper.hasVideoExtension(this.effectivePath);
 
         return {
-            enabled: data.enabled ?? false,
-            subject: {
-                texture: data.subject?.texture ?? "",
-                scale: data.subject?.scale ?? 1.0
-            },
-            colors: {
-                ring: data.colors?.ring ?? "#FFFFFF",
-                background: data.colors?.background ?? "#000000"
-            },
-            effects: effects,
+            ...ringContext, // Spreads: enabled, colors, subject, effects
             showVideoWarning: showVideoWarning // Pass flag to template
         };
     }

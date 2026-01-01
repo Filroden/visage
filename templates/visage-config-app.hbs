@@ -1,11 +1,11 @@
 {{!-- modules/visage/templates/visage-config-app.hbs --}}
 
 <div class="visage-config-container">
-    <div class="visage-config-wrapper">
+    <div class="visage-config-wrapper visage-scrollable">
         <div class="visage-config-pane">
             
             {{!-- DEFAULT STATE SECTION --}}
-            <fieldset class="visage-config-fieldset default-section">
+            <fieldset class="visage-fieldset default-section">
                 <legend>{{defaultLegend}}</legend>
                 <p class="visage-notes">{{defaultHint}}</p>
 
@@ -24,7 +24,10 @@
                     
                     {{!-- Visual Group --}}
                     <span class="centered">{{localize "VISAGE.Config.List.Scale"}}</span>
-                    <span class="centered">{{localize "VISAGE.Config.List.Flip"}}</span>
+                    <div class="visage-flip-header centered">
+                        <i class="fas fa-arrows-alt-h" data-tooltip="{{localize 'VISAGE.Mirror.Horizontal.Label'}}"></i>
+                        <i class="fas fa-arrows-alt-v" data-tooltip="{{localize 'VISAGE.Mirror.Vertical.Label'}}"></i>
+                    </div>
                     <span class="centered">{{localize "VISAGE.Config.List.Disposition"}}</span>
                     <span class="centered">{{localize "VISAGE.RingConfig.Ring"}}</span>
                     
@@ -42,7 +45,7 @@
                         </div>
 
                         <div class="form-group">
-                            <div class="form-fields">
+                            <div class="visage-form-fields">
                                 <input type="text" class="force-ltr" value="{{defaultVisage.path}}" disabled data-tooltip="{{defaultVisage.path}}" />
                                 <button type="button" class="file-picker-button" disabled style="opacity: 0;"><i class="fas fa-file-import fa-fw"></i></button>
                             </div>
@@ -54,10 +57,12 @@
                             <span class="visage-percent-sign">%</span>
                         </div>
 
-                        <div class="form-group centered">
-                            <label class="checkbox visage-flip-label">
-                                <input type="checkbox" {{checked defaultVisage.isFlippedX}} disabled> 
-                            </label>
+                        <div class="visage-flip-group centered">
+                            {{!-- Horizontal Flip (Read Only) --}}
+                            <input class="visage-checkbox" type="checkbox" {{checked defaultVisage.isFlippedX}} disabled>
+                            
+                            {{!-- Vertical Flip (Read Only) --}}
+                            <input class="visage-checkbox" type="checkbox" {{checked defaultVisage.isFlippedY}} disabled>
                         </div>
                         
                         <div class="visage-disposition-cell">
@@ -86,7 +91,7 @@
             </fieldset>
             
             {{!-- ALTERNATE VISAGES SECTION --}}
-            <fieldset class="visage-config-fieldset">
+            <fieldset class="visage-fieldset">
                 <legend>{{localize "VISAGE.Config.Legend"}}</legend>
                 <p class="visage-notes">{{localize "VISAGE.Config.LegendHint"}}</p>
                 
@@ -106,7 +111,10 @@
                         {{localize "VISAGE.Config.List.Scale"}}
                         <i class="fas fa-info-circle visage-info-icon" data-tooltip="{{localize 'VISAGE.Config.Tooltips.ScaleHeader'}}"></i>
                     </span>
-                    <span class="centered">{{localize "VISAGE.Config.List.Flip"}}</span>
+                    <div class="visage-flip-header centered">
+                        <i class="fas fa-arrows-alt-h" data-tooltip="{{localize 'VISAGE.Mirror.Horizontal.Label'}}"></i>
+                        <i class="fas fa-arrows-alt-v" data-tooltip="{{localize 'VISAGE.Mirror.Vertical.Label'}}"></i>
+                    </div>
                     <span class="centered">{{localize "VISAGE.Config.List.Disposition"}}</span>
                     <span class="centered">{{localize "VISAGE.RingConfig.Ring"}}</span>
                     <span class="centered">{{localize "VISAGE.Config.List.Width"}}</span>
@@ -122,7 +130,7 @@
                         
                         <input type="text" name="visages.{{@index}}.name" value="{{this.name}}" placeholder="{{localize 'VISAGE.Config.Placeholder.Name'}}" data-tooltip="{{this.name}}" />
                         
-                        <div class="visage-path-group form-fields">
+                        <div class="visage-path-group visage-form-fields">
                             <input type="text" name="visages.{{@index}}.path" value="{{this.path}}" placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}" data-tooltip="{{this.path}}" />
                             <button type="button" class="file-picker-button" data-action="openFilePicker"><i class="fas fa-file-import fa-fw"></i></button>
                         </div>
@@ -133,9 +141,10 @@
                             <span class="visage-percent-sign">%</span>
                         </div>
                 
-                        <label class="checkbox visage-flip-label">
-                            <input type="checkbox" name="visages.{{@index}}.isFlippedX" {{checked this.isFlippedX}}> 
-                        </label>
+                        <div class="visage-flip-group centered">
+                            <input class="visage-checkbox" type="checkbox" name="visages.{{@index}}.isFlippedX" {{checked this.isFlippedX}}>
+                            <input class="visage-checkbox" type="checkbox" name="visages.{{@index}}.isFlippedY" {{checked this.isFlippedY}}>
+                        </div>
                      
                         <div class="visage-disposition-cell">
                             <button type="button" class="visage-disposition-button" data-action="toggleDisposition">

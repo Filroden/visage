@@ -124,7 +124,8 @@
     "VISAGE.GlobalEditor.Category": "Category",
     "VISAGE.GlobalEditor.CategoryPlaceholder": "e.g. Monsters/Dragons",
     "VISAGE.GlobalEditor.Tags": "Tags",
-    "VISAGE.GlobalEditor.TagsHint": "Comma separated keywords.",
+    "VISAGE.GlobalEditor.TagsHint": "Add tags to categorize this visage (e.g., 'Boss', 'Undead'). Press Enter to add.",
+    "VISAGE.Config.Placeholder.Tags": "Add tags...",
     "VISAGE.GlobalEditor.NameOverride": "Token Name Override",
     "VISAGE.GlobalEditor.Mirroring": "Mirroring",
     "VISAGE.GlobalEditor.MirrorHint": "\"Unchanged\" preserves the token's current facing.",
@@ -132,6 +133,8 @@
     "VISAGE.GlobalEditor.Save": "Save Visage",
     "VISAGE.GlobalEditor.OverrideTooltip": "Override?",
     "VISAGE.GlobalEditor.DefaultLabel": "New Global Visage",
+    "VISAGE.GlobalEditor.Col.Preview": "Live Preview",
+    "VISAGE.GlobalEditor.PreviewHint": "Visual approximation of the resulting Global Visage.",
 
     "VISAGE.Directory.Title": "Global Visage Library",
     "VISAGE.Directory.Mode.Library": "Library",
@@ -150,6 +153,9 @@
     "VISAGE.Directory.Tooltip.Apply": "Apply to Selected",
     "VISAGE.Directory.Tooltip.Edit": "Edit",
     "VISAGE.Directory.Tooltip.Delete": "Move to Recycle Bin",
+    "VISAGE.Directory.NoTags": "No Tags Applied",
+    "VISAGE.Directory.Filters": "Filter Visages",
+    "VISAGE.Directory.ClearTags": "Clear Tag Filters",
 
     "VISAGE.Mirror.Horizontal.Unchanged": "Horizontal: Unchanged",
     "VISAGE.Mirror.Horizontal.Standard": "Force Right (Standard)",
@@ -165,5 +171,15 @@
     "VISAGE.Disposition.NoChange": "No Change",
 
     "VISAGE.Dialog.Destroy.Title": "Permanently Delete",
-    "VISAGE.Dialog.Destroy.Content": "This action cannot be undone. Are you sure you want to destroy this visage?"
+    "VISAGE.Dialog.Destroy.Content": "This action cannot be undone. Are you sure you want to destroy this visage?",
+ 
+    "VISAGE.Notifications.Reverted": "Token reverted to original state.",
+    "VISAGE.Notifications.Applied": "Applied Global Visage: {label}",
+    "VISAGE.Notifications.NoTokens": "You must select at least one token.",
+    "VISAGE.Notifications.Updated": "Visage Updated: {name}",
+
+    "VISAGE.Selector.Tooltip.Revert": "Remove global visage and restore original token data",
+    "VISAGE.Selector.ActiveEffects": "Active Global Effects",
+    "VISAGE.Selector.ClearAll": "Clear All Effects",
+    "VISAGE.Selector.GlobalContext": "Active Global Override"
 }
