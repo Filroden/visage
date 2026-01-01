@@ -3,17 +3,17 @@
  * @module visage
  */
 
-import { Visage } from "./visage.js";
-import { VisageSelector } from "./visage-selector.js";
-import { VisageConfigApp } from "./visage-config.js";
-import { VisageRingEditor } from "./visage-ring-editor.js";
-import { VisageGlobalData } from "./visage-global-data.js";
-import { VisageGlobalEditor } from "./visage-global-editor.js";
-import { VisageGlobalDirectory } from "./visage-global-directory.js"; // Import Directory
-import { handleTokenHUD } from "./visage-hud.js";
-import { cleanseSceneTokens, cleanseAllTokens } from "./visage-cleanup.js";
-import { migrateWorldData } from "./visage-migration.js";
-import { VisageComposer } from "./visage-composer.js";
+import { Visage } from "./src/visage.js";
+import { VisageSelector } from "./src/visage-selector.js";
+import { VisageConfigApp } from "./src/visage-config.js";
+import { VisageRingEditor } from "./src/visage-ring-editor.js";
+import { VisageGlobalData } from "./src/visage-global-data.js";
+import { VisageGlobalEditor } from "./src/visage-global-editor.js";
+import { VisageGlobalDirectory } from "./src/visage-global-directory.js";
+import { handleTokenHUD } from "./src/visage-hud.js";
+import { cleanseSceneTokens, cleanseAllTokens } from "./src/visage-cleanup.js";
+import { migrateWorldData } from "./src/visage-migration.js";
+import { VisageComposer } from "./src/visage-composer.js";
 
 // Track the directory instance globally so we can toggle it
 let globalDirectoryInstance = null;
