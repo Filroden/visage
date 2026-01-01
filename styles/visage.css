@@ -164,8 +164,8 @@
 }
 
 .visage .window-content {
-    background: transparent !important;
-    color: inherit;
+    background: var(--filroden-color-bg-darkest) !important;
+    color: var(--filroden-color-text-main-solid);
     border: none;
     display: flex;
     flex-direction: column;
@@ -1361,8 +1361,9 @@
    ========================================================================== */
 
 div#visage-global-directory {
-    min-width: 56rem !important; 
+    min-width: 58rem !important;
     min-height: 32rem !important;
+    width: 78rem;
 }
 
 /* Container */

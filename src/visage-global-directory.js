@@ -40,7 +40,7 @@ export class VisageGlobalDirectory extends HandlebarsApplicationMixin(Applicatio
             resizable: true,
         },
         position: {
-            width: 1180,
+            width: "auto",
             height: 680
         },
         actions: {
