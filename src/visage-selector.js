@@ -4,8 +4,9 @@
  */
 
 import { Visage } from "./visage.js";
-import { VisageConfigApp } from "./visage-config.js";
+import { VisageGallery } from "./visage-gallery.js"; // CHANGED: Renamed Import
 import { VisageComposer } from "./visage-composer.js";
+import { VisageData } from "./visage-data.js"; // CHANGED: Unified Data
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -36,7 +37,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             selectVisage: VisageSelector.prototype._onSelectVisage,
             openConfig: VisageSelector.prototype._onOpenConfig,
             revertGlobal: VisageSelector.prototype._onRevertGlobal,
-            removeLayer: VisageSelector.prototype._onRemoveLayer // Ensure this is mapped!
+            removeLayer: VisageSelector.prototype._onRemoveLayer
         }
     };
 
@@ -122,8 +123,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
         
-        // --- 3. Process Alternate Visages ---
-        const normalizedData = Visage.getVisages(actor);
+        // --- 3. Process Alternate Visages (USE UNIFIED DATA) ---
+        // Visage.getVisages now delegates to VisageData.getLocal
+        const normalizedData = VisageData.getLocal(actor).filter(v => !v.deleted);
 
         for (const data of normalizedData) {
             const isActive = data.id === currentFormKey;
@@ -188,7 +190,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const activeStack = flags.activeStack || flags.stack || [];
         
         const stackDisplay = activeStack.map(layer => {
-            // Unpack Unified Model for display
             const img = layer.changes.img || layer.changes.texture?.src || "icons/svg/aura.svg";
             return {
                 id: layer.id,
@@ -213,34 +214,29 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onOpenConfig(event, target) {
-        const configId = `visage-config-${this.actorId}-${this.tokenId}`;
-        if (Visage.apps[configId]) {
-            Visage.apps[configId].bringToTop();
+        const appId = `visage-gallery-${this.actorId}-${this.tokenId}`;
+        
+        if (Visage.apps[appId]) {
+            Visage.apps[appId].bringToTop();
         } else {
-            const configApp = new VisageConfigApp({ 
+            new VisageGallery({ 
                 actorId: this.actorId, 
                 tokenId: this.tokenId, 
                 sceneId: this.sceneId, 
-                id: configId 
-            });
-            configApp.render(true);
+                id: appId 
+            }).render(true);
         }
         this.close();
     }
 
-    /**
-     * Handle removing a specific layer from the global stack.
-     */
     async _onRemoveLayer(event, target) {
         const layerId = target.dataset.layerId;
         const token = canvas.tokens.get(this.tokenId);
         if (!token) return;
 
-        // CHANGED: Use 'activeStack'
         const currentStack = token.document.getFlag(Visage.MODULE_ID, "activeStack") || [];
         const newStack = currentStack.filter(layer => layer.id !== layerId);
 
-        // Re-compose
         await VisageComposer.compose(token, newStack);
     }
 
@@ -274,8 +270,12 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             if (root.contains(ev.target)) return;
             const hudBtn = document.querySelector('.visage-button');
             if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
-            const configApp = ev.target.closest('.visage-config-app');
-            if (configApp) return;
+            
+            // Updated class name selectors for new apps
+            const dirApp = ev.target.closest('.visage-gallery');
+            const editorApp = ev.target.closest('.visage-editor');
+            if (dirApp || editorApp) return;
+            
             this.close();
         };
         document.addEventListener('pointerdown', this._onDocPointerDown, true);

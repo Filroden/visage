@@ -5,22 +5,21 @@
 
 import { Visage } from "./src/visage.js";
 import { VisageSelector } from "./src/visage-selector.js";
-import { VisageConfigApp } from "./src/visage-config.js";
-import { VisageRingEditor } from "./src/visage-ring-editor.js";
-import { VisageGlobalData } from "./src/visage-global-data.js";
-import { VisageGlobalEditor } from "./src/visage-global-editor.js";
-import { VisageGlobalDirectory } from "./src/visage-global-directory.js";
+import { VisageData } from "./src/visage-data.js"; 
+import { VisageEditor } from "./src/visage-editor.js"; 
+import { VisageGallery } from "./src/visage-gallery.js"; 
 import { handleTokenHUD } from "./src/visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./src/visage-cleanup.js";
 import { migrateWorldData } from "./src/visage-migration.js";
 import { VisageComposer } from "./src/visage-composer.js";
 
-// Track the directory instance globally so we can toggle it
 let globalDirectoryInstance = null;
 
-/**
- * Opens the Visage configuration application for a given actor.
- */
+// --- CONFIGURATION ---
+// The version number where the Data Structure changed (Unified Model).
+// Any world older than this MUST migrate.
+const NEEDS_MIGRATION_VERSION = "1.6.3"; 
+
 function openVisageConfig(actor, token = null) {
     if (!actor) return;
     try {
@@ -32,11 +31,20 @@ function openVisageConfig(actor, token = null) {
             sceneId = actor.token.parent.id;
         }
 
-        new VisageConfigApp({
+        const appId = `visage-gallery-${actor.id}-${tokenId || "sidebar"}`;
+
+        if (Visage.apps[appId]) {
+            Visage.apps[appId].bringToTop();
+            return;
+        }
+
+        new VisageGallery({
             actorId: actor.id,
             tokenId: tokenId,
-            sceneId: sceneId
+            sceneId: sceneId,
+            id: appId
         }).render(true);
+
     } catch (err) {
         console.error("Visage | Failed to open configuration window:", err);
     }
@@ -47,44 +55,36 @@ function getActorIdFromElement(li) {
     return element.dataset?.entryId || element.dataset?.documentId;
 }
 
-/* -------------------------------------------- */
-/* Initialization                              */
-/* -------------------------------------------- */
-
 Hooks.once("init", () => {
     try {
         Visage.initialize();
 
-        // Register Global Data Settings
-        VisageGlobalData.registerSettings();
+        // Register Settings (Unified)
+        VisageData.registerSettings();
 
         // --- EXPOSE FOR DEBUGGING/API ---
-        window.VisageGlobalData = VisageGlobalData;
-        window.VisageGlobalEditor = VisageGlobalEditor;
-        window.VisageGlobalDirectory = VisageGlobalDirectory;
+        window.VisageData = VisageData;
+        window.VisageEditor = VisageEditor;
+        window.VisageGallery = VisageGallery;
         
-        game.modules.get("visage").api.Global = VisageGlobalData;
-        game.modules.get("visage").api.Editor = VisageGlobalEditor;
-        game.modules.get("visage").api.Directory = VisageGlobalDirectory;
+        game.modules.get("visage").api.Data = VisageData;
+        game.modules.get("visage").api.Editor = VisageEditor;
+        game.modules.get("visage").api.Gallery = VisageGallery;
 
-        // Register Handlebars Helpers
         Handlebars.registerHelper("neq", (a, b) => a !== b);
         Handlebars.registerHelper("visageSelected", (condition) => condition ? "selected" : "");
         Handlebars.registerHelper("json", (context) => JSON.stringify(context));
 
-        // Load Templates
         loadTemplates([
             "modules/visage/templates/visage-selector.hbs",
-            "modules/visage/templates/visage-config-app.hbs",
-            "modules/visage/templates/visage-ring-editor.hbs",
-            "modules/visage/templates/visage-global-editor.hbs",
-            "modules/visage/templates/visage-global-directory.hbs",
+            "modules/visage/templates/visage-editor.hbs",
+            "modules/visage/templates/visage-gallery.hbs",
             "modules/visage/templates/parts/visage-preview.hbs"
         ]);
 
         registerSettings();
 
-        // Context Menu Integration
+        // Context Menu
         const addSidebarOption = (options) => {
             options.push({
                 name: "VISAGE.Title",
@@ -108,7 +108,6 @@ Hooks.once("init", () => {
             if (!options.some(o => o.name === "VISAGE.Title")) addSidebarOption(options);
         });
 
-        // Sheet Header Buttons
         Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
             if (!sheet.actor.isOwner) return;
             buttons.unshift({
@@ -139,20 +138,12 @@ Hooks.once("init", () => {
     }
 });
 
-/* -------------------------------------------- */
-/* Module Logic & Hooks                        */
-/* -------------------------------------------- */
-
-// Universal Scene Control Integration
 Hooks.on("getSceneControlButtons", (controls) => {
     if (!game.user.isGM) return;
 
     let tokenLayer = null;
-
-    // STEP 1: Find the Token Layer (Universal)
-    if (Array.isArray(controls)) {
-        tokenLayer = controls.find(c => c.name === "token");
-    } else {
+    if (Array.isArray(controls)) tokenLayer = controls.find(c => c.name === "token");
+    else {
         for (const key in controls) {
             const layer = controls[key];
             if (layer.name === "token" || layer.name === "tokens") {
@@ -164,30 +155,21 @@ Hooks.on("getSceneControlButtons", (controls) => {
 
     if (!tokenLayer) return;
 
-    // STEP 2: Define the Tool (Simple Launcher)
     const visageTool = {
-        name: "visage-global",
-        title: "VISAGE.Directory.Title",
+        name: "visage-gallery", 
+        title: "VISAGE.Directory.Title.Global", 
         icon: "visage-tool-icon",
         visible: true,
         toggle: false, 
         button: true,
-        
         onClick: () => {
-            if (!globalDirectoryInstance) {
-                globalDirectoryInstance = new VisageGlobalDirectory();
-            }
-            // Always render (opens if closed, brings to front if open)
+            if (!globalDirectoryInstance) globalDirectoryInstance = new VisageGallery();
             globalDirectoryInstance.render(true);
         }
     };
 
-    // STEP 3: Add the Tool
-    if (Array.isArray(tokenLayer.tools)) {
-        tokenLayer.tools.push(visageTool);
-    } else {
-        tokenLayer.tools["visage-global"] = visageTool;
-    }
+    if (Array.isArray(tokenLayer.tools)) tokenLayer.tools.push(visageTool);
+    else tokenLayer.tools["visage-gallery"] = visageTool;
 });
 
 function registerSettings() {
@@ -236,15 +218,20 @@ Hooks.once("ready", () => {
     if (!game.user.isGM) return;
 
     try {
-        VisageGlobalData.runGarbageCollection();
+        VisageData.runGarbageCollection();
 
         const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
         const currentVersion = game.modules.get(Visage.MODULE_ID).version;
 
+        // Check if we updated the module
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {
-            if (foundry.utils.isNewerVersion("1.2.0", lastVersion)) {
+            
+            // Check if the PREVIOUS version was older than our Migration Threshold
+            if (foundry.utils.isNewerVersion(NEEDS_MIGRATION_VERSION, lastVersion)) {
+                console.log(`Visage | Detected legacy data (v${lastVersion}). Migrating to v${NEEDS_MIGRATION_VERSION}...`);
                 migrateWorldData();
             }
+            
             game.settings.set(Visage.MODULE_ID, "worldVersion", currentVersion);
         }
     } catch (err) {
@@ -254,29 +241,24 @@ Hooks.once("ready", () => {
 
 Visage.apps = {};
 
-// App Tracker (Updated)
 Hooks.on("renderApplication", (app) => {
     if (app instanceof VisageSelector || 
-        app instanceof VisageConfigApp || 
-        app instanceof VisageRingEditor || 
-        app instanceof VisageGlobalEditor ||
-        app instanceof VisageGlobalDirectory) {
+        app instanceof VisageEditor ||
+        app instanceof VisageGallery) {
         
         const appId = app.id || app.options?.id;
         if (appId) Visage.apps[appId] = app;
     }
 });
 
-/**
- * Handle dropping a Visage card onto the canvas.
- */
 Hooks.on("dropCanvasData", async (canvas, data) => {
     if (data.type !== "Visage" || !data.id) return;
     
-    const { VisageGlobalData } = await import("./visage-global-data.js");
-    const { Visage } = await import("./visage.js");
+    // Lazy Import
+    const { VisageData } = await import("./src/visage-data.js");
+    const { Visage } = await import("./src/visage.js");
     
-    const visageData = VisageGlobalData.get(data.id);
+    const visageData = VisageData.getGlobal(data.id); 
     if (!visageData) return;
 
     const target = canvas.tokens.placeables.find(t => {
@@ -292,10 +274,8 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
 
 Hooks.on("closeApplication", (app) => {
     if (app instanceof VisageSelector || 
-        app instanceof VisageConfigApp || 
-        app instanceof VisageRingEditor || 
-        app instanceof VisageGlobalEditor ||
-        app instanceof VisageGlobalDirectory) {
+        app instanceof VisageEditor ||
+        app instanceof VisageGallery) {
         
         const appId = app.id || app.options?.id;
         if (appId && Visage.apps[appId]) delete Visage.apps[appId];

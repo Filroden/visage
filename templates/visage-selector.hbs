@@ -31,7 +31,8 @@
     </div>
     {{/if}}
 
-    <div class="visage-selector-grid-wrapper visage-scollable">
+    {{!-- FIXED: Typo 'visage-scollable' -> 'visage-scrollable' --}}
+    <div class="visage-selector-grid-wrapper visage-scrollable">
         <div class="visage-selector">
             {{#each forms}}
 
@@ -42,7 +43,7 @@
                  role="button" 
                  aria-label="{{this.name}}" 
                  aria-pressed="{{this.isActive}}">
- 
+
                 <div class="visage-image-wrapper">
                     {{!-- Pass 'visage-hud-content' to override the default class --}}
                     {{> "modules/visage/templates/parts/visage-preview.hbs" this wrapperClass="visage-hud-content"}}
@@ -52,19 +53,19 @@
                 
                 {{#if this.isActive}}
                 <div class="visage-chip" data-tooltip="{{localize 'VISAGE.Selector.Active'}}">
-                     <img src="modules/visage/icons/check_circle.svg" alt="{{localize 'VISAGE.Selector.Active'}}"/>
+                    <img src="modules/visage/icons/check_circle.svg" alt="{{localize 'VISAGE.Selector.Active'}}"/>
                 </div>
                 {{/if}}
                 
                 {{#if this.isDefault}}
                 <div class="visage-default-indicator" data-tooltip="{{localize 'VISAGE.Selector.Default'}}">
-                     <img src="modules/visage/icons/stars.svg" alt="{{localize 'VISAGE.Selector.Default'}}"/>
+                    <img src="modules/visage/icons/stars.svg" alt="{{localize 'VISAGE.Selector.Default'}}"/>
                 </div>
                 {{/if}}
                 
                 {{#if this.showFlipBadge}}
                 <div class="visage-flip-indicator" data-tooltip="{{localize 'VISAGE.Selector.Flipped'}}">
-                     <img src="modules/visage/icons/flip.svg" alt="{{localize 'VISAGE.Selector.Flipped'}}"/>
+                    <img src="modules/visage/icons/flip.svg" alt="{{localize 'VISAGE.Selector.Flipped'}}"/>
                 </div>
                 {{/if}}
 

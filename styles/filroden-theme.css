@@ -7,8 +7,10 @@
 
 :root {
 
+    --filroden-version: 2.0.20260101;
+
     /* ===================================
-        --- 1. Colour Palettes ---
+        --- Colour Palettes (COLOUR 1: GOLD) ---
         Defines the core background and UI colours for all components.
     =================================== */
     
@@ -41,6 +43,7 @@
 
     /** The main "gold" accent colour, used for buttons, links, and highlights. */
     --filroden-color-text-accent: hsl(48, 50%, 50%);
+    --filroden-color-text-accent-rgb: 191, 166, 64;
     
     /** A brighter version of the accent colour, used for hover states. */
     --filroden-color-text-accent-hover: hsl(48, 50%, 60%);
@@ -48,13 +51,69 @@
     /** The colour of text placed on top of an accent-coloured background. */
     --filroden-color-text-on-accent: hsl(48, 15%, 10%);
 
-    /** Colours to show success, warnings or failures/warnings. */
+    /* ===================================
+        --- Colour Palettes (COLOUR 2: TEAL) ---
+        Defines the core background and UI colours for all components.
+    =================================== */
+
+/** The darkest background. */
+    --filroden-color2-bg-darkest: hsl(205, 15%, 10%);
+    
+    /** A medium-dark background. */
+    --filroden-color2-bg-medium: hsla(0, 0%, 0%, 0.3); /* Neutral tint, kept same */
+    --filroden-color2-bg-medium-solid: hsl(205, 15%, 15%);
+    
+    /** A light background. */
+    --filroden-color2-bg-light: hsla(0, 0%, 100%, 0.1); /* Neutral tint, kept same */
+    --filroden-color2-bg-light-solid: hsl(205, 15%, 20%);
+
+    /** The background colour for interactive elements on hover. */
+    --filroden-color2-bg-hover: hsla(0, 0%, 100%, 0.2); /* Neutral tint, kept same */
+    --filroden-color2-bg-hover-solid: hsl(205, 15%, 30%);
+    
+    /** The primary colour for all body and UI text. */
+    --filroden-color2-text-main: hsla(0, 0%, 100%, 0.85);
+    --filroden-color2-text-main-solid: hsl(205, 15%, 85%);
+    
+    /** A slightly faded text colour. */
+    --filroden-color2-text-muted: hsla(0, 0%, 100%, 0.75);
+    --filroden-color2-text-muted-solid: hsl(205, 15%, 75%);
+    
+    /** Very faint text. */
+    --filroden-color2-text-placeholder: hsla(0, 0%, 100%, 0.5);
+    --filroden-color2-text-placeholder-solid: hsl(205, 15%, 50%);
+
+    /** The main "blue" accent colour. */
+    --filroden-color2-text-accent: hsl(205, 50%, 50%);
+    --filroden-color2-text-accent-rgb: 64, 149, 191;
+    
+    /** A brighter version of the accent colour. */
+    --filroden-color2-text-accent-hover: hsl(205, 50%, 60%);
+    
+    /** The colour of text placed on top of an accent-coloured background. */
+    --filroden-color2-text-on-accent: hsl(205, 15%, 10%);
+
+/* ===================================
+        --- Unified Colours  ---
+        Colours to show success, warnings or failures/warnings.
+    =================================== */
     --filroden-color-success: hsl(130, 50%, 50%);
     --filroden-color-warning: hsl(33, 100%, 50%);
     --filroden-color-danger: hsl(4, 90%, 60%);
 
+/* ===================================
+        --- Semantic Modes (Generic) ---
+        Standardised alternative palettes for dual-mode UIs.
+    =================================== */
+
+    --filroden-color-blue-header: hsl(210, 30%, 12%); 
+    --filroden-color-blue-accent: hsl(195, 90%, 50%);
+    --filroden-color-blue-accent-rgb: 13, 226, 242;
+    --filroden-color-blue-accent-hover: hsl(195, 90%, 65%);
+    --filroden-color-blue-border: hsl(195, 90%, 50%);
+
     /* ===================================
-        --- 2. Borders & Radii ---
+        --- Borders & Radii ---
         Standardizes borders, outlines, and corner rounding.
     =================================== */
     
@@ -83,7 +142,7 @@
     --filroden-radius-large: 12px;
 
     /* ===================================
-        --- 3. Fonts and letter spacing ---
+        --- Fonts and letter spacing ---
         Defines a consistent typographic scale.
     =================================== */
     
@@ -112,7 +171,7 @@
     --filroden-letter-spacing-wide: 0.05em;
 
     /* ===================================
-        --- 4. Spacing Scale ---
+        --- Spacing Scale ---
         A spatial scale for consistent padding, margins, and gaps.
     =================================== */
     
@@ -133,7 +192,7 @@
 
 
     /* ===================================
-        --- 5. Effects (Shadows) ---
+        --- Effects (Shadows) ---
         Standardises shadows for depth, focus, and elevation.
     =================================== */
     
@@ -152,7 +211,7 @@
     --filroden-shadow-focus: 0 0 5px var(--filroden-color-text-accent);
 
     /* ===================================
-        --- 6. Directional Language Logic ---
+        --- Directional Language Logic ---
     =================================== */
 
     /* 1 = Normal (LTR), -1 = Flipped (RTL) */
