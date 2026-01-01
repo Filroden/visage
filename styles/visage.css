@@ -3,13 +3,13 @@
  * * TABLE OF CONTENTS
  * -----------------
  * 1. Variables & Theme Overrides
- * 2. Shared Styles (Chips, Icons, Utilities)
+ * 2. Shared Styles
  * 3. Application: Visage Selector (HUD)
  * 4. Application: Visage Configuration
  * 5. Application: Ring Editor Sub-Application
  * 6. Actor Sheet Header Icon
- * 7. GLOBAL EDITOR FIXES (The Editor Window)
- * 8. GLOBAL DIRECTORY (The Card Styles)
+ * 7. Application: Global Editor
+ * 8. Application: Global Directory
  * 9. Scene Control Integration
  */
 
@@ -65,13 +65,67 @@
 
 
 /* ==========================================================================
-   2. SHARED STYLES (Chips, Icons, Utilities)
+   2. SHARED STYLES
    ========================================================================== */
 
 .visage input::placeholder {
     color: var(--filroden-color-text-placeholder-solid);
     opacity: 1;
     font-style: italic;
+}
+
+/* --- Overrides for outline --- */
+.visage *:focus-visible,
+.visage .visage-disposition-button:focus {
+    outline: 2px solid var(--filroden-color-text-accent);
+    border-radius: var(--filroden-radius-small);
+}
+
+.visage button.active,
+.visage .visage-btn.active,
+.visage .visage-pill.active {
+    outline: none;
+    box-shadow: none;
+}
+
+/* --- Checkboxes --- */
+.visage-checkbox {
+    appearance: auto;
+    accent-color: var(--filroden-color-text-accent);
+    color-scheme: dark;
+    width: var(--filroden-font-size-m) !important;
+    height: var(--filroden-font-size-m);
+    margin: var(--filroden-space-xs);
+    cursor: pointer;
+    display: inline-block;
+    align-content: center;
+    text-align: center;
+}
+
+.visage-checkbox::before,
+.visage-checkbox::after {
+    content: none;
+}
+
+/* --- Form fields and groups  --- */
+.visage .visage-form-fields {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--filroden-space-xs);
+    width: 100%;
+}
+
+/* --- Dividers  --- */
+.visage-divider {
+    border: none;
+    height: 4px;
+    width: 100%;
+    background-color: var(--filroden-color-text-accent);
+    margin: 0;
+    opacity: 1;
 }
 
 /* --- Datalist/Autofill --- */
@@ -98,8 +152,34 @@
     filter: invert(1); 
 }
 
-/* --- Application Headers --- */
+/* --- UNIVERSAL WINDOW SHELL --- */
+.application.visage,
+.visage.borderless {
+    background: var(--filroden-color-bg-darkest);
+    color: var(--filroden-color-text-main-solid);
+    border-radius: var(--filroden-radius-large);
+    box-shadow: var(--filroden-shadow-window);
+    font-family: var(--filroden-font-family);
+    font-size: var(--filroden-font-size-s);
+}
 
+.visage .window-content {
+    background: transparent !important;
+    color: inherit;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: var(--filroden-space-l);
+}
+.visage.visage-selector-app .window-content {
+    padding: var(--filroden-space-m);
+}
+.visage.visage-directory-app .window-content {
+    padding: 0 !important;
+}
+
+/* --- Application Headers --- */
 .visage .window-header {
     background: var(--filroden-color-bg-darkest);
     color: var(--filroden-color-text-main-solid);
@@ -133,6 +213,7 @@
     margin-top: var(--filroden-space-m);
     gap: var(--filroden-space-s);
     background: transparent;
+    height: 100%;
 }
 
 /* Standard Fieldset Legend */
@@ -152,7 +233,6 @@
 }
 
 /* --- Icons --- */
-
 .visage .visage-header-icon {
     width: var(--filroden-font-size-m);
     height: var(--filroden-font-size-m);
@@ -168,7 +248,6 @@
 }
 
 /* --- Chips & Indicators --- */
-
 .visage .visage-chip,
 .visage .visage-default-indicator,
 .visage .visage-wildcard-indicator,
@@ -320,16 +399,9 @@
 }
 
 .visage.visage-selector-app .window-content {
-    border: none;
     box-shadow: var(--filroden-shadow-window);
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    border-radius: var(--filroden-radius-large);
     z-index: 20;
     transition: all 0.2s ease-out;
-    display: flex;
-    flex-direction: column;
-    padding: var(--filroden-space-m);
 }
 
 .visage .visage-selector-header {
@@ -562,9 +634,6 @@
    ========================================================================== */
 
 .visage.visage-config-app {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    border-radius: var(--filroden-radius-large);
     width: 64rem;        
     max-width: 1200px;
     height: auto;
@@ -574,12 +643,7 @@
 }
 
 .visage.visage-config-app .window-content {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    display: flex;
-    flex-direction: column;
     height: 100% !important;
-    padding: var(--filroden-space-l);
     overflow: hidden;
     max-height: 70vh;
 }
@@ -630,7 +694,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: var(--filroden-font-size-xs);
     cursor: pointer;
 }
 
@@ -689,7 +752,6 @@
 
 .visage .visage-config-footer {
     flex: none;
-    padding-top: var(--filroden-space-m);
     margin-top: var(--filroden-space-l);
     display: flex;
     justify-content: flex-end;
@@ -788,10 +850,6 @@
     color: var(--filroden-color-text-muted-solid);
     cursor: default;
     opacity: 1;
-}
-
-.visage .visage-list-item.default-row input[type="checkbox"][disabled] {
-    filter: grayscale(1) opacity(0.5);
 }
 
 .visage .visage-scale-group {
@@ -988,20 +1046,7 @@
    ========================================================================== */
 
 .visage.visage-ring-editor {
-    background: var(--filroden-color-bg-darkest) !important;
-    border: 1px solid var(--filroden-color-border);
-    box-shadow: var(--filroden-shadow-popout);
-    border-radius: var(--filroden-radius-large);
-    font-size: var(--filroden-font-size-s);
-    display: flex;
-    flex-direction: column;
-    color: var(--filroden-color-text-main) !important;
     width: 28rem;
-}
-
-.visage.visage-ring-editor .window-content {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
 }
 
 .visage.visage-ring-editor .form-group {
@@ -1020,14 +1065,6 @@
     color: var(--filroden-color-text-muted-solid);
 }
 
-.visage.visage-ring-editor .form-fields {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--filroden-space-xs);
-    width: 100%;
-}
-
 .visage.visage-ring-editor .form-group.stacked {
     display: block;
     grid-column: 1 / -1;
@@ -1039,7 +1076,7 @@
     color: var(--filroden-color-text-accent);
 }
 
-.visage.visage-ring-editor .form-group.stacked .form-fields {
+.visage.visage-ring-editor .form-group.stacked .visage-form-fields {
     display: grid;
     grid-template-columns: 1fr 1fr; 
     gap: var(--filroden-space-xs);
@@ -1112,15 +1149,11 @@
    7. GLOBAL EDITOR FIXES (The Editor Window)
    ========================================================================== */
 
-.visage.visage-global-editor .window-content {
-    background: var(--filroden-color-bg-darkest) !important;
-    background-image: none !important;
-    padding: var(--filroden-space-l) !important;
-}
-
 .visage.visage-global-editor {
     width: 60rem !important;
     max-width: 95vw;
+    min-height: 40rem;
+    height: auto !important;
 }
 
 .visage.visage-global-editor label {
@@ -1152,11 +1185,6 @@
     border-color: var(--filroden-color-border) !important;
     border-style: dashed !important;
     box-shadow: none !important;
-}
-
-.visage.visage-global-editor input[type="checkbox"] {
-    opacity: 1 !important;
-    cursor: pointer;
 }
 
 .visage.visage-global-editor select {
@@ -1233,15 +1261,11 @@
 /* Live Preview Container */
 .visage .visage-live-preview-stage {
     width: 100%;
-    height: 192px; 
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--filroden-color-border);
-    border-radius: var(--filroden-radius-medium);
+    height: 100%;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: var(--filroden-space-xs);
     overflow: hidden;
 }
 
@@ -1339,15 +1363,6 @@
 div#visage-global-directory {
     min-width: 56rem !important; 
     min-height: 32rem !important;
-}
-
-div#visage-global-directory .window-content {
-    padding: 0 !important;
-    background: var(--filroden-color-bg-darkest) !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
 }
 
 /* Container */

@@ -13,8 +13,8 @@
         {{!-- Enable Toggle --}}
         <div class="form-group">
             <label>{{localize "VISAGE.RingConfig.Enabled"}}</label>
-            <div class="form-fields">
-                <input type="checkbox" name="enabled" {{checked enabled}}/>
+            <div class="visage-form-fields">
+                <input class="visage-checkbox" type="checkbox" name="enabled" {{checked enabled}}/>
             </div>
         </div>
 
@@ -24,14 +24,14 @@
 
             <div class="form-group">
                 <label>{{localize "VISAGE.RingConfig.SubjectTexture"}}</label>
-                <div class="form-fields">
+                <div class="visage-form-fields">
                     <file-picker type="image" name="subjectTexture" value="{{subject.texture}}" placeholder="{{localize 'VISAGE.RingConfig.Placeholder.Default'}}"></file-picker>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>{{localize "VISAGE.RingConfig.SubjectScale"}}</label>
-                <div class="form-fields">
+                <div class="visage-form-fields">
                     <range-picker name="subjectScale" value="{{subject.scale}}" min="0.5" max="3.0" step="0.05"></range-picker>
                 </div>
             </div>
@@ -43,14 +43,14 @@
 
             <div class="form-group color-group">
                 <label>{{localize "VISAGE.RingConfig.RingColor"}}</label>
-                <div class="form-fields">
+                <div class="visage-form-fields">
                     <color-picker name="ringColor" value="{{colors.ring}}"></color-picker>
                 </div>
             </div>
 
             <div class="form-group color-group">
                 <label>{{localize "VISAGE.RingConfig.BackgroundColor"}}</label>
-                <div class="form-fields">
+                <div class="visage-form-fields">
                     <color-picker name="backgroundColor" value="{{colors.background}}"></color-picker>
                 </div>
             </div>
@@ -61,10 +61,10 @@
             <legend>{{localize "VISAGE.RingConfig.Effects.Label"}}</legend>
             
             <div class="form-group stacked">
-                <div class="form-fields">
+                <div class="visage-form-fields">
                     {{#each effects}}
                     <label class="checkbox">
-                        <input type="checkbox" name="effect_{{this.value}}" {{checked this.isActive}}>
+                        <input class="visage-checkbox" type="checkbox" name="effect_{{this.value}}" {{checked this.isActive}}>
                         {{localize this.label}}
                     </label>
                     {{/each}}
