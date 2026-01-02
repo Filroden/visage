@@ -16,13 +16,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.tokenId = options.tokenId || null;
         this.isDirty = false;
 
-        // Local = Visage icon
-        // Global = Mask icon
-        if (!this.isLocal) {
-            this.options.window.icon = "visage-icon-domino";
-        } else {
-            this.options.window.icon = "visage-header-icon";
-        }
+        this.options.window.icon = !this.isLocal ? "visage-icon-domino" : "visage-icon-mask";
     }
 
     get isLocal() { return !!this.actorId; }
@@ -45,7 +39,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         classes: ["visage", "visage-editor", "visage-dark-theme"],
         window: {
             title: "VISAGE.GlobalEditor.TitleNew.Global",
-            icon: "visage-icon-mask", // Default (Local) Icon
+            icon: "visage-icon-mask", 
             resizable: true,
             minimizable: true,
             contentClasses: ["standard-form"]
@@ -77,37 +71,27 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             : game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global");
     }
 
-    /**
-     * Helper: Fetch default values for "Create New Local" (Snapshot).
-     * FIX: Now reads exclusively from token.document to avoid PIXI/Pixel issues.
-     */
+    // Helper to get defaults (kept for safety)
     _getActorDefaults() {
         const actor = this.actor;
         if (!actor) return {};
-
-        // 1. Try Token Document (Best for specific token instances)
         if (this.tokenId) {
-            const token = canvas.tokens.get(this.tokenId) || game.scenes.current?.tokens.get(this.tokenId);
+            const token = canvas.tokens.get(this.tokenId);
             if (token) {
-                // IMPORTANT: Use .document to get Data, not the Placeable (which has pixels/PIXI objects)
                 const doc = token.document;
                 const texture = doc.texture || {};
-                
                 return {
                     name: doc.name,
-                    img: texture.src, // File path string
+                    img: texture.src,
                     scaleX: texture.scaleX ?? 1.0,
                     scaleY: texture.scaleY ?? 1.0,
-                    width: doc.width, // Grid units (e.g. 2)
-                    height: doc.height, // Grid units (e.g. 2)
+                    width: doc.width,
+                    height: doc.height,
                     disposition: doc.disposition,
-                    // doc.ring is the data object, safe to clone
                     ring: doc.ring ? foundry.utils.deepClone(doc.ring) : {} 
                 };
             }
         }
-
-        // 2. Fallback: Prototype Token (Sidebar Actor)
         const proto = actor.prototypeToken;
         return {
             name: proto.name,
@@ -136,146 +120,83 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._currentLabel = data.label;
         } else {
             // CREATE NEW
-            data = {
-                label: this.isLocal ? "New Visage" : game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global"),
-                category: "",
-                tags: [],
-                changes: {} 
-            };
-            
-            // If Local, PRE-FILL with Token Defaults (Snapshot)
             if (this.isLocal) {
-                const defaults = this._getActorDefaults();
-                data.changes = {
-                    name: defaults.name,
-                    img: defaults.img,
-                    texture: {
-                        scaleX: defaults.scaleX,
-                        scaleY: defaults.scaleY
-                    },
-                    width: defaults.width,
-                    height: defaults.height,
-                    disposition: defaults.disposition,
-                    ring: defaults.ring
+                const token = canvas.tokens.get(this.tokenId) || this.actor.prototypeToken;
+                const tokenDoc = token.document || token; 
+                data = VisageData.getDefaultAsVisage(tokenDoc);
+                data.label = "New Visage"; 
+                data.id = null;
+            } else {
+                data = {
+                    label: game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global"),
+                    category: "",
+                    tags: [],
+                    changes: {} 
                 };
             }
             this._currentLabel = "";
         }
 
-        // ... [Rest of method remains unchanged] ...
-        // (Autocomplete, Model Extraction, Preview Prep)
-        // I am omitting the unchanged code block for brevity, 
-        // assuming you will keep the existing logic from the previous file.
-        
+        // --- 1. RESOLVE IMAGE PATH EARLY (Fixes 404 Error) ---
+        const rawImg = data.changes.img || data.changes.texture?.src || "";
+        const resolvedImg = await Visage.resolvePath(rawImg);
+
+        // 2. Unified Presentation Data
+        // We pass resolvedImg for video detection, but rawImg for wildcard detection
+        const context = VisageData.toPresentation(data, {
+            isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedImg),
+            isWildcard: rawImg.includes('*'),
+            isActive: false
+        });
+
         const allVisages = VisageData.globals; 
         const categorySet = new Set();
         const tagSet = new Set();
-
         allVisages.forEach(v => {
             if (v.category) categorySet.add(v.category);
             if (v.tags && Array.isArray(v.tags)) v.tags.forEach(t => tagSet.add(t));
         });
-        
-        const categories = Array.from(categorySet).sort();
-        const allTags = Array.from(tagSet).sort();
 
         const c = data.changes || {};
-
-        const ringActive = !!(c.ring && c.ring.enabled);
-        const ringContext = Visage.prepareRingContext(c.ring);
-
-        const tx = c.texture || {};
-        const rawScaleX = tx.scaleX ?? 1.0;
-        const rawScaleY = tx.scaleY ?? 1.0;
-        
-        const derivedScale = Math.abs(rawScaleX);
-        const derivedFlipX = rawScaleX < 0;
-        const derivedFlipY = rawScaleY < 0;
-        
-        const isNew = !this.visageId;
-        const hasTexture = !!c.texture || (isNew && this.isLocal);
-        const displayScale = Math.round(derivedScale * 100);
-
-        let dimLabel = "-";
-        let dimActive = false;
-        if ((c.width && c.width !== 1) || (c.height && c.height !== 1)) {
-            dimLabel = `${c.width || 1} x ${c.height || 1}`;
-            dimActive = true;
-        }
-
-        let flipIcon = "fas fa-arrows-alt-h"; 
-        let flipLabel = "-";
-        let flipActive = false;
-        if (derivedFlipX || derivedFlipY) {
-            flipActive = true;
-            if (derivedFlipX && !derivedFlipY) { 
-                flipIcon = "fas fa-arrow-left"; 
-                flipLabel = game.i18n.localize("VISAGE.Mirror.Horizontal.Label"); 
-            } else if (derivedFlipY && !derivedFlipX) { 
-                flipIcon = "fas fa-arrow-down"; 
-                flipLabel = game.i18n.localize("VISAGE.Mirror.Vertical.Label"); 
-            } else { 
-                flipIcon = "fas fa-expand-arrows-alt"; 
-                flipLabel = game.i18n.localize("VISAGE.Mirror.Label.Combined"); 
-            }
-        }
-
-        let dispositionClass = "none";
-        let dispositionLabel = game.i18n.localize("VISAGE.Disposition.NoChange");
-        if (c.disposition !== null && c.disposition !== undefined) {
-             switch (c.disposition) {
-                case 1: dispositionClass = "friendly"; dispositionLabel = game.i18n.localize("VISAGE.Disposition.Friendly"); break;
-                case 0: dispositionClass = "neutral"; dispositionLabel = game.i18n.localize("VISAGE.Disposition.Neutral"); break;
-                case -1: dispositionClass = "hostile"; dispositionLabel = game.i18n.localize("VISAGE.Disposition.Hostile"); break;
-                case -2: dispositionClass = "secret"; dispositionLabel = game.i18n.localize("VISAGE.Disposition.Secret"); break;
-            }
-        }
-
-        const rawImg = c.img || "";
-        const resolvedImg = await Visage.resolvePath(rawImg);
-
-        const previewData = {
-            img: resolvedImg, 
-            isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedImg),
-            flipX: derivedFlipX,
-            flipY: derivedFlipY,
-            hasRing: !!ringActive,
-            ringColor: ringContext.colors.ring,
-            ringBkg: ringContext.colors.background,
-            hasPulse: ringContext.hasPulse,
-            hasGradient: ringContext.hasGradient,
-            hasWave: ringContext.hasWave,
-            hasInvisibility: ringContext.hasInvisibility,
-            slots: {
-                scale: { val: `${displayScale}%`, active: hasTexture },
-                dim: { val: dimLabel, active: dimActive },
-                flip: { icon: flipIcon, val: flipLabel, active: flipActive },
-                disposition: { class: dispositionClass, val: dispositionLabel }
-            },
-            name: c.name || "",
-            tagList: data.tags || [] 
-        };
-
         const prep = (val, def) => ({ value: val ?? def, active: val !== null && val !== undefined });
 
+        // Ring Preparation
+        const ringActive = !!(c.ring && c.ring.enabled);
+        const ringContext = VisageData.prepareRingContext(c.ring); 
+
         return {
+            ...context, 
             isEdit: !!this.visageId,
             isLocal: this.isLocal,
-            label: data.label,
-            category: data.category,
-            categories: categories,
-            tags: (data.tags || []).join(", "), 
-            allTags: allTags,
-            img: prep(c.img, ""),
-            scale: { value: displayScale, active: hasTexture },
-            isFlippedX: { value: derivedFlipX, active: hasTexture && derivedFlipX }, 
-            isFlippedY: { value: derivedFlipY, active: hasTexture && derivedFlipY },
+            categories: Array.from(categorySet).sort(),
+            allTags: Array.from(tagSet).sort(),
+            tagsString: (data.tags || []).join(","), 
+            
+            // Input Bindings (Must use RAW values so wildcard string is editable)
+            img: prep(rawImg, ""),
+            scaleInput: { value: context.scale, active: c.texture?.scaleX !== undefined },
+            isFlippedXInput: { value: context.isFlippedX, active: c.texture?.scaleX !== undefined && context.isFlippedX },
+            isFlippedYInput: { value: context.isFlippedY, active: c.texture?.scaleX !== undefined && context.isFlippedY },
+            
             nameOverride: prep(c.name, ""),
-            disposition: prep(c.disposition, 0),
-            width: prep(c.width, 1),
-            height: prep(c.height, 1),
-            ring: { active: ringActive, ...ringContext },
-            preview: previewData
+            dispositionInput: prep(c.disposition, 0),
+            widthInput: prep(c.width, 1),
+            heightInput: prep(c.height, 1),
+            
+            ring: {
+                active: ringActive,
+                ...ringContext
+            },
+
+            // Preview Object (Must use RESOLVED values so image renders)
+            preview: {
+                ...context.meta, 
+                img: resolvedImg, // <--- Use the clean path here
+                isVideo: context.isVideo,
+                flipX: context.isFlippedX,
+                flipY: context.isFlippedY,
+                tagList: data.tags || []
+            }
         };
     }
 
@@ -283,72 +204,66 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
         const el = this.element;
 
-        const scaleVal = formData.scale; 
-        const displayScale = scaleVal ? Math.round(scaleVal) : 100;
-        const scaleActive = formData.scale_active; 
-        
-        const w = formData.width;
-        const h = formData.height;
-        const wActive = formData.width_active;
-        const hActive = formData.height_active;
+        const getVal = (key, type = String) => {
+            const isActive = formData[`${key}_active`];
+            if (!isActive) return undefined;
+            const raw = formData[key];
+            if (type === Number) return parseFloat(raw);
+            if (type === Boolean) return !!raw;
+            return raw;
+        };
 
-        const isFlippedX = formData.isFlippedX === "true";
-        const isFlippedY = formData.isFlippedY === "true";
-        const flipXActive = formData.isFlippedX !== "";
-        const flipYActive = formData.isFlippedY !== "";
+        const isScaleActive = formData.scale_active;
+        const isFlipXActive = formData.isFlippedX !== "";
+        const isFlipYActive = formData.isFlippedY !== "";
 
-        const disposition = (formData.disposition !== "" && formData.disposition !== null) ? parseInt(formData.disposition) : null;
-        const nameOverride = formData.nameOverride || "";
-        const label = formData.label || "";
-        const tagsStr = formData.tags || "";
-        
-        const ringEnabled = formData["ring.enabled"]; 
-        const ringColor = formData.ringColor || "#FFFFFF"; 
-        const ringBkg = formData.ringBackgroundColor || "#000000";
-        
-        const rawImgPath = formData.img || "";
-        const resolvedPath = await Visage.resolvePath(rawImgPath); 
-        const isVideo = foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedPath);
-        
-        let dimLabel = "-";
-        let dimActive = false;
-        if ((wActive && w && w != 1) || (hActive && h && h != 1)) {
-            dimLabel = `${w || 1} x ${h || 1}`;
-            dimActive = true;
+        let texture = undefined;
+        if (isScaleActive || isFlipXActive || isFlipYActive) {
+            const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
+            const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
+            const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
+            texture = {
+                scaleX: rawScale * (flipX ? -1 : 1),
+                scaleY: rawScale * (flipY ? -1 : 1)
+            };
         }
 
-        let flipIcon = "fas fa-arrows-alt-h"; 
-        let flipLabel = "-";
-        let flipActive = false;
-        
-        if (isFlippedX || isFlippedY) {
-            if (flipXActive || flipYActive) {
-                flipActive = true;
-                if (isFlippedX && !isFlippedY) {
-                    flipIcon = "fas fa-arrow-left";
-                    flipLabel = game.i18n.localize("VISAGE.Mirror.Horizontal.Label");
-                } else if (isFlippedY && !isFlippedX) {
-                    flipIcon = "fas fa-arrow-down";
-                    flipLabel = game.i18n.localize("VISAGE.Mirror.Vertical.Label");
-                } else {
-                    flipIcon = "fas fa-expand-arrows-alt";
-                    flipLabel = game.i18n.localize("VISAGE.Mirror.Label.Combined");
-                }
+        let ring = null;
+        if (formData["ring.enabled"]) {
+            let effectsMask = 0;
+            for (const [k, v] of Object.entries(formData)) {
+                if (k.startsWith("effect_") && v === true) effectsMask |= parseInt(k.split("_")[1]);
             }
+            ring = {
+                enabled: true,
+                colors: { ring: formData.ringColor, background: formData.ringBackgroundColor },
+                subject: { texture: formData.ringSubjectTexture, scale: formData.ringSubjectScale },
+                effects: effectsMask
+            };
         }
 
-        let dispClass = "none";
-        let dispLabel = game.i18n.localize("VISAGE.Disposition.NoChange");
-        const dispActive = formData.disposition_active;
-        
-        if (dispActive && disposition !== null && !isNaN(disposition)) {
-            switch (disposition) {
-                case 1: dispClass = "friendly"; dispLabel = game.i18n.localize("VISAGE.Disposition.Friendly"); break;
-                case 0: dispClass = "neutral"; dispLabel = game.i18n.localize("VISAGE.Disposition.Neutral"); break;
-                case -1: dispClass = "hostile"; dispLabel = game.i18n.localize("VISAGE.Disposition.Hostile"); break;
-                case -2: dispClass = "secret"; dispLabel = game.i18n.localize("VISAGE.Disposition.Secret"); break;
-            }
-        }
+        const mockData = {
+            changes: {
+                name: getVal("nameOverride"),
+                img: getVal("img"),
+                texture: texture,
+                width: getVal("width", Number),
+                height: getVal("height", Number),
+                disposition: getVal("disposition", Number),
+                ring: ring
+            },
+            tags: (formData.tags || "").split(",").map(t => t.trim()).filter(t => t)
+        };
+
+        const rawPath = mockData.changes.img || "";
+        const resolvedPath = await Visage.resolvePath(rawPath);
+
+        const context = VisageData.toPresentation(mockData, {
+            isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedPath),
+            isWildcard: rawPath.includes('*')
+        });
+
+        const meta = context.meta;
 
         const updateSlot = (cls, val, active, icon) => {
             const slot = el.querySelector(`.card-zone-left .${cls}`);
@@ -359,63 +274,46 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (icon) slot.querySelector("i").className = icon;
         };
 
-        updateSlot("scale-slot", `${displayScale}%`, scaleActive);
-        updateSlot("dim-slot", dimLabel, dimActive);
-        updateSlot("flip-slot", flipLabel, flipActive, flipIcon);
+        updateSlot("scale-slot", meta.slots.scale.val, meta.slots.scale.active);
+        updateSlot("dim-slot", meta.slots.dim.val, meta.slots.dim.active);
+        updateSlot("flip-slot", meta.slots.flip.val, meta.slots.flip.active, meta.slots.flip.icon);
 
         const dispSlot = el.querySelector(".card-zone-left .disposition-slot .visage-disposition-chip");
         if (dispSlot) {
-            dispSlot.textContent = dispLabel;
-            dispSlot.className = `visage-disposition-chip ${dispClass}`;
-            if (!dispActive) dispSlot.classList.add("inactive");
+            dispSlot.textContent = meta.slots.disposition.val;
+            dispSlot.className = `visage-disposition-chip ${meta.slots.disposition.class}`;
+            if (mockData.changes.disposition === undefined) dispSlot.classList.add("inactive");
             else dispSlot.classList.remove("inactive");
         }
 
         const nameEl = el.querySelector(".token-name-label");
         if (nameEl) {
-            nameEl.textContent = nameOverride;
-            nameEl.style.display = nameOverride ? "block" : "none";
-            if (!formData.nameOverride_active) nameEl.style.opacity = "0.5"; 
-            else nameEl.style.opacity = "1";
-        }
-
-        const titleEl = el.querySelector(".card-title");
-        if (titleEl) titleEl.textContent = label || game.i18n.localize("VISAGE.GlobalEditor.TitleNew");
-
-        const tagsEl = el.querySelector(".card-tags");
-        if (tagsEl) {
-            tagsEl.innerHTML = "";
-            const arr = tagsStr.split(",").map(t => t.trim()).filter(t => t);
-            arr.forEach(t => {
-                const span = document.createElement("span");
-                span.className = "tag";
-                span.textContent = t;
-                tagsEl.appendChild(span);
-            });
+            nameEl.textContent = mockData.changes.name || "";
+            nameEl.style.display = mockData.changes.name ? "block" : "none";
+            nameEl.style.opacity = formData.nameOverride_active ? "1" : "0.5";
         }
 
         const ringEl = el.querySelector(".visage-ring-preview");
         if (ringEl) {
-            ringEl.style.display = ringEnabled ? "block" : "none";
-            if (ringEnabled) {
-                ringEl.style.setProperty("--ring-color", ringColor);
-                ringEl.style.setProperty("--ring-bkg", ringBkg);
-                const toggle = (k, c) => {
-                    if (formData[`effect_${k}`] === true) ringEl.classList.add(c);
-                    else ringEl.classList.remove(c);
+            ringEl.style.display = meta.hasRing ? "block" : "none";
+            if (meta.hasRing) {
+                ringEl.style.setProperty("--ring-color", meta.ringColor);
+                ringEl.style.setProperty("--ring-bkg", meta.ringBkg);
+                const toggle = (cls, active) => {
+                    if (active) ringEl.classList.add(cls); else ringEl.classList.remove(cls);
                 };
-                toggle("2", "pulse");
-                toggle("4", "gradient");
-                toggle("8", "wave");
+                toggle("pulse", meta.hasPulse);
+                toggle("gradient", meta.hasGradient);
+                toggle("wave", meta.hasWave);
                 const content = el.querySelector(".visage-preview-content");
                 if (content) {
-                    if (formData["effect_16"] === true) content.classList.add("invisible");
-                    else content.classList.remove("invisible");
+                     if (meta.hasInvisibility) content.classList.add("invisible");
+                     else content.classList.remove("invisible");
                 }
             }
         }
-        
-        const transform = `scale(${isFlippedX ? -1 : 1}, ${isFlippedY ? -1 : 1})`;
+
+        const transform = `scale(${context.isFlippedX ? -1 : 1}, ${context.isFlippedY ? -1 : 1})`;
         const vidEl = el.querySelector(".visage-preview-video");
         const imgEl = el.querySelector(".visage-preview-img");
         const iconEl = el.querySelector(".fallback-icon");
@@ -427,7 +325,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 iconEl.style.display = "block";
                 iconEl.className = "visage-icon-mask fallback-icon";
             }
-        } else if (isVideo) {
+        } else if (context.isVideo) {
             if (vidEl) {
                 vidEl.src = resolvedPath;
                 vidEl.style.display = "block";
@@ -443,6 +341,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 imgEl.style.transform = transform;
             }
             if (iconEl) iconEl.style.display = "none";
+        }
+
+        const titleEl = el.querySelector(".card-title");
+        if (titleEl) titleEl.textContent = formData.label || game.i18n.localize("VISAGE.GlobalEditor.TitleNew");
+        
+        const tagsEl = el.querySelector(".card-tags");
+        if (tagsEl) {
+            tagsEl.innerHTML = "";
+            mockData.tags.forEach(t => {
+                const span = document.createElement("span");
+                span.className = "tag";
+                span.textContent = t;
+                tagsEl.appendChild(span);
+            });
         }
     }
 
@@ -482,6 +394,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onRender(context, options) {
+        // 1. Handle RTL
+        const rtlLanguages = ["ar", "he", "fa", "ur"];
+        if (rtlLanguages.includes(game.i18n.lang)) {
+            this.element.setAttribute("dir", "rtl");
+            this.element.classList.add("rtl");
+        }
+
+        // 2. Handle Theme
         if (this.isLocal) {
             this.element.classList.add("visage-theme-local");
             this.element.classList.remove("visage-theme-global");
@@ -518,6 +438,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 .map(p => p.dataset.tag);
             hidden.value = tags.join(",");
             this._markDirty();
+            this._updatePreview();
         };
 
         const addPill = (text) => {
@@ -571,25 +492,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onResetSettings(event, target) {
-        // 1. Uncheck all "_active" checkboxes
         const checkboxes = this.element.querySelectorAll('input[type="checkbox"][name$="_active"]');
         checkboxes.forEach(cb => {
             cb.checked = false;
-            this._onToggleField(null, cb); // Trigger visual disable
+            this._onToggleField(null, cb); 
         });
 
-        // 2. Disable Ring
         const ringCheck = this.element.querySelector('input[name="ring.enabled"]');
         if (ringCheck) ringCheck.checked = false;
 
-        // 3. Reset Selects (Mirroring/Disposition) to empty ("Unchanged")
         const selects = this.element.querySelectorAll('select');
         selects.forEach(s => s.value = "");
 
-        // 4. Update UI
         this._markDirty();
         this._updatePreview();
-        
         ui.notifications.info(game.i18n.localize("VISAGE.Notifications.SettingsReset"));
     }
 

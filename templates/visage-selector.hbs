@@ -1,6 +1,6 @@
 <div class="window-content">
     <div class="visage-selector-header">
-        <img src="modules/visage/icons/switch_account.svg" class="visage-icon-mask" style="width: 1.25rem; height: 1.25rem; margin-inline-end: 0.5rem; background-color: var(--visage-color-text-main-solid);" />
+        <img src="modules/visage/icons/switch_account.svg" class="visage-icon-mask" />
         <h3 class="visage-title">{{localize "VISAGE.Selector.Title"}}</h3>
         <button type="button" class="visage-config-button" data-tooltip="{{localize 'VISAGE.Selector.Configure'}}" data-action="openConfig">
             <img src="modules/visage/icons/settings.svg" alt="Settings"/>
@@ -32,7 +32,6 @@
     </div>
     {{/if}}
 
-    {{!-- FIXED: Typo 'visage-scollable' -> 'visage-scrollable' --}}
     <div class="visage-selector-grid-wrapper visage-scrollable">
         <div class="visage-selector">
             {{#each forms}}
@@ -42,42 +41,56 @@
                  data-form-key="{{this.key}}"
                  tabindex="0" 
                  role="button" 
-                 aria-label="{{this.name}}" 
+                 aria-label="{{this.label}}" 
                  aria-pressed="{{this.isActive}}">
 
                 <div class="visage-image-wrapper">
-                    {{!-- Pass 'visage-hud-content' to override the default class --}}
-                    {{> "modules/visage/templates/parts/visage-preview.hbs" this wrapperClass="visage-hud-content"}}
+                    {{!-- EXPLICIT PARTIAL MAPPING (Required for new Data Model) --}}
+                    {{> "modules/visage/templates/parts/visage-preview.hbs" 
+                        wrapperClass="visage-hud-content"
+                        resolvedPath=this.resolvedPath 
+                        name=this.label
+                        isVideo=this.isVideo                                    
+                        hasRing=this.meta.hasRing 
+                        hasInvisibility=this.meta.hasInvisibility
+                        hasPulse=this.meta.hasPulse
+                        hasGradient=this.meta.hasGradient
+                        hasWave=this.meta.hasWave
+                        ringColor=this.meta.ringColor
+                        ringBkg=this.meta.ringBkg
+                        forceFlipX=this.isFlippedX
+                        forceFlipY=this.isFlippedY
+                    }}
                 </div>
 
-                <span class="visage-tile-name" data-tooltip="{{this.name}}">{{this.name}}</span>
+                <span class="visage-tile-name" data-tooltip="{{this.label}}">{{this.label}}</span>
                 
                 {{#if this.isActive}}
                 <div class="visage-chip" data-tooltip="{{localize 'VISAGE.Selector.Active'}}">
-                    <img src="modules/visage/icons/check_circle.svg" alt="{{localize 'VISAGE.Selector.Active'}}"/>
+                     <img src="modules/visage/icons/check_circle.svg" alt="{{localize 'VISAGE.Selector.Active'}}"/>
                 </div>
                 {{/if}}
                 
                 {{#if this.isDefault}}
                 <div class="visage-default-indicator" data-tooltip="{{localize 'VISAGE.Selector.Default'}}">
-                    <img src="modules/visage/icons/stars.svg" alt="{{localize 'VISAGE.Selector.Default'}}"/>
+                     <img src="modules/visage/icons/stars.svg" alt="{{localize 'VISAGE.Selector.Default'}}"/>
                 </div>
                 {{/if}}
                 
-                {{#if this.showFlipBadge}}
+                {{#if this.meta.showFlipBadge}}
                 <div class="visage-flip-indicator" data-tooltip="{{localize 'VISAGE.Selector.Flipped'}}">
                     <img src="modules/visage/icons/flip.svg" alt="{{localize 'VISAGE.Selector.Flipped'}}"/>
                 </div>
                 {{/if}}
 
-                {{#if this.showDataChip}}
+                {{#if this.meta.showDataChip}}
                 <div class="visage-data-chip">
-                    {{#if this.sizeLabel}}
-                    <span class="visage-size-value" style="font-weight: bold;">{{this.sizeLabel}}</span>
+                    {{#if this.meta.slots.dim.active}}
+                    <span class="visage-size-value" style="font-weight: bold;">{{this.meta.slots.dim.val}}</span>
                     {{/if}}
                     
-                    {{#if this.scaleLabel}}
-                    <span class="visage-scale-value">{{this.scaleLabel}}</span>
+                    {{#if this.meta.slots.scale.active}}
+                    <span class="visage-scale-value">{{this.meta.slots.scale.val}}</span>
                     {{/if}}
                 </div>
                 {{/if}}
@@ -88,9 +101,9 @@
                 </div>
                 {{/if}}
 
-                {{#if this.showDispositionChip}}
-                <div class="visage-disposition-chip {{this.dispositionClass}}" data-tooltip="{{this.dispositionName}}">
-                     <span>{{this.dispositionName}}</span>
+                {{#if this.meta.showDispositionChip}}
+                <div class="visage-disposition-chip {{this.meta.slots.disposition.class}}" data-tooltip="{{this.meta.slots.disposition.val}}">
+                     <span>{{this.meta.slots.disposition.val}}</span>
                 </div>
                 {{/if}}
 

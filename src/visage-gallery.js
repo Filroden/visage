@@ -23,7 +23,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!this.isLocal) {
             this.options.window.icon = "visage-icon-domino";
         } else {
-            this.options.window.icon = "visage-header-icon";
+            this.options.window.icon = "visage-icon-mask";
         }
         
         this.filters = {
@@ -108,8 +108,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /** @override */
     async _prepareContext(options) {
-        // ... [Existing Logic until preparedItems map] ...
-        // (Assuming standard item fetching logic remains same)
         let rawItems = [];
         if (this.isLocal) {
             if (!this.actor) return { items: [] };
@@ -123,43 +121,46 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             source = rawItems.filter(v => this.filters.showBin ? v.deleted : !v.deleted);
         }
         
-        // [Add Default Logic - Included in original file, keeping brevity here]
+        // --- 1. Insert "Default" Entry (Unified) ---
         if (this.isLocal && !this.filters.showBin && this.actor) {
-             const ns = Visage.DATA_NAMESPACE;
-             let defaults = this.actor.flags?.[ns]?.[this.tokenId]?.defaults;
-             if (!defaults) {
+             let defaultRaw;
+             
+             // A. Token Context (Use Factory)
+             if (this.tokenId) {
+                 const token = canvas.tokens.get(this.tokenId);
+                 if (token) defaultRaw = VisageData.getDefaultAsVisage(token.document);
+             } 
+             
+             // B. Sidebar Context (Manual Construction from Prototype)
+             // Since VisageData.getDefaultAsVisage expects a TokenDocument, 
+             // we simulate the structure for the Sidebar Actor.
+             if (!defaultRaw) {
                 const proto = this.actor.prototypeToken;
-                defaults = { 
-                    name: proto.name, 
-                    token: proto.texture.src,
-                    scale: proto.texture.scaleX,
-                    ring: proto.ring ? (proto.ring.toObject ? proto.ring.toObject() : proto.ring) : null
+                defaultRaw = { 
+                    id: "default",
+                    label: game.i18n.localize("VISAGE.Selector.Default"),
+                    category: "",
+                    tags: [],
+                    isDefault: true,
+                    changes: {
+                        name: proto.name,
+                        img: proto.texture.src,
+                        texture: { 
+                            scaleX: proto.texture.scaleX ?? 1.0, 
+                            scaleY: proto.texture.scaleY ?? 1.0 
+                        },
+                        disposition: proto.disposition,
+                        ring: proto.ring,
+                        width: proto.width,
+                        height: proto.height
+                    }
                 };
              }
-             // ... normalization ...
-             const rawScale = defaults.scale ?? 1.0;
-             const scale = Math.abs(rawScale);
-             const isFlippedX = defaults.isFlippedX ?? (rawScale < 0);
              
-             source.unshift({
-                id: "default",
-                label: game.i18n.localize("VISAGE.Selector.Default"),
-                category: "",
-                tags: [],
-                isDefault: true,
-                changes: {
-                    name: defaults.name,
-                    img: defaults.token,
-                    texture: { scaleX: scale * (isFlippedX ? -1 : 1), scaleY: scale },
-                    disposition: defaults.disposition,
-                    ring: defaults.ring,
-                    width: defaults.width,
-                    height: defaults.height
-                }
-             });
+             if (defaultRaw) source.unshift(defaultRaw);
         }
 
-        // [Categories & Tags Logic - Keep existing]
+        // --- 2. Categories & Tags Logic (Unchanged) ---
         const categories = new Set();
         const tagCounts = {}; 
         source.forEach(v => {
@@ -180,6 +181,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             active: this.filters.category === c
         }));
 
+        // --- 3. Filter Items ---
         let items = source.filter(entry => {
             if (this.filters.category && entry.category !== this.filters.category) return false;
             if (this.filters.search) {
@@ -199,99 +201,23 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             return a.label.localeCompare(b.label);
         });
 
+        // --- 4. Prepare Items (Using Unified Factory) ---
+        // Replaces 50+ lines of manual logic
         const preparedItems = await Promise.all(items.map(async (entry) => {
-            const c = entry.changes;
-            const resolvedImg = await Visage.resolvePath(c.img);
+            const rawPath = entry.changes.img || entry.changes.texture?.src;
+            const resolvedPath = await Visage.resolvePath(rawPath);
             
-            // --- BATCH 1 FIX (Video) ---
-            const isVideo = foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedImg);
-            
-            // --- BATCH 2 FIX (Wildcard) ---
-            const isWildcard = (c.img && c.img.includes('*'));
+            // Generate Context
+            const context = VisageData.toPresentation(entry, {
+                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedPath),
+                isWildcard: (rawPath || "").includes('*'),
+                isActive: false // Gallery doesn't show selection state
+            });
 
-            const ringCtx = Visage.prepareRingContext(c.ring);
+            // Ensure resolved path is used for display
+            context.changes.img = resolvedPath;
             
-            const tx = c.texture || {};
-            const rawScaleX = tx.scaleX ?? 1.0;
-            const scaleVal = Math.round(Math.abs(rawScaleX) * 100);
-            
-            const hasTexture = !!c.texture; 
-            const scaleActive = hasTexture && (Math.abs(rawScaleX) !== 1);
-
-            let dimLabel = "-";
-            let dimActive = false;
-            if (c.width || c.height) {
-                dimLabel = `${c.width || 1} x ${c.height || 1}`;
-                dimActive = true;
-            }
-            
-            const isFlippedX = rawScaleX < 0;
-            const isFlippedY = (tx.scaleY ?? 1.0) < 0;
-
-            let flipIcon = "fas fa-arrows-alt-h"; 
-            let flipLabel = "-";
-            let flipActive = false;
-            if (isFlippedX || isFlippedY) {
-                flipActive = true;
-                if (isFlippedX && !isFlippedY) {
-                    flipIcon = "fas fa-arrow-left";
-                    flipLabel = game.i18n.localize("VISAGE.Mirror.Horizontal.Label");
-                } else if (isFlippedY && !isFlippedX) {
-                    flipIcon = "fas fa-arrow-down";
-                    flipLabel = game.i18n.localize("VISAGE.Mirror.Vertical.Label");
-                } else {
-                    flipIcon = "fas fa-expand-arrows-alt";
-                    flipLabel = game.i18n.localize("VISAGE.Mirror.Label.Combined");
-                }
-            }
-            
-            let dispClass = "none";
-            // BATCH 2: Uses new simplified Label from en.json
-            let dispLabel = game.i18n.localize("VISAGE.Disposition.NoChange"); 
-            
-            if (c.disposition !== null && c.disposition !== undefined) {
-                switch (c.disposition) {
-                    case 1: dispClass = "friendly"; dispLabel = game.i18n.localize("VISAGE.Disposition.Friendly"); break;
-                    case 0: dispClass = "neutral"; dispLabel = game.i18n.localize("VISAGE.Disposition.Neutral"); break;
-                    case -1: dispClass = "hostile"; dispLabel = game.i18n.localize("VISAGE.Disposition.Hostile"); break;
-                    case -2: dispClass = "secret"; dispLabel = game.i18n.localize("VISAGE.Disposition.Secret"); break;
-                }
-            }
-
-            const itemTags = (entry.tags || []).map(t => ({
-                label: t,
-                active: this.filters.tags.has(t)
-            }));
-
-            return {
-                ...entry,
-                changes: { ...entry.changes, img: resolvedImg },
-                isVideo: isVideo,
-                meta: {
-                    hasRing: ringCtx.enabled,
-                    hasPulse: ringCtx.hasPulse,
-                    hasGradient: ringCtx.hasGradient,
-                    hasWave: ringCtx.hasWave,
-                    hasInvisibility: ringCtx.hasInvisibility,
-                    ringColor: ringCtx.colors.ring,
-                    ringBkg: ringCtx.colors.background,
-                    forceFlipX: isFlippedX,
-                    forceFlipY: isFlippedY,
-                    itemTags: itemTags,
-                    tokenName: c.name || null,
-                    slots: {
-                        scale: { active: scaleActive, val: `${scaleVal}%` },
-                        dim: { active: dimActive, val: dimLabel },
-                        flip: { active: flipActive, icon: flipIcon, val: flipLabel },
-                        // BATCH 2: New Wildcard Slot
-                        wildcard: { 
-                            active: isWildcard, 
-                            val: isWildcard ? "Active" : "-" 
-                        },
-                        disposition: { class: dispClass, val: dispLabel }
-                    }
-                }
-            };
+            return context;
         }));
 
         const emptyMsg = this.isLocal 
@@ -330,6 +256,14 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onRender(context, options) {
+        // 1. Handle RTL
+        const rtlLanguages = ["ar", "he", "fa", "ur"];
+        if (rtlLanguages.includes(game.i18n.lang)) {
+            this.element.setAttribute("dir", "rtl");
+            this.element.classList.add("rtl");
+        }
+
+        // 2. Handle Theme
         if (this.isLocal) {
             this.element.classList.add("visage-theme-local");
             this.element.classList.remove("visage-theme-global");

@@ -43,37 +43,6 @@ export class Visage {
         return path;
     }
 
-    static prepareRingContext(ringData) {
-        const data = ringData || {};
-        const currentEffects = data.effects || 0;
-        const availableEffects = [
-            { value: 2, label: "VISAGE.RingConfig.Effects.Pulse", key: "RING_PULSE" },
-            { value: 4, label: "VISAGE.RingConfig.Effects.Gradient", key: "RING_GRADIENT" },
-            { value: 8, label: "VISAGE.RingConfig.Effects.Wave", key: "BKG_WAVE" },
-            { value: 16, label: "VISAGE.RingConfig.Effects.Invisibility", key: "INVISIBILITY" }
-        ];
-        return {
-            enabled: data.enabled ?? false,
-            colors: {
-                ring: data.colors?.ring ?? "#FFFFFF",
-                background: data.colors?.background ?? "#000000"
-            },
-            subject: {
-                texture: data.subject?.texture ?? "",
-                scale: data.subject?.scale ?? 1.0
-            },
-            rawEffects: currentEffects, 
-            hasPulse: (currentEffects & 2) !== 0,
-            hasGradient: (currentEffects & 4) !== 0,
-            hasWave: (currentEffects & 8) !== 0,
-            hasInvisibility: (currentEffects & 16) !== 0,
-            effects: availableEffects.map(eff => ({
-                ...eff,
-                isActive: (currentEffects & eff.value) !== 0
-            }))
-        };
-    }
-
     static initialize() {
         this.log("Initializing Visage");
         game.modules.get(this.MODULE_ID).api = {

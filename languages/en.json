@@ -93,9 +93,9 @@
     "VISAGE.Config.List.Width": "Width",
     "VISAGE.Config.List.Height": "Height",
 
-    "VISAGE.Mirror.Horizontal.Label": "Mirrored (H)",
-    "VISAGE.Mirror.Vertical.Label": "Mirrored (V)",
-    "VISAGE.Mirror.Label.Combined": "Mirrored (H+V)",
+    "VISAGE.Mirror.Horizontal.Label": "Flip H",
+    "VISAGE.Mirror.Vertical.Label": "Flip V",
+    "VISAGE.Mirror.Label.Combined": "Flip H+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Horizontal: No Change",
     "VISAGE.Mirror.Horizontal.Standard": "Horizontal: Standard",
     "VISAGE.Mirror.Horizontal.Mirrored": "Horizontal: Flipped",

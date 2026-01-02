@@ -112,10 +112,10 @@
                             <span class="slot-value">{{this.meta.slots.flip.val}}</span>
                         </div>
 
-                        <div class="metadata-slot wildcard-slot {{#unless this.meta.slots.wildcard.active}}inactive{{/unless}}"
-                             data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Wildcard'}}">
+                        <div class="metadata-slot wildcard-slot {{#unless this.isWildcard}}inactive{{/unless}}"
+                            data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Wildcard'}}">
                             <i class="fas fa-random"></i>
-                            <span class="slot-value">{{this.meta.slots.wildcard.val}}</span>
+                            <span class="slot-value">{{#if this.isWildcard}}Active{{else}}-{{/if}}</span>
                         </div>
 
                         <div class="metadata-slot disposition-slot">

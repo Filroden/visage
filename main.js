@@ -9,10 +9,10 @@ import { VisageData } from "./src/visage-data.js";
 import { VisageEditor } from "./src/visage-editor.js"; 
 import { VisageGallery } from "./src/visage-gallery.js"; 
 import { handleTokenHUD } from "./src/visage-hud.js";
-import { handleGhostEdit } from "./src/visage-ghost.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./src/visage-cleanup.js";
 import { migrateWorldData } from "./src/visage-migration.js";
 import { VisageComposer } from "./src/visage-composer.js";
+import { handleGhostEdit } from "./src/visage-ghost.js"; 
 
 let globalDirectoryInstance = null;
 
@@ -131,6 +131,17 @@ Hooks.once("init", () => {
             });
         };
 
+        document.addEventListener("pointerover", (event) => {
+            const target = event.target.closest('[data-tooltip]');
+            
+            // Only proceed if we found a tooltip target inside a Visage app
+            if (target && target.closest('.visage')) {
+                if (!target.hasAttribute("data-tooltip-class")) {
+                    target.setAttribute("data-tooltip-class", "visage-tooltip");
+                }
+            }
+        }, { capture: true, passive: true });
+
         Hooks.on("getHeaderControlsActorSheetV2", addAppV2Control);
         Hooks.on("getActorSheetV2HeaderControls", addAppV2Control);
 
@@ -163,7 +174,8 @@ Hooks.on("getSceneControlButtons", (controls) => {
         visible: true,
         toggle: false, 
         button: true,
-        onClick: () => {
+        // FIX: Replaced onClick with onChange for V13 compatibility
+        onChange: () => {
             if (!globalDirectoryInstance) globalDirectoryInstance = new VisageGallery();
             globalDirectoryInstance.render(true);
         }
@@ -283,7 +295,9 @@ Hooks.on("closeApplication", (app) => {
     }
 });
 
-Hooks.on("renderTokenConfig", handleGhostEdit);
+Hooks.on("renderTokenConfig", handleGhostEdit); 
+
+Hooks.on("closeTokenConfig", (app) => { delete app._visageWarned; });
 
 Hooks.on("renderTokenHUD", handleTokenHUD);
 

@@ -61,6 +61,20 @@
    2. SHARED STYLES
    ========================================================================== */
 
+#tooltip.visage-tooltip {
+    border: 1px solid var(--filroden-color-text-accent);
+    border-radius: var(--filroden-radius-small);
+    padding: var(--filroden-space-s);
+    background: var(--filroden-color-bg-darkest);
+    color: var(--filroden-color2-text-main-solid);
+    box-shadow: var(--filroden-shadow-popout);
+    font-family: var(--filroden-font-family);
+    font-size: var(--filroden-font-size-s);
+    line-height: 1.4;
+    text-align: start;
+    z-index: var(--z-index-tooltip, 9999);
+}
+
 .visage input::placeholder {
     color: var(--filroden-color-text-placeholder-solid);
     opacity: 1;
@@ -72,6 +86,10 @@
 .visage button:focus {
     outline: 2px solid var(--visage-color-accent);
     border-radius: var(--filroden-radius-small);
+}
+
+.visage a:hover {
+    text-shadow: none;
 }
 
 .visage button.active,
@@ -217,20 +235,6 @@
     grid-template-columns: 1fr 1.2fr;
     gap: var(--filroden-space-s) var(--filroden-space-m);
     align-items: center;
-}
-
-.visage .visage-header-icon {
-    width: var(--filroden-font-size-m);
-    height: var(--filroden-font-size-m);
-    margin-inline-end: var(--filroden-space-xs);
-    display: inline-block;
-    vertical-align: middle;
-    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
-    mask: url('../icons/switch_account.svg') no-repeat center / contain;
-    background-color: currentColor; 
-    background-image: none !important;
-    content: "";
-    transform: scaleX(var(--filroden-dir-flip));
 }
 
 .visage .visage-chip,
@@ -1044,30 +1048,33 @@
    5. Actor Sheet Header Icon
    ========================================================================== */
 
-.visage-icon-mask {
+.visage-icon-mask,
+.visage-icon-domino {
     display: inline-block;
-    width: 1em;
-    height: 1em;
+    width: var(--filroden-font-size-m);
+    height: var(--filroden-font-size-m);
+    background-color: currentColor;
+    background-image: none !important;
+    margin-inline-end: var(--filroden-space-xs);
+    vertical-align: middle;
+    content: "";
+    transform: scaleX(var(--filroden-dir-flip));
+}
+
+.visage-icon-mask {
     -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
     mask: url('../icons/switch_account.svg') no-repeat center / contain;
-    background-color: currentColor;
 }
 
 .visage-icon-domino {
-    display: inline-block;
-    width: 1em;
-    height: 1em;
     -webkit-mask: url('../icons/domino_mask.svg') no-repeat center / contain;
     mask: url('../icons/domino_mask.svg') no-repeat center / contain;
-    background-color: currentColor;
 }
 
 .context-items .visage-icon-mask {
     height: 1.25em;
     width: 1.25em;
-    vertical-align: middle;
     align-self: center;
-    background-color: currentColor;
     position: relative;
     top: -1px;
 }
