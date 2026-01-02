@@ -9,6 +9,7 @@ import { VisageData } from "./src/visage-data.js";
 import { VisageEditor } from "./src/visage-editor.js"; 
 import { VisageGallery } from "./src/visage-gallery.js"; 
 import { handleTokenHUD } from "./src/visage-hud.js";
+import { handleGhostEdit } from "./src/visage-ghost.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./src/visage-cleanup.js";
 import { migrateWorldData } from "./src/visage-migration.js";
 import { VisageComposer } from "./src/visage-composer.js";
@@ -281,6 +282,8 @@ Hooks.on("closeApplication", (app) => {
         if (appId && Visage.apps[appId]) delete Visage.apps[appId];
     }
 });
+
+Hooks.on("renderTokenConfig", handleGhostEdit);
 
 Hooks.on("renderTokenHUD", handleTokenHUD);
 

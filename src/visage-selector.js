@@ -4,14 +4,15 @@
  */
 
 import { Visage } from "./visage.js";
-import { VisageGallery } from "./visage-gallery.js"; // CHANGED: Renamed Import
+import { VisageGallery } from "./visage-gallery.js"; 
 import { VisageComposer } from "./visage-composer.js";
-import { VisageData } from "./visage-data.js"; // CHANGED: Unified Data
+import { VisageData } from "./visage-data.js"; 
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     
+    // ... [Constructor and Defaults remain unchanged] ...
     constructor(options = {}) {
         super(options);
         this.actorId = options.actorId;
@@ -25,8 +26,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             [1]:  { name: game.i18n.localize("VISAGE.Disposition.Friendly"), class: "friendly" }
         };
     }
-
-    /** @override */
+    
     static DEFAULT_OPTIONS = {
         tag: "div",
         id: "visage-selector",
@@ -40,8 +40,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             removeLayer: VisageSelector.prototype._onRemoveLayer
         }
     };
-
-    /** @override */
+    
     static PARTS = {
         form: {
             template: "modules/visage/templates/visage-selector.hbs",
@@ -49,10 +48,22 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
+    /**
+     * "Remove All Masks"
+     * Logic: Preserves the active Visage (Identity) but strips all other effects.
+     */
     async _onRevertGlobal(event, target) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token) return;
-        await VisageComposer.compose(token, []);
+
+        const ns = Visage.DATA_NAMESPACE;
+        const currentFormKey = token.actor.getFlag(ns, `${this.tokenId}.currentFormKey`) || "default";
+        const currentStack = token.document.getFlag(ns, "activeStack") || [];
+
+        // Filter stack: Keep ONLY the layer that matches the current Identity.
+        const newStack = currentStack.filter(layer => layer.id === currentFormKey);
+
+        await VisageComposer.compose(token, newStack);
     }
 
     async _prepareContext(options) {
@@ -68,6 +79,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
         const forms = {};
 
+        // ... [Standard Smart Data / Defaults Prep] ...
         const defScaleRaw = defaults.scale ?? 1.0;
         const defScale = Math.abs(defScaleRaw);
         const defFlipX = defaults.isFlippedX ?? (defScaleRaw < 0);
@@ -86,7 +98,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             const showDataChip = (scaleLabel !== "") || (sizeLabel !== "");
             return { scaleLabel, sizeLabel, showFlipBadge, showDataChip };
         };
-        
+
         // --- 2. Prepare "Default" Visage ---
         {
             const defaultPath = defaults.token || "";
@@ -122,9 +134,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasInvisibility: ringCtx.hasInvisibility
             };
         }
-        
-        // --- 3. Process Alternate Visages (USE UNIFIED DATA) ---
-        // Visage.getVisages now delegates to VisageData.getLocal
+
+        // --- 3. Process Alternate Visages ---
         const normalizedData = VisageData.getLocal(actor).filter(v => !v.deleted);
 
         for (const data of normalizedData) {
@@ -189,7 +200,11 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const flags = token.document.flags[Visage.MODULE_ID] || {};
         const activeStack = flags.activeStack || flags.stack || [];
         
-        const stackDisplay = activeStack.map(layer => {
+        // FIX: VISUAL FILTER ONLY
+        // We filter out the Identity layer (matching currentFormKey) from the UI list.
+        const visibleStack = activeStack.filter(layer => layer.id !== currentFormKey);
+
+        const stackDisplay = visibleStack.map(layer => {
             const img = layer.changes.img || layer.changes.texture?.src || "icons/svg/aura.svg";
             return {
                 id: layer.id,
@@ -204,7 +219,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             hasGlobalOverride: stackDisplay.length > 0 
         };
     }
-    
+
+    // ... [Actions and Render Logic remain unchanged] ...
     async _onSelectVisage(event, target) {
         const formKey = target.dataset.formKey;
         if (formKey) {
@@ -215,7 +231,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onOpenConfig(event, target) {
         const appId = `visage-gallery-${this.actorId}-${this.tokenId}`;
-        
         if (Visage.apps[appId]) {
             Visage.apps[appId].bringToTop();
         } else {
@@ -234,6 +249,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token) return;
 
+        // Standard removal (the identity layer is hidden so we can't accidentally remove it here)
         const currentStack = token.document.getFlag(Visage.MODULE_ID, "activeStack") || [];
         const newStack = currentStack.filter(layer => layer.id !== layerId);
 
@@ -270,12 +286,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             if (root.contains(ev.target)) return;
             const hudBtn = document.querySelector('.visage-button');
             if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
-            
-            // Updated class name selectors for new apps
             const dirApp = ev.target.closest('.visage-gallery');
             const editorApp = ev.target.closest('.visage-editor');
             if (dirApp || editorApp) return;
-            
             this.close();
         };
         document.addEventListener('pointerdown', this._onDocPointerDown, true);

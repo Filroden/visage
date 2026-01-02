@@ -46,16 +46,14 @@
                                 {{> "modules/visage/templates/parts/visage-preview.hbs" 
                                     resolvedPath=preview.img 
                                     name=preview.name
-                                    isVideo=preview.isVideo
-                                    
+                                    isVideo=preview.isVideo                                    
                                     hasRing=preview.hasRing 
                                     hasInvisibility=preview.hasInvisibility
                                     hasPulse=preview.hasPulse
                                     hasGradient=preview.hasGradient
                                     hasWave=preview.hasWave
                                     ringColor=preview.ringColor
-                                    ringBkg=preview.ringBkg
-                                    
+                                    ringBkg=preview.ringBkg                                    
                                     forceFlipX=preview.flipX
                                     forceFlipY=preview.flipY
                                 }}
@@ -253,9 +251,16 @@
     </div>
 
     <footer class="visage-config-footer">
+        {{!-- Reset Button (Local Only, Bottom Left) --}}
+        {{#if isLocal}}
+        <button type="button" class="visage-reset-btn" data-action="resetSettings" data-tooltip="{{localize 'VISAGE.GlobalEditor.ResetTooltip'}}">
+            <i class="fas fa-undo"></i> {{localize "VISAGE.GlobalEditor.Reset"}}
+        </button>
+        {{/if}}
+
         <button type="submit" class="visage-save {{#if isDirty}}dirty{{/if}}" data-action="save">
             <i class="fas fa-save"></i> 
-            {{!-- ADDED: Dynamic Button Label --}}
+            {{!-- Dynamic Button Label --}}
             {{#if isLocal}}
                 {{localize "VISAGE.GlobalEditor.Save.Local"}}
             {{else}}

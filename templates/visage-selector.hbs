@@ -1,5 +1,6 @@
 <div class="window-content">
     <div class="visage-selector-header">
+        <img src="modules/visage/icons/switch_account.svg" class="visage-icon-mask" style="width: 1.25rem; height: 1.25rem; margin-inline-end: 0.5rem; background-color: var(--visage-color-text-main-solid);" />
         <h3 class="visage-title">{{localize "VISAGE.Selector.Title"}}</h3>
         <button type="button" class="visage-config-button" data-tooltip="{{localize 'VISAGE.Selector.Configure'}}" data-action="openConfig">
             <img src="modules/visage/icons/settings.svg" alt="Settings"/>
@@ -8,7 +9,7 @@
 
     {{!-- Global Stack List --}}
     {{#if activeStack.length}}
-    <div class="visage-stack-list">
+    <div class="visage-stack-list visage-theme-global">
         <div class="stack-header">{{localize "VISAGE.Selector.ActiveEffects"}}</div>
         <ul>
             {{#each activeStack}}

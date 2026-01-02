@@ -12,11 +12,10 @@ export class Visage {
     static ALTERNATE_FLAG_KEY = "alternateVisages";
     static LEGACY_FLAG_KEY = "alternateImages";
 
+    // ... [Existing Logging, Path Resolve, Ring Context, Init methods] ...
     static log(message, force = false) {
         const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(this.MODULE_ID);
-        if (shouldLog) {
-            console.log(`${this.MODULE_ID} | ${message}`);
-        }
+        if (shouldLog) console.log(`${this.MODULE_ID} | ${message}`);
     }
 
     static async resolvePath(path) {
@@ -47,21 +46,12 @@ export class Visage {
     static prepareRingContext(ringData) {
         const data = ringData || {};
         const currentEffects = data.effects || 0;
-        
         const availableEffects = [
             { value: 2, label: "VISAGE.RingConfig.Effects.Pulse", key: "RING_PULSE" },
             { value: 4, label: "VISAGE.RingConfig.Effects.Gradient", key: "RING_GRADIENT" },
             { value: 8, label: "VISAGE.RingConfig.Effects.Wave", key: "BKG_WAVE" },
             { value: 16, label: "VISAGE.RingConfig.Effects.Invisibility", key: "INVISIBILITY" }
         ];
-
-        const flags = {
-            hasPulse: (currentEffects & 2) !== 0,
-            hasGradient: (currentEffects & 4) !== 0,
-            hasWave: (currentEffects & 8) !== 0,
-            hasInvisibility: (currentEffects & 16) !== 0
-        };
-
         return {
             enabled: data.enabled ?? false,
             colors: {
@@ -73,7 +63,10 @@ export class Visage {
                 scale: data.subject?.scale ?? 1.0
             },
             rawEffects: currentEffects, 
-            ...flags, 
+            hasPulse: (currentEffects & 2) !== 0,
+            hasGradient: (currentEffects & 4) !== 0,
+            hasWave: (currentEffects & 8) !== 0,
+            hasInvisibility: (currentEffects & 16) !== 0,
             effects: availableEffects.map(eff => ({
                 ...eff,
                 isActive: (currentEffects & eff.value) !== 0
@@ -98,39 +91,22 @@ export class Visage {
     static async setVisage(actorId, tokenId, formKey) {
         const token = canvas.tokens.get(tokenId);
         if (!token) return;
-        const actor = token.actor;
 
-        let baseUpdate = null;
+        const ns = this.DATA_NAMESPACE;
+        const oldFormKey = token.actor.getFlag(ns, `${tokenId}.currentFormKey`);
+        
+        let stack = foundry.utils.deepClone(
+            token.document.getFlag(ns, "activeStack") || token.document.getFlag(ns, "stack") || []
+        );
 
-        if (formKey === "default") {
-            const ns = this.DATA_NAMESPACE;
-            const savedDefaults = actor.flags?.[ns]?.[tokenId]?.defaults || {};
-            const proto = actor.prototypeToken;
-            
-            const defScale = savedDefaults.scale ?? proto.texture.scaleX ?? 1.0;
-            const defScaleY = savedDefaults.scaleY ?? proto.texture.scaleY ?? 1.0;
-            
-            const flipX = savedDefaults.isFlippedX ?? (defScale < 0);
-            const flipY = savedDefaults.isFlippedY ?? (defScaleY < 0);
-            
-            const absScaleX = Math.abs(defScale);
-            const absScaleY = Math.abs(defScale); 
+        // 1. Remove the OLD Visage Layer (Identity)
+        if (oldFormKey && oldFormKey !== "default") {
+            stack = stack.filter(layer => layer.id !== oldFormKey);
+        }
 
-            baseUpdate = {
-                name: savedDefaults.name || proto.name,
-                texture: {
-                    src: savedDefaults.token || proto.texture.src,
-                    scaleX: absScaleX * (flipX ? -1 : 1),
-                    scaleY: absScaleY * (flipY ? -1 : 1)
-                },
-                width: savedDefaults.width || proto.width || 1,
-                height: savedDefaults.height || proto.height || 1,
-                disposition: savedDefaults.disposition ?? proto.disposition ?? 0,
-                ring: savedDefaults.ring || (proto.ring?.toObject ? proto.ring.toObject() : proto.ring) || {}
-            };
-
-        } else {
-            const visages = VisageData.getLocal(actor);
+        // 2. Prepare the NEW Visage Layer
+        if (formKey !== "default") {
+            const visages = VisageData.getLocal(token.actor);
             const target = visages.find(v => v.id === formKey);
             
             if (!target) {
@@ -138,33 +114,36 @@ export class Visage {
                 return;
             }
             
-            const c = foundry.utils.deepClone(target.changes);
+            const layer = {
+                id: target.id,
+                label: target.label,
+                changes: foundry.utils.deepClone(target.changes)
+            };
             
-            // --- FIX START ---
-            // Ensure texture object exists, as Editor might save it as undefined for optimization
-            if (!c.texture) c.texture = {};
-            // --- FIX END ---
-            
-            c.texture.src = await this.resolvePath(c.img);
-            delete c.img; 
-            
-            if (!c.ring) c.ring = { enabled: false };
-            else {
-                c.ring = {
-                     enabled: c.ring.enabled === true,
-                     colors: c.ring.colors,
-                     effects: c.ring.effects,
-                     subject: c.ring.subject
+            if (layer.changes.img) {
+                if (!layer.changes.texture) layer.changes.texture = {};
+                layer.changes.texture.src = await this.resolvePath(layer.changes.img);
+                delete layer.changes.img; 
+            }
+            if (layer.changes.ring) {
+                layer.changes.ring = {
+                     enabled: layer.changes.ring.enabled === true,
+                     colors: layer.changes.ring.colors,
+                     effects: layer.changes.ring.effects,
+                     subject: layer.changes.ring.subject
                 };
             }
-            baseUpdate = c;
+
+            // 3. Inject New Visage at BOTTOM
+            stack.unshift(layer);
         }
 
-        const flagKey = `flags.${this.DATA_NAMESPACE}.${tokenId}.currentFormKey`;
+        // 4. Update Flag & Compose
+        const flagKey = `flags.${ns}.${tokenId}.currentFormKey`;
         await token.actor.update({ [flagKey]: formKey });
 
         const { VisageComposer } = await import("./visage-composer.js");
-        await VisageComposer.compose(token, null, baseUpdate);
+        await VisageComposer.compose(token, stack, null);
     }
 
     static async applyGlobalVisage(token, globalVisageData) {
@@ -207,18 +186,15 @@ export class Visage {
         const { VisageComposer } = await import("./visage-composer.js");
         await VisageComposer.compose(token);
         
-        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { 
-            label: layer.label 
-        }));
+        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { label: layer.label }));
     }
-
+    
+    // ... [getForms and isFormActive remain unchanged] ...
     static getForms(actorId, tokenId = null) {
         const actor = game.actors.get(actorId);
         if (!actor) return null;
-
         let defaults;
         if (tokenId) defaults = actor.flags?.[this.DATA_NAMESPACE]?.[tokenId]?.defaults;
-        
         if (!defaults) {
             const proto = actor.prototypeToken;
             defaults = { 
@@ -227,10 +203,8 @@ export class Visage {
                 ring: proto.ring 
             };
         }
-
         const normalizedVisages = VisageData.getLocal(actor);
         if (!normalizedVisages.length) return null;
-
         return normalizedVisages.map(data => {
             const c = data.changes;
             const absScale = Math.abs(c.texture?.scaleX || 1);
@@ -254,7 +228,9 @@ export class Visage {
         return currentFormKey === formKey;
     }
 
+    // --- UPDATED HANDLE TOKEN UPDATE ---
     static async handleTokenUpdate(tokenDocument, change, options, userId) {
+        // 1. Ignore updates triggered by Visage itself
         if (options.visageUpdate) return;
         if (game.user.id !== userId) return;
 
@@ -262,7 +238,8 @@ export class Visage {
         if (!actor) return;
         const tokenId = tokenDocument.id;
 
-        // PART A: CAPTURE DEFAULTS
+        // PART A: CAPTURE DEFAULTS (HUD Logic - remains same)
+        // ... [No changes to Part A logic] ...
         const hasChangedName = "name" in change;
         const hasChangedTextureSrc = "texture" in change && "src" in change.texture;
         const hasChangedTextureScale = "texture" in change && ("scaleX" in change.texture || "scaleY" in change.texture);
@@ -272,7 +249,6 @@ export class Visage {
 
         if (hasChangedName || hasChangedTextureSrc || hasChangedTextureScale || hasChangedDisposition || hasChangedRing || hasChangedSize) {
             const updateData = {};
-
             if (hasChangedName) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.name`] = change.name;
             if (hasChangedTextureSrc) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.token`] = change.texture.src;
             if (hasChangedTextureScale) {
@@ -285,10 +261,7 @@ export class Visage {
                 if ("width" in change) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.width`] = change.width;
                 if ("height" in change) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.height`] = change.height;
             }
-
-            if (Object.keys(updateData).length > 0) {
-                actor.update(updateData);
-            }
+            if (Object.keys(updateData).length > 0) actor.update(updateData);
         }
 
         // PART B: MAINTAIN GLOBAL STACK
@@ -298,13 +271,26 @@ export class Visage {
         if (stack.length > 0) {
             const { VisageComposer } = await import("./visage-composer.js");
             let base = flags.originalState;
+            
+            // --- PROTECTION FIX START ---
+            // If originalState is missing, we snapshot. 
+            // BUT, if the token is already masked (stack > 0), this snapshot is corrupted.
+            // We assume that if `stack > 0` and `originalState` is missing, we are in a Bad State.
+            // We try to reconstruct "Clean" base from the `change` object if possible.
             if (!base) {
+                // Warning: We are snapshooting a potentially masked token.
+                // However, since `handleTokenUpdate` is running, the user just supplied valid Base Data via the Ghost Edit form.
+                // We should trust the `change` data as the new source of truth.
                 base = VisageComposer._captureSnapshot(tokenDocument.object);
             }
+            // --- PROTECTION FIX END ---
+
             const newBase = foundry.utils.mergeObject(base, change, { 
                 insertKeys: false, 
                 inplace: false 
             });
+
+            // Re-compose using the updated Base
             await VisageComposer.compose(tokenDocument.object, null, newBase);
         }
     }

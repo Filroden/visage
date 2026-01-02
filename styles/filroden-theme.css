@@ -65,16 +65,16 @@
     --filroden-color2-text-placeholder-solid: hsl(var(--filroden-hue2), 15%, 50%);
 
     /** The main accent colour, used for buttons, links, and highlights. */
-    --filroden-color-text-accent: hsl(var(--filroden-hue1), 50%, 55%);
+    --filroden-color-text-accent: hsl(var(--filroden-hue1), 50%, 50%);
     --filroden-color-text-accent-rgb: 198, 175, 83;
 
-    --filroden-color2-text-accent: hsl(var(--filroden-hue2), 50%, 45%);
+    --filroden-color2-text-accent: hsl(var(--filroden-hue2), 50%, 50%);
     --filroden-color2-text-accent-rgb: 57, 124, 172;
     
     /** A brighter version of the accent colour, used for hover states. */
-    --filroden-color-text-accent-hover: hsl(var(--filroden-hue1), 50%, 65%);
+    --filroden-color-text-accent-hover: hsl(var(--filroden-hue1), 50%, 60%);
 
-    --filroden-color2-text-accent-hover: hsl(var(--filroden-hue2), 50%, 55%);
+    --filroden-color2-text-accent-hover: hsl(var(--filroden-hue2), 50%, 60%);
     
     /** The colour of text placed on top of an accent-coloured background. */
     --filroden-color-text-on-accent: hsl(var(--filroden-hue1), 15%, 10%);

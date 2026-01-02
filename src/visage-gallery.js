@@ -18,6 +18,14 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         this.tokenId = options.tokenId || null;
         this.sceneId = options.sceneId || null;
         
+        // Local = Visage icon
+        // Global = Mask icon
+        if (!this.isLocal) {
+            this.options.window.icon = "visage-icon-domino";
+        } else {
+            this.options.window.icon = "visage-header-icon";
+        }
+        
         this.filters = {
             search: "",
             category: null,
@@ -65,13 +73,10 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         classes: ["visage", "visage-gallery", "visage-dark-theme"],
         window: {
             title: "VISAGE.Directory.Title.Global", 
-            icon: "visage-icon-mask",
+            icon: "visage-icon-mask", // Default (Local) Icon
             resizable: true,
         },
-        position: { 
-            width: 1250, 
-            height: 700 
-        },
+        position: { width: 1250, height: 700 },
         actions: {
             create: VisageGallery.prototype._onCreate,
             edit: VisageGallery.prototype._onEdit,
@@ -103,8 +108,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /** @override */
     async _prepareContext(options) {
+        // ... [Existing Logic until preparedItems map] ...
+        // (Assuming standard item fetching logic remains same)
         let rawItems = [];
-
         if (this.isLocal) {
             if (!this.actor) return { items: [] };
             rawItems = VisageData.getLocal(this.actor);
@@ -116,14 +122,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this.isLocal) {
             source = rawItems.filter(v => this.filters.showBin ? v.deleted : !v.deleted);
         }
-
-        // --- ADD DEFAULT ENTRY (Local Only) ---
+        
+        // [Add Default Logic - Included in original file, keeping brevity here]
         if (this.isLocal && !this.filters.showBin && this.actor) {
-            const ns = Visage.DATA_NAMESPACE;
-            // Get saved default flags or fallback to prototype
-            let defaults = this.actor.flags?.[ns]?.[this.tokenId]?.defaults;
-            
-            if (!defaults) {
+             const ns = Visage.DATA_NAMESPACE;
+             let defaults = this.actor.flags?.[ns]?.[this.tokenId]?.defaults;
+             if (!defaults) {
                 const proto = this.actor.prototypeToken;
                 defaults = { 
                     name: proto.name, 
@@ -131,47 +135,39 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                     scale: proto.texture.scaleX,
                     ring: proto.ring ? (proto.ring.toObject ? proto.ring.toObject() : proto.ring) : null
                 };
-            }
-
-            // Normalize "Saved Default" format to "Unified Visage" format
-            const rawScale = defaults.scale ?? 1.0;
-            const scale = Math.abs(rawScale);
-            const isFlippedX = defaults.isFlippedX ?? (rawScale < 0);
-            
-            const defaultEntry = {
+             }
+             // ... normalization ...
+             const rawScale = defaults.scale ?? 1.0;
+             const scale = Math.abs(rawScale);
+             const isFlippedX = defaults.isFlippedX ?? (rawScale < 0);
+             
+             source.unshift({
                 id: "default",
                 label: game.i18n.localize("VISAGE.Selector.Default"),
                 category: "",
                 tags: [],
-                isDefault: true, // Flag for template to hide actions
+                isDefault: true,
                 changes: {
                     name: defaults.name,
                     img: defaults.token,
-                    texture: {
-                        scaleX: scale * (isFlippedX ? -1 : 1),
-                        scaleY: scale // Simplified
-                    },
+                    texture: { scaleX: scale * (isFlippedX ? -1 : 1), scaleY: scale },
                     disposition: defaults.disposition,
                     ring: defaults.ring,
                     width: defaults.width,
                     height: defaults.height
                 }
-            };
-            
-            // Add to start of list
-            source.unshift(defaultEntry);
+             });
         }
 
+        // [Categories & Tags Logic - Keep existing]
         const categories = new Set();
         const tagCounts = {}; 
-
         source.forEach(v => {
             if (v.category) categories.add(v.category);
             if (v.tags && Array.isArray(v.tags)) {
                 v.tags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; });
             }
         });
-
         const activeTags = Array.from(this.filters.tags).sort().map(t => ({ label: t, active: true }));
         const popularTags = Object.entries(tagCounts)
             .sort((a, b) => b[1] - a[1])
@@ -179,7 +175,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             .map(([tag, count]) => ({ label: tag, count }))
             .filter(t => !this.filters.tags.has(t.label)) 
             .map(t => ({ label: t.label, active: false, count: t.count }));
-
         const categoryList = Array.from(categories).sort().map(c => ({
             label: c,
             active: this.filters.category === c
@@ -187,16 +182,10 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         let items = source.filter(entry => {
             if (this.filters.category && entry.category !== this.filters.category) return false;
-            
             if (this.filters.search) {
                 const term = this.filters.search.toLowerCase();
-                const matchesSearch = (
-                    entry.label.toLowerCase().includes(term) ||
-                    (entry.tags && entry.tags.some(t => t.toLowerCase().includes(term)))
-                );
-                if (!matchesSearch) return false;
+                if (!(entry.label.toLowerCase().includes(term) || (entry.tags && entry.tags.some(t => t.toLowerCase().includes(term))))) return false;
             }
-
             if (this.filters.tags.size > 0) {
                 const entryTags = entry.tags || [];
                 if (!Array.from(this.filters.tags).every(t => entryTags.includes(t))) return false;
@@ -204,7 +193,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             return true;
         });
 
-        // Sort: Default first, then alphabetical
         items.sort((a, b) => {
             if (a.id === "default") return -1;
             if (b.id === "default") return 1;
@@ -214,7 +202,13 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         const preparedItems = await Promise.all(items.map(async (entry) => {
             const c = entry.changes;
             const resolvedImg = await Visage.resolvePath(c.img);
+            
+            // --- BATCH 1 FIX (Video) ---
             const isVideo = foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedImg);
+            
+            // --- BATCH 2 FIX (Wildcard) ---
+            const isWildcard = (c.img && c.img.includes('*'));
+
             const ringCtx = Visage.prepareRingContext(c.ring);
             
             const tx = c.texture || {};
@@ -252,7 +246,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             }
             
             let dispClass = "none";
-            let dispLabel = game.i18n.localize("VISAGE.Disposition.NoChange");
+            // BATCH 2: Uses new simplified Label from en.json
+            let dispLabel = game.i18n.localize("VISAGE.Disposition.NoChange"); 
+            
             if (c.disposition !== null && c.disposition !== undefined) {
                 switch (c.disposition) {
                     case 1: dispClass = "friendly"; dispLabel = game.i18n.localize("VISAGE.Disposition.Friendly"); break;
@@ -287,6 +283,11 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                         scale: { active: scaleActive, val: `${scaleVal}%` },
                         dim: { active: dimActive, val: dimLabel },
                         flip: { active: flipActive, icon: flipIcon, val: flipLabel },
+                        // BATCH 2: New Wildcard Slot
+                        wildcard: { 
+                            active: isWildcard, 
+                            val: isWildcard ? "Active" : "-" 
+                        },
                         disposition: { class: dispClass, val: dispLabel }
                     }
                 }
@@ -314,7 +315,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             modeLabel: modeLabel
         };
     }
-
+    
+    // ... [Rest of file: event handlers _onToggleTag, _onRender, etc.] ...
     _onToggleTag(event, target) {
         const tag = target.dataset.tag;
         if (this.filters.tags.has(tag)) this.filters.tags.delete(tag);

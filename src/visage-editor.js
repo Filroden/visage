@@ -15,6 +15,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.actorId = options.actorId || null;
         this.tokenId = options.tokenId || null;
         this.isDirty = false;
+
+        // Local = Visage icon
+        // Global = Mask icon
+        if (!this.isLocal) {
+            this.options.window.icon = "visage-icon-domino";
+        } else {
+            this.options.window.icon = "visage-header-icon";
+        }
     }
 
     get isLocal() { return !!this.actorId; }
@@ -37,7 +45,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         classes: ["visage", "visage-editor", "visage-dark-theme"],
         window: {
             title: "VISAGE.GlobalEditor.TitleNew.Global",
-            icon: "visage-header-icon",
+            icon: "visage-icon-mask", // Default (Local) Icon
             resizable: true,
             minimizable: true,
             contentClasses: ["standard-form"]
@@ -46,7 +54,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         actions: {
             save: VisageEditor.prototype._onSave,
             toggleField: VisageEditor.prototype._onToggleField,
-            openFilePicker: VisageEditor.prototype._onOpenFilePicker
+            openFilePicker: VisageEditor.prototype._onOpenFilePicker,
+            resetSettings: VisageEditor.prototype._onResetSettings
         }
     };
 
@@ -559,6 +568,29 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         container.addEventListener("click", (e) => {
             if(e.target === container || e.target === pillsDiv) input.focus();
         });
+    }
+
+    _onResetSettings(event, target) {
+        // 1. Uncheck all "_active" checkboxes
+        const checkboxes = this.element.querySelectorAll('input[type="checkbox"][name$="_active"]');
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+            this._onToggleField(null, cb); // Trigger visual disable
+        });
+
+        // 2. Disable Ring
+        const ringCheck = this.element.querySelector('input[name="ring.enabled"]');
+        if (ringCheck) ringCheck.checked = false;
+
+        // 3. Reset Selects (Mirroring/Disposition) to empty ("Unchanged")
+        const selects = this.element.querySelectorAll('select');
+        selects.forEach(s => s.value = "");
+
+        // 4. Update UI
+        this._markDirty();
+        this._updatePreview();
+        
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.SettingsReset"));
     }
 
     async _onSave(event, target) {

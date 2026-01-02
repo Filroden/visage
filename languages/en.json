@@ -4,8 +4,8 @@
 
     "VISAGE.Selector.Title": "Visage Selector",
     "VISAGE.Selector.Configure": "Open Gallery",
-    "VISAGE.Selector.ActiveEffects": "Active Effects",
-    "VISAGE.Selector.ClearAll": "Remove All Effects",
+    "VISAGE.Selector.ActiveEffects": "Active Masks",
+    "VISAGE.Selector.ClearAll": "Remove All Masks",
     "VISAGE.Selector.Active": "Active Visage",
     "VISAGE.Selector.Default": "Default Visage",
     "VISAGE.Selector.Flipped": "Flipped Image",
@@ -21,6 +21,9 @@
     "VISAGE.Notifications.Saved": "Changes saved successfully.",
     "VISAGE.Notifications.SaveFailed": "Failed to save Visage data.",
     "VISAGE.Notifications.NoTokens": "No tokens selected to apply mask to.",
+    "VISAGE.Notifications.SettingsReset": "All settings reset to default.",
+
+    "VISAGE.Warnings.GhostEdit": "Token Configuration: A Visage is currently active on this token. Changes made here will modify the default Token, not the Visage.",
 
     "VISAGE.Directory.Title.Global": "Mask Library",
     "VISAGE.Directory.Title.Local": "Visage Gallery: {actor}",
@@ -46,6 +49,7 @@
     "VISAGE.Directory.Tooltip.Scale": "Scale",
     "VISAGE.Directory.Tooltip.Dimensions": "Dimensions (Grid Units)",
     "VISAGE.Directory.Tooltip.Orientation": "Orientation / Mirroring",
+    "VISAGE.Directory.Tooltip.Wildcard": "Wildcard Image",
     "VISAGE.Directory.Tooltip.Activate": "Activate Visage",
     "VISAGE.Directory.Tooltip.Apply": "Apply Mask to Selection",
     "VISAGE.Directory.Tooltip.Edit": "Edit Entry",
@@ -81,6 +85,8 @@
     "VISAGE.GlobalEditor.Mirroring": "Mirroring",
     "VISAGE.GlobalEditor.MirrorHint": "Flip the texture horizontally or vertically.",
     "VISAGE.GlobalEditor.RingEnable": "Enable Dynamic Ring",
+    "VISAGE.GlobalEditor.Reset": "Reset Settings",
+    "VISAGE.GlobalEditor.ResetTooltip": "Uncheck all overrides and revert to base token appearance.",
 
     "VISAGE.Config.Placeholder.Path": "Image or Video Path...",
     "VISAGE.Config.List.Scale": "Scale (%)",
@@ -101,7 +107,7 @@
     "VISAGE.Disposition.Neutral": "Neutral",
     "VISAGE.Disposition.Hostile": "Hostile",
     "VISAGE.Disposition.Secret": "Secret",
-    "VISAGE.Disposition.NoChange": "Disposition: Unchanged",
+    "VISAGE.Disposition.NoChange": "Unchanged",
 
     "VISAGE.RingConfig.RingColor": "Ring Color",
     "VISAGE.RingConfig.BackgroundColor": "Background Color",
