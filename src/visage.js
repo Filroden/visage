@@ -4,7 +4,7 @@
  */
 
 import { VisageComposer } from "./visage-composer.js";
-import { VisageData } from "./visage-data.js"; // CHANGED: Renamed
+import { VisageData } from "./visage-data.js"; 
 
 export class Visage {
     static MODULE_ID = "visage";
@@ -85,16 +85,12 @@ export class Visage {
         this.log("Initializing Visage");
         game.modules.get(this.MODULE_ID).api = {
             setVisage: this.setVisage.bind(this),
-            getForms: this.getForms.bind(this), // Maintained for backward compatibility
+            getForms: this.getForms.bind(this), 
             isFormActive: this.isFormActive.bind(this),
             resolvePath: this.resolvePath.bind(this)
         };
     }
 
-    /**
-     * Retrieves normalized visage data. 
-     * Delegates to VisageData.getLocal for the actual logic.
-     */
     static getVisages(actor) {
         return VisageData.getLocal(actor);
     }
@@ -143,6 +139,12 @@ export class Visage {
             }
             
             const c = foundry.utils.deepClone(target.changes);
+            
+            // --- FIX START ---
+            // Ensure texture object exists, as Editor might save it as undefined for optimization
+            if (!c.texture) c.texture = {};
+            // --- FIX END ---
+            
             c.texture.src = await this.resolvePath(c.img);
             delete c.img; 
             

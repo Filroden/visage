@@ -1,24 +1,27 @@
-{{!-- Defaults to "visage-preview-content" if no wrapperClass is provided --}}
+{{!-- modules/visage/templates/parts/visage-preview.hbs --}}
 <div class="{{#if wrapperClass}}{{wrapperClass}}{{else}}visage-preview-content{{/if}} {{#if hasInvisibility}}invisible{{/if}}">
     
-    {{!-- LAYER 1: RING (Top) --}}
-    {{#if hasRing}}
-        <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}" 
-             style="--ring-color: {{ringColor}}; --ring-bkg: {{ringBkg}};">
-             <div class="ring-band outer"></div>
-             <div class="ring-band inner"></div>
-        </div>
-    {{/if}}
+    {{!-- LAYER 1: RING --}}
+    <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}" 
+         style="display: {{#if hasRing}}block{{else}}none{{/if}}; --ring-color: {{ringColor}}; --ring-bkg: {{ringBkg}};">
+         <div class="ring-band outer"></div>
+         <div class="ring-band inner"></div>
+    </div>
 
-    {{!-- LAYER 2: IMAGE/VIDEO (Bottom) --}}
-    {{#if isVideo}}
-        <video class="{{#if hasRing}}circular{{/if}}" src="{{resolvedPath}}" autoplay loop muted playsinline></video>
-    {{else}}
-        {{#if resolvedPath}}
-            <img class="{{#if hasRing}}circular{{/if}}" src="{{resolvedPath}}" alt="{{name}}"
-                 style="transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"/>
-        {{else}}
-            <i class="visage-icon-mask fallback-icon"></i>
-        {{/if}}
-    {{/if}}
+    {{!-- LAYER 2: MEDIA --}}
+    {{!-- We render ALL elements so the Editor JS can toggle them dynamically --}}
+    
+    <video class="visage-preview-video {{#if hasRing}}circular{{/if}}" 
+           src="{{#if isVideo}}{{resolvedPath}}{{/if}}" 
+           autoplay loop muted playsinline
+           style="display: {{#if isVideo}}block{{else}}none{{/if}}; transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"></video>
+
+    <img class="visage-preview-img {{#if hasRing}}circular{{/if}}" 
+         src="{{#unless isVideo}}{{resolvedPath}}{{/unless}}" 
+         alt="{{name}}"
+         style="display: {{#if (and resolvedPath (not isVideo))}}block{{else}}none{{/if}}; transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"/>
+
+    <i class="visage-icon-mask fallback-icon" 
+       style="display: {{#if resolvedPath}}none{{else}}block{{/if}};"></i>
+
 </div>

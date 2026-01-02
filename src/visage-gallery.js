@@ -214,6 +214,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         const preparedItems = await Promise.all(items.map(async (entry) => {
             const c = entry.changes;
             const resolvedImg = await Visage.resolvePath(c.img);
+            const isVideo = foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedImg);
             const ringCtx = Visage.prepareRingContext(c.ring);
             
             const tx = c.texture || {};
@@ -269,6 +270,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             return {
                 ...entry,
                 changes: { ...entry.changes, img: resolvedImg },
+                isVideo: isVideo,
                 meta: {
                     hasRing: ringCtx.enabled,
                     hasPulse: ringCtx.hasPulse,

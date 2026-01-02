@@ -43,28 +43,22 @@
                         {{!-- ZONE 2: VISUAL PREVIEW (Center) --}}
                         <div class="card-zone-center">
                             <div class="visual-target">
-                                <div class="visage-preview-content">
-                                    {{!-- RING PREVIEW --}}
-                                    <div class="visage-ring-preview {{#if preview.hasPulse}}pulse{{/if}} {{#if preview.hasGradient}}gradient{{/if}} {{#if preview.hasWave}}wave{{/if}}" 
-                                         style="display: {{#if preview.hasRing}}block{{else}}none{{/if}}; --ring-color: {{preview.ringColor}}; --ring-bkg: {{preview.ringBkg}};">
-                                         <div class="ring-band outer"></div>
-                                         <div class="ring-band inner"></div>
-                                    </div>
-
-                                    {{!-- MEDIA PREVIEW --}}
-                                    <video class="visage-preview-video" 
-                                           src="{{#if preview.isVideo}}{{preview.img}}{{/if}}" 
-                                           autoplay loop muted playsinline 
-                                           style="display: {{#if preview.isVideo}}block{{else}}none{{/if}}; transform: scale({{#if preview.flipX}}-1{{else}}1{{/if}}, {{#if preview.flipY}}-1{{else}}1{{/if}});">
-                                    </video>
-
-                                    <img class="visage-preview-img" 
-                                         src="{{#unless preview.isVideo}}{{preview.img}}{{/unless}}" 
-                                         style="display: {{#if (and preview.img (not preview.isVideo))}}block{{else}}none{{/if}}; transform: scale({{#if preview.flipX}}-1{{else}}1{{/if}}, {{#if preview.flipY}}-1{{else}}1{{/if}});">
-
-                                    <i class="visage-icon-mask fallback-icon" 
-                                       style="display: {{#if preview.img}}none{{else}}block{{/if}};"></i>
-                                </div>
+                                {{> "modules/visage/templates/parts/visage-preview.hbs" 
+                                    resolvedPath=preview.img 
+                                    name=preview.name
+                                    isVideo=preview.isVideo
+                                    
+                                    hasRing=preview.hasRing 
+                                    hasInvisibility=preview.hasInvisibility
+                                    hasPulse=preview.hasPulse
+                                    hasGradient=preview.hasGradient
+                                    hasWave=preview.hasWave
+                                    ringColor=preview.ringColor
+                                    ringBkg=preview.ringBkg
+                                    
+                                    forceFlipX=preview.flipX
+                                    forceFlipY=preview.flipY
+                                }}
                             </div>
                             <div class="token-name-label">{{preview.name}}</div>
                         </div>

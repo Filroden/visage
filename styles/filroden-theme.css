@@ -10,88 +10,76 @@
     --filroden-version: 2.0.20260101;
 
     /* ===================================
-        --- Colour Palettes (COLOUR 1: GOLD) ---
+        --- Colour Palettes (HUE 1: GOLD & HUE 2: TEAL) ---
         Defines the core background and UI colours for all components.
     =================================== */
     
+    --filroden-hue1: 48;
+    --filroden-hue2: 205;
+
     /** The darkest background, typically for main windows and content areas. */
-    --filroden-color-bg-darkest: hsl(48, 15%, 10%);
+    --filroden-color-bg-darkest: hsl(var(--filroden-hue1), 15%, 10%);
+
+    --filroden-color2-bg-darkest: hsl(var(--filroden-hue2), 15%, 10%);
     
     /** A medium-dark background, often used for inputs or secondary panels. */
     --filroden-color-bg-medium: hsla(0, 0%, 0%, 0.3);
-    --filroden-color-bg-medium-solid: hsl(48, 15%, 15%);
+    --filroden-color-bg-medium-solid: hsl(var(--filroden-hue1), 15%, 15%);
+
+    --filroden-color2-bg-medium: hsla(0, 0%, 0%, 0.3); /* Neutral tint, kept same */
+    --filroden-color2-bg-medium-solid: hsl(var(--filroden-hue2), 15%, 15%);
     
     /** A light background, used for subtle UI elements or list items. */
     --filroden-color-bg-light: hsla(0, 0%, 100%, 0.1);
-    --filroden-color-bg-light-solid: hsl(48, 15%, 20%);
+    --filroden-color-bg-light-solid: hsl(var(--filroden-hue1), 15%, 20%);
+
+    --filroden-color2-bg-light: hsla(0, 0%, 100%, 0.1);
+    --filroden-color2-bg-light-solid: hsl(var(--filroden-hue2), 15%, 20%);
 
     /** The background colour for interactive elements on hover. */
     --filroden-color-bg-hover: hsla(0, 0%, 100%, 0.2);
-    --filroden-color-bg-hover-solid: hsl(48, 15%, 30%);
+    --filroden-color-bg-hover-solid: hsl(var(--filroden-hue1), 15%, 30%);
+
+    --filroden-color2-bg-hover: hsla(0, 0%, 100%, 0.2);
+    --filroden-color2-bg-hover-solid: hsl(var(--filroden-hue2), 15%, 30%);
     
     /** The primary colour for all body and UI text. */
     --filroden-color-text-main: hsla(0, 0%, 100%, 0.85);
-    --filroden-color-text-main-solid: hsl(48, 15%, 85%);
+    --filroden-color-text-main-solid: hsl(var(--filroden-hue1), 15%, 85%);
+
+    --filroden-color2-text-main: hsla(0, 0%, 100%, 0.85);
+    --filroden-color2-text-main-solid: hsl(var(--filroden-hue2), 15%, 85%);
     
     /** A slightly faded text colour for notes, hints, or disabled elements. */
     --filroden-color-text-muted: hsla(0, 0%, 100%, 0.75);
-    --filroden-color-text-muted-solid: hsl(48, 15%, 75%);
+    --filroden-color-text-muted-solid: hsl(var(--filroden-hue1), 15%, 75%);
+
+    --filroden-color2-text-muted: hsla(0, 0%, 100%, 0.75);
+    --filroden-color2-text-muted-solid: hsl(var(--filroden-hue2), 15%, 75%);
     
     /** Very faint text for placeholders, empty states, or watermark-style labels. */
     --filroden-color-text-placeholder: hsla(0, 0%, 100%, 0.5);
-    --filroden-color-text-placeholder-solid: hsl(48, 15%, 50%);
+    --filroden-color-text-placeholder-solid: hsl(var(--filroden-hue1), 15%, 50%);
 
-    /** The main "gold" accent colour, used for buttons, links, and highlights. */
-    --filroden-color-text-accent: hsl(48, 50%, 50%);
-    --filroden-color-text-accent-rgb: 191, 166, 64;
+    --filroden-color2-text-placeholder: hsla(0, 0%, 100%, 0.5);
+    --filroden-color2-text-placeholder-solid: hsl(var(--filroden-hue2), 15%, 50%);
+
+    /** The main accent colour, used for buttons, links, and highlights. */
+    --filroden-color-text-accent: hsl(var(--filroden-hue1), 50%, 55%);
+    --filroden-color-text-accent-rgb: 198, 175, 83;
+
+    --filroden-color2-text-accent: hsl(var(--filroden-hue2), 50%, 45%);
+    --filroden-color2-text-accent-rgb: 57, 124, 172;
     
     /** A brighter version of the accent colour, used for hover states. */
-    --filroden-color-text-accent-hover: hsl(48, 50%, 60%);
+    --filroden-color-text-accent-hover: hsl(var(--filroden-hue1), 50%, 65%);
+
+    --filroden-color2-text-accent-hover: hsl(var(--filroden-hue2), 50%, 55%);
     
     /** The colour of text placed on top of an accent-coloured background. */
-    --filroden-color-text-on-accent: hsl(48, 15%, 10%);
+    --filroden-color-text-on-accent: hsl(var(--filroden-hue1), 15%, 10%);
 
-    /* ===================================
-        --- Colour Palettes (COLOUR 2: TEAL) ---
-        Defines the core background and UI colours for all components.
-    =================================== */
-
-/** The darkest background. */
-    --filroden-color2-bg-darkest: hsl(205, 15%, 10%);
-    
-    /** A medium-dark background. */
-    --filroden-color2-bg-medium: hsla(0, 0%, 0%, 0.3); /* Neutral tint, kept same */
-    --filroden-color2-bg-medium-solid: hsl(205, 15%, 15%);
-    
-    /** A light background. */
-    --filroden-color2-bg-light: hsla(0, 0%, 100%, 0.1); /* Neutral tint, kept same */
-    --filroden-color2-bg-light-solid: hsl(205, 15%, 20%);
-
-    /** The background colour for interactive elements on hover. */
-    --filroden-color2-bg-hover: hsla(0, 0%, 100%, 0.2); /* Neutral tint, kept same */
-    --filroden-color2-bg-hover-solid: hsl(205, 15%, 30%);
-    
-    /** The primary colour for all body and UI text. */
-    --filroden-color2-text-main: hsla(0, 0%, 100%, 0.85);
-    --filroden-color2-text-main-solid: hsl(205, 15%, 85%);
-    
-    /** A slightly faded text colour. */
-    --filroden-color2-text-muted: hsla(0, 0%, 100%, 0.75);
-    --filroden-color2-text-muted-solid: hsl(205, 15%, 75%);
-    
-    /** Very faint text. */
-    --filroden-color2-text-placeholder: hsla(0, 0%, 100%, 0.5);
-    --filroden-color2-text-placeholder-solid: hsl(205, 15%, 50%);
-
-    /** The main "blue" accent colour. */
-    --filroden-color2-text-accent: hsl(205, 50%, 50%);
-    --filroden-color2-text-accent-rgb: 64, 149, 191;
-    
-    /** A brighter version of the accent colour. */
-    --filroden-color2-text-accent-hover: hsl(205, 50%, 60%);
-    
-    /** The colour of text placed on top of an accent-coloured background. */
-    --filroden-color2-text-on-accent: hsl(205, 15%, 10%);
+    --filroden-color2-text-on-accent: hsl(var(--filroden-hue2), 15%, 10%);
 
 /* ===================================
         --- Unified Colours  ---
@@ -100,17 +88,6 @@
     --filroden-color-success: hsl(130, 50%, 50%);
     --filroden-color-warning: hsl(33, 100%, 50%);
     --filroden-color-danger: hsl(4, 90%, 60%);
-
-/* ===================================
-        --- Semantic Modes (Generic) ---
-        Standardised alternative palettes for dual-mode UIs.
-    =================================== */
-
-    --filroden-color-blue-header: hsl(210, 30%, 12%); 
-    --filroden-color-blue-accent: hsl(195, 90%, 50%);
-    --filroden-color-blue-accent-rgb: 13, 226, 242;
-    --filroden-color-blue-accent-hover: hsl(195, 90%, 65%);
-    --filroden-color-blue-border: hsl(195, 90%, 50%);
 
     /* ===================================
         --- Borders & Radii ---
