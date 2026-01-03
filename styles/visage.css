@@ -4,13 +4,13 @@
  * -----------------
  * 1. Variables & Theme Overrides
  * 2. Shared Styles
- * 3. Application: Visage Selector (HUD)
- * 4. Application: Visage Configuration (Deprecated - Live)
+ * 3. Application: Universal Shell
+ * 4. Application: Visage Selector (HUD)
  * 5. Actor Sheet Header Icon
- * 6. Application: Visage Editor (Unified)
- * 7. Application: Visage Gallery (Unified)
+ * 6. Application: Visage Editor
+ * 7. Application: Visage Gallery
  * 8. Scene Control Integration
- * 9. UNIFIED THEME DEFINITIONS (The Engine)
+ * 9. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
@@ -61,6 +61,7 @@
    2. SHARED STYLES
    ========================================================================== */
 
+/* --- Tooltips --- */
 #tooltip.visage-tooltip {
     border: 1px solid var(--filroden-color-text-accent);
     border-radius: var(--filroden-radius-small);
@@ -75,14 +76,49 @@
     z-index: var(--z-index-tooltip, 9999);
 }
 
+/* --- Inputs and Selects --- */
+.visage input[type="text"],
+.visage input[type="number"],
+.visage select {
+    background: var(--visage-color-bg-medium-solid);
+    border: 1px solid var(--visage-color-border);
+    color: var(--visage-color-text-main-solid);
+    border-radius: var(--filroden-radius-small);
+    min-height: 1.6rem;
+    padding-inline: var(--filroden-space-xs);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.visage input[type="text"]:focus,
+.visage input[type="number"]:focus,
+.visage select:focus {
+    border-color: var(--visage-color-accent);
+    box-shadow: var(--filroden-shadow-focus);
+}
+
 .visage input::placeholder {
     color: var(--filroden-color-text-placeholder-solid);
     opacity: 1;
     font-style: italic;
 }
 
+/* --- Buttons --- */
+.visage button {
+    background: var(--visage-color-bg-light-solid);
+    border: 1px solid var(--visage-color-border);
+    color: var(--visage-color-text-main-solid);
+    border-radius: var(--filroden-radius-small);
+    transition: background-color 0.1s, border-color 0.1s, color 0.1s ease;
+}
+
+.visage button:hover {
+    background: var(--visage-color-bg-hover-solid);
+    border-color: var(--visage-color-accent);
+    box-shadow: none;
+}
+
+/* --- Accessibility Interactions --- */
 .visage *:focus-visible,
-.visage .visage-disposition-button:focus,
 .visage button:focus {
     outline: 2px solid var(--visage-color-accent);
     border-radius: var(--filroden-radius-small);
@@ -99,6 +135,7 @@
     box-shadow: none;
 }
 
+/* --- Checkboxes --- */
 .visage-checkbox {
     appearance: auto;
     accent-color: var(--visage-color-accent);
@@ -117,6 +154,7 @@
     content: none;
 }
 
+/* --- Layout --- */
 .visage .visage-form-fields {
     display: flex;
     flex-direction: row;
@@ -136,6 +174,7 @@
     opacity: 1;
 }
 
+/* --- Combobox  --- */
 .visage input:-webkit-autofill,
 .visage input:-webkit-autofill:hover, 
 .visage input:-webkit-autofill:focus, 
@@ -159,7 +198,11 @@
     filter: invert(1); 
 }
 
-/* --- UNIVERSAL WINDOW SHELL --- */
+
+/* ==========================================================================
+   3. Application: Universal Shell
+   ========================================================================== */
+
 .application.visage,
 .visage.borderless {
     background: var(--visage-color-bg-darkest);
@@ -338,29 +381,26 @@
     border-inline-start: 1px solid var(--visage-color-text-muted);
 }
 
-.visage .visage-tile .visage-disposition-chip {
-    position: absolute;
-    bottom: -8px;
-    width: auto;
-    inset-inline-start: 50%;
-    inset-inline-end: auto;
-    transform: translateX(calc(-50% * var(--filroden-dir-flip)));
-    padding-block: var(--filroden-space-xxs);
-    padding-inline: var(--filroden-space-xs);
-    border-radius: var(--filroden-radius-large);
-    background-color: var(--visage-color-bg-medium-solid); 
-    font-size: var(--filroden-font-size-xxs);
+.visage .visage-disposition-chip {
+    width: 100%;
+    text-align: center;
+    font-size: 0.65rem;
     font-weight: var(--filroden-font-weight-bold);
-    color: var(--visage-color-text-main-solid);
-    border: 1px solid #000;
-    z-index: 9;
-    white-space: nowrap;
+    text-transform: uppercase;
+    padding: var(--filroden-space-xxs) 0;
+    border-radius: var(--filroden-radius-medium);
+    border: 1px solid rgba(255,255,255,0.1);
+    letter-spacing: 0.05em;
 }
-
-.visage .visage-disposition-chip.friendly { border-color: #00ffff; }
-.visage .visage-disposition-chip.neutral  { border-color: #ffff00; }
-.visage .visage-disposition-chip.hostile  { border-color: #ff0000; }
-.visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
+.visage-disposition-chip.friendly { border-color: #00ffff; }
+.visage-disposition-chip.neutral  { border-color: #ffff00; }
+.visage-disposition-chip.hostile  { border-color: #ff0000; }
+.visage-disposition-chip.secret   { border-color: #ff00ff; }
+.visage-disposition-chip.none { 
+    background: transparent; 
+    border: 1px dashed rgba(255,255,255,0.2); 
+    color: rgba(255,255,255,0.3);
+}
 
 .visage .force-ltr {
     direction: ltr !important;
@@ -374,7 +414,7 @@
 }
 
 /* ==========================================================================
-   3. APPLICATION: VISAGE SELECTOR (HUD)
+   4. APPLICATION: VISAGE SELECTOR (HUD)
    ========================================================================== */
 
 .visage.visage-selector-app {
@@ -614,435 +654,6 @@
     filter: blur(1px) grayscale(0.5);
 }
 
-/* ==========================================================================
-   4. APPLICATION: VISAGE CONFIGURATION
-   ========================================================================== */
-
-.visage.visage-config-app {
-    width: 64rem;        
-    max-width: 1200px;
-    height: auto;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.visage.visage-config-app .window-content {
-    height: 100% !important;
-    overflow: hidden;
-    max-height: 70vh;
-}
-
-.visage.visage-config-app form {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    margin: 0;
-    height: auto; 
-    min-height: 0;
-}
-
-.visage .visage-config-container {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-}
-
-.visage .visage-config-pane {
-    display: flex;
-    flex-direction: column;
-}
-
-.visage .visage-config-wrapper {
-    overflow-y: auto;
-    flex: 1;
-    min-height: 100px;
-}
-
-.visage-flip-header {
-    display: flex;
-    justify-content: center;
-    gap: var(--filroden-space-l);
-    color: var(--filroden-color-text-muted);
-}
-
-.visage-flip-group {
-    display: flex;
-    gap: var(--filroden-space-xxs);
-    justify-content: center;
-}
-
-.visage-flip-group .checkbox {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-}
-
-.visage input[type="text"],
-.visage input[type="number"],
-.visage select {
-    background: var(--visage-color-bg-medium-solid);
-    border: 1px solid var(--visage-color-border);
-    color: var(--visage-color-text-main-solid);
-    border-radius: var(--filroden-radius-small);
-    min-height: 1.6rem;
-    padding-inline: var(--filroden-space-xs);
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.visage input[type="text"]:focus,
-.visage input[type="number"]:focus,
-.visage select:focus {
-    border-color: var(--visage-color-accent);
-    box-shadow: var(--filroden-shadow-focus);
-}
-
-.visage-config-app input[name$=".path"] {
-    direction: ltr;
-    text-align: start;
-    unicode-bidi: bidi-override;
-}
-
-.visage button {
-    background: var(--visage-color-bg-light-solid);
-    border: 1px solid var(--visage-color-border);
-    color: var(--visage-color-text-main-solid);
-    border-radius: var(--filroden-radius-small);
-    transition: background-color 0.1s, border-color 0.1s, color 0.1s ease;
-}
-
-.visage button:hover {
-    background: var(--visage-color-bg-hover-solid);
-    border-color: var(--visage-color-accent);
-    box-shadow: none;
-}
-
-.visage .visage-delete {
-    color: var(--visage-color-text-main-solid);
-    text-align: center;
-    cursor: pointer;
-    transition: color 0.1s ease;
-}
-
-.visage .visage-delete:hover {
-    border-color: var(--visage-color-border); 
-    color: var(--filroden-color-danger); 
-    box-shadow: none;
-}
-
-.visage .visage-config-footer {
-    flex: none;
-    margin-top: var(--filroden-space-l);
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--filroden-space-m);
-}
-
-.visage .visage-reset-btn {
-    margin-inline-end: auto;    
-    background: transparent;
-    border: 1px solid var(--visage-color-text-muted);
-    color: var(--visage-color-text-muted);
-    width: auto;
-    padding: 0 var(--filroden-space-m);
-    opacity: 0.8;
-}
-
-.visage .visage-reset-btn:hover {
-    opacity: 1;
-    color: var(--filroden-color-warning);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.visage .visage-save.dirty {
-    background: var(--visage-color-accent);
-    border-color: var(--visage-color-accent);
-    color: var(--visage-color-text-on-accent);
-    font-weight: var(--filroden-font-weight-bold);
-}
-
-.visage .visage-save.dirty:hover {
-    background: var(--visage-color-accent-hover);
-    border-color: var(--visage-color-accent-hover);
-    box-shadow: 0 0 8px var(--visage-color-accent-hover);
-}
-
-.visage .visage-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.visage .visage-list-header-group,
-.visage .visage-list-header,
-.visage .visage-list-item.default-row,
-.visage .visage-list .visage-list-item {
-    display: grid;
-    grid-template-columns: 
-        minmax(6rem, 1.5fr) minmax(0, 3.5fr) minmax(4rem, 0.8fr) minmax(2rem, 0.5fr) 
-        minmax(8rem, 1.5fr) minmax(2.5rem, 0.5fr) minmax(3rem, 0.8fr) minmax(3rem, 0.8fr) minmax(1.25rem, 0.4fr);
-    gap: var(--filroden-space-s);
-    align-items: center;
-}
-
-.visage .visage-list-header-group {
-    margin-bottom: var(--filroden-space-xxs);
-    font-size: var(--filroden-font-size-xs);
-    font-weight: var(--filroden-font-weight-bold);
-    color: var(--visage-color-accent);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: none;
-    align-items: end !important; 
-    padding-bottom: var(--filroden-space-xxs);
-}
-
-.visage .header-group-label.visual {
-    grid-column: 3 / span 4; 
-    text-align: center;
-    border-bottom: 2px solid var(--visage-color-border);
-    padding-bottom: var(--filroden-space-xxs);
-}
-
-.visage .header-group-label.dimensions {
-    grid-column: 7 / span 2;
-    text-align: center;
-    border-bottom: 2px solid var(--visage-color-border);
-    padding-bottom: var(--filroden-space-xxs);
-}
-
-.visage .visage-list-header .centered,
-.visage .visage-list-item .centered {
-    text-align: center;
-    justify-content: center;
-}
-
-.visage .visage-dimension-group {
-    display: flex;
-    justify-content: center;
-}
-
-.visage .visage-dim-input {
-    width: 100%;
-    text-align: center;
-    padding-inline: var(--filroden-space-xxs);
-}
-
-.visage .visage-list-header > span {
-    padding-inline-start: var(--filroden-space-s); 
-}
-
-.visage .visage-list-header > span:nth-child(4),
-.visage .visage-list-header > span:nth-child(6) {
-    text-align: center !important;
-    padding-inline-start: 0 !important;
-    padding-inline-end: 0 !important;
-}
-
-.visage .visage-list-item.default-row input[disabled],
-.visage .visage-list-item.default-row button[disabled] {
-    border: none;
-    background: transparent;
-    color: var(--visage-color-text-muted-solid);
-    cursor: default;
-    opacity: 1;
-}
-
-.visage .visage-scale-group {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    grid-column: 3;
-    gap: var(--filroden-space-xs);
-    flex-wrap: nowrap; 
-    width: 100%; 
-}
-
-.visage .visage-scale-input {
-    flex: 1 1 auto;
-    width: auto;
-    min-width: 3ch; 
-    margin-inline-end: 0;
-    text-align: center;
-}
-
-.visage .visage-percent-sign {
-    flex: 0 0 auto; 
-    line-height: 24px;
-    width: auto;
-}
-
-.visage .visage-flip-label {
-    justify-self: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: auto;
-    margin: 0;
-}
-
-.visage .visage-ring-cell {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.visage .visage-disposition-cell {
-    position: relative;
-    grid-column: 5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.visage .visage-disposition-button {
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    text-align: start;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding-block: var(--filroden-space-xs);
-    padding-inline: var(--filroden-space-xs);
-}
-
-.visage .visage-disposition-popout {
-    display: none !important; 
-    position: absolute;
-    top: auto;
-    bottom: 100%;
-    inset-inline-start: auto;
-    inset-inline-end: 0;
-    transform: none;
-    margin-bottom: var(--filroden-space-xs);    
-    width: max-content;
-    min-width: 14rem;
-    padding: var(--filroden-space-s);
-    border-radius: var(--filroden-radius-medium);
-    z-index: 100;
-    flex-direction: column;
-    gap: var(--filroden-space-s);
-    background: var(--visage-color-bg-darkest);
-    border: 1px solid var(--visage-color-border);
-    box-shadow: var(--filroden-shadow-popout);
-    align-items: flex-start;
-}
-
-.visage .visage-disposition-popout.active {
-    display: flex !important;
-}
-
-.visage .visage-disposition-popout .form-group {
-    display: flex !important;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: var(--filroden-space-s);
-    margin: 0 !important;
-    padding: 0;
-    width: 100%;
-    min-height: 0;
-}
-
-.visage .visage-disposition-popout label {
-    margin: 0;
-    padding: 0;
-    white-space: nowrap;
-    flex: 0 0 auto;
-    line-height: 1.5;
-    color: var(--visage-color-text-main-solid);
-}
-
-.visage .visage-disposition-popout input[type="radio"] {
-    margin: 0;
-    flex: 0 0 auto;
-    width: var(--filroden-font-size-m);
-    height: var(--filroden-font-size-m);
-}
-
-.visage .visage-disposition-popout select {
-    flex: 1;
-    width: auto;
-    height: 1.6rem;
-    padding-block: 0;
-    font-size: var(--filroden-font-size-xs);
-}
-
-.visage .visage-disposition-popout select option {
-    background-color: var(--visage-color-bg-medium-solid);
-    color: var(--visage-color-text-main-solid);
-}
-
-.visage .visage-ring-cell { grid-column: 6; }
-
-.visage .visage-ring-button {
-    background: none !important;
-    border: none !important;
-    padding: 0;
-    margin: 0;
-    line-height: 1;
-    cursor: pointer;
-    font-size: var(--filroden-font-size-l);
-    color: var(--visage-color-text-muted-solid);
-    transition: color 150ms ease, text-shadow 150ms ease;
-    overflow: visible; 
-    position: relative; 
-}
-
-.visage .visage-ring-button:hover { 
-    color: var(--visage-color-text-main-solid); 
-}
-.visage .visage-ring-button.ring-active { 
-    color: var(--visage-color-accent); 
-}
-.visage .visage-ring-button.ring-active:hover {
-    color: var(--visage-color-accent-hover);
-    text-shadow: 0 0 5px var(--visage-color-accent);
-}
-
-.visage .visage-ring-button.ring-dirty::after {
-    content: "";
-    position: absolute;
-    top: -2px;
-    inset-inline-end: -2px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: var(--filroden-color-warning);
-    border: 1px solid var(--visage-color-bg-darkest);
-    box-shadow: 0 0 2px #000;
-    pointer-events: none;
-}
-
-.visage .visage-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--filroden-space-l);
-    margin: var(--filroden-space-s) 0;
-    border: var(--filroden-border-dashed);
-    border-radius: var(--filroden-radius-medium);
-    background: var(--visage-color-bg-light);
-    color: var(--visage-color-text-muted-solid);
-    text-align: center;
-}
-
-.visage .visage-info-icon {
-    margin-inline-start: var(--filroden-space-xxs);
-    color: var(--filroden-color-text-muted);
-    cursor: help;
-    font-size: var(--filroden-font-size-xs);
-}
-
-.visage .visage-info-icon:hover {
-    color: var(--visage-color-accent);
-}
-
 
 /* ==========================================================================
    5. Actor Sheet Header Icon
@@ -1223,8 +834,7 @@
     max-width: 95%; 
 }
 
-/* --- Tag Pills Input --- */
-
+/* --- Tag Pills --- */
 .visage-tag-container {
     display: flex;
     flex-wrap: wrap;
@@ -1288,12 +898,49 @@
     color: var(--visage-color-bg-hover-solid);
 }
 
+/* --- Editor Footer --- */
+.visage .visage-editor-footer {
+    flex: none;
+    margin-top: var(--filroden-space-l);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--filroden-space-m);
+}
+
+.visage .visage-reset-btn {
+    margin-inline-end: auto;    
+    background: transparent;
+    border: 1px solid var(--visage-color-text-muted);
+    color: var(--visage-color-text-muted);
+    width: auto;
+    padding: 0 var(--filroden-space-m);
+    opacity: 0.8;
+}
+
+.visage .visage-reset-btn:hover {
+    opacity: 1;
+    color: var(--filroden-color-warning);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.visage-save.dirty {
+    background: var(--visage-color-accent);
+    border-color: var(--visage-color-accent);
+    color: var(--visage-color-text-on-accent);
+    font-weight: var(--filroden-font-weight-bold);
+}
+
+.visage-save.dirty:hover {
+    background: var(--visage-color-accent-hover);
+    border-color: var(--visage-color-accent-hover);
+    box-shadow: 0 0 8px var(--visage-color-accent-hover);
+}
 
 /* ==========================================================================
    7. APPLICATION: VISAGE GALLERY (Unified)
    ========================================================================== */
 
-/* CHANGED: Class selector & Minimum Dimensions */
+/* Class selector & Minimum Dimensions */
 .visage.visage-gallery {
     min-width: 58rem !important; 
     min-height: 32rem !important;
@@ -1637,27 +1284,6 @@
     width: 100%;
     justify-content: center;
     height: auto;
-}
-
-.visage-disposition-chip {
-    width: 100%;
-    text-align: center;
-    font-size: 0.65rem;
-    font-weight: var(--filroden-font-weight-bold);
-    text-transform: uppercase;
-    padding: var(--filroden-space-xxs) 0;
-    border-radius: var(--filroden-radius-medium);
-    border: 1px solid rgba(255,255,255,0.1);
-    letter-spacing: 0.05em;
-}
-.visage-disposition-chip.friendly { background: #1c6b2a; color: #fff; border-color: #4ade80; }
-.visage-disposition-chip.neutral { background: #856404; color: #fff; border-color: #facc15; }
-.visage-disposition-chip.hostile { background: #7f1d1d; color: #fff; border-color: #f87171; }
-.visage-disposition-chip.secret { background: #4c1d95; color: #fff; border-color: #a78bfa; }
-.visage-disposition-chip.none { 
-    background: transparent; 
-    border: 1px dashed rgba(255,255,255,0.2); 
-    color: rgba(255,255,255,0.3);
 }
 
 .card-zone-center {
