@@ -1,12 +1,21 @@
 /**
  * @file Handles the integration with the Foundry VTT Token HUD.
+ * Injects the Visage button and manages the opening of the transient Selector app.
  * @module visage
  */
 
 import { Visage } from "./visage.js";
 import { VisageSelector } from "./visage-selector.js";
 
+/**
+ * Hook handler for `renderTokenHUD`.
+ * Injects the Visage control button and captures default token state if missing.
+ * * @param {TokenHUD} app - The TokenHUD application instance.
+ * @param {HTMLElement} html - The HTML element of the HUD.
+ * @param {Object} data - The data context used to render the HUD.
+ */
 export async function handleTokenHUD(app, html, data) {
+    // Prevent duplicate button injection
     if (html.querySelector('.visage-button')) return;
 
     const token = app.object; 
@@ -18,8 +27,9 @@ export async function handleTokenHUD(app, html, data) {
     if (!sceneId) return; 
 
     // --- DEFAULT DATA CAPTURE ---
-    // Since migration now handles cleanup/backfilling, we only need to handle
-    // the "First Time Click" for brand new tokens.
+    // If this is the first time a token is interacted with via Visage, we must capture
+    // its "Clean" state (Default appearance) so we can revert to it later.
+    // This is primarily for new tokens; migration handles existing ones.
     
     const tokenFlags = actor.flags?.[ns]?.[token.id];
     
@@ -42,7 +52,8 @@ export async function handleTokenHUD(app, html, data) {
             [`flags.${ns}.${token.id}.currentFormKey`]: 'default'
         };
 
-        // Defer update to prevent render conflicts
+        // Defer update to the end of the event loop to prevent render conflicts 
+        // with the HUD that is currently drawing.
         setTimeout(() => actor.update(updates), 0);
     } 
 
@@ -54,6 +65,7 @@ export async function handleTokenHUD(app, html, data) {
         </div>
     `;
     
+    // Inject into the left column of the HUD
     const colLeft = html.querySelector(".col.left");
     if (!colLeft) return;
 
@@ -64,14 +76,18 @@ export async function handleTokenHUD(app, html, data) {
         button.addEventListener("click", () => {
             const selectorId = `visage-selector-${actor.id}-${token.id}`; 
 
+            // Toggle Logic: Close if already open
             if (Visage.apps[selectorId]) {
                 Visage.apps[selectorId].close();
                 return; 
             }
 
+            // --- Position Calculation ---
+            // Place the Selector HUD to the left of the Token HUD button.
+            // We calculate based on root font size to respect UI scaling.
             const buttonRect = button.getBoundingClientRect();
             const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-            const selectorWidth = 14 * rootFontSize; 
+            const selectorWidth = 14 * rootFontSize; // Matches CSS width: 14rem
             const gap = 16; 
             
             const top = buttonRect.top; 

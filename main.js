@@ -1,5 +1,6 @@
 /**
  * @file Main entry point for the Visage module.
+ * Initializes the API, registers settings, and manages hooks for UI integration.
  * @module visage
  */
 
@@ -14,24 +15,38 @@ import { migrateWorldData } from "./src/visage-migration.js";
 import { VisageComposer } from "./src/visage-composer.js";
 import { handleGhostEdit } from "./src/visage-ghost.js"; 
 
+/**
+ * Singleton instance of the global gallery when opened via Scene Controls.
+ * @type {VisageGallery|null}
+ */
 let globalDirectoryInstance = null;
 
-// --- CONFIGURATION ---
-// The version number where the Data Structure changed (Unified Model).
-// Any world older than this MUST migrate.
+/**
+ * The semantic version number where the Data Structure changed (Unified Model).
+ * Worlds on a version older than this will trigger the migration utility.
+ * @constant {string}
+ */
 const NEEDS_MIGRATION_VERSION = "1.6.3"; 
 
+/**
+ * Opens the Visage Configuration window (Gallery) for a specific actor or token.
+ * Handles duplicate window checks to bring existing windows to focus.
+ * * @param {Actor} actor - The target actor document.
+ * @param {TokenDocument|null} [token=null] - The specific token document, if applicable.
+ */
 function openVisageConfig(actor, token = null) {
     if (!actor) return;
     try {
         let tokenId = token?.id || null;
         let sceneId = token?.parent?.id || null;
 
+        // If no token provided but actor is a synthetic token actor, extract context.
         if (!tokenId && actor.isToken) {
             tokenId = actor.token.id;
             sceneId = actor.token.parent.id;
         }
 
+        // Generate a unique App ID to prevent duplicate windows for the same entity.
         const appId = `visage-gallery-${actor.id}-${tokenId || "sidebar"}`;
 
         if (Visage.apps[appId]) {
@@ -51,19 +66,27 @@ function openVisageConfig(actor, token = null) {
     }
 }
 
+/**
+ * Helper to extract the Actor ID from a DOM element (directory entry).
+ * Supports both jQuery and native DOM elements.
+ * * @param {jQuery|HTMLElement} li - The list item element.
+ * @returns {string|undefined} The Actor ID.
+ */
 function getActorIdFromElement(li) {
     const element = (li instanceof jQuery) ? li[0] : li;
     return element.dataset?.entryId || element.dataset?.documentId;
 }
 
+/* -------------------------------------------- */
+/* Initialization Hooks                        */
+/* -------------------------------------------- */
+
 Hooks.once("init", () => {
     try {
         Visage.initialize();
-
-        // Register Settings (Unified)
         VisageData.registerSettings();
 
-        // --- EXPOSE FOR DEBUGGING/API ---
+        // Expose API classes to the global scope and module API for third-party integration/debugging.
         window.VisageData = VisageData;
         window.VisageEditor = VisageEditor;
         window.VisageGallery = VisageGallery;
@@ -72,6 +95,7 @@ Hooks.once("init", () => {
         game.modules.get("visage").api.Editor = VisageEditor;
         game.modules.get("visage").api.Gallery = VisageGallery;
 
+        // Register Handlebars helpers
         Handlebars.registerHelper("neq", (a, b) => a !== b);
         Handlebars.registerHelper("visageSelected", (condition) => condition ? "selected" : "");
         Handlebars.registerHelper("json", (context) => JSON.stringify(context));
@@ -85,7 +109,9 @@ Hooks.once("init", () => {
 
         registerSettings();
 
-        // Context Menu
+        /**
+         * Inject "Visage" option into the Actor Directory context menu.
+         */
         const addSidebarOption = (options) => {
             options.push({
                 name: "VISAGE.Title",
@@ -109,6 +135,9 @@ Hooks.once("init", () => {
             if (!options.some(o => o.name === "VISAGE.Title")) addSidebarOption(options);
         });
 
+        /**
+         * Inject Header Button into Legacy Actor Sheets (ApplicationV1).
+         */
         Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
             if (!sheet.actor.isOwner) return;
             buttons.unshift({
@@ -119,6 +148,9 @@ Hooks.once("init", () => {
             });
         });
 
+        /**
+         * Inject Control Button into ApplicationV2 Actor Sheets.
+         */
         const addAppV2Control = (app, controls) => {
             const actor = app.document;
             if (!actor || !actor.isOwner) return;
@@ -131,10 +163,9 @@ Hooks.once("init", () => {
             });
         };
 
+        // Capture tooltip events for Visage-specific elements to enforce custom styling classes.
         document.addEventListener("pointerover", (event) => {
             const target = event.target.closest('[data-tooltip]');
-            
-            // Only proceed if we found a tooltip target inside a Visage app
             if (target && target.closest('.visage')) {
                 if (!target.hasAttribute("data-tooltip-class")) {
                     target.setAttribute("data-tooltip-class", "visage-tooltip");
@@ -150,12 +181,17 @@ Hooks.once("init", () => {
     }
 });
 
+/* -------------------------------------------- */
+/* Scene Controls                              */
+/* -------------------------------------------- */
+
 Hooks.on("getSceneControlButtons", (controls) => {
     if (!game.user.isGM) return;
 
     let tokenLayer = null;
     if (Array.isArray(controls)) tokenLayer = controls.find(c => c.name === "token");
     else {
+        // Fallback for systems that might use object-based controls
         for (const key in controls) {
             const layer = controls[key];
             if (layer.name === "token" || layer.name === "tokens") {
@@ -174,7 +210,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
         visible: true,
         toggle: false, 
         button: true,
-        // FIX: Replaced onClick with onChange for V13 compatibility
+        // Using onChange ensures compatibility with newer Foundry versions (V13+)
         onChange: () => {
             if (!globalDirectoryInstance) globalDirectoryInstance = new VisageGallery();
             globalDirectoryInstance.render(true);
@@ -185,6 +221,9 @@ Hooks.on("getSceneControlButtons", (controls) => {
     else tokenLayer.tools["visage-gallery"] = visageTool;
 });
 
+/**
+ * Registers global and world-scope settings for the module.
+ */
 function registerSettings() {
     game.settings.register(Visage.MODULE_ID, "cleanseScene", {
         name: "VISAGE.Settings.CleanseScene.Name",
@@ -218,6 +257,7 @@ function registerSettings() {
         },
     });
 
+    // Hidden setting to track data versioning for migrations
     game.settings.register(Visage.MODULE_ID, "worldVersion", {
         name: "World Data Version",
         scope: "world",
@@ -227,24 +267,26 @@ function registerSettings() {
     });
 }
 
+/* -------------------------------------------- */
+/* Ready & Runtime Hooks                       */
+/* -------------------------------------------- */
+
 Hooks.once("ready", () => {
     if (!game.user.isGM) return;
 
     try {
+        // Clean up deleted items older than retention period
         VisageData.runGarbageCollection();
 
         const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
         const currentVersion = game.modules.get(Visage.MODULE_ID).version;
 
-        // Check if we updated the module
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {
-            
-            // Check if the PREVIOUS version was older than our Migration Threshold
+            // Trigger data migration if the previous version is older than the schema change
             if (foundry.utils.isNewerVersion(NEEDS_MIGRATION_VERSION, lastVersion)) {
                 console.log(`Visage | Detected legacy data (v${lastVersion}). Migrating to v${NEEDS_MIGRATION_VERSION}...`);
                 migrateWorldData();
             }
-            
             game.settings.set(Visage.MODULE_ID, "worldVersion", currentVersion);
         }
     } catch (err) {
@@ -252,8 +294,13 @@ Hooks.once("ready", () => {
     }
 });
 
+// Initialize application registry
 Visage.apps = {};
 
+/**
+ * Tracks rendered Visage applications in the `Visage.apps` registry.
+ * This allows singletons to be enforced by ID (e.g., prevent opening the same editor twice).
+ */
 Hooks.on("renderApplication", (app) => {
     if (app instanceof VisageSelector || 
         app instanceof VisageEditor ||
@@ -264,17 +311,35 @@ Hooks.on("renderApplication", (app) => {
     }
 });
 
+/**
+ * Removes closed Visage applications from the registry.
+ */
+Hooks.on("closeApplication", (app) => {
+    if (app instanceof VisageSelector || 
+        app instanceof VisageEditor ||
+        app instanceof VisageGallery) {
+        
+        const appId = app.id || app.options?.id;
+        if (appId && Visage.apps[appId]) delete Visage.apps[appId];
+    }
+});
+
+/**
+ * Handles Drag-and-Drop of Visage data onto the Canvas.
+ * Supports applying a global visage to a specific token via drag.
+ */
 Hooks.on("dropCanvasData", async (canvas, data) => {
     if (data.type !== "Visage" || !data.id) return;
     
-    // Lazy Import
+    // Dynamic import to prevent circular dependencies during load time
     const { VisageData } = await import("./src/visage-data.js");
     const { Visage } = await import("./src/visage.js");
     
-    // Validation
+    // Ensure the dropped ID is valid
     const visageData = VisageData.getGlobal(data.id); 
     if (!visageData) return;
 
+    // Find the token under the cursor
     const target = canvas.tokens.placeables.find(t => {
         return t.visible && 
                data.x >= t.x && data.x < t.x + t.w &&
@@ -287,22 +352,14 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
     }
 });
 
-Hooks.on("closeApplication", (app) => {
-    if (app instanceof VisageSelector || 
-        app instanceof VisageEditor ||
-        app instanceof VisageGallery) {
-        
-        const appId = app.id || app.options?.id;
-        if (appId && Visage.apps[appId]) delete Visage.apps[appId];
-    }
-});
-
+// Intercept Token Config rendering to handle Ghost Edits (modifications to tokens with active Visages)
 Hooks.on("renderTokenConfig", handleGhostEdit); 
-
 Hooks.on("closeTokenConfig", (app) => { delete app._visageWarned; });
 
+// Integrate with the Token HUD
 Hooks.on("renderTokenHUD", handleTokenHUD);
 
+// Monitor token updates to capture default state changes or maintain Visage persistence
 Hooks.on("updateToken", (document, change, options, userId) => {
     Visage.handleTokenUpdate(document, change, options, userId);
 });
