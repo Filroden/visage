@@ -1,19 +1,22 @@
 /**
  * @file Manages the data layer for the Visage module.
- * Acts as a unified Repository for both World Settings (Global Masks) and Actor Flags (Local Visages).
  * @module visage
  */
 
-import { Visage } from "./visage.js";
+// 1. REMOVED: import { Visage } from "./visage.js"; <--- This breaks the cycle
 
 const SCHEMA_VERSION = 1;
 
 export class VisageData {
 
+    // 2. ADDED: Local Constants so we don't need the Visage class
+    static MODULE_ID = "visage";
+    static DATA_NAMESPACE = "visage";
+    static ALTERNATE_FLAG_KEY = "alternateVisages";
     static SETTING_KEY = "globalVisages";
 
     static registerSettings() {
-        game.settings.register(Visage.MODULE_ID, this.SETTING_KEY, {
+        game.settings.register(this.MODULE_ID, this.SETTING_KEY, {
             name: "Global Visage Library",
             scope: "world",
             config: false,
@@ -21,6 +24,32 @@ export class VisageData {
             default: {},
             onChange: () => Hooks.callAll("visageDataChanged")
         });
+    }
+
+    // 3. ADDED: Helper to resolve paths without importing Visage class
+    static async _resolvePath(path) {
+        if (!path || !path.includes('*')) return path;
+        try {
+            const browseOptions = { wildcard: true };
+            let source = "data";
+            if (/\.s3\./i.test(path)) {
+                source = 's3';
+                const { bucket, keyPrefix } = foundry.applications.apps.FilePicker.implementation.parseS3URL(path);
+                if (bucket) {
+                    browseOptions.bucket = bucket;
+                    path = keyPrefix;
+                }
+            } else if (path.startsWith('icons/')) {
+                source = 'public';
+            }
+            const content = await foundry.applications.apps.FilePicker.implementation.browse(source, path, browseOptions);
+            if (content.files.length) {
+                return content.files[Math.floor(Math.random() * content.files.length)];
+            }
+        } catch (err) {
+            console.warn("VisageData | Wildcard resolution failed", err);
+        }
+        return path;
     }
 
     /* -------------------------------------------- */
@@ -77,12 +106,13 @@ export class VisageData {
             changes: foundry.utils.deepClone(data.changes || {})
         };
 
+        // Use local _resolvePath helper
         if (layer.changes.img) {
             if (!layer.changes.texture) layer.changes.texture = {};
-            layer.changes.texture.src = await Visage.resolvePath(layer.changes.img);
+            layer.changes.texture.src = await this._resolvePath(layer.changes.img);
             delete layer.changes.img;
         } else if (layer.changes.texture?.src) {
-            layer.changes.texture.src = await Visage.resolvePath(layer.changes.texture.src);
+            layer.changes.texture.src = await this._resolvePath(layer.changes.texture.src);
         }
 
         if (layer.changes.ring) {
@@ -97,16 +127,12 @@ export class VisageData {
         return layer;
     }
 
-    /**
-     * Generates the "Default" visage entry based on the token's original state.
-     */
     static getDefaultAsVisage(tokenDoc) {
         if (!tokenDoc) return null;
 
-        // 1. Try to find the "Clean" state from VisageComposer's snapshot
-        let sourceData = tokenDoc.flags?.[Visage.MODULE_ID]?.originalState;
+        // Use local constant
+        let sourceData = tokenDoc.flags?.[this.MODULE_ID]?.originalState;
 
-        // 2. If no snapshot exists (Token is clean), use the live data
         if (!sourceData) {
             sourceData = {
                 name: tokenDoc.name,
@@ -122,21 +148,15 @@ export class VisageData {
             };
         }
 
-        // 3. Normalize Data Structure (Strict Mode)
         const src = sourceData.texture?.src || sourceData.img || tokenDoc.texture.src;
-        
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1.0; 
-        
         const width = sourceData.width ?? 1;
         const height = sourceData.height ?? 1;
         const disposition = sourceData.disposition ?? 0;
-        
         const ringData = sourceData.ring 
             ? (sourceData.ring.toObject ? sourceData.ring.toObject() : sourceData.ring) 
             : {};
-
-        // 4. Calculate Flips based on Scale
         const flipX = scaleX < 0;
         const flipY = scaleY < 0;
 
@@ -166,26 +186,22 @@ export class VisageData {
         const c = data.changes || {};
         const tx = c.texture || {};
         
-        // 1. Scale Analysis
-        // We use isScaleActive to show the chip even if scale is 100% (Override vs Default)
-        const isScaleActive = tx.scaleX !== undefined;
         const rawScaleX = tx.scaleX ?? 1.0;
+        const rawScaleY = tx.scaleY ?? 1.0;
         const absScale = Math.abs(rawScaleX);
         const displayScale = Math.round(absScale * 100);
-        const scaleLabel = `${displayScale}%`;
         
-        // 2. Flip Analysis
-        // Checks both the new boolean flags AND legacy negative scales
-        const isFlippedX = (rawScaleX < 0) || (c.flipX === true);
-        const isFlippedY = (tx.scaleY < 0) || (c.flipY === true);
+        const isFlippedX = rawScaleX < 0;
+        const isFlippedY = rawScaleY < 0;
 
-        // 3. Dimensions
+        const isScaleDefault = absScale === 1.0;
+        const scaleLabel = isScaleDefault ? "" : `${displayScale}%`;
+        
         const w = c.width ?? 1;
         const h = c.height ?? 1;
         const isSizeDefault = w === 1 && h === 1;
         const sizeLabel = isSizeDefault ? "" : `${w}x${h}`;
 
-        // 4. Flip UI Logic
         let flipIcon = "fas fa-arrows-alt-h"; 
         let flipLabel = "-";
         let flipActive = false;
@@ -228,7 +244,6 @@ export class VisageData {
             isFlippedX,
             isFlippedY,
             
-            // Explicit flags for Editor templates
             forceFlipX: isFlippedX,
             forceFlipY: isFlippedY,
             
@@ -241,14 +256,14 @@ export class VisageData {
                 ringColor: ringCtx.colors.ring,
                 ringBkg: ringCtx.colors.background,
                 
-                showDataChip: isScaleActive || (sizeLabel !== ""),
+                showDataChip: (scaleLabel !== "") || (sizeLabel !== ""),
                 showFlipBadge: flipActive,
                 showDispositionChip: dispClass !== "none",
                 
                 tokenName: c.name || null,
                 
                 slots: {
-                    scale: { active: isScaleActive, val: scaleLabel }, // Uses correct active state
+                    scale: { active: !isScaleDefault, val: scaleLabel },
                     dim: { active: !isSizeDefault, val: sizeLabel },
                     flip: { active: flipActive, icon: flipIcon, val: flipLabel },
                     disposition: { class: dispClass, val: dispLabel }
@@ -262,7 +277,7 @@ export class VisageData {
     /* -------------------------------------------- */
 
     static _getRawGlobal() {
-        return game.settings.get(Visage.MODULE_ID, this.SETTING_KEY);
+        return game.settings.get(this.MODULE_ID, this.SETTING_KEY);
     }
 
     static get globals() {
@@ -285,12 +300,16 @@ export class VisageData {
 
     static getLocal(actor) {
         if (!actor) return [];
-        const ns = Visage.DATA_NAMESPACE;
-        const sourceData = actor.flags?.[ns]?.[Visage.ALTERNATE_FLAG_KEY] || {};
+        
+        // FIX: Use local constant "visage" and "alternateVisages"
+        // This ensures these keys exist even if the Visage class hasn't finished loading.
+        const ns = this.DATA_NAMESPACE; 
+        const sourceData = actor.flags?.[ns]?.[this.ALTERNATE_FLAG_KEY] || {};
         const results = [];
 
         for (const [key, data] of Object.entries(sourceData)) {
             if (!data) continue;
+            // Use key as ID if 16-char ID, or data.id if available
             const id = (key.length === 16) ? key : (data.id || foundry.utils.randomID(16));
             
             if (data.changes) {
@@ -319,7 +338,7 @@ export class VisageData {
     static async delete(id, actor = null) {
         if (actor) {
             return actor.update({
-                [`flags.${Visage.DATA_NAMESPACE}.${Visage.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true
+                [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true
             });
         }
         return this.updateGlobal(id, { deleted: true, deletedAt: Date.now() });
@@ -328,7 +347,7 @@ export class VisageData {
     static async restore(id, actor = null) {
         if (actor) {
             return actor.update({
-                [`flags.${Visage.DATA_NAMESPACE}.${Visage.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false
+                [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false
             });
         }
         return this.updateGlobal(id, { deleted: false, deletedAt: null });
@@ -337,14 +356,14 @@ export class VisageData {
     static async destroy(id, actor = null) {
         if (actor) {
             return actor.update({
-                [`flags.${Visage.DATA_NAMESPACE}.${Visage.ALTERNATE_FLAG_KEY}.-=${id}`]: null
+                [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null
             });
         }
         const all = this._getRawGlobal();
         if (all[id]) {
             delete all[id];
-            await game.settings.set(Visage.MODULE_ID, this.SETTING_KEY, all);
-            Visage.log(`Permanently destroyed Global Visage (${id})`);
+            await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
+            console.log(`Visage | Permanently destroyed Global Visage (${id})`);
         }
     }
 
@@ -368,7 +387,7 @@ export class VisageData {
         };
 
         all[id] = entry;
-        await game.settings.set(Visage.MODULE_ID, this.SETTING_KEY, all);
+        await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
         return entry;
     }
 
@@ -378,7 +397,7 @@ export class VisageData {
         const merged = foundry.utils.mergeObject(all[id], updates, { inplace: false });
         merged.updated = Date.now();
         all[id] = merged;
-        await game.settings.set(Visage.MODULE_ID, this.SETTING_KEY, all);
+        await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
     }
 
     static async _saveLocal(data, actor) {
@@ -393,9 +412,9 @@ export class VisageData {
         };
 
         await actor.update({
-            [`flags.${Visage.DATA_NAMESPACE}.${Visage.ALTERNATE_FLAG_KEY}.${id}`]: entry
+            [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry
         });
-        Visage.log(`Saved Local Visage for ${actor.name}: ${entry.label}`);
+        console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
     }
 
     static async runGarbageCollection() {
@@ -410,6 +429,6 @@ export class VisageData {
                 dirty = true;
             }
         }
-        if (dirty) await game.settings.set(Visage.MODULE_ID, this.SETTING_KEY, all);
+        if (dirty) await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
     }
 }
