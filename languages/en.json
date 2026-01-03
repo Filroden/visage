@@ -23,7 +23,7 @@
     "VISAGE.Notifications.NoTokens": "No tokens selected to apply mask to.",
     "VISAGE.Notifications.SettingsReset": "All settings reset to default.",
 
-    "VISAGE.Warnings.GhostEdit": "Token Configuration: A Visage is currently active on this token. Changes made here will modify the default Token, not the Visage.",
+    "VISAGE.Warnings.GhostEdit": "Token Configuration: A Visage or Mask is currently active on this token. Changes made here will modify the default Token, not the Visage or Mask.",
 
     "VISAGE.Directory.Title.Global": "Mask Library",
     "VISAGE.Directory.Title.Local": "Visage Gallery: {actor}",

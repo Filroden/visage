@@ -256,20 +256,25 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onRender(context, options) {
-        // 1. Handle RTL
+        // Handle RTL
         const rtlLanguages = ["ar", "he", "fa", "ur"];
         if (rtlLanguages.includes(game.i18n.lang)) {
             this.element.setAttribute("dir", "rtl");
             this.element.classList.add("rtl");
         }
 
-        // 2. Handle Theme
+        // Handle Theme
         if (this.isLocal) {
             this.element.classList.add("visage-theme-local");
             this.element.classList.remove("visage-theme-global");
         } else {
             this.element.classList.add("visage-theme-global");
             this.element.classList.remove("visage-theme-local");
+        }
+
+        // Reactivity Listener
+        if (!this._dataListener) {
+            this._dataListener = Hooks.on("visageDataChanged", () => this.render());
         }
 
         const searchInput = this.element.querySelector(".search-bar input");
@@ -401,5 +406,13 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 await Visage.applyGlobalVisage(token, visageData);
             }
         }
+    }
+    
+    async close(options) {
+        if (this._dataListener) {
+            Hooks.off("visageDataChanged", this._dataListener);
+            this._dataListener = null;
+        }
+        return super.close(options);
     }
 }

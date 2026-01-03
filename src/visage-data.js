@@ -24,7 +24,7 @@ export class VisageData {
     }
 
     /* -------------------------------------------- */
-    /* DATA HELPERS (Moved from Visage.js)         */
+    /* DATA HELPERS                                */
     /* -------------------------------------------- */
 
     static prepareRingContext(ringData) {
@@ -97,31 +97,50 @@ export class VisageData {
         return layer;
     }
 
+    /**
+     * Generates the "Default" visage entry based on the token's original state.
+     * FIX: Strict reading of scaleY. Does not fallback to 'scale' (which causes V-Flip bugs).
+     */
     static getDefaultAsVisage(tokenDoc) {
         if (!tokenDoc) return null;
-        const actor = tokenDoc.actor;
-        const ns = Visage.DATA_NAMESPACE;
-        
-        let defaults = actor?.flags?.[ns]?.[tokenDoc.id]?.defaults;
-        
-        if (!defaults) {
-            const proto = actor?.prototypeToken || {};
-            defaults = {
-                name: proto.name || tokenDoc.name,
-                token: proto.texture?.src || tokenDoc.texture.src,
-                scale: proto.texture?.scaleX ?? 1.0,
-                scaleY: proto.texture?.scaleY ?? 1.0,
-                width: proto.width ?? 1,
-                height: proto.height ?? 1,
-                disposition: proto.disposition ?? 0,
-                ring: proto.ring ? (proto.ring.toObject ? proto.ring.toObject() : proto.ring) : {}
+
+        // 1. Try to find the "Clean" state from VisageComposer's snapshot
+        let sourceData = tokenDoc.flags?.[Visage.MODULE_ID]?.originalState;
+
+        // 2. If no snapshot exists (Token is clean), use the live data
+        if (!sourceData) {
+            sourceData = {
+                name: tokenDoc.name,
+                texture: {
+                    src: tokenDoc.texture.src,
+                    scaleX: tokenDoc.texture.scaleX,
+                    scaleY: tokenDoc.texture.scaleY
+                },
+                width: tokenDoc.width,
+                height: tokenDoc.height,
+                disposition: tokenDoc.disposition,
+                ring: tokenDoc.ring
             };
         }
 
-        const defScaleX = defaults.scale ?? 1.0;
-        const defScaleY = defaults.scaleY ?? defaults.scale ?? 1.0;
-        const flipX = defaults.isFlippedX ?? (defScaleX < 0);
-        const flipY = defaults.isFlippedY ?? (defScaleY < 0);
+        // 3. Normalize Data Structure (Strict Mode)
+        const src = sourceData.texture?.src || sourceData.img || tokenDoc.texture.src;
+        
+        // FIX: Removed `?? sourceData.scale` fallback
+        const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
+        const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1.0; 
+        
+        const width = sourceData.width ?? 1;
+        const height = sourceData.height ?? 1;
+        const disposition = sourceData.disposition ?? 0;
+        
+        const ringData = sourceData.ring 
+            ? (sourceData.ring.toObject ? sourceData.ring.toObject() : sourceData.ring) 
+            : {};
+
+        // 4. Calculate Flips based on Scale
+        const flipX = scaleX < 0;
+        const flipY = scaleY < 0;
 
         return {
             id: "default",
@@ -130,17 +149,17 @@ export class VisageData {
             tags: [],
             isDefault: true,
             changes: {
-                name: defaults.name,
-                img: defaults.token,
+                name: sourceData.name,
+                img: src,
                 texture: {
-                    src: defaults.token,
-                    scaleX: Math.abs(defScaleX) * (flipX ? -1 : 1),
-                    scaleY: Math.abs(defScaleY) * (flipY ? -1 : 1)
+                    src: src,
+                    scaleX: Math.abs(scaleX) * (flipX ? -1 : 1),
+                    scaleY: Math.abs(scaleY) * (flipY ? -1 : 1)
                 },
-                width: defaults.width,
-                height: defaults.height,
-                disposition: defaults.disposition,
-                ring: defaults.ring
+                width: width,
+                height: height,
+                disposition: disposition,
+                ring: ringData
             }
         };
     }
@@ -194,7 +213,6 @@ export class VisageData {
             }
         }
 
-        // Use internal helper now
         const ringCtx = this.prepareRingContext(c.ring);
 
         return {
@@ -207,6 +225,10 @@ export class VisageData {
             scale: absScale,
             isFlippedX,
             isFlippedY,
+            
+            // FIX: Explicitly mapping these for templates that pass 'this'
+            forceFlipX: isFlippedX,
+            forceFlipY: isFlippedY,
             
             meta: {
                 hasRing: ringCtx.enabled,
@@ -270,15 +292,12 @@ export class VisageData {
             const id = (key.length === 16) ? key : (data.id || foundry.utils.randomID(16));
             
             if (data.changes) {
-                // FIX: Use deepClone to break reference to Actor Flags.
-                // This prevents the Gallery's preview logic from permanently mutating
-                // the saved flags (e.g. resolving wildcards on disk).
                 results.push({
                     id: id,
                     label: data.label || data.name || "Unknown",
                     category: data.category || "",
                     tags: Array.isArray(data.tags) ? data.tags : [],
-                    changes: foundry.utils.deepClone(data.changes), // <--- CRITICAL FIX
+                    changes: foundry.utils.deepClone(data.changes),
                     deleted: !!data.deleted
                 });
             }

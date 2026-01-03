@@ -117,7 +117,7 @@ export class Visage {
 
     static async applyGlobalVisage(token, globalVisageData) {
         if (!token || !globalVisageData) return;
-        const doc = (token instanceof Token) ? token.document : token;
+        const doc = (token instanceof foundry.canvas.placeables.Token) ? token.document : token;
 
         const layer = {
             id: globalVisageData.id,

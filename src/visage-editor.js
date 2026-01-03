@@ -1,5 +1,5 @@
 /**
- * @file The Editor application for creating and modifying Visage entries (Global or Local).
+ * @file The Editor application for creating and modifying Visage entries.
  * @module visage
  */
 
@@ -16,7 +16,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.tokenId = options.tokenId || null;
         this.isDirty = false;
 
-        this.options.window.icon = !this.isLocal ? "visage-icon-domino" : "visage-icon-mask";
+        this.options.window.icon = !this.isLocal ? "visage-icon-domino" : "visage-header-icon";
     }
 
     get isLocal() { return !!this.actorId; }
@@ -71,40 +71,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             : game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global");
     }
 
-    // Helper to get defaults (kept for safety)
-    _getActorDefaults() {
-        const actor = this.actor;
-        if (!actor) return {};
-        if (this.tokenId) {
-            const token = canvas.tokens.get(this.tokenId);
-            if (token) {
-                const doc = token.document;
-                const texture = doc.texture || {};
-                return {
-                    name: doc.name,
-                    img: texture.src,
-                    scaleX: texture.scaleX ?? 1.0,
-                    scaleY: texture.scaleY ?? 1.0,
-                    width: doc.width,
-                    height: doc.height,
-                    disposition: doc.disposition,
-                    ring: doc.ring ? foundry.utils.deepClone(doc.ring) : {} 
-                };
-            }
-        }
-        const proto = actor.prototypeToken;
-        return {
-            name: proto.name,
-            img: proto.texture.src,
-            scaleX: proto.texture.scaleX ?? 1.0,
-            scaleY: proto.texture.scaleY ?? 1.0,
-            width: proto.width,
-            height: proto.height,
-            disposition: proto.disposition,
-            ring: proto.ring ? foundry.utils.deepClone(proto.ring) : {}
-        };
-    }
-
     async _prepareContext(options) {
         let data;
 
@@ -119,7 +85,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
             this._currentLabel = data.label;
         } else {
-            // CREATE NEW
             if (this.isLocal) {
                 const token = canvas.tokens.get(this.tokenId) || this.actor.prototypeToken;
                 const tokenDoc = token.document || token; 
@@ -137,12 +102,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._currentLabel = "";
         }
 
-        // --- 1. RESOLVE IMAGE PATH EARLY (Fixes 404 Error) ---
         const rawImg = data.changes.img || data.changes.texture?.src || "";
         const resolvedImg = await Visage.resolvePath(rawImg);
 
-        // 2. Unified Presentation Data
-        // We pass resolvedImg for video detection, but rawImg for wildcard detection
         const context = VisageData.toPresentation(data, {
             isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedImg),
             isWildcard: rawImg.includes('*'),
@@ -159,8 +121,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const c = data.changes || {};
         const prep = (val, def) => ({ value: val ?? def, active: val !== null && val !== undefined });
-
-        // Ring Preparation
         const ringActive = !!(c.ring && c.ring.enabled);
         const ringContext = VisageData.prepareRingContext(c.ring); 
 
@@ -171,27 +131,26 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             categories: Array.from(categorySet).sort(),
             allTags: Array.from(tagSet).sort(),
             tagsString: (data.tags || []).join(","), 
-            
-            // Input Bindings (Must use RAW values so wildcard string is editable)
             img: prep(rawImg, ""),
-            scaleInput: { value: context.scale, active: c.texture?.scaleX !== undefined },
-            isFlippedXInput: { value: context.isFlippedX, active: c.texture?.scaleX !== undefined && context.isFlippedX },
-            isFlippedYInput: { value: context.isFlippedY, active: c.texture?.scaleX !== undefined && context.isFlippedY },
-            
+            scale: { 
+                value: Math.round(context.scale * 100), 
+                active: c.texture?.scaleX !== undefined 
+            },
+            isFlippedX: { value: context.isFlippedX, active: c.texture?.scaleX !== undefined && context.isFlippedX },
+            isFlippedY: { value: context.isFlippedY, active: c.texture?.scaleX !== undefined && context.isFlippedY },
+            width: prep(c.width, 1),
+            height: prep(c.height, 1),
+            disposition: prep(c.disposition, 0),
             nameOverride: prep(c.name, ""),
-            dispositionInput: prep(c.disposition, 0),
-            widthInput: prep(c.width, 1),
-            heightInput: prep(c.height, 1),
-            
+
             ring: {
                 active: ringActive,
                 ...ringContext
             },
 
-            // Preview Object (Must use RESOLVED values so image renders)
             preview: {
                 ...context.meta, 
-                img: resolvedImg, // <--- Use the clean path here
+                img: resolvedImg, 
                 isVideo: context.isVideo,
                 flipX: context.isFlippedX,
                 flipY: context.isFlippedY,
@@ -358,6 +317,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    _onOpenFilePicker(event, target) {
+        const input = target.previousElementSibling;
+        const fp = new foundry.applications.apps.FilePicker({
+            type: "imagevideo",
+            current: input.value,
+            callback: (path) => {
+                input.value = path;
+                this._markDirty();
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+        fp.browse();
+    }
+
     _onToggleField(event, target) {
         const fieldName = target.dataset.target;
         const group = target.closest('.form-group');
@@ -369,20 +342,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
         this._markDirty();
         this._updatePreview(); 
-    }
-
-    _onOpenFilePicker(event, target) {
-        const input = target.previousElementSibling;
-        const fp = new FilePicker({
-            type: "imagevideo",
-            current: input.value,
-            callback: (path) => {
-                input.value = path;
-                this._markDirty();
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        });
-        fp.browse();
     }
 
     _markDirty() {
