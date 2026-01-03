@@ -9,10 +9,7 @@ import { VisageData } from "./visage-data.js";
 export class Visage {
     static MODULE_ID = "visage";
     static DATA_NAMESPACE = "visage";
-    static ALTERNATE_FLAG_KEY = "alternateVisages";
-    static LEGACY_FLAG_KEY = "alternateImages";
 
-    // ... [Existing Logging, Path Resolve, Ring Context, Init methods] ...
     static log(message, force = false) {
         const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(this.MODULE_ID);
         if (shouldLog) console.log(`${this.MODULE_ID} | ${message}`);
@@ -44,162 +41,148 @@ export class Visage {
     }
 
     static initialize() {
-        this.log("Initializing Visage");
+        this.log("Initializing Visage API (v2)");
         game.modules.get(this.MODULE_ID).api = {
-            setVisage: this.setVisage.bind(this),
-            getForms: this.getForms.bind(this), 
-            isFormActive: this.isFormActive.bind(this),
+            apply: this.apply.bind(this),
+            remove: this.remove.bind(this),
+            revert: this.revert.bind(this),
+            getAvailable: this.getAvailable.bind(this),
+            isActive: this.isActive.bind(this),
             resolvePath: this.resolvePath.bind(this)
         };
     }
 
-    static getVisages(actor) {
-        return VisageData.getLocal(actor);
-    }
+    /* -------------------------------------------- */
+    /* CORE LOGIC METHODS                          */
+    /* -------------------------------------------- */
 
-    static async setVisage(actorId, tokenId, formKey) {
-        const token = canvas.tokens.get(tokenId);
-        if (!token) return;
+    static async apply(tokenOrId, maskId, options = { clearStack: false, switchIdentity: false }) {
+        const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
+        if (!token) return false;
 
-        const ns = this.DATA_NAMESPACE;
-        const oldFormKey = token.actor.getFlag(ns, `${tokenId}.currentFormKey`);
+        // 1. SMART LOOKUP
+        let data = VisageData.getLocal(token.actor).find(v => v.id === maskId);
+        if (!data) data = VisageData.getGlobal(maskId);
         
-        let stack = foundry.utils.deepClone(
-            token.document.getFlag(ns, "activeStack") || token.document.getFlag(ns, "stack") || []
-        );
-
-        // 1. Remove the OLD Visage Layer (Identity)
-        if (oldFormKey && oldFormKey !== "default") {
-            stack = stack.filter(layer => layer.id !== oldFormKey);
+        if (!data) {
+            console.warn(`Visage | Mask ID '${maskId}' not found.`);
+            return false;
         }
 
-        // 2. Prepare the NEW Visage Layer
-        if (formKey !== "default") {
-            const visages = VisageData.getLocal(token.actor);
-            const target = visages.find(v => v.id === formKey);
-            
-            if (!target) {
-                console.warn(`Visage | Could not find form data for key: ${formKey}`);
-                return;
-            }
-            
-            const layer = {
-                id: target.id,
-                label: target.label,
-                changes: foundry.utils.deepClone(target.changes)
+        // 2. Prepare Layer
+        let layer;
+        if (VisageData.toLayer) {
+            layer = await VisageData.toLayer(data);
+        } else {
+            layer = {
+                id: data.id,
+                label: data.label || "Unknown",
+                changes: foundry.utils.deepClone(data.changes || {})
             };
-            
             if (layer.changes.img) {
-                if (!layer.changes.texture) layer.changes.texture = {};
-                layer.changes.texture.src = await this.resolvePath(layer.changes.img);
-                delete layer.changes.img; 
+                layer.changes.texture = { src: await this.resolvePath(layer.changes.img) };
             }
-            if (layer.changes.ring) {
-                layer.changes.ring = {
-                     enabled: layer.changes.ring.enabled === true,
-                     colors: layer.changes.ring.colors,
-                     effects: layer.changes.ring.effects,
-                     subject: layer.changes.ring.subject
-                };
-            }
-
-            // 3. Inject New Visage at BOTTOM
-            stack.unshift(layer);
         }
 
-        // 4. Update Flag & Compose
-        const flagKey = `flags.${ns}.${tokenId}.currentFormKey`;
-        await token.actor.update({ [flagKey]: formKey });
+        // 3. Update Stack
+        const ns = this.DATA_NAMESPACE;
+        let stack = foundry.utils.deepClone(token.document.getFlag(ns, "activeStack") || []);
+        const updateFlags = {};
 
-        const { VisageComposer } = await import("./visage-composer.js");
-        await VisageComposer.compose(token, stack, null);
+        // OPTION A: Clear Stack (Shapechange / Reset)
+        if (options.clearStack) {
+            stack = [];
+            // If clearing stack, this new layer becomes the Identity
+            updateFlags[`flags.${ns}.identity`] = layer.id;
+        } 
+        // OPTION B: Switch Identity (Preserve Masks)
+        else if (options.switchIdentity) {
+            const currentIdentity = token.document.getFlag(ns, "identity");
+            // Remove the OLD identity layer from the stack
+            if (currentIdentity) {
+                stack = stack.filter(l => l.id !== currentIdentity);
+            }
+            // Mark the NEW layer as identity
+            updateFlags[`flags.${ns}.identity`] = layer.id;
+        }
+
+        // Deduplicate and push new layer to stack
+        stack = stack.filter(l => l.id !== layer.id);
+        stack.push(layer);
+        
+        updateFlags[`flags.${ns}.activeStack`] = stack;
+
+        // 4. Atomic Write
+        await token.document.update(updateFlags);
+        await VisageComposer.compose(token);
+        return true;
     }
 
-    static async applyGlobalVisage(token, globalVisageData) {
-        if (!token || !globalVisageData) return;
-        const doc = (token instanceof foundry.canvas.placeables.Token) ? token.document : token;
-
-        const layer = {
-            id: globalVisageData.id,
-            label: globalVisageData.label,
-            changes: foundry.utils.deepClone(globalVisageData.changes),
-            active: true
-        };
-        
-        if (layer.changes.img) {
-            layer.changes.texture = layer.changes.texture || {};
-            layer.changes.texture.src = await this.resolvePath(layer.changes.img);
-            delete layer.changes.img;
-        }
-        
-        if (layer.changes.ring) {
-            layer.changes.ring = {
-                 enabled: layer.changes.ring.enabled === true,
-                 colors: layer.changes.ring.colors,
-                 effects: layer.changes.ring.effects,
-                 subject: layer.changes.ring.subject
-            };
-        }
+    static async remove(tokenOrId, maskId) {
+        const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
+        if (!token) return false;
 
         const ns = this.DATA_NAMESPACE;
-        let stack = foundry.utils.deepClone(
-            doc.getFlag(ns, "activeStack") || doc.getFlag(ns, "stack") || []
-        );
-
-        const existingIndex = stack.findIndex(l => l.id === layer.id);
-        if (existingIndex > -1) stack[existingIndex] = layer; 
-        else stack.push(layer); 
-
-        await doc.setFlag(ns, "activeStack", stack);
-
-        const { VisageComposer } = await import("./visage-composer.js");
-        await VisageComposer.compose(token);
+        let stack = foundry.utils.deepClone(token.document.getFlag(ns, "activeStack") || []);
         
-        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { label: layer.label }));
-    }
-    
-    // ... [getForms and isFormActive remain unchanged] ...
-    static getForms(actorId, tokenId = null) {
-        const actor = game.actors.get(actorId);
-        if (!actor) return null;
-        let defaults;
-        if (tokenId) defaults = actor.flags?.[this.DATA_NAMESPACE]?.[tokenId]?.defaults;
-        if (!defaults) {
-            const proto = actor.prototypeToken;
-            defaults = { 
-                name: proto.name, 
-                token: proto.texture.src,
-                ring: proto.ring 
-            };
+        const initialLength = stack.length;
+        stack = stack.filter(l => l.id !== maskId);
+
+        if (stack.length === initialLength) return false;
+
+        const updateFlags = {};
+
+        // If we just removed the Identity layer, unset the flag
+        const currentIdentity = token.document.getFlag(ns, "identity");
+        if (currentIdentity === maskId) {
+            updateFlags[`flags.${ns}.-=identity`] = null;
         }
-        const normalizedVisages = VisageData.getLocal(actor);
-        if (!normalizedVisages.length) return null;
-        return normalizedVisages.map(data => {
-            const c = data.changes;
-            const absScale = Math.abs(c.texture?.scaleX || 1);
-            return {
-                key: data.id,
-                name: c.name || defaults.name,
-                path: c.img || defaults.token,
-                scale: absScale,
-                disposition: c.disposition,
-                ring: c.ring,
-                width: c.width,
-                height: c.height
-            };
+
+        if (stack.length === 0) {
+            updateFlags[`flags.${ns}.-=activeStack`] = null;
+        } else {
+            updateFlags[`flags.${ns}.activeStack`] = stack;
+        }
+
+        await token.document.update(updateFlags);
+        await VisageComposer.compose(token);
+        return true;
+    }
+
+    static async revert(tokenOrId) {
+        const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
+        if (!token) return false;
+
+        const ns = this.DATA_NAMESPACE;
+        // Clear Stack and Identity in one go
+        await token.document.update({
+            [`flags.${ns}.-=activeStack`]: null,
+            [`flags.${ns}.-=identity`]: null
         });
+        
+        await VisageComposer.revertToDefault(token.document);
+        return true;
     }
 
-    static isFormActive(actorId, tokenId, formKey) {
-        const actor = game.actors.get(actorId);
-        const currentFormKey = actor?.flags?.[this.DATA_NAMESPACE]?.[tokenId]?.currentFormKey;
-        if (currentFormKey === undefined && formKey === 'default') return true;
-        return currentFormKey === formKey;
+    static isActive(tokenOrId, maskId) {
+        const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
+        if (!token) return false;
+        
+        const stack = token.document.getFlag(this.DATA_NAMESPACE, "activeStack") || [];
+        return stack.some(l => l.id === maskId);
     }
 
-    // --- UPDATED HANDLE TOKEN UPDATE ---
+    static getAvailable(tokenOrId) {
+        const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
+        const actor = token?.actor;
+        if (!actor) return [];
+
+        const local = VisageData.getLocal(actor).map(v => ({ ...v, type: "local" }));
+        const global = VisageData.globals.map(v => ({ ...v, type: "global" }));
+        return [...local, ...global];
+    }
+
     static async handleTokenUpdate(tokenDocument, change, options, userId) {
-        // 1. Ignore updates triggered by Visage itself
         if (options.visageUpdate) return;
         if (game.user.id !== userId) return;
 
@@ -207,8 +190,7 @@ export class Visage {
         if (!actor) return;
         const tokenId = tokenDocument.id;
 
-        // PART A: CAPTURE DEFAULTS (HUD Logic - remains same)
-        // ... [No changes to Part A logic] ...
+        // PART A: CAPTURE DEFAULTS
         const hasChangedName = "name" in change;
         const hasChangedTextureSrc = "texture" in change && "src" in change.texture;
         const hasChangedTextureScale = "texture" in change && ("scaleX" in change.texture || "scaleY" in change.texture);
@@ -238,28 +220,16 @@ export class Visage {
         const stack = flags.activeStack || flags.stack || [];
 
         if (stack.length > 0) {
-            const { VisageComposer } = await import("./visage-composer.js");
             let base = flags.originalState;
-            
-            // --- PROTECTION FIX START ---
-            // If originalState is missing, we snapshot. 
-            // BUT, if the token is already masked (stack > 0), this snapshot is corrupted.
-            // We assume that if `stack > 0` and `originalState` is missing, we are in a Bad State.
-            // We try to reconstruct "Clean" base from the `change` object if possible.
             if (!base) {
-                // Warning: We are snapshooting a potentially masked token.
-                // However, since `handleTokenUpdate` is running, the user just supplied valid Base Data via the Ghost Edit form.
-                // We should trust the `change` data as the new source of truth.
                 base = VisageComposer._captureSnapshot(tokenDocument.object);
             }
-            // --- PROTECTION FIX END ---
 
             const newBase = foundry.utils.mergeObject(base, change, { 
                 insertKeys: false, 
                 inplace: false 
             });
 
-            // Re-compose using the updated Base
             await VisageComposer.compose(tokenDocument.object, null, newBase);
         }
     }

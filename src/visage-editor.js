@@ -120,7 +120,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         });
 
         const c = data.changes || {};
-        const prep = (val, def) => ({ value: val ?? def, active: val !== null && val !== undefined });
+
+        const prep = (val, def) => {
+            const isDefined = val !== null && val !== undefined;
+            const isNotEmpty = typeof val === "string" ? val !== "" : true;
+            return { 
+                value: val ?? def, 
+                active: isDefined && isNotEmpty
+            };
+        };
+
         const ringActive = !!(c.ring && c.ring.enabled);
         const ringContext = VisageData.prepareRingContext(c.ring); 
 
@@ -482,23 +491,25 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
 
         let texture = undefined;
+        let flipX = undefined;
+        let flipY = undefined;
+
         const isScaleActive = formData.scale_active;
         const isFlipXActive = formData.isFlippedX !== "";
         const isFlipYActive = formData.isFlippedY !== "";
 
-        if (isScaleActive || isFlipXActive || isFlipYActive) {
-            const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
-            const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
-            const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
-            
-            texture = {
-                scaleX: rawScale * (flipX ? -1 : 1),
-                scaleY: rawScale * (flipY ? -1 : 1)
+        if (isScaleActive) {
+            const rawScale = parseFloat(formData.scale) / 100;
+            texture = { 
+                scaleX: rawScale, 
+                scaleY: rawScale 
             };
         }
 
-        const label = formData.label ? formData.label.trim() : game.i18n.localize("VISAGE.GlobalEditor.DefaultLabel");
+        if (isFlipXActive && formData.isFlippedX === "true") flipX = true;
+        if (isFlipYActive && formData.isFlippedY === "true") flipY = true;
 
+        const label = formData.label ? formData.label.trim() : game.i18n.localize("VISAGE.GlobalEditor.DefaultLabel");
         let cleanCategory = "";
         if (formData.category) {
             cleanCategory = formData.category.trim().replace(
@@ -516,7 +527,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             changes: {
                 name: getVal("nameOverride"),
                 img: getVal("img"),
-                texture: texture, 
+                texture: texture,
+                flipX: flipX,
+                flipY: flipY,
                 width: getVal("width", Number),
                 height: getVal("height", Number),
                 disposition: getVal("disposition", Number),

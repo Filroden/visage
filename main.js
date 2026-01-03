@@ -271,6 +271,7 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
     const { VisageData } = await import("./src/visage-data.js");
     const { Visage } = await import("./src/visage.js");
     
+    // Validation
     const visageData = VisageData.getGlobal(data.id); 
     if (!visageData) return;
 
@@ -281,7 +282,8 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
     });
 
     if (target) {
-        await Visage.applyGlobalVisage(target, visageData);
+        await Visage.apply(target, data.id, { clearStack: false });
+        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { label: visageData.label }));
     }
 });
 

@@ -45,7 +45,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!token) return;
 
         const ns = Visage.DATA_NAMESPACE;
-        const currentFormKey = token.actor.getFlag(ns, `${this.tokenId}.currentFormKey`) || "default";
+        const currentFormKey = token.document.getFlag(ns, "identity") || "default";
         const currentStack = token.document.getFlag(ns, "activeStack") || [];
 
         // Filter stack: Keep ONLY the layer that matches the current Identity.
@@ -60,7 +60,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         
         const actor = token.actor; 
         const ns = Visage.DATA_NAMESPACE;
-        const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
+        const currentFormKey = token.document.getFlag(ns, "identity") || "default";
 
         // --- 1. Prepare "Default" Visage ---
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
@@ -68,7 +68,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             isActive: currentFormKey === "default",
             isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(defaultRaw.changes.img || "")
         });
-        // FIX: Explicitly set key for template
         defaultForm.key = "default";
 
         // --- 2. Process Alternate Visages ---
@@ -79,7 +78,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(data.changes.img || ""),
                 isWildcard: (data.changes.img || "").includes('*')
             });
-            // FIX: Explicitly set key for template
             form.key = data.id;
             return form;
         });
@@ -119,7 +117,16 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onSelectVisage(event, target) {
         const formKey = target.dataset.formKey;
         if (formKey) {
-            await Visage.setVisage(this.actorId, this.tokenId, formKey);
+            if (formKey === "default") {
+                // If "Default" selected, remove the current Identity Layer only.
+                // Do NOT call revert() as that wipes masks.
+                const token = canvas.tokens.get(this.tokenId);
+                const currentIdentity = token.document.getFlag(Visage.MODULE_ID, "identity");
+                if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
+            } else {
+                // Apply new Identity, but preserve existing masks
+                await Visage.apply(this.tokenId, formKey, { switchIdentity: true });
+            }
             this.close();
         }
     }
@@ -141,13 +148,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _onRemoveLayer(event, target) {
         const layerId = target.dataset.layerId;
-        const token = canvas.tokens.get(this.tokenId);
-        if (!token) return;
-
-        const currentStack = token.document.getFlag(Visage.MODULE_ID, "activeStack") || [];
-        const newStack = currentStack.filter(layer => layer.id !== layerId);
-
-        await VisageComposer.compose(token, newStack);
+        await Visage.remove(this.tokenId, layerId);
     }
 
     _onClickAction(event, target) {

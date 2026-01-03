@@ -99,7 +99,6 @@ export class VisageData {
 
     /**
      * Generates the "Default" visage entry based on the token's original state.
-     * FIX: Strict reading of scaleY. Does not fallback to 'scale' (which causes V-Flip bugs).
      */
     static getDefaultAsVisage(tokenDoc) {
         if (!tokenDoc) return null;
@@ -126,7 +125,6 @@ export class VisageData {
         // 3. Normalize Data Structure (Strict Mode)
         const src = sourceData.texture?.src || sourceData.img || tokenDoc.texture.src;
         
-        // FIX: Removed `?? sourceData.scale` fallback
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1.0; 
         
@@ -168,22 +166,26 @@ export class VisageData {
         const c = data.changes || {};
         const tx = c.texture || {};
         
+        // 1. Scale Analysis
+        // We use isScaleActive to show the chip even if scale is 100% (Override vs Default)
+        const isScaleActive = tx.scaleX !== undefined;
         const rawScaleX = tx.scaleX ?? 1.0;
-        const rawScaleY = tx.scaleY ?? 1.0;
         const absScale = Math.abs(rawScaleX);
         const displayScale = Math.round(absScale * 100);
+        const scaleLabel = `${displayScale}%`;
         
-        const isFlippedX = rawScaleX < 0;
-        const isFlippedY = rawScaleY < 0;
+        // 2. Flip Analysis
+        // Checks both the new boolean flags AND legacy negative scales
+        const isFlippedX = (rawScaleX < 0) || (c.flipX === true);
+        const isFlippedY = (tx.scaleY < 0) || (c.flipY === true);
 
-        const isScaleDefault = absScale === 1.0;
-        const scaleLabel = isScaleDefault ? "" : `${displayScale}%`;
-        
+        // 3. Dimensions
         const w = c.width ?? 1;
         const h = c.height ?? 1;
         const isSizeDefault = w === 1 && h === 1;
         const sizeLabel = isSizeDefault ? "" : `${w}x${h}`;
 
+        // 4. Flip UI Logic
         let flipIcon = "fas fa-arrows-alt-h"; 
         let flipLabel = "-";
         let flipActive = false;
@@ -226,7 +228,7 @@ export class VisageData {
             isFlippedX,
             isFlippedY,
             
-            // FIX: Explicitly mapping these for templates that pass 'this'
+            // Explicit flags for Editor templates
             forceFlipX: isFlippedX,
             forceFlipY: isFlippedY,
             
@@ -239,14 +241,14 @@ export class VisageData {
                 ringColor: ringCtx.colors.ring,
                 ringBkg: ringCtx.colors.background,
                 
-                showDataChip: (scaleLabel !== "") || (sizeLabel !== ""),
+                showDataChip: isScaleActive || (sizeLabel !== ""),
                 showFlipBadge: flipActive,
                 showDispositionChip: dispClass !== "none",
                 
                 tokenName: c.name || null,
                 
                 slots: {
-                    scale: { active: !isScaleDefault, val: scaleLabel },
+                    scale: { active: isScaleActive, val: scaleLabel }, // Uses correct active state
                     dim: { active: !isSizeDefault, val: sizeLabel },
                     flip: { active: flipActive, icon: flipIcon, val: flipLabel },
                     disposition: { class: dispClass, val: dispLabel }

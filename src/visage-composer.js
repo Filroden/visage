@@ -9,23 +9,17 @@ export class VisageComposer {
 
     /**
      * Composes the final token data by layering the stack on top of the base state.
-     * @param {Token} token - The token object (placeable).
-     * @param {Array} [stackOverride=null] - Optional stack to use instead of the current flag.
-     * @param {Object} [baseOverride=null] - Optional base data to use instead of the current originalState.
-     * @returns {Promise<void>}
      */
     static async compose(token, stackOverride = null, baseOverride = null) {
         if (!token) return;
 
         // 1. Get Current Flags
         const allFlags = token.document.flags[Visage.MODULE_ID] || {};
-        // Check 'activeStack', then fallback to 'stack', then default to empty.
         const currentStack = stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
         
         // 2. Revert Logic
-        // Only revert if the stack is TRULY empty
         if (currentStack.length === 0 && !baseOverride) {
-            return this._revert(token, allFlags);
+            return this.revertToDefault(token.document);
         }
 
         // 3. Establish Base State
@@ -42,82 +36,82 @@ export class VisageComposer {
             const changes = layer.changes || {};
 
             // A. Texture/Image
-            if (changes.img) {
-                finalData.texture.src = changes.img;
-            } else if (changes.texture?.src) {
-                // Handle Unified Model where src might be inside texture
-                finalData.texture.src = changes.texture.src;
-            }
+            if (changes.img) finalData.texture.src = changes.img;
+            else if (changes.texture?.src) finalData.texture.src = changes.texture.src;
 
-            // B. Scale & Orientation (Unified Model Support)
-            // Check for Unified Model (texture object) first
-            if (changes.texture && (changes.texture.scaleX !== undefined || changes.texture.scaleY !== undefined)) {
-                // Apply absolute scale logic if present
-                if (changes.texture.scaleX !== undefined) finalData.texture.scaleX = changes.texture.scaleX;
-                if (changes.texture.scaleY !== undefined) finalData.texture.scaleY = changes.texture.scaleY;
+            // B. Scale (Override)
+            if (changes.texture) {
+                if (changes.texture.scaleX !== undefined) {
+                    const currentSign = finalData.texture.scaleX < 0 ? -1 : 1;
+                    finalData.texture.scaleX = Math.abs(changes.texture.scaleX) * currentSign;
+                }
+                if (changes.texture.scaleY !== undefined) {
+                    const currentSign = finalData.texture.scaleY < 0 ? -1 : 1;
+                    finalData.texture.scaleY = Math.abs(changes.texture.scaleY) * currentSign;
+                }
             } 
-            // Fallback for Legacy Data (flat scale)
             else if (changes.scale !== undefined && changes.scale !== null) {
-                const flipX = (changes.isFlippedX !== undefined) ? changes.isFlippedX : (finalData.texture.scaleX < 0);
-                const flipY = (changes.isFlippedY !== undefined) ? changes.isFlippedY : (finalData.texture.scaleY < 0);
                 const absScale = Math.abs(changes.scale);
-                finalData.texture.scaleX = absScale * (flipX ? -1 : 1);
-                finalData.texture.scaleY = absScale * (flipY ? -1 : 1);
+                const currentSignX = finalData.texture.scaleX < 0 ? -1 : 1;
+                finalData.texture.scaleX = absScale * currentSignX;
+                finalData.texture.scaleY = absScale * (finalData.texture.scaleY < 0 ? -1 : 1);
             }
 
-            // C. Ring
-            if (changes.ring && changes.ring.enabled) {
-                finalData.ring = changes.ring;
-            }
+            // C. Flip (Multiplier)
+            if (changes.flipX) finalData.texture.scaleX *= -1;
+            if (changes.flipY) finalData.texture.scaleY *= -1;
 
-            // D. Disposition
-            if (changes.disposition !== undefined && changes.disposition !== null) {
-                finalData.disposition = changes.disposition;
-            }
+            // D. Ring
+            if (changes.ring && changes.ring.enabled) finalData.ring = changes.ring;
+
+            // E. Disposition
+            if (changes.disposition !== undefined && changes.disposition !== null) finalData.disposition = changes.disposition;
             
-            // E. Name
-            if (changes.name) {
-                finalData.name = changes.name;
-            }
+            // F. Name
+            if (changes.name) finalData.name = changes.name;
 
-            // F. Dimensions
-            if (changes.width !== undefined && changes.width !== null) {
-                finalData.width = changes.width;
-            }
-            if (changes.height !== undefined && changes.height !== null) {
-                finalData.height = changes.height;
-            }
+            // G. Dimensions
+            if (changes.width !== undefined && changes.width !== null) finalData.width = changes.width;
+            if (changes.height !== undefined && changes.height !== null) finalData.height = changes.height;
         }
-
-        console.log("Visage | Composing Update:", finalData);
 
         // 5. Apply Update
         const updateData = {
             ...finalData,
-            [`flags.${Visage.MODULE_ID}.activeStack`]: currentStack, // CHANGED: activeStack
+            [`flags.${Visage.MODULE_ID}.activeStack`]: currentStack,
             [`flags.${Visage.MODULE_ID}.originalState`]: base
         };
 
         await token.document.update(updateData, { visageUpdate: true, animation: { duration: 0 } });
     }
 
-    static async _revert(token, flags) {
+    /**
+     * Public API to revert a token to its default state.
+     * FIX: Added this method to handle external calls from Visage.revert()
+     */
+    static async revertToDefault(tokenDoc) {
+        if (!tokenDoc) return;
+        const flags = tokenDoc.flags[Visage.MODULE_ID] || {};
+        return this._revert(tokenDoc, flags);
+    }
+
+    static async _revert(tokenDoc, flags) {
         if (!flags.originalState) {
             const clearFlags = {
-                [`flags.${Visage.MODULE_ID}.-=activeStack`]: null, // CHANGED
+                [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
                 [`flags.${Visage.MODULE_ID}.-=originalState`]: null
             };
-            return token.document.update(clearFlags, { visageUpdate: true });
+            return tokenDoc.update(clearFlags, { visageUpdate: true });
         }
 
         const updateData = {
             ...flags.originalState,
             [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
-            [`flags.${Visage.MODULE_ID}.-=stack`]: null, // Clean legacy
+            [`flags.${Visage.MODULE_ID}.-=stack`]: null,
             [`flags.${Visage.MODULE_ID}.-=originalState`]: null
         };
 
-        await token.document.update(updateData, { visageUpdate: true });
+        await tokenDoc.update(updateData, { visageUpdate: true });
     }
 
     static _captureSnapshot(token) {

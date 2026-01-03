@@ -18,8 +18,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         this.tokenId = options.tokenId || null;
         this.sceneId = options.sceneId || null;
         
-        // Local = Visage icon
-        // Global = Mask icon
         if (!this.isLocal) {
             this.options.window.icon = "visage-icon-domino";
         } else {
@@ -73,7 +71,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         classes: ["visage", "visage-gallery", "visage-dark-theme"],
         window: {
             title: "VISAGE.Directory.Title.Global", 
-            icon: "visage-icon-mask", // Default (Local) Icon
+            icon: "visage-icon-mask",
             resizable: true,
         },
         position: { width: 1250, height: 700 },
@@ -125,15 +123,11 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this.isLocal && !this.filters.showBin && this.actor) {
              let defaultRaw;
              
-             // A. Token Context (Use Factory)
              if (this.tokenId) {
                  const token = canvas.tokens.get(this.tokenId);
                  if (token) defaultRaw = VisageData.getDefaultAsVisage(token.document);
              } 
              
-             // B. Sidebar Context (Manual Construction from Prototype)
-             // Since VisageData.getDefaultAsVisage expects a TokenDocument, 
-             // we simulate the structure for the Sidebar Actor.
              if (!defaultRaw) {
                 const proto = this.actor.prototypeToken;
                 defaultRaw = { 
@@ -160,7 +154,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
              if (defaultRaw) source.unshift(defaultRaw);
         }
 
-        // --- 2. Categories & Tags Logic (Unchanged) ---
+        // --- 2. Categories & Tags Logic ---
         const categories = new Set();
         const tagCounts = {}; 
         source.forEach(v => {
@@ -201,22 +195,18 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             return a.label.localeCompare(b.label);
         });
 
-        // --- 4. Prepare Items (Using Unified Factory) ---
-        // Replaces 50+ lines of manual logic
+        // --- 4. Prepare Items ---
         const preparedItems = await Promise.all(items.map(async (entry) => {
             const rawPath = entry.changes.img || entry.changes.texture?.src;
             const resolvedPath = await Visage.resolvePath(rawPath);
             
-            // Generate Context
             const context = VisageData.toPresentation(entry, {
                 isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedPath),
                 isWildcard: (rawPath || "").includes('*'),
-                isActive: false // Gallery doesn't show selection state
+                isActive: false
             });
 
-            // Ensure resolved path is used for display
             context.changes.img = resolvedPath;
-            
             return context;
         }));
 
@@ -242,7 +232,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
     
-    // ... [Rest of file: event handlers _onToggleTag, _onRender, etc.] ...
     _onToggleTag(event, target) {
         const tag = target.dataset.tag;
         if (this.filters.tags.has(tag)) this.filters.tags.delete(tag);
@@ -256,14 +245,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onRender(context, options) {
-        // Handle RTL
         const rtlLanguages = ["ar", "he", "fa", "ur"];
         if (rtlLanguages.includes(game.i18n.lang)) {
             this.element.setAttribute("dir", "rtl");
             this.element.classList.add("rtl");
         }
 
-        // Handle Theme
         if (this.isLocal) {
             this.element.classList.add("visage-theme-local");
             this.element.classList.remove("visage-theme-global");
@@ -272,7 +259,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             this.element.classList.remove("visage-theme-local");
         }
 
-        // Reactivity Listener
         if (!this._dataListener) {
             this._dataListener = Hooks.on("visageDataChanged", () => this.render());
         }
@@ -385,12 +371,23 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async _onApply(event, target) {
+        const card = target.closest(".visage-card");
+        const id = card.dataset.id;
+        const name = card.querySelector(".card-title")?.innerText || "Visage";
+
         if (this.isLocal) {
-            const card = target.closest(".visage-card");
             if (this.tokenId) {
-                await Visage.setVisage(this.actorId, this.tokenId, card.dataset.id);
-                ui.notifications.info(game.i18n.format("VISAGE.Notifications.Updated", { name: "Visage" }));
-                // REMOVED: this.close();  <-- Keep open for workflow
+                // FIXED: Handle "Default" logic manually since it's not in the DB
+                if (id === "default") {
+                    const token = canvas.tokens.get(this.tokenId);
+                    const currentIdentity = token.document.getFlag(Visage.MODULE_ID, "identity");
+                    if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
+                    ui.notifications.info(game.i18n.format("VISAGE.Notifications.Updated", { name: name }));
+                } else {
+                    // CHANGED: Use switchIdentity to preserve stack
+                    await Visage.apply(this.tokenId, id, { switchIdentity: true });
+                    ui.notifications.info(game.i18n.format("VISAGE.Notifications.Updated", { name: name }));
+                }
             } else {
                 ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
             }
@@ -398,21 +395,14 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             const tokens = canvas.tokens.controlled.filter(t => t.document.isOwner);
             if (tokens.length === 0) return ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
             
-            const card = target.closest(".visage-card");
-            const visageData = VisageData.getGlobal(card.dataset.id);
+            const visageData = VisageData.getGlobal(id);
             if (!visageData) return;
 
             for (const token of tokens) {
-                await Visage.applyGlobalVisage(token, visageData);
+                // Global Mask = Add to Stack (clearStack: false)
+                await Visage.apply(token, id, { clearStack: false });
             }
+            ui.notifications.info(game.i18n.format("VISAGE.Notifications.AppliedTo", { count: tokens.length, name: name }));
         }
-    }
-    
-    async close(options) {
-        if (this._dataListener) {
-            Hooks.off("visageDataChanged", this._dataListener);
-            this._dataListener = null;
-        }
-        return super.close(options);
     }
 }
