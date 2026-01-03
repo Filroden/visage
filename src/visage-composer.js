@@ -1,5 +1,7 @@
 /**
- * @file The central logic for layering Visage effects.
+ * @file The central logic engine for layering Visage effects.
+ * Handles the composition of multiple cosmetic layers into a final token update
+ * and manages the preservation of original token data via snapshots.
  * @module visage
  */
 
@@ -8,33 +10,36 @@ import { Visage } from "./visage.js";
 export class VisageComposer {
 
     /**
-     * Composes the final token data by layering the stack on top of the base state.
-     * @param {Token} token - The token object (placeable).
-     * @param {Array} [stackOverride=null] - Optional stack to use instead of the current flag.
-     * @param {Object} [baseOverride=null] - Optional base data to use instead of the current originalState.
+     * Composes the final appearance of a token by layering the active stack on top of its base state.
+     * This is a non-destructive operation that calculates the final properties without overwriting
+     * the "Original State" flag.
+     * * @param {Token} token - The target token object (canvas placeable).
+     * @param {Array<Object>|null} [stackOverride=null] - An optional stack of layers to use instead of the current flags.
+     * @param {Object|null} [baseOverride=null] - An optional base state snapshot to use instead of the stored original.
      * @returns {Promise<void>}
      */
     static async compose(token, stackOverride = null, baseOverride = null) {
         if (!token) return;
 
-        // 1. Get Current Flags
+        // 1. Retrieve Context
         const allFlags = token.document.flags[Visage.MODULE_ID] || {};
-        // Check 'activeStack', then fallback to 'stack', then default to empty.
         const currentStack = stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
         
-        // 2. Revert Logic
-        // Only revert if the stack is TRULY empty
+        // 2. Revert Condition
+        // If the stack is empty and we aren't simulating a specific base, revert to default.
         if (currentStack.length === 0 && !baseOverride) {
-            return this._revert(token, allFlags);
+            return this.revertToDefault(token.document);
         }
 
-        // 3. Establish Base State
+        // 3. Establish Base State (The "Canvas" to paint on)
+        // If no clean snapshot exists, capture the current state as the baseline.
         let base = baseOverride ?? allFlags.originalState;
         if (!base) {
             base = this._captureSnapshot(token);
         }
 
-        // 4. Layer Changes
+        // 4. Layer Composition Loop
+        // Clone the base state so we don't mutate the reference
         const finalData = foundry.utils.deepClone(base);
         if (!finalData.texture) finalData.texture = {};
 
@@ -42,84 +47,109 @@ export class VisageComposer {
             const changes = layer.changes || {};
 
             // A. Texture/Image
-            if (changes.img) {
-                finalData.texture.src = changes.img;
-            } else if (changes.texture?.src) {
-                // Handle Unified Model where src might be inside texture
-                finalData.texture.src = changes.texture.src;
-            }
+            if (changes.img) finalData.texture.src = changes.img;
+            else if (changes.texture?.src) finalData.texture.src = changes.texture.src;
 
-            // B. Scale & Orientation (Unified Model Support)
-            // Check for Unified Model (texture object) first
-            if (changes.texture && (changes.texture.scaleX !== undefined || changes.texture.scaleY !== undefined)) {
-                // Apply absolute scale logic if present
-                if (changes.texture.scaleX !== undefined) finalData.texture.scaleX = changes.texture.scaleX;
-                if (changes.texture.scaleY !== undefined) finalData.texture.scaleY = changes.texture.scaleY;
+            // B. Scale Handling
+            // Supports both legacy top-level 'scale' and v10+ 'texture.scaleX/Y'
+            if (changes.texture) {
+                if (changes.texture.scaleX !== undefined) {
+                    const currentSign = finalData.texture.scaleX < 0 ? -1 : 1;
+                    finalData.texture.scaleX = Math.abs(changes.texture.scaleX) * currentSign;
+                }
+                if (changes.texture.scaleY !== undefined) {
+                    const currentSign = finalData.texture.scaleY < 0 ? -1 : 1;
+                    finalData.texture.scaleY = Math.abs(changes.texture.scaleY) * currentSign;
+                }
             } 
-            // Fallback for Legacy Data (flat scale)
             else if (changes.scale !== undefined && changes.scale !== null) {
-                const flipX = (changes.isFlippedX !== undefined) ? changes.isFlippedX : (finalData.texture.scaleX < 0);
-                const flipY = (changes.isFlippedY !== undefined) ? changes.isFlippedY : (finalData.texture.scaleY < 0);
                 const absScale = Math.abs(changes.scale);
-                finalData.texture.scaleX = absScale * (flipX ? -1 : 1);
-                finalData.texture.scaleY = absScale * (flipY ? -1 : 1);
+                // Preserve existing flip orientation (sign)
+                const currentSignX = finalData.texture.scaleX < 0 ? -1 : 1;
+                const currentSignY = finalData.texture.scaleY < 0 ? -1 : 1;
+                
+                finalData.texture.scaleX = absScale * currentSignX;
+                finalData.texture.scaleY = absScale * currentSignY;
             }
 
-            // C. Ring
-            if (changes.ring && changes.ring.enabled) {
-                finalData.ring = changes.ring;
-            }
+            // C. Flip Flags (Multiplicative)
+            // Toggling a flip multiplies the current scale by -1
+            if (changes.flipX) finalData.texture.scaleX *= -1;
+            if (changes.flipY) finalData.texture.scaleY *= -1;
 
-            // D. Disposition
+            // D. Dynamic Ring (v12+)
+            if (changes.ring && changes.ring.enabled) finalData.ring = changes.ring;
+
+            // E. Disposition (Color Ring)
             if (changes.disposition !== undefined && changes.disposition !== null) {
                 finalData.disposition = changes.disposition;
             }
             
-            // E. Name
-            if (changes.name) {
-                finalData.name = changes.name;
-            }
+            // F. Name Override
+            if (changes.name) finalData.name = changes.name;
 
-            // F. Dimensions
-            if (changes.width !== undefined && changes.width !== null) {
-                finalData.width = changes.width;
-            }
-            if (changes.height !== undefined && changes.height !== null) {
-                finalData.height = changes.height;
-            }
+            // G. Dimensions (Grid Size)
+            if (changes.width !== undefined && changes.width !== null) finalData.width = changes.width;
+            if (changes.height !== undefined && changes.height !== null) finalData.height = changes.height;
         }
 
-        console.log("Visage | Composing Update:", finalData);
-
-        // 5. Apply Update
+        // 5. Atomic Update
+        // Write the visual changes AND the stack state in a single database transaction.
         const updateData = {
             ...finalData,
-            [`flags.${Visage.MODULE_ID}.activeStack`]: currentStack, // CHANGED: activeStack
+            [`flags.${Visage.MODULE_ID}.activeStack`]: currentStack,
             [`flags.${Visage.MODULE_ID}.originalState`]: base
         };
 
+        // Disable animation for instant cosmetic swaps
         await token.document.update(updateData, { visageUpdate: true, animation: { duration: 0 } });
     }
 
-    static async _revert(token, flags) {
+    /**
+     * Public API to revert a token to its clean, original state.
+     * Removes all Visage effects and flags.
+     * @param {TokenDocument} tokenDoc - The token document to revert.
+     * @returns {Promise<TokenDocument>} The updated document.
+     */
+    static async revertToDefault(tokenDoc) {
+        if (!tokenDoc) return;
+        const flags = tokenDoc.flags[Visage.MODULE_ID] || {};
+        return this._revert(tokenDoc, flags);
+    }
+
+    /**
+     * Internal implementation of the revert logic.
+     * Distinguishes between tokens that have a "clean snapshot" and those that don't.
+     * @private
+     */
+    static async _revert(tokenDoc, flags) {
+        // If no snapshot exists, simply removing the flags is sufficient.
         if (!flags.originalState) {
             const clearFlags = {
-                [`flags.${Visage.MODULE_ID}.-=activeStack`]: null, // CHANGED
+                [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
                 [`flags.${Visage.MODULE_ID}.-=originalState`]: null
             };
-            return token.document.update(clearFlags, { visageUpdate: true });
+            return tokenDoc.update(clearFlags, { visageUpdate: true });
         }
 
+        // If a snapshot exists, restore the original visual data AND wipe the flags.
         const updateData = {
             ...flags.originalState,
             [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
-            [`flags.${Visage.MODULE_ID}.-=stack`]: null, // Clean legacy
+            [`flags.${Visage.MODULE_ID}.-=stack`]: null, // Clean legacy key
             [`flags.${Visage.MODULE_ID}.-=originalState`]: null
         };
 
-        await token.document.update(updateData, { visageUpdate: true });
+        await tokenDoc.update(updateData, { visageUpdate: true });
     }
 
+    /**
+     * Captures the current visual properties of a token to serve as a restoration point.
+     * Only captures cosmetic properties (Name, Image, Scale, Ring), ignores stats (HP, AC).
+     * @param {Token} token - The token object to snapshot.
+     * @returns {Object} A data object representing the token's visual state.
+     * @private
+     */
     static _captureSnapshot(token) {
         const doc = token.document;
         return {
@@ -131,6 +161,7 @@ export class VisageComposer {
                 scaleX: doc.texture.scaleX,
                 scaleY: doc.texture.scaleY
             },
+            // Handle v12 Ring data safely
             ring: doc.ring?.toObject?.() ?? doc.ring ?? {},
             width: doc.width,
             height: doc.height,

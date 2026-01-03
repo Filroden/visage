@@ -1,31 +1,36 @@
 /**
- * @file Defines the VisageSelector application.
+ * @file Defines the VisageSelector application (The "HUD").
+ * A transient, pop-up UI that allows users to quickly swap token appearances
+ * or manage active mask layers directly from the canvas.
  * @module visage
  */
 
 import { Visage } from "./visage.js";
-import { VisageConfigApp } from "./visage-config.js";
+import { VisageGallery } from "./visage-gallery.js"; 
 import { VisageComposer } from "./visage-composer.js";
+import { VisageData } from "./visage-data.js"; 
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+/**
+ * The HUD application spawned by clicking the button in the Token HUD.
+ * Designed to be lightweight and close automatically when focus is lost.
+ */
 export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     
+    /**
+     * @param {Object} options - Application options.
+     * @param {string} options.actorId - The ID of the actor owning the token.
+     * @param {string} options.tokenId - The ID of the specific token being modified.
+     * @param {string} options.sceneId - The ID of the scene containing the token.
+     */
     constructor(options = {}) {
         super(options);
         this.actorId = options.actorId;
         this.tokenId = options.tokenId;
         this.sceneId = options.sceneId;
-
-        this._dispositionMap = {
-            [-2]: { name: game.i18n.localize("VISAGE.Disposition.Secret"),   class: "secret"   },
-            [-1]: { name: game.i18n.localize("VISAGE.Disposition.Hostile"),  class: "hostile"  },
-            [0]:  { name: game.i18n.localize("VISAGE.Disposition.Neutral"),  class: "neutral"  },
-            [1]:  { name: game.i18n.localize("VISAGE.Disposition.Friendly"), class: "friendly" }
-        };
     }
 
-    /** @override */
     static DEFAULT_OPTIONS = {
         tag: "div",
         id: "visage-selector",
@@ -36,11 +41,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             selectVisage: VisageSelector.prototype._onSelectVisage,
             openConfig: VisageSelector.prototype._onOpenConfig,
             revertGlobal: VisageSelector.prototype._onRevertGlobal,
-            removeLayer: VisageSelector.prototype._onRemoveLayer // Ensure this is mapped!
+            removeLayer: VisageSelector.prototype._onRemoveLayer
         }
     };
 
-    /** @override */
     static PARTS = {
         form: {
             template: "modules/visage/templates/visage-selector.hbs",
@@ -48,154 +52,87 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
+    /**
+     * Removes all "Mask" layers from the stack, leaving only the base Identity.
+     * This is the "Strip Disguise" feature.
+     */
     async _onRevertGlobal(event, target) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token) return;
-        await VisageComposer.compose(token, []);
+
+        const ns = Visage.DATA_NAMESPACE;
+        const currentFormKey = token.document.getFlag(ns, "identity") || "default";
+        const currentStack = token.document.getFlag(ns, "activeStack") || [];
+
+        // Filter stack: Keep ONLY the layer that matches the current Identity.
+        // This removes all other cosmetic layers (e.g. Invisibility, Rage)
+        const newStack = currentStack.filter(layer => layer.id === currentFormKey);
+
+        await VisageComposer.compose(token, newStack);
     }
 
+    /**
+     * Prepares data for rendering the HUD.
+     * * COMPLEXITY: This method must combine "Local Identity" options (faces)
+     * with "Active Stack" layers (current effects) into a single UI context.
+     * @override
+     */
     async _prepareContext(options) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token || !token.actor) return { forms: [] };
         
         const actor = token.actor; 
         const ns = Visage.DATA_NAMESPACE;
-        let defaults = actor.flags?.[ns]?.[this.tokenId]?.defaults;
+        const currentFormKey = token.document.getFlag(ns, "identity") || "default";
 
-        if (!defaults) return { forms: [] };
+        // --- 1. Prepare "Default" Visage Entry ---
+        // Represents the token's original, unmodified appearance.
+        const defaultRaw = VisageData.getDefaultAsVisage(token.document);
+        const defaultForm = VisageData.toPresentation(defaultRaw, {
+            isActive: currentFormKey === "default",
+            isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(defaultRaw.changes.img || "")
+        });
+        defaultForm.key = "default";
 
-        const currentFormKey = actor.flags?.[ns]?.[this.tokenId]?.currentFormKey || "default";
-        const forms = {};
+        // --- 2. Process Alternate Visages (Local Identity Options) ---
+        const localVisages = VisageData.getLocal(actor).filter(v => !v.deleted);
+        const alternateForms = localVisages.map(data => {
+            const form = VisageData.toPresentation(data, {
+                isActive: data.id === currentFormKey,
+                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(data.changes.img || ""),
+                isWildcard: (data.changes.img || "").includes('*')
+            });
+            form.key = data.id;
+            return form;
+        });
 
-        const defScaleRaw = defaults.scale ?? 1.0;
-        const defScale = Math.abs(defScaleRaw);
-        const defFlipX = defaults.isFlippedX ?? (defScaleRaw < 0);
-        const defFlipY = defaults.isFlippedY ?? false;
+        // --- 3. Sorting & Merging ---
+        alternateForms.sort((a, b) => a.label.localeCompare(b.label));
+        const orderedForms = [defaultForm, ...alternateForms];
 
-        const getSmartData = (scale, width, height, isFlippedX, isFlippedY) => {
-            const absScale = Math.abs(scale);
-            const isScaleDefault = absScale === 1.0;
-            const scaleLabel = isScaleDefault ? "" : `${Math.round(absScale * 100)}%`;
-            const safeW = width || 1;
-            const safeH = height || 1;
-            const isSizeDefault = safeW === 1 && safeH === 1;
-            const sizeLabel = isSizeDefault ? "" : `${safeW}x${safeH}`;
-            const matchesDefault = (isFlippedX === defFlipX) && (isFlippedY === defFlipY);
-            const showFlipBadge = !matchesDefault;
-            const showDataChip = (scaleLabel !== "") || (sizeLabel !== "");
-            return { scaleLabel, sizeLabel, showFlipBadge, showDataChip };
-        };
-        
-        // --- 2. Prepare "Default" Visage ---
-        {
-            const defaultPath = defaults.token || "";
-            const defWidth = defaults.width ?? 1; 
-            const defHeight = defaults.height ?? 1;
-            const smartData = getSmartData(defScale, defWidth, defHeight, defFlipX, defFlipY);
-            const ringCtx = Visage.prepareRingContext(defaults.ring);
-
-            forms["default"] = {
-                key: "default",
-                name: defaults.name || game.i18n.localize("VISAGE.Selector.Default"),
-                path: defaultPath,
-                isActive: currentFormKey === "default",
-                isDefault: true,
-                scale: defScale,
-                isFlippedX: defFlipX,
-                isFlippedY: defFlipY,
-                forceFlipX: defFlipX,
-                forceFlipY: defFlipY,
-                showDataChip: smartData.showDataChip,
-                showFlipBadge: smartData.showFlipBadge,
-                sizeLabel: smartData.sizeLabel,
-                scaleLabel: smartData.scaleLabel,
-                isWildcard: defaultPath.includes('*'),
-                showDispositionChip: false,
-                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(defaultPath),
-                hasRing: ringCtx.enabled,
-                ringColor: ringCtx.colors.ring,
-                ringBkg: ringCtx.colors.background,
-                hasPulse: ringCtx.hasPulse,
-                hasGradient: ringCtx.hasGradient,
-                hasWave: ringCtx.hasWave,
-                hasInvisibility: ringCtx.hasInvisibility
-            };
-        }
-        
-        // --- 3. Process Alternate Visages ---
-        const normalizedData = Visage.getVisages(actor);
-
-        for (const data of normalizedData) {
-            const isActive = data.id === currentFormKey;
-            const c = data.changes; 
-            const dispositionInfo = (c.disposition !== null) ? this._dispositionMap[c.disposition] : null;
-
-            const scaleX = c.texture?.scaleX ?? 1.0;
-            const scaleY = c.texture?.scaleY ?? 1.0;
-            const absScale = Math.abs(scaleX);
-            const isFlippedX = scaleX < 0;
-            const isFlippedY = scaleY < 0;
-
-            const smartData = getSmartData(absScale, c.width, c.height, isFlippedX, isFlippedY);
-            const ringCtx = Visage.prepareRingContext(c.ring);
-
-            forms[data.id] = {
-                key: data.id,
-                name: data.label,
-                path: c.img, 
-                scale: absScale,
-                isActive: isActive,
-                isDefault: false,
-                isFlippedX: isFlippedX,
-                isFlippedY: isFlippedY,
-                forceFlipX: isFlippedX,
-                forceFlipY: isFlippedY,
-                showDataChip: smartData.showDataChip,
-                showFlipBadge: smartData.showFlipBadge,
-                sizeLabel: smartData.sizeLabel,
-                scaleLabel: smartData.scaleLabel,
-                isWildcard: (c.img || "").includes('*'),
-                showDispositionChip: !!dispositionInfo,
-                dispositionName: dispositionInfo?.name || "",
-                dispositionClass: dispositionInfo?.class || "",
-                hasRing: ringCtx.enabled,
-                ringColor: ringCtx.colors.ring,
-                ringBkg: ringCtx.colors.background,
-                hasPulse: ringCtx.hasPulse,
-                hasGradient: ringCtx.hasGradient,
-                hasWave: ringCtx.hasWave,
-                hasInvisibility: ringCtx.hasInvisibility,
-                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(c.img || "")
-            };
-        }
-
-        // --- 4. Sort and Resolve ---
-        const orderedForms = [forms["default"]];
-        const alternateKeys = Object.keys(forms)
-            .filter(k => k !== "default")
-            .sort((a, b) => forms[a].name.localeCompare(forms[b].name));
-            
-        for(const key of alternateKeys) {
-            orderedForms.push(forms[key]);
-        }
-
+        // --- 4. Resolve Image Paths (Async) ---
+        // Resolves wildcards so the HUD shows a real image, not a random "*" path.
         for (const form of orderedForms) {
             form.resolvedPath = await Visage.resolvePath(form.path);
         }
 
-        // --- 5. PREPARE STACK DISPLAY ---
+        // --- 5. Prepare Active Stack Display ---
+        // Shows active Global Masks currently layered on the token.
         const flags = token.document.flags[Visage.MODULE_ID] || {};
         const activeStack = flags.activeStack || flags.stack || [];
         
-        const stackDisplay = activeStack.map(layer => {
-            // Unpack Unified Model for display
+        // Visual Filter: Hide the base Identity Layer from the "Effects" list
+        // so it doesn't appear twice (once as selected face, once as stack item).
+        const visibleStack = activeStack.filter(layer => layer.id !== currentFormKey);
+
+        const stackDisplay = visibleStack.map(layer => {
             const img = layer.changes.img || layer.changes.texture?.src || "icons/svg/aura.svg";
             return {
                 id: layer.id,
                 label: layer.label,
                 icon: img
             };
-        }).reverse();
+        }).reverse(); // Show newest on top
 
         return { 
             forms: orderedForms,
@@ -204,44 +141,46 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
     
+    /**
+     * Handles clicking a Visage Tile to swap appearance.
+     * @param {PointerEvent} event 
+     * @param {HTMLElement} target 
+     */
     async _onSelectVisage(event, target) {
         const formKey = target.dataset.formKey;
         if (formKey) {
-            await Visage.setVisage(this.actorId, this.tokenId, formKey);
+            if (formKey === "default") {
+                // If "Default" selected, remove the current Identity Layer only.
+                // Do NOT call revert() as that wipes masks.
+                const token = canvas.tokens.get(this.tokenId);
+                const currentIdentity = token.document.getFlag(Visage.MODULE_ID, "identity");
+                if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
+            } else {
+                // Apply new Identity, but preserve existing masks (switchIdentity: true)
+                await Visage.apply(this.tokenId, formKey, { switchIdentity: true });
+            }
             this.close();
         }
     }
 
     _onOpenConfig(event, target) {
-        const configId = `visage-config-${this.actorId}-${this.tokenId}`;
-        if (Visage.apps[configId]) {
-            Visage.apps[configId].bringToTop();
+        const appId = `visage-gallery-${this.actorId}-${this.tokenId}`;
+        if (Visage.apps[appId]) {
+            Visage.apps[appId].bringToTop();
         } else {
-            const configApp = new VisageConfigApp({ 
+            new VisageGallery({ 
                 actorId: this.actorId, 
                 tokenId: this.tokenId, 
                 sceneId: this.sceneId, 
-                id: configId 
-            });
-            configApp.render(true);
+                id: appId 
+            }).render(true);
         }
         this.close();
     }
 
-    /**
-     * Handle removing a specific layer from the global stack.
-     */
     async _onRemoveLayer(event, target) {
         const layerId = target.dataset.layerId;
-        const token = canvas.tokens.get(this.tokenId);
-        if (!token) return;
-
-        // CHANGED: Use 'activeStack'
-        const currentStack = token.document.getFlag(Visage.MODULE_ID, "activeStack") || [];
-        const newStack = currentStack.filter(layer => layer.id !== layerId);
-
-        // Re-compose
-        await VisageComposer.compose(token, newStack);
+        await Visage.remove(this.tokenId, layerId);
     }
 
     _onClickAction(event, target) {
@@ -267,18 +206,31 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.close(options);
     }
 
+    /**
+     * Binds listeners to detect clicks outside the HUD or token updates.
+     * Used to auto-close the HUD if the user interacts with the canvas or selects a different token.
+     * @private
+     */
     _bindDismissListeners() {
         this._onDocPointerDown = (ev) => {
             const root = this.element;
             if (!root) return;
+            // Ignore clicks inside the HUD itself
             if (root.contains(ev.target)) return;
+            // Ignore clicks on the toggle button
             const hudBtn = document.querySelector('.visage-button');
             if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
-            const configApp = ev.target.closest('.visage-config-app');
-            if (configApp) return;
+            
+            // Ignore clicks on other Visage windows (Editor/Gallery)
+            const dirApp = ev.target.closest('.visage-gallery');
+            const editorApp = ev.target.closest('.visage-editor');
+            if (dirApp || editorApp) return;
+            
             this.close();
         };
         document.addEventListener('pointerdown', this._onDocPointerDown, true);
+        
+        // Auto-refresh HUD if the token changes while open
         this._onTokenUpdate = (document, change, options, userId) => {
             if (document.id === this.tokenId) {
                 this.render();

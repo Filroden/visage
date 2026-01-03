@@ -1,114 +1,202 @@
 /**
- * @file Handles data migration logic for the Visage module. This script is responsible for upgrading legacy
- * data structures to the modern format, ensuring a smooth transition between module versions.
+ * @file Handles data migration logic for the Visage module.
+ * Performs a "Hard Migration" to upgrade legacy data (v1.x) to the modern Unified Model (v2.0).
+ * Also handles garbage collection for orphaned token data.
  * @module visage
  */
 
 import { Visage } from "./visage.js";
 
 /**
- * Performs a global migration of all Visage data from the legacy name-keyed format (`alternateImages`)
- * to the modern UUID-keyed format (`alternateVisages`).
- *
- * This function is idempotent, meaning it is safe to run multiple times. It performs a "Deep Scan" to
- * ensure all data is migrated, covering two primary sources:
- * 1.  **World Actors**: Actors that exist in the `game.actors` directory.
- * 2.  **Unlinked Tokens**: Synthetic actors embedded in tokens across all scenes, which do not
- *     exist in the world directory.
- *
- * The migration process for each found actor involves:
- * - Reading the legacy `alternateImages` data.
- * - For each entry, generating a new stable UUID if one doesn't exist.
- * - Normalizing data fields (e.g., converting legacy `disposition: 2` to `-2`).
- * - Updating the `currentFormKey` on any tokens that were referencing the old name-based key to
- *   point to the new UUID, preserving the user's selection.
- * - Writing the new data to the `alternateVisages` flag and unsetting the old `alternateImages` flag.
- *
- * @returns {Promise<void>} A promise that resolves when the migration is complete.
+ * Performs a global migration of all Visage data across all Actors in the world.
+ * * STRATEGY:
+ * 1. **Index**: Build a map of all valid tokens in all scenes.
+ * 2. **Library Migration**: Convert legacy "visages" format to the new "alternateVisages" format.
+ * 3. **Snapshot Repair**: Patch "Default" snapshots with missing v2 properties (Dynamic Ring, Dimensions).
+ * 4. **Garbage Collection**: Delete data for tokens that no longer exist in the world.
  */
 export async function migrateWorldData() {
-    const actorsToUpdate = new Map();
+    const ns = Visage.DATA_NAMESPACE;
+    const legacyKey = Visage.LEGACY_FLAG_KEY || "visages"; // Fallback if constant is missing
+    const newKey = Visage.ALTERNATE_FLAG_KEY || "alternateVisages";
 
-    // 1. Scan World Actors
-    for (const actor of game.actors) {
-        if (actor.flags?.[Visage.DATA_NAMESPACE]?.[Visage.LEGACY_FLAG_KEY]) {
-            actorsToUpdate.set(actor.id, actor);
-        }
-    }
+    ui.notifications.info("Visage: Starting Migration to v2.0...");
+    console.group("Visage | Migration v2.0");
 
-    // 2. Scan Unlinked Tokens in Scenes
+    // --- PHASE 0: INDEX ALL TOKENS ---
+    // We need a complete list of valid tokens to determine if data is orphaned.
+    const worldTokenMap = new Map(); // ID -> TokenDocument
     for (const scene of game.scenes) {
         for (const token of scene.tokens) {
-            if (!token.actorLink && token.actor?.flags?.[Visage.DATA_NAMESPACE]?.[Visage.LEGACY_FLAG_KEY]) {
-                // Use token ID as unique key for unlinked actors
-                actorsToUpdate.set(token.id, token.actor);
-            }
+            worldTokenMap.set(token.id, token);
         }
     }
 
-    if (actorsToUpdate.size === 0) return;
+    // Identify unique Actors to process (Real Actors + Synthetic Token Actors)
+    const actorsToUpdate = new Map();
+    for (const actor of game.actors) actorsToUpdate.set(actor.id, actor);
+    
+    // Add unlinked actors found in the scene index
+    for (const token of worldTokenMap.values()) {
+        if (!token.actorLink && token.actor) {
+            actorsToUpdate.set(token.actor.id, token.actor);
+        }
+    }
 
-    const ns = Visage.DATA_NAMESPACE;
-    const legacyKey = Visage.LEGACY_FLAG_KEY;
-    const newKey = Visage.ALTERNATE_FLAG_KEY;
-
-    ui.notifications.info("Visage: Migrating data to version 2.0...");
+    if (actorsToUpdate.size === 0) {
+        console.log("Visage | No actors found to migrate.");
+        console.groupEnd();
+        return;
+    }
 
     for (const actor of actorsToUpdate.values()) {
-        const legacyVisages = actor.getFlag(ns, legacyKey);
-        const newVisages = actor.getFlag(ns, newKey) || {};
+        const actorFlags = actor.flags[ns] || {};
         
-        const updates = {
-            [`flags.${ns}.-=${legacyKey}`]: null
-        };
+        // Skip actors with no visage data to save DB writes
+        if (Object.keys(actorFlags).length === 0) continue;
 
-        const getUUID = () => foundry.utils.randomID(16);
-        
-        for (const [key, data] of Object.entries(legacyVisages)) {
-            const isLegacyKey = key.length !== 16;
-            const uuid = isLegacyKey ? getUUID() : key;
-            const isObject = typeof data === 'object' && data !== null;
-            
-            // --- v2.0 NORMALIZATION LOGIC ---
-            const rawScale = isObject ? (data.scale ?? 1.0) : 1.0;
-            const scale = Math.abs(rawScale); 
-            const isFlippedX = rawScale < 0; // Convert negative scale to flip flag
-            
-            const path = isObject ? (data.path || data) : data;
-            
-            let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
-            if (disposition === 2) disposition = -2;
+        let updates = {};
+        let performUpdate = false;
 
-            const secret = (isObject && data.secret === true);
-            
-            newVisages[uuid] = {
-                name: isObject && data.name ? data.name : key,
-                path: path,
-                scale: scale,
-                isFlippedX: isFlippedX, 
-                isFlippedY: false, // Default for legacy
-                disposition: disposition,
-                secret: secret,
-                ring: isObject ? data.ring : null, 
-                width: isObject ? (data.width ?? 1) : 1,
-                height: isObject ? (data.height ?? 1) : 1
-            };
+        // =========================================================
+        // PHASE 1: MIGRATE LIBRARY (The "Visages")
+        // =========================================================
+        const legacyData = actorFlags[legacyKey];
+        const modernData = actorFlags[newKey];
 
-            // Update active tokens referencing old keys
-            const actorFlags = actor.flags[ns];
-            if (actorFlags) {
-                for (const [flagKey, flagValue] of Object.entries(actorFlags)) {
-                    if (flagKey.length === 16 && flagValue?.currentFormKey === key) {
-                        updates[`flags.${ns}.${flagKey}.currentFormKey`] = uuid;
+        // If either exists, we must ensure they are unified under the new key
+        if (legacyData || modernData) {
+            const allSourceData = { ...(legacyData || {}), ...(modernData || {}) };
+            const cleanData = {};
+            const getUUID = () => foundry.utils.randomID(16);
+
+            for (const [key, raw] of Object.entries(allSourceData)) {
+                // Safety Check: Is this valid data?
+                if (!raw) continue;
+                
+                // If key is not a standard 16-char ID (e.g., sequential integer from v1), generate a new UUID
+                const isLegacyKey = key.length !== 16;
+                const uuid = isLegacyKey ? getUUID() : key;
+                
+                cleanData[uuid] = normalizeEntry(uuid, raw, key);
+            }
+
+            // Nuke the old key and write the new clean object
+            if (legacyData) updates[`flags.${ns}.-=${legacyKey}`] = null;
+            updates[`flags.${ns}.${newKey}`] = cleanData;
+            performUpdate = true;
+        }
+
+        // =========================================================
+        // PHASE 2: MIGRATE DEFAULTS (The "Snapshots")
+        // =========================================================
+        // Iterate over flag keys. Keys that are 16-chars long (Token IDs) represent specific token state snapshots.
+        for (const [key, flagData] of Object.entries(actorFlags)) {
+            if (key === legacyKey || key === newKey) continue; // Skip library containers
+            if (key.length !== 16) continue; // Not a valid Token ID
+
+            const tokenDoc = worldTokenMap.get(key);
+
+            // A. GARBAGE COLLECTION
+            // If the token ID in the flags doesn't match any token in the world index, delete it.
+            if (!tokenDoc) {
+                updates[`flags.${ns}.-=${key}`] = null;
+                performUpdate = true;
+                console.log(`Visage | GC: Removing orphaned data for missing token ${key}`);
+                continue;
+            }
+
+            // B. SNAPSHOT REPAIR
+            // If the token exists, check if its "Default State" snapshot is missing new v2 properties.
+            if (flagData?.defaults) {
+                const defs = flagData.defaults;
+                const sourceData = tokenDoc.toObject(); // Get current state to patch missing holes
+
+                // Check for specific v2 properties
+                const missingRing = defs.ring === undefined;
+                const missingDims = defs.width === undefined || defs.height === undefined;
+
+                if (missingRing || missingDims) {
+                    const newDefaults = { ...defs };
+                    
+                    if (missingRing) newDefaults.ring = sourceData.ring;
+                    if (missingDims) {
+                        newDefaults.width = sourceData.width ?? 1;
+                        newDefaults.height = sourceData.height ?? 1;
                     }
+
+                    // Write the patched defaults back to the actor
+                    updates[`flags.${ns}.${key}.defaults`] = newDefaults;
+                    performUpdate = true;
                 }
             }
         }
 
-        updates[`flags.${ns}.${newKey}`] = newVisages;
-        await actor.update(updates);
-        Visage.log(`Migrated actor: ${actor.name} (${actor.id})`);
+        if (performUpdate) {
+            await actor.update(updates);
+            console.log(`Migrated ${actor.name}`);
+        }
     }
 
-    ui.notifications.info(`Visage: Successfully migrated data for ${actorsToUpdate.size} actors/tokens.`);
+    console.groupEnd();
+    ui.notifications.info(`Visage: Migration & Cleanup Complete.`);
+}
+
+/**
+ * Helper: Converts any raw data format (v1 or partial v2) into the strict Unified Model v2.0.
+ * Handles normalizing image paths, flip logic, and ring structure.
+ * * @param {string} id - The ID for the entry.
+ * @param {Object} data - The raw data to normalize.
+ * @param {string} fallbackName - A fallback name if the data lacks a label.
+ * @returns {Object} A fully compliant Visage Data Object.
+ */
+function normalizeEntry(id, data, fallbackName) {
+    // If it already has the 'changes' structure, just pass it through with minor cleanup
+    if (data.changes) {
+        return {
+            id: id,
+            label: data.label || data.name || fallbackName,
+            category: data.category || "",
+            tags: Array.isArray(data.tags) ? data.tags : [],
+            changes: data.changes,
+            deleted: !!data.deleted,
+            updated: Date.now()
+        };
+    }
+
+    // Handle legacy flat format (v1)
+    const isObject = typeof data === 'object' && data !== null;
+    const path = isObject ? (data.path || data.token || "") : (data || "");
+    const label = (isObject && data.name) ? data.name : fallbackName;
+    
+    // Scale & Flip Logic
+    const rawScale = isObject ? (data.scale ?? 1.0) : 1.0;
+    const scale = Math.abs(rawScale);
+    let isFlippedX = (isObject && data.isFlippedX !== undefined) ? data.isFlippedX : (rawScale < 0);
+    const isFlippedY = (isObject && data.isFlippedY) || false;
+
+    // Disposition Mapping
+    let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
+    if (disposition === 2 || (isObject && data.secret === true)) disposition = -2;
+
+    return {
+        id: id,
+        label: label,
+        category: "",
+        tags: [],
+        deleted: false,
+        updated: Date.now(),
+        changes: {
+            name: label,
+            img: path,
+            texture: { 
+                scaleX: scale * (isFlippedX ? -1 : 1), 
+                scaleY: scale * (isFlippedY ? -1 : 1) 
+            },
+            width: isObject ? (data.width ?? 1) : 1,
+            height: isObject ? (data.height ?? 1) : 1,
+            disposition: disposition,
+            ring: (isObject && data.ring) ? data.ring : null
+        }
+    };
 }

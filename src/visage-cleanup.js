@@ -1,117 +1,155 @@
 /**
- * @file Utility functions for data cleanup. These functions provide GM tools to perform a "hard reset"
- * by removing all Visage-related flags from actors within specific scopes (scene or world).
+ * @file Utility functions for data cleanup and state reversion.
+ * Handles the removal of Visage data from actors and tokens, restoring them to their original state.
  * @module visage
  */
 
 import { Visage } from "./visage.js";
 
 /**
- * Removes all Visage-related data from actors associated with tokens on the *currently active scene*.
- *
- * This function differentiates between linked and unlinked tokens to ensure all data is removed correctly.
- * - For **linked tokens**, it collects the unique parent actor IDs and performs a single bulk update.
- * - For **unlinked tokens**, it updates each synthetic actor instance individually.
- *
- * This is a destructive action and cannot be undone. It is intended to be triggered by a GM
- * via the module settings.
- *
- * @returns {Promise<void>} A promise that resolves when all update operations are complete.
+ * Generates the update data required to revert a token to its original state.
+ * This function retrieves the "Clean Snapshot" stored in flags and maps it back to Token properties.
+ * * @param {TokenDocument} token - The token document to revert.
+ * @returns {Promise<Object|null>} An update object compatible with updateEmbeddedDocuments, or null if no Visage data exists.
+ */
+async function getRevertData(token) {
+    const ns = Visage.DATA_NAMESPACE;
+    const flags = token.flags?.[ns];
+    if (!flags) return null;
+
+    // 1. Prepare the "Wipe" command to remove the entire Visage flag namespace
+    const updates = {
+        _id: token.id,
+        [`flags.-=${ns}`]: null
+    };
+
+    // 2. Retrieve Original State Snapshot
+    // If we simply delete the flags, the token retains its currently applied "Mask" appearance.
+    // We must explicitly restore the pixel data (texture, scale, etc.) to what it was before Visage touched it.
+    const original = flags.originalState;
+    
+    if (original) {
+        // Restore texture path (handling v10/v11+ data structure differences)
+        if (original.texture?.src) updates["texture.src"] = original.texture.src;
+        else if (original.img) updates["texture.src"] = original.img; // Legacy compatibility
+
+        // Restore Scales / Flips
+        if (original.texture?.scaleX !== undefined) updates["texture.scaleX"] = original.texture.scaleX;
+        else if (original.scaleX !== undefined) updates["texture.scaleX"] = original.scaleX;
+
+        if (original.texture?.scaleY !== undefined) updates["texture.scaleY"] = original.texture.scaleY;
+        else if (original.scaleY !== undefined) updates["texture.scaleY"] = original.scaleY;
+
+        // Restore Dimensions
+        if (original.width) updates["width"] = original.width;
+        if (original.height) updates["height"] = original.height;
+
+        // Restore Dynamic Ring
+        if (original.ring) updates["ring"] = original.ring;
+
+        // Restore Name (if it was overridden by the Visage)
+        if (original.name) updates["name"] = original.name;
+    } 
+    
+    return updates;
+}
+
+/**
+ * Removes Visage data from all tokens and actors in the CURRENT SCENE.
+ * Useful for fixing visual glitches or resetting a specific encounter.
  */
 export async function cleanseSceneTokens() {
-  if (!canvas.scene) {
-    ui.notifications.warn("Visage | No active scene found.");
-    return;
-  }
+  if (!canvas.scene) return;
 
-  const worldUpdates = new Map();
-  const unlinkedPromises = [];
+  const actorUpdates = new Map();
+  const unlinkedActorPromises = [];
+  const tokenUpdates = [];
   let count = 0;
   
   for (const token of canvas.scene.tokens) {
+    // A. Cleanse Actor Flags (Local Visages)
+    // We must handle Linked actors carefully to avoid redundant updates.
     const actor = token.actor;
     if (actor?.flags?.[Visage.DATA_NAMESPACE]) {
         const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
         const updateData = { _id: actor.id, [deleteKey]: null };
         
         if (token.actorLink) {
-            // Linked: Add to bulk update map (deduplicated by Actor ID).
-            if (!worldUpdates.has(actor.id)) {
-                worldUpdates.set(actor.id, updateData);
+            // For Linked Actors, use a Map to ensure we only update the base Actor once
+            if (!actorUpdates.has(actor.id)) {
+                actorUpdates.set(actor.id, updateData);
                 count++;
             }
         } else {
-            // Unlinked: Must update the synthetic actor instance directly.
-            unlinkedPromises.push(actor.update({ [deleteKey]: null }));
+            // For Unlinked Actors (Synthetics), update the synthetic actor directly
+            unlinkedActorPromises.push(actor.update({ [deleteKey]: null }));
+            count++;
+        }
+    }
+
+    // B. Cleanse Token Data (Global Masks + Active State)
+    // This reverts the visual appearance of the token on the canvas.
+    if (token.flags?.[Visage.DATA_NAMESPACE]) {
+        const revertUpdate = await getRevertData(token);
+        if (revertUpdate) {
+            tokenUpdates.push(revertUpdate);
             count++;
         }
     }
   }
 
+  // Execute Bulk Updates
   if (count > 0) {
-    if (worldUpdates.size > 0) {
-        await Actor.updateDocuments(Array.from(worldUpdates.values()));
-    }
-    if (unlinkedPromises.length > 0) {
-        await Promise.all(unlinkedPromises);
-    }
+    if (actorUpdates.size > 0) await Actor.updateDocuments(Array.from(actorUpdates.values()));
+    if (unlinkedActorPromises.length > 0) await Promise.all(unlinkedActorPromises);
+    if (tokenUpdates.length > 0) await canvas.scene.updateEmbeddedDocuments("Token", tokenUpdates);
     
-    ui.notifications.info(`Visage | Cleansed data from ${count} actor(s)/token(s) on scene "${canvas.scene.name}".`);
+    ui.notifications.info(`Visage | Cleansed and reverted ${count} entities on scene "${canvas.scene.name}".`);
   } else {
-    ui.notifications.info("Visage | No data found on tokens in the current scene.");
+    ui.notifications.info("Visage | No active Visage data found on this scene.");
   }
 }
 
 /**
- * Removes all Visage-related data from *all* actors in *all* scenes throughout the world.
- *
- * This function iterates through every scene and every token within those scenes to ensure global
- * coverage. It correctly handles both linked and unlinked tokens by batching updates for linked actors
- * and updating unlinked (synthetic) token actors individually.
- *
- * This is a global, destructive action and cannot be undone. It is intended to be triggered by a GM
- * via the module settings.
- *
- * @returns {Promise<void>} A promise that resolves when all update operations are complete.
+ * Removes Visage data from EVERY SCENE in the world.
+ * This is a "Nuclear Option" for uninstalling or fixing corrupted data.
  */
 export async function cleanseAllTokens() {
-  const worldUpdates = new Map();
-  const unlinkedPromises = [];
   let count = 0;
 
   for (const scene of game.scenes) {
+    const tokenUpdates = []; 
+    const actorUpdates = new Map();
+    const unlinkedPromises = [];
+
     for (const token of scene.tokens) {
+        // A. Actor Cleanup
         const actor = token.actor;
-        
         if (actor?.flags?.[Visage.DATA_NAMESPACE]) {
             const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
             const updateData = { _id: actor.id, [deleteKey]: null };
-
+            
             if (token.actorLink) {
-                // Linked: Add to bulk update map (deduplicated by Actor ID).
-                if (!worldUpdates.has(actor.id)) {
-                    worldUpdates.set(actor.id, updateData);
-                    count++;
-                }
+                 if (!actorUpdates.has(actor.id)) actorUpdates.set(actor.id, updateData);
             } else {
-                // Unlinked: Must update the synthetic actor instance directly.
                 unlinkedPromises.push(actor.update({ [deleteKey]: null }));
-                count++;
             }
+            count++;
+        }
+
+        // B. Token Cleanup & Revert
+        if (token.flags?.[Visage.DATA_NAMESPACE]) {
+             const revertUpdate = await getRevertData(token);
+             if (revertUpdate) tokenUpdates.push(revertUpdate);
+             count++;
         }
     }
+    
+    // Execute per-scene bulk updates to prevent database locks
+    if (actorUpdates.size > 0) await Actor.updateDocuments(Array.from(actorUpdates.values()));
+    if (unlinkedPromises.length > 0) await Promise.all(unlinkedPromises);
+    if (tokenUpdates.length > 0) await scene.updateEmbeddedDocuments("Token", tokenUpdates);
   }
 
-  if (count > 0) {
-    if (worldUpdates.size > 0) {
-        await Actor.updateDocuments(Array.from(worldUpdates.values()));
-    }
-    if (unlinkedPromises.length > 0) {
-        await Promise.all(unlinkedPromises);
-    }
-
-    ui.notifications.info(`Visage | Cleansed data from ${count} actor(s)/token(s) across all scenes.`);
-  } else {
-    ui.notifications.info("Visage | No data found on tokens in any scene.");
-  }
+  ui.notifications.info(`Visage | World Cleanse complete. Processed ${count} entities.`);
 }
