@@ -654,6 +654,30 @@
     filter: blur(1px) grayscale(0.5);
 }
 
+/* Disposition Chip: Bottom-Center */
+.visage .visage-tile .visage-disposition-chip {
+    position: absolute;
+    width: auto;
+    bottom: -8px;
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    transform: translateX(calc(-50% * var(--filroden-dir-flip)));
+    padding-block: var(--filroden-space-xxs);
+    padding-inline: var(--filroden-space-xs);
+    border-radius: var(--filroden-radius-large);
+    background-color: var(--filroden-color-bg-medium-solid); 
+    font-size: var(--filroden-font-size-xxs);
+    font-weight: var(--filroden-font-weight-bold);
+    color: var(--filroden-color-text-main-solid);
+    border: 1px solid #000; /* Base border */
+    z-index: 9;
+    white-space: nowrap;
+    letter-spacing: unset;
+}
+.visage .visage-disposition-chip.friendly { border-color: #00ffff; }
+.visage .visage-disposition-chip.neutral  { border-color: #ffff00; }
+.visage .visage-disposition-chip.hostile  { border-color: #ff0000; }
+.visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
 
 /* ==========================================================================
    5. Actor Sheet Header Icon
