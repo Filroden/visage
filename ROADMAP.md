@@ -1,4 +1,4 @@
-# Feature Specification: Unified Card Architecture (v2.1+)
+# Feature Specification: Unified Card Architecture (v3.0)
 
 **Status:** Deferred (Target: v3.0)
 **Goal:** Eliminate UI logic duplication and styling inconsistencies by implementing a single, adaptive "Smart Card" component across the HUD, Gallery, and Editor.

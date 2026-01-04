@@ -522,8 +522,8 @@
 
 .visage .stack-item .remove-layer-btn {
     flex: 0 0 1.5rem;
-    width: 1.5rem;
-    height: 1.5rem;    
+    width: var(--filroden-font-size-xl);
+    height: var(--filroden-font-size-xl);    
     background: var(--visage-color-accent);
     color: var(--visage-color-bg-darkest);    
     border: none;
@@ -847,7 +847,7 @@
     background-image: 
         linear-gradient(var(--filroden-color-border) 1px, transparent 1px),
         linear-gradient(90deg, var(--filroden-color-border) 1px, transparent 1px);
-    background-size: 1.5rem 1.5rem;
+    background-size: var(--filroden-font-size-xl) var(--filroden-font-size-xl);
     z-index: 0;
 }
 
@@ -1607,8 +1607,8 @@
 .visage-tool-icon::before {
     content: "";
     display: block;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: var(--filroden-font-size-xl);
+    height: var(--filroden-font-size-xl);
     margin: 0 auto;
     background-color: currentColor;
     -webkit-mask: url('../icons/domino_mask.svg') no-repeat center;
