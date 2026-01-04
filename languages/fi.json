@@ -93,9 +93,9 @@
     "VISAGE.Config.List.Width": "Leveys",
     "VISAGE.Config.List.Height": "Korkeus",
 
-    "VISAGE.Mirror.Horizontal.Label": "Peilaa V",
-    "VISAGE.Mirror.Vertical.Label": "Peilaa P",
-    "VISAGE.Mirror.Label.Combined": "Peilaa V+P",
+    "VISAGE.Mirror.Horizontal.Label": "Peil. V",
+    "VISAGE.Mirror.Vertical.Label": "Peil. P",
+    "VISAGE.Mirror.Label.Combined": "Peil. V+P",
     "VISAGE.Mirror.Horizontal.Unchanged": "Vaaka: Ei muutosta",
     "VISAGE.Mirror.Horizontal.Standard": "Vaaka: Vakio",
     "VISAGE.Mirror.Horizontal.Mirrored": "Vaaka: Peilattu",
@@ -103,7 +103,7 @@
     "VISAGE.Mirror.Vertical.Standard": "Pysty: Vakio",
     "VISAGE.Mirror.Vertical.Mirrored": "Pysty: Peilattu",
 
-    "VISAGE.Disposition.Friendly": "Ystävällinen",
+    "VISAGE.Disposition.Friendly": "Ystävä",
     "VISAGE.Disposition.Neutral": "Neutraali",
     "VISAGE.Disposition.Hostile": "Vihamielinen",
     "VISAGE.Disposition.Secret": "Salainen",

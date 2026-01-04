@@ -93,9 +93,9 @@
     "VISAGE.Config.List.Width": "幅",
     "VISAGE.Config.List.Height": "高さ",
 
-    "VISAGE.Mirror.Horizontal.Label": "水平反転",
-    "VISAGE.Mirror.Vertical.Label": "垂直反転",
-    "VISAGE.Mirror.Label.Combined": "水平+垂直反転",
+    "VISAGE.Mirror.Horizontal.Label": "水平",
+    "VISAGE.Mirror.Vertical.Label": "垂直",
+    "VISAGE.Mirror.Label.Combined": "両方",
     "VISAGE.Mirror.Horizontal.Unchanged": "水平: 変更なし",
     "VISAGE.Mirror.Horizontal.Standard": "水平: 標準",
     "VISAGE.Mirror.Horizontal.Mirrored": "水平: 反転",

@@ -93,9 +93,9 @@
     "VISAGE.Config.List.Width": "Lățime",
     "VISAGE.Config.List.Height": "Înălțime",
 
-    "VISAGE.Mirror.Horizontal.Label": "Oglindește O",
-    "VISAGE.Mirror.Vertical.Label": "Oglindește V",
-    "VISAGE.Mirror.Label.Combined": "Oglindește O+V",
+    "VISAGE.Mirror.Horizontal.Label": "Oriz.",
+    "VISAGE.Mirror.Vertical.Label": "Vert.",
+    "VISAGE.Mirror.Label.Combined": "O+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Orizontal: Fără Modificare",
     "VISAGE.Mirror.Horizontal.Standard": "Orizontal: Standard",
     "VISAGE.Mirror.Horizontal.Mirrored": "Orizontal: Oglindit",

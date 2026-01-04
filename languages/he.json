@@ -93,9 +93,9 @@
     "VISAGE.Config.List.Width": "רוחב",
     "VISAGE.Config.List.Height": "גובה",
 
-    "VISAGE.Mirror.Horizontal.Label": "הפוך אופקי",
-    "VISAGE.Mirror.Vertical.Label": "הפוך אנכי",
-    "VISAGE.Mirror.Label.Combined": "הפוך א+א",
+    "VISAGE.Mirror.Horizontal.Label": "אופקי",
+    "VISAGE.Mirror.Vertical.Label": "אנכי",
+    "VISAGE.Mirror.Label.Combined": "שניהם",
     "VISAGE.Mirror.Horizontal.Unchanged": "אופקי: ללא שינוי",
     "VISAGE.Mirror.Horizontal.Standard": "אופקי: רגיל",
     "VISAGE.Mirror.Horizontal.Mirrored": "אופקי: הפוך",

@@ -93,9 +93,9 @@
     "VISAGE.Config.List.Width": "Larghezza",
     "VISAGE.Config.List.Height": "Altezza",
 
-    "VISAGE.Mirror.Horizontal.Label": "Specchia O",
-    "VISAGE.Mirror.Vertical.Label": "Specchia V",
-    "VISAGE.Mirror.Label.Combined": "Specchia O+V",
+    "VISAGE.Mirror.Horizontal.Label": "Oriz.",
+    "VISAGE.Mirror.Vertical.Label": "Vert.",
+    "VISAGE.Mirror.Label.Combined": "O+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Orizzontale: Nessuna modifica",
     "VISAGE.Mirror.Horizontal.Standard": "Orizzontale: Standard",
     "VISAGE.Mirror.Horizontal.Mirrored": "Orizzontale: Specchiato",

@@ -93,9 +93,9 @@
     "VISAGE.Config.List.Width": "عرض",
     "VISAGE.Config.List.Height": "ارتفاع",
 
-    "VISAGE.Mirror.Horizontal.Label": "معکوس افقی",
-    "VISAGE.Mirror.Vertical.Label": "معکوس عمودی",
-    "VISAGE.Mirror.Label.Combined": "معکوس ا+ع",
+    "VISAGE.Mirror.Horizontal.Label": "افقی",
+    "VISAGE.Mirror.Vertical.Label": "عمودی",
+    "VISAGE.Mirror.Label.Combined": "هردو",
     "VISAGE.Mirror.Horizontal.Unchanged": "افقی: بدون تغییر",
     "VISAGE.Mirror.Horizontal.Standard": "افقی: استاندارد",
     "VISAGE.Mirror.Horizontal.Mirrored": "افقی: معکوس شده",

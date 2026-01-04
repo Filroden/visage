@@ -109,7 +109,9 @@ The module protects your data. If you open the core Token Configuration window w
 
 * **Languages**: Currently supports Arabic, Catalan, Chinese (Simplified and Traditional), Czech, Dutch, English (UK and US), Finnish, French, German, Hebrew, Hungarian, Italian, Japanese, Korean, Persian, Polish, Portuguese (Brazil and Portugal), Romanian, Russian, Spanish (Latin America and Spain), Swedish, Turkish, Ukrainian and Welsh.
 
-## [Version History](VERSION.md)
+## Version History
+
+[Version History](VERSION.md)
 
 ## Licence
 

@@ -93,9 +93,9 @@
     "VISAGE.Config.List.Width": "너비",
     "VISAGE.Config.List.Height": "높이",
 
-    "VISAGE.Mirror.Horizontal.Label": "수평 뒤집기",
-    "VISAGE.Mirror.Vertical.Label": "수직 뒤집기",
-    "VISAGE.Mirror.Label.Combined": "수평+수직 뒤집기",
+    "VISAGE.Mirror.Horizontal.Label": "수평",
+    "VISAGE.Mirror.Vertical.Label": "수직",
+    "VISAGE.Mirror.Label.Combined": "수평+수직",
     "VISAGE.Mirror.Horizontal.Unchanged": "수평: 변경 없음",
     "VISAGE.Mirror.Horizontal.Standard": "수평: 표준",
     "VISAGE.Mirror.Horizontal.Mirrored": "수평: 뒤집힘",

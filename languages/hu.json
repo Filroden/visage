@@ -93,9 +93,9 @@
     "VISAGE.Config.List.Width": "Szélesség",
     "VISAGE.Config.List.Height": "Magasság",
 
-    "VISAGE.Mirror.Horizontal.Label": "Vízsz. Tükr.",
-    "VISAGE.Mirror.Vertical.Label": "Függ. Tükr.",
-    "VISAGE.Mirror.Label.Combined": "Vízsz.+Függ. Tükr.",
+    "VISAGE.Mirror.Horizontal.Label": "Vízsz.",
+    "VISAGE.Mirror.Vertical.Label": "Függ.",
+    "VISAGE.Mirror.Label.Combined": "V+F",
     "VISAGE.Mirror.Horizontal.Unchanged": "Vízszintes: Nincs változás",
     "VISAGE.Mirror.Horizontal.Standard": "Vízszintes: Normál",
     "VISAGE.Mirror.Horizontal.Mirrored": "Vízszintes: Tükrözött",

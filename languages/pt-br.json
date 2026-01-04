@@ -93,9 +93,9 @@
     "VISAGE.Config.List.Width": "Largura",
     "VISAGE.Config.List.Height": "Altura",
 
-    "VISAGE.Mirror.Horizontal.Label": "Espelhar H",
-    "VISAGE.Mirror.Vertical.Label": "Espelhar V",
-    "VISAGE.Mirror.Label.Combined": "Espelhar H+V",
+    "VISAGE.Mirror.Horizontal.Label": "Esp. H",
+    "VISAGE.Mirror.Vertical.Label": "Esp. V",
+    "VISAGE.Mirror.Label.Combined": "Esp. H+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Horizontal: Sem Alteração",
     "VISAGE.Mirror.Horizontal.Standard": "Horizontal: Padrão",
     "VISAGE.Mirror.Horizontal.Mirrored": "Horizontal: Espelhado",
