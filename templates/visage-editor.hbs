@@ -136,7 +136,7 @@
                 <div class="form-group checkbox-input-group">
                     <input class="visage-checkbox" type="checkbox" name="img_active" data-action="toggleField" data-target="img" {{checked img.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
                     <div class="visage-form-fields">
-                        <input type="text" name="img" value="{{img.value}}" {{disabled (not img.active)}} placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}">
+                        <input type="text" name="img" value="{{this.img.value}}" {{disabled (not img.active)}} placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}">
                         <button type="button" class="file-picker-button" data-action="openFilePicker" {{disabled (not img.active)}}><i class="fas fa-file-import"></i></button>
                     </div>
                 </div>
@@ -223,7 +223,7 @@
                 <div class="form-group">
                     <label>{{localize "VISAGE.RingConfig.SubjectTexture"}}</label>
                     <div class="visage-form-fields">
-                        <file-picker type="image" name="ringSubjectTexture" value="{{ring.subject.texture}}"></file-picker>
+                        <file-picker type="image" name="ringSubjectTexture" value="{{this.ring.subject.texture}}"></file-picker>
                     </div>
                 </div>
                 <div class="form-group">

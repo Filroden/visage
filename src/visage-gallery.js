@@ -457,7 +457,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 // Global Mask = Add to Stack (clearStack: false)
                 await Visage.apply(token, id, { clearStack: false });
             }
-            ui.notifications.info(game.i18n.format("VISAGE.Notifications.AppliedTo", { count: tokens.length, name: name }));
+            ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { count: tokens.length, label: name }));
         }
     }
 }

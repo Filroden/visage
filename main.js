@@ -96,9 +96,9 @@ Hooks.once("init", () => {
         game.modules.get("visage").api.Gallery = VisageGallery;
 
         // Register Handlebars helpers
-        Handlebars.registerHelper("neq", (a, b) => a !== b);
+        Handlebars.registerHelper("visageNeq", (a, b) => a !== b);
         Handlebars.registerHelper("visageSelected", (condition) => condition ? "selected" : "");
-        Handlebars.registerHelper("json", (context) => JSON.stringify(context));
+        Handlebars.registerHelper("visageJson", (context) => JSON.stringify(context));
 
         loadTemplates([
             "modules/visage/templates/visage-selector.hbs",
