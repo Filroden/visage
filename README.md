@@ -50,33 +50,38 @@ Access the token's entire Visage library directly from the Token HUD to quickly 
 * **Active Stack:** See exactly what Masks are active on the token.
 * **Quick Revert:** Strip all disguises or revert specific layers with one click.
 
-[ADD IMAGE OF HUD]
+  ![Visage Selector HUD](images/v2/visage_selector_hud.png?raw=true)
 
 ### 2. The Gallery (for Visages) & Library (for Masks)
 
 Manage your visual assets in a beautiful, card-based interface.
 
 * **Visage Gallery:** Accessed from the HUD, from an actor's sheet header or by right-clicking an actor in the sidebar. Manage Visages specific to that token/actor.
-* **Mask Library:** Accessed via Scene Controls. Create generic masks usable by the GM on any token. Apply them to one or more selected tokens, or even **drag and drop** them onto tokens, to take immediate effect.
-* **Detailed Search:** Filter by tags, categories, or name to find the right look instantly.
 
-[ADD IMAGE OF GALLERY AND LIBRARY]
+  ![Visage Gallery](images/v2/visage_gallery.png?raw=true)
+
+* **Mask Library:** Accessed via Scene Controls. Create generic masks usable by the GM on any token. Apply them to one or more selected tokens, or even **drag and drop** them onto tokens, to take immediate effect.
+
+  ![Mask Library](images/v2/mask_library.png?raw=true)
+
+* **Detailed Search:** Filter by tags, categories, or name to find the right look instantly.
 
 ### 3. The Visual Editor
 
 An editor that lets you build and **preview** your token's appearance before saving it.
 
-* **Video Support:** Use `.webm` or `.mp4` files for animated transformations.
-* **Wildcard Support:** Point a Visage to a folder (e.g., `creatures/wolves/*`). Every time you apply it, a random image from that folder is chosen.
-* **Scale & Flip:** Pre-configure scale (e.g., Enlarge Person = 200%) and orientation/mirroring.
+![Mask Editor](images/v2/mask_editor.png?raw=true)
 
-[ADD IMAGE OF EDITOR]
+Key Features:
+* **Video Support:** Use `.webm` or `.mp4` files for animated transformations.
+
+  ![Live Preview of animated tokens](images/v2/visage_animated_preview.gif?raw=true)
+
+* **Wildcard Support:** Point a Visage to a folder (e.g., `creatures/wolves/*`). Every time you apply it, a random image from that folder is chosen.
 
 ### 4. The Token Previewer
 
 **Live Visualisation:** A preview of the token is shown in the Selector HUD, Gallery, Library and in the Editor so you can see a good approximation of how your Visages and Masks will look before you save or apply them (including Dynamic Ring effects). Some effects cannot be shown (such as changes to scale or dimensions) so all previews show full information on the changes included in the Visage or Mask.
-
-[ADD IMAGE OF CARD PREVIEW AND SELECTOR HUD TILE PREVIEW]
 
 ### 5. Non-Destructive Editing
 
@@ -100,13 +105,6 @@ The module protects your data. If you open the core Token Configuration window w
 
 * **Responsive UI**: The interface is fully responsive to changes in the base font size and scales naturally for users requiring larger text.
 * **Native RTL Support**: Includes full **Right-to-Left (RTL)** support. If your Foundry client is set to an RTL language (e.g., Arabic, Hebrew), the Visage UI automatically mirrors its layout.
-
-<div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
-    <img src="images/visage_configuration_ar.png" alt="RTL support for Arabic" style="height: 200px; object-fit: contain;">
-    <img src="images/visage_configuration_he.png" alt="RTL support for Hebrew" style="height: 200px; object-fit: contain;">
-</div>
-<br>
-
 * **Languages**: Currently supports Arabic, Catalan, Chinese (Simplified and Traditional), Czech, Dutch, English (UK and US), Finnish, French, German, Hebrew, Hungarian, Italian, Japanese, Korean, Persian, Polish, Portuguese (Brazil and Portugal), Romanian, Russian, Spanish (Latin America and Spain), Swedish, Turkish, Ukrainian and Welsh.
 
 ## Version History
