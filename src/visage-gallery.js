@@ -248,6 +248,11 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 isActive: false // Gallery items are purely representative
             });
 
+            context.meta.itemTags = (entry.tags || []).map(t => ({
+                label: t,
+                active: this.filters.tags.has(t)
+            }));
+
             context.changes.img = resolvedPath;
             return context;
         }));

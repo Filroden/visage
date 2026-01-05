@@ -158,7 +158,13 @@ export class Visage {
 
         // Deduplicate and push new layer to stack
         stack = stack.filter(l => l.id !== layer.id);
-        stack.push(layer);
+        
+        // If switching identity, Insert at BOTTOM (start). Otherwise Push to TOP (end).
+        if (options.switchIdentity) {
+            stack.unshift(layer);
+        } else {
+            stack.push(layer);
+        }
         
         updateFlags[`flags.${ns}.activeStack`] = stack;
 
