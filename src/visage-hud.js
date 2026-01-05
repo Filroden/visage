@@ -58,7 +58,7 @@ export async function handleTokenHUD(app, html, data) {
     } 
 
     // --- RENDER BUTTON ---
-    const title = game.i18n.localize("VISAGE.HUD.ChangeVisage");
+    const title = game.i18n.localize("VISAGE.Title");
     const buttonHtml = `
         <div class="control-icon visage-button" title="${title}">
             <img src="modules/visage/icons/switch_account.svg" alt="${title}" class="visage-icon">

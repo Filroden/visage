@@ -7,7 +7,7 @@
 
 :root {
 
-    --filroden-version: 2.0.20260101;
+    --filroden-version: 2.1;
 
     /* ===================================
         --- Colour Palettes (HUE 1: GOLD & HUE 2: TEAL) ---
@@ -81,6 +81,7 @@
 
     --filroden-color2-text-on-accent: hsl(var(--filroden-hue2), 15%, 10%);
 
+
 /* ===================================
         --- Unified Colours  ---
         Colours to show success, warnings or failures/warnings.
@@ -88,6 +89,7 @@
     --filroden-color-success: hsl(130, 50%, 50%);
     --filroden-color-warning: hsl(33, 100%, 50%);
     --filroden-color-danger: hsl(4, 90%, 60%);
+
 
     /* ===================================
         --- Borders & Radii ---
@@ -118,54 +120,40 @@
     /** Large radius for main application windows or pop-up dialogs. */
     --filroden-radius-large: 12px;
 
+
     /* ===================================
         --- Fonts and letter spacing ---
         Defines a consistent typographic scale.
     =================================== */
     
-    /** Default fonts. */
+    /** Default fonts */
     --filroden-font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-    /** Extra-extra-small text, for badges and chips. (e.g., ~8px) */
-    --filroden-font-size-xxs: 0.5rem; 
-
-    /** Extra-small text, for tile names, chips, or fine print. (e.g., ~11px) */
-    --filroden-font-size-xs: 0.75rem; 
-    
-    /** The base (medium) font size for all main content. */
+    /** Font sizes */
+    --filroden-font-size-xxs: 0.5rem;
+    --filroden-font-size-xs: 0.75rem;
     --filroden-font-size-s: 0.9rem;
-    
-    /** Larger text, for callout content. */
     --filroden-font-size-m: 1.0rem;
-    
-    /** Large text, for main titles, legends, or headers. */
     --filroden-font-size-l: 1.2rem;
+    --filroden-font-size-xl: 1.5rem;
 
-    /** Heavy font weight for overlays or titles. */
+    /** Font weight */
     --filroden-font-weight-bold: 800;
 
     /** Wide letter spacing for titles. */
     --filroden-letter-spacing-wide: 0.05em;
+
 
     /* ===================================
         --- Spacing Scale ---
         A spatial scale for consistent padding, margins, and gaps.
     =================================== */
     
-    /** The smallest space, for tight gutters. (e.g., 2px) */
-    --filroden-space-xxs: 0.125rem;
-
-    /** Extra-small space. (e.g., 4px) */
-    --filroden-space-xs: 0.25rem;
-    
-    /** Small space. (e.g., 8px) */
-    --filroden-space-s: 0.5rem;
-    
-    /** Medium space, the most common gap/padding value. (e.g., 10px) */
-    --filroden-space-m: 0.625rem;
-    
-    /** Large space. (e.g., 16px) */
-    --filroden-space-l: 1rem;
+    --filroden-space-xxs: 0.125rem;     /* 2px */
+    --filroden-space-xs: 0.25rem;       /* 4px */
+    --filroden-space-s: 0.5rem;         /* 8px */
+    --filroden-space-m: 0.625rem;       /* 10px */
+    --filroden-space-l: 1rem;           /* 16px */
 
 
     /* ===================================
@@ -186,6 +174,7 @@
 
     /** The accent-coloured glow for focused inputs or buttons. */
     --filroden-shadow-focus: 0 0 5px var(--filroden-color-text-accent);
+
 
     /* ===================================
         --- Directional Language Logic ---

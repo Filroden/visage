@@ -140,7 +140,7 @@ export class VisageComposer {
             [`flags.${Visage.MODULE_ID}.-=originalState`]: null
         };
 
-        await tokenDoc.update(updateData, { visageUpdate: true });
+        await tokenDoc.update(updateData, { visageUpdate: true, animation: { duration: 0 } });
     }
 
     /**

@@ -447,11 +447,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._updatePreview();
         });
         
-        // Debounce text inputs slightly if needed, but direct input event is usually fine for local preview
+        // DEBOUNCE: Delay preview updates for text inputs (typing)
+        let debounceTimer;
         this.element.addEventListener("input", (event) => {
             this._markDirty();
             if (event.target.matches("input[type='text'], color-picker")) {
-                 this._updatePreview();
+                 clearTimeout(debounceTimer);
+                 debounceTimer = setTimeout(() => {
+                     this._updatePreview();
+                 }, 500); // Wait 500ms after last keystroke
             }
         });
         

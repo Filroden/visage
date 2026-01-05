@@ -248,6 +248,11 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 isActive: false // Gallery items are purely representative
             });
 
+            context.meta.itemTags = (entry.tags || []).map(t => ({
+                label: t,
+                active: this.filters.tags.has(t)
+            }));
+
             context.changes.img = resolvedPath;
             return context;
         }));
@@ -457,7 +462,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 // Global Mask = Add to Stack (clearStack: false)
                 await Visage.apply(token, id, { clearStack: false });
             }
-            ui.notifications.info(game.i18n.format("VISAGE.Notifications.AppliedTo", { count: tokens.length, name: name }));
+            ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { count: tokens.length, label: name }));
         }
     }
 }
