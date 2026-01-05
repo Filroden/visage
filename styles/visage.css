@@ -56,6 +56,10 @@
     display: none;
 }
 
+.visage input[type=range] {
+    --range-thumb-border-color: var(--visage-color-accent);
+}
+
 
 /* ==========================================================================
    2. SHARED STYLES
