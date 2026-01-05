@@ -1,0 +1,271 @@
+<div class="visage-editor-container">
+    <p class="visage-notes">{{localize "VISAGE.GlobalEditor.Hint"}}</p>
+
+    <div class="visage-editor-grid">
+        
+        {{!-- COLUMN 1: IDENTITY & PREVIEW --}}
+        <div class="visage-column metadata">
+            
+            <h3 class="column-header">{{localize "VISAGE.GlobalEditor.Col.Preview"}}</h3>
+            
+            <div class="visage-live-preview-stage">
+                {{!-- REUSING VISAGE CARD STRUCTURE --}}
+                <div class="visage-card">
+                    <div class="card-body">
+                        
+                        {{!-- ZONE 1: METADATA (Left) --}}
+                        <div class="card-zone-left">
+                            <div class="metadata-slot scale-slot {{#unless preview.slots.scale.active}}inactive{{/unless}}" 
+                                 data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Scale'}}">
+                                <i class="fas fa-ruler-combined"></i>
+                                <span class="slot-value">{{preview.slots.scale.val}}</span>
+                            </div>
+
+                            <div class="metadata-slot dim-slot {{#unless preview.slots.dim.active}}inactive{{/unless}}"
+                                 data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Dimensions'}}">
+                                <i class="fas fa-vector-square"></i>
+                                <span class="slot-value">{{preview.slots.dim.val}}</span>
+                            </div>
+
+                            <div class="metadata-slot flip-slot {{#unless preview.slots.flip.active}}inactive{{/unless}}"
+                                 data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Orientation'}}">
+                                <i class="{{preview.slots.flip.icon}}"></i>
+                                <span class="slot-value">{{preview.slots.flip.val}}</span>
+                            </div>
+
+                            <div class="metadata-slot disposition-slot">
+                                <div class="visage-disposition-chip {{preview.slots.disposition.class}}">
+                                    {{preview.slots.disposition.val}}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{!-- ZONE 2: VISUAL PREVIEW (Center) --}}
+                        <div class="card-zone-center">
+                            <div class="visual-target">
+                                {{> "modules/visage/templates/parts/visage-preview.hbs" 
+                                    resolvedPath=preview.img 
+                                    name=preview.name
+                                    isVideo=preview.isVideo                                    
+                                    hasRing=preview.hasRing 
+                                    hasInvisibility=preview.hasInvisibility
+                                    hasPulse=preview.hasPulse
+                                    hasGradient=preview.hasGradient
+                                    hasWave=preview.hasWave
+                                    ringColor=preview.ringColor
+                                    ringBkg=preview.ringBkg                                    
+                                    forceFlipX=preview.flipX
+                                    forceFlipY=preview.flipY
+                                }}
+                            </div>
+                            <div class="token-name-label">{{preview.name}}</div>
+                        </div>
+
+                        {{!-- ZONE 3: ACTIONS (Right) - Empty but structurally necessary --}}
+                        <div class="card-zone-right"></div>
+                    </div>
+
+                    {{!-- FOOTER --}}
+                    <div class="card-footer">
+                        <h4 class="card-title">{{label}}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="visage-divider">
+
+            {{!-- B. IDENTITY INPUTS --}}
+            <fieldset class="visage-fieldset">
+                <legend>{{localize "VISAGE.GlobalEditor.Col.Identity"}}</legend>
+                <div class="form-group">
+                    <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
+                    <div class="visage-form-fields">
+                        {{!-- ADDED: required attribute --}}
+                        <input type="text" name="label" value="{{label}}" placeholder="e.g. Ancient Red Dragon" required>
+                    </div>
+                    <p class="hint">{{localize "VISAGE.GlobalEditor.LabelHint"}}</p>
+                </div>
+
+                {{!-- Categories and Tags kept visible for BOTH modes --}}
+                <div class="form-group">
+                    <label>{{localize "VISAGE.GlobalEditor.Category"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="text" name="category" value="{{category}}" list="visage-categories" placeholder="{{localize 'VISAGE.GlobalEditor.CategoryPlaceholder'}}">
+                        <datalist id="visage-categories">
+                            {{#each categories}}
+                            <option value="{{this}}"></option>
+                            {{/each}}
+                        </datalist>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>{{localize "VISAGE.GlobalEditor.Tags"}}</label>
+                    <div class="visage-form-fields">
+                        <div class="visage-tag-container">
+                            <div class="visage-tag-pills"></div>
+                            <input type="text" class="visage-tag-input" list="visage-all-tags" placeholder="Add tags...">
+                            <input type="hidden" name="tags" value="{{tags}}">
+                        </div>
+                        <datalist id="visage-all-tags">
+                            {{#each allTags}}
+                            <option value="{{this}}"></option>
+                            {{/each}}
+                        </datalist>
+                    </div>
+                    <p class="hint">{{localize "VISAGE.GlobalEditor.TagsHint"}}</p>
+                </div>
+            </fieldset>
+        </div>
+
+        {{!-- COLUMN 2: TOKEN DATA --}}
+        <div class="visage-column token-data">
+            
+            <fieldset class="visage-fieldset">
+                <legend>{{localize "VISAGE.GlobalEditor.Col.Appearance"}}</legend>
+
+                {{!-- 1. Name Override --}}
+                <div class="form-group checkbox-input-group">
+                    <input class="visage-checkbox" type="checkbox" name="nameOverride_active" data-action="toggleField" data-target="nameOverride" {{checked nameOverride.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
+                    <div class="visage-form-fields">
+                        <input type="text" name="nameOverride" value="{{nameOverride.value}}" {{disabled (not nameOverride.active)}} placeholder="{{localize 'VISAGE.GlobalEditor.NameOverride'}}">
+                    </div>
+                </div>
+
+                {{!-- 2. Image --}}
+                <div class="form-group checkbox-input-group">
+                    <input class="visage-checkbox" type="checkbox" name="img_active" data-action="toggleField" data-target="img" {{checked img.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
+                    <div class="visage-form-fields">
+                        <input type="text" name="img" value="{{this.img.value}}" {{disabled (not img.active)}} placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}">
+                        <button type="button" class="file-picker-button" data-action="openFilePicker" {{disabled (not img.active)}}><i class="fas fa-file-import"></i></button>
+                    </div>
+                </div>
+
+                {{!-- 3. Scale (%) --}}
+                <div class="form-group checkbox-input-group">
+                    <input class="visage-checkbox" type="checkbox" name="scale_active" data-action="toggleField" data-target="scale" {{checked scale.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
+                    <label>{{localize "VISAGE.Config.List.Scale"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="number" name="scale" value="{{scale.value}}" step="1" {{disabled (not scale.active)}}>
+                    </div>
+                </div>
+
+                {{!-- 4. Flips --}}
+                <div class="form-group checkbox-input-group">
+                    <label style="grid-column: 1 / span 3; margin-bottom: 0.25rem;">{{localize "VISAGE.GlobalEditor.Mirroring"}}</label>
+                    <div class="visage-form-fields stacked-selects" style="grid-column: 1 / span 3;">
+                        <select name="isFlippedX">
+                            <option value="" {{visageSelected (eq isFlippedX.value null)}}>{{localize "VISAGE.Mirror.Horizontal.Unchanged"}}</option>
+                            <option value="false" {{visageSelected (eq isFlippedX.value false)}}>{{localize "VISAGE.Mirror.Horizontal.Standard"}}</option>
+                            <option value="true" {{visageSelected (eq isFlippedX.value true)}}>{{localize "VISAGE.Mirror.Horizontal.Mirrored"}}</option>
+                        </select>
+                        <select name="isFlippedY">
+                            <option value="" {{visageSelected (eq isFlippedY.value null)}}>{{localize "VISAGE.Mirror.Vertical.Unchanged"}}</option>
+                            <option value="false" {{visageSelected (eq isFlippedY.value false)}}>{{localize "VISAGE.Mirror.Vertical.Standard"}}</option>
+                            <option value="true" {{visageSelected (eq isFlippedY.value true)}}>{{localize "VISAGE.Mirror.Vertical.Mirrored"}}</option>
+                        </select>
+                    </div>
+                    <p class="hint" style="grid-column: 1 / span 3;">{{localize "VISAGE.GlobalEditor.MirrorHint"}}</p>
+                </div>
+
+                {{!-- 5. Disposition --}}
+                <div class="form-group checkbox-input-group">
+                    <input class="visage-checkbox" type="checkbox" name="disposition_active" data-action="toggleField" data-target="disposition" {{checked disposition.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
+                    <div class="visage-form-fields">
+                        <select name="disposition" {{disabled (not disposition.active)}}>
+                            <option value="1" {{visageSelected (eq disposition.value 1)}}>{{localize "VISAGE.Disposition.Friendly"}}</option>
+                            <option value="0" {{visageSelected (eq disposition.value 0)}}>{{localize "VISAGE.Disposition.Neutral"}}</option>
+                            <option value="-1" {{visageSelected (eq disposition.value -1)}}>{{localize "VISAGE.Disposition.Hostile"}}</option>
+                            <option value="-2" {{visageSelected (eq disposition.value -2)}}>{{localize "VISAGE.Disposition.Secret"}}</option>
+                        </select>
+                    </div>
+                </div>
+
+                {{!-- 6. Dimensions --}}
+                <div class="form-group checkbox-input-group">
+                    <input class="visage-checkbox" type="checkbox" name="width_active" data-action="toggleField" data-target="width" {{checked width.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
+                    <label>{{localize "VISAGE.Config.List.Width"}}</label>
+                    <input type="number" name="width" value="{{width.value}}" {{disabled (not width.active)}}>
+                </div>
+                <div class="form-group checkbox-input-group">
+                    <input class="visage-checkbox" type="checkbox" name="height_active" data-action="toggleField" data-target="height" {{checked height.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
+                    <label>{{localize "VISAGE.Config.List.Height"}}</label>
+                    <input type="number" name="height" value="{{height.value}}" {{disabled (not height.active)}}>
+                </div>
+            </fieldset>
+        </div>
+
+        {{!-- COLUMN 3: DYNAMIC RING --}}
+        <div class="visage-column ring-data">
+            <fieldset class="visage-fieldset">
+                <legend>{{localize "VISAGE.GlobalEditor.Col.Ring"}}</legend>
+
+                <div class="form-group">
+                    <label class="master-toggle">
+                        <input class="visage-checkbox" type="checkbox" name="ring.enabled" {{checked ring.active}}>
+                        {{localize "VISAGE.GlobalEditor.RingEnable"}}
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>{{localize "VISAGE.RingConfig.RingColor"}}</label>
+                    <div class="visage-form-fields">
+                        <color-picker name="ringColor" value="{{ring.colors.ring}}"></color-picker>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{{localize "VISAGE.RingConfig.BackgroundColor"}}</label>
+                    <div class="visage-form-fields">
+                        <color-picker name="ringBackgroundColor" value="{{ring.colors.background}}"></color-picker>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>{{localize "VISAGE.RingConfig.SubjectTexture"}}</label>
+                    <div class="visage-form-fields">
+                        <file-picker type="image" name="ringSubjectTexture" value="{{this.ring.subject.texture}}"></file-picker>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{{localize "VISAGE.RingConfig.SubjectScale"}}</label>
+                    <div class="visage-form-fields">
+                        <range-picker name="ringSubjectScale" value="{{ring.subject.scale}}" min="0.5" max="3.0" step="0.1"></range-picker>
+                    </div>
+                </div>
+
+                <div class="form-group stacked">
+                    <label>{{localize "VISAGE.RingConfig.Effects.Label"}}</label>
+                    <div class="visage-form-fields effects-grid">
+                        {{#each ring.effects}}
+                        <label class="checkbox">
+                            <input class="visage-checkbox" type="checkbox" name="effect_{{this.value}}" {{checked this.isActive}}>
+                            {{localize this.label}}
+                        </label>
+                        {{/each}}
+                    </div>
+                </div>
+
+            </fieldset>
+        </div>
+
+    </div>
+
+    <footer class="visage-editor-footer">
+        {{!-- Reset Button (Local Only, Bottom Left) --}}
+        {{#if isLocal}}
+        <button type="button" class="visage-reset-btn" data-action="resetSettings" data-tooltip="{{localize 'VISAGE.GlobalEditor.ResetTooltip'}}">
+            <i class="fas fa-undo"></i> {{localize "VISAGE.GlobalEditor.Reset"}}
+        </button>
+        {{/if}}
+
+        <button type="submit" class="visage-save {{#if isDirty}}dirty{{/if}}" data-action="save">
+            <i class="fas fa-save"></i> 
+            {{!-- Dynamic Button Label --}}
+            {{#if isLocal}}
+                {{localize "VISAGE.GlobalEditor.Save.Local"}}
+            {{else}}
+                {{localize "VISAGE.GlobalEditor.Save.Global"}}
+            {{/if}}
+        </button>
+    </footer>
+</div>

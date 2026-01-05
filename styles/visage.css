@@ -3,30 +3,22 @@
  * * TABLE OF CONTENTS
  * -----------------
  * 1. Variables & Theme Overrides
- * 2. Shared Styles (Chips, Icons, Utilities)
- * 3. Application: Visage Selector (HUD)
- * - Window & Layout
- * - Tile Grid
- * - Tile Content & Previews
- * - CSS Animations (Pulse, Gradient, Wave)
- * 4. Application: Visage Configuration
- * - Window & Layout
- * - List Items
- * - Disposition Popout
- * 5. Ring Editor Sub-Application
- * 6. Actor Sheet Header Icon
+ * 2. Shared Styles
+ * 3. Application: Universal Shell
+ * 4. Application: Visage Selector (HUD)
+ * 5. Actor Sheet Header Icon
+ * 6. Application: Visage Editor
+ * 7. Application: Visage Gallery
+ * 8. Scene Control Integration
+ * 9. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
    1. VARIABLES & THEME OVERRIDES
    ========================================================================== */
 
-:root {
-    /** Extra-extra-small text for badges and chips */
-    --filroden-font-size-xxs: 0.5rem;
-}
-
 .visage {
+    font-family: var(--filroden-font-family) !important;
     font-size: var(--filroden-font-size-s);
     --filroden-dir-flip: 1;
 }
@@ -35,97 +27,270 @@
     --filroden-dir-flip: -1;
 }
 
-/* --- Custom Scrollbars --- */
-
-/* Webkit scrollbar styles (Chrome, Safari, Edge) */
-.visage-selector-app *,
-.visage-config-app *,
-.visage-ring-editor * {
+.visage * {
     scrollbar-width: auto !important;
     scrollbar-color: auto !important;
 }
 
-.visage .visage-selector-grid-wrapper::-webkit-scrollbar,
-.visage .visage-config-wrapper::-webkit-scrollbar {
+.visage .visage-scrollable::-webkit-scrollbar {
     width: 8px !important;
     height: 8px !important;
 }
 
-.visage .visage-selector-grid-wrapper::-webkit-scrollbar-track,
-.visage .visage-config-wrapper::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1) !important;
-    border-radius: var(--filroden-radius-large) !important;
-}
-
-.visage .visage-selector-grid-wrapper::-webkit-scrollbar-thumb {
-    background-color: var(--filroden-color-text-accent) !important;
-    border-radius: var(--filroden-radius-large) !important;
-    border: 1px solid rgba(0, 0, 0, 0.6) !important;
-}
-
-.visage .visage-selector-grid-wrapper::-webkit-scrollbar-thumb:hover {
-    background-color: var(--filroden-color-text-accent-hover) !important;
-}
-
-.visage .visage-config-wrapper::-webkit-scrollbar-track {
+.visage .visage-scrollable::-webkit-scrollbar-track {
     background: var(--filroden-color-bg-hover-solid) !important;
+    border-radius: var(--filroden-radius-large) !important;
 }
 
-.visage .visage-config-wrapper::-webkit-scrollbar-thumb {
-    background-color: var(--filroden-color-text-accent) !important;
+.visage .visage-scrollable::-webkit-scrollbar-thumb {
+    background-color: var(--visage-color-accent) !important;
+    border-radius: var(--filroden-radius-large) !important;
     border: 1px solid rgba(0, 0, 0, 0.6) !important;
 }
 
-.visage .visage-config-wrapper::-webkit-scrollbar-thumb:hover {
-    background-color: var(--filroden-color-text-accent-hover) !important;
+.visage .visage-scrollable::-webkit-scrollbar-thumb:hover {
+    background-color: var(--visage-color-accent-hover) !important;
 }
 
-/* Hide scrollbar arrow buttons */
-.visage .visage-selector-grid-wrapper::-webkit-scrollbar-button,
-.visage .visage-config-wrapper::-webkit-scrollbar-button {
+.visage .visage-scrollable::-webkit-scrollbar-button {
     display: none;
+}
+
+.visage input[type=range] {
+    --range-thumb-border-color: var(--visage-color-accent);
 }
 
 
 /* ==========================================================================
-   2. SHARED STYLES (Chips, Icons, Utilities)
+   2. SHARED STYLES
    ========================================================================== */
 
-/* Placeholder text */
-.visage input::placeholder
- {
+/* --- Tooltips --- */
+#tooltip.visage-tooltip {
+    border: 1px solid var(--filroden-color-text-accent);
+    border-radius: var(--filroden-radius-small);
+    padding: var(--filroden-space-s);
+    background: var(--filroden-color-bg-darkest);
+    color: var(--filroden-color2-text-main-solid);
+    box-shadow: var(--filroden-shadow-popout);
+    font-family: var(--filroden-font-family);
+    font-size: var(--filroden-font-size-s);
+    line-height: 1.4;
+    text-align: start;
+    z-index: var(--z-index-tooltip, 9999);
+}
+
+/* --- Inputs and Selects --- */
+.visage input[type="text"],
+.visage input[type="number"],
+.visage select {
+    background: var(--visage-color-bg-medium-solid);
+    border: 1px solid var(--visage-color-border);
+    color: var(--visage-color-text-main-solid);
+    border-radius: var(--filroden-radius-small);
+    min-height: 1.6rem;
+    padding-inline: var(--filroden-space-xs);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.visage input[type="text"]:focus,
+.visage input[type="number"]:focus,
+.visage select:focus {
+    border-color: var(--visage-color-accent);
+    box-shadow: var(--filroden-shadow-focus);
+}
+
+.visage input::placeholder {
     color: var(--filroden-color-text-placeholder-solid);
     opacity: 1;
     font-style: italic;
 }
 
-/* --- Icons --- */
-
-/* Masked icon for window headers to match text color */
-.visage .visage-header-icon {
-    width: 1rem;
-    height: 1rem;
-    margin-inline-end: var(--filroden-space-xs);
-    display: inline-block;
-    vertical-align: middle;
-    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
-    mask: url('../icons/switch_account.svg') no-repeat center / contain;
-    background-color: currentColor; 
-    background-image: none !important;
-    content: "";
-    transform: scaleX(var(--filroden-dir-flip));
+/* --- Buttons --- */
+.visage button {
+    background: var(--visage-color-bg-light-solid);
+    border: 1px solid var(--visage-color-border);
+    color: var(--visage-color-text-main-solid);
+    border-radius: var(--filroden-radius-small);
+    transition: background-color 0.1s, border-color 0.1s, color 0.1s ease;
 }
 
-/* --- Chips & Indicators --- */
+.visage button:hover {
+    background: var(--visage-color-bg-hover-solid);
+    border-color: var(--visage-color-accent);
+    box-shadow: none;
+}
 
-/* Base style for circular indicators */
+/* --- Accessibility Interactions --- */
+.visage *:focus-visible,
+.visage button:focus {
+    outline: 2px solid var(--visage-color-accent);
+    border-radius: var(--filroden-radius-small);
+}
+
+.visage a:hover {
+    text-shadow: none;
+}
+
+.visage button.active,
+.visage [class*="visage-"][class*="-btn"].active,
+.visage .visage-pill.active {
+    outline: none;
+    box-shadow: none;
+}
+
+/* --- Checkboxes --- */
+.visage-checkbox {
+    appearance: auto;
+    accent-color: var(--visage-color-accent);
+    color-scheme: dark;
+    width: var(--filroden-font-size-m) !important;
+    height: var(--filroden-font-size-m);
+    margin: var(--filroden-space-xs);
+    cursor: pointer;
+    display: inline-block;
+    align-content: center;
+    text-align: center;
+}
+
+.visage-checkbox::before,
+.visage-checkbox::after {
+    content: none;
+}
+
+/* --- Layout --- */
+.visage .visage-form-fields {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--filroden-space-xs);
+    width: 100%;
+}
+
+.visage-divider {
+    border: none;
+    height: 4px;
+    width: 100%;
+    background-color: var(--visage-color-accent);
+    margin: 0;
+    opacity: 1;
+}
+
+/* --- Combobox  --- */
+.visage input:-webkit-autofill,
+.visage input:-webkit-autofill:hover, 
+.visage input:-webkit-autofill:focus, 
+.visage input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--filroden-color-bg-medium-solid) inset !important;
+    -webkit-text-fill-color: var(--filroden-color-text-main-solid) !important;
+    border: 1px solid var(--filroden-color-border) !important;
+    caret-color: var(--filroden-color-text-main-solid);
+    transition: background-color 5000s ease-in-out 0s; 
+}
+
+.visage input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.8;
+    filter: none;
+}
+.visage input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+.visage input:-webkit-autofill::-webkit-calendar-picker-indicator {
+    filter: invert(1); 
+}
+
+
+/* ==========================================================================
+   3. Application: Universal Shell
+   ========================================================================== */
+
+.application.visage,
+.visage.borderless {
+    background: var(--visage-color-bg-darkest);
+    color: var(--visage-color-text-main-solid);
+    border-radius: var(--filroden-radius-large);
+    box-shadow: var(--filroden-shadow-window);
+    font-family: var(--filroden-font-family);
+    font-size: var(--filroden-font-size-s);
+}
+
+.visage .window-content {
+    background: var(--visage-color-bg-darkest) !important;
+    color: var(--visage-color-text-main-solid);
+    border: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: var(--filroden-space-l);
+}
+.visage.visage-selector-app .window-content {
+    padding: var(--filroden-space-m);
+}
+.visage.visage-directory-app .window-content {
+    padding: 0 !important;
+}
+
+/* --- Application Headers --- */
+.visage .window-header {
+    background: var(--visage-color-header) !important;
+    border: none !important;
+    color: var(--visage-color-text-main-solid);
+    flex: 0 0 auto !important; 
+    min-height: 34px; 
+    height: auto !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.visage .window-header .window-title {
+    font-size: var(--filroden-font-size-s);
+    line-height: 1.2;
+    text-align: start; 
+    padding-inline-start: var(--filroden-space-s);
+    padding-inline-end: 0;
+    flex: 1;
+}
+
+.visage .window-header .window-icon {
+    margin-inline-start: var(--filroden-space-xxs);
+    margin-inline-end: 0;
+}
+
+.visage .visage-fieldset {
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-medium);
+    padding: var(--filroden-space-m);
+    margin-top: var(--filroden-space-m);
+    gap: var(--filroden-space-s);
+    background: transparent;
+    height: 100%;
+}
+
+.visage .visage-fieldset legend {
+    color: var(--visage-color-accent);
+    font-weight: var(--filroden-font-weight-bold);
+    padding-inline: var(--filroden-space-xs);
+    font-size: var(--filroden-font-size-s);
+}
+
+.visage .visage-fieldset.visage-ring-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: var(--filroden-space-s) var(--filroden-space-m);
+    align-items: center;
+}
+
 .visage .visage-chip,
 .visage .visage-default-indicator,
 .visage .visage-wildcard-indicator,
 .visage .visage-flip-indicator {
     position: absolute;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: var(--filroden-font-size-l);
+    height: var(--filroden-font-size-l);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -140,44 +305,38 @@
 .visage .visage-flip-indicator img {
     width: var(--filroden-space-m);
     height: var(--filroden-space-m);
-    font-size: var(--filroden-font-size-xs); /* For font icons */
+    font-size: var(--filroden-font-size-xs);
     border: none;
 }
 
 .visage .visage-chip img,
 .visage .visage-default-indicator img {
-    filter: invert(100%); /* Black icon */
+    filter: invert(100%);
 }
 
 .visage .visage-wildcard-indicator img,
 .visage .visage-flip-indicator img {
-    filter: none; /* White icon */
+    filter: none;
 }
 
-/* Specific Indicator Positions & Colors */
-
-/* Active: Top-Right, Green */
 .visage .visage-chip {
     top: -8px;
     inset-inline-end: -8px;
     background-color: var(--filroden-color-success);
 }
 
-/* Default: Top-Left, Gold */
 .visage .visage-default-indicator {
     top: -8px;
     inset-inline-start: -8px;
-    background-color: var(--filroden-color-text-accent);
+    background-color: var(--visage-color-accent); 
 }
 
-/* Wildcard: Bottom-Left, Blue */
 .visage .visage-wildcard-indicator {
     bottom: -8px;
     inset-inline-start: -8px;
     background-color: #007bff; 
 }
 
-/* Flip Configured: Botttom-Right, Purple */
 .visage .visage-flip-indicator {
     bottom: -8px;
     inset-inline-end: -8px;
@@ -185,10 +344,9 @@
 }
 
 .visage .visage-flip-indicator img {
-    transform: scaleX(var(--filroden-dir-flip)); /* Support RTL flipping */
+    transform: scaleX(var(--filroden-dir-flip));
 }
 
-/* Data Chip: Top-Center (Scale/Size info) */
 .visage .visage-data-chip {
     position: absolute;
     top: -8px;
@@ -196,12 +354,12 @@
     inset-inline-end: auto;
     transform: translateX(calc(-50% * var(--filroden-dir-flip)));
     width: max-content;
-    background-color: var(--filroden-color-bg-medium-solid);
-    color: var(--filroden-color-text-main-solid);
+    background-color: var(--visage-color-bg-medium-solid);
+    color: var(--visage-color-text-main-solid);
     padding-block: var(--filroden-space-xxs);
     padding-inline: var(--filroden-space-xs);
     border-radius: var(--filroden-radius-large);
-    border: 1px solid var(--filroden-color-text-accent);
+    border: 1px solid var(--visage-color-accent);
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
     z-index: 10;
     display: flex;
@@ -221,70 +379,48 @@
     filter: invert(100%);
 }
 
-/* Data Chip Separator (Vertical Line) */
 .visage .visage-data-chip span + span {
-    margin-inline-start: 4px;
-    padding-inline-start: 4px;
-    border-inline-start: 1px solid var(--filroden-color-text-muted);
+    margin-inline-start: var(--filroden-space-xs);
+    padding-inline-start: var(--filroden-space-xs);
+    border-inline-start: 1px solid var(--visage-color-text-muted);
 }
 
-/* Disposition Chip: Bottom-Center */
-.visage .visage-tile .visage-disposition-chip {
-    position: absolute;
-    bottom: -8px;
-    inset-inline-start: 50%;
-    inset-inline-end: auto;
-    transform: translateX(calc(-50% * var(--filroden-dir-flip)));
-    padding-block: var(--filroden-space-xxs);
-    padding-inline: var(--filroden-space-xs);
-    border-radius: var(--filroden-radius-large);
-    background-color: var(--filroden-color-bg-medium-solid); 
-    font-size: var(--filroden-font-size-xxs);
+.visage .visage-disposition-chip {
+    width: 100%;
+    text-align: center;
+    font-size: 0.65rem;
     font-weight: var(--filroden-font-weight-bold);
-    color: var(--filroden-color-text-main-solid);
-    border: 1px solid #000; /* Base border */
-    z-index: 9;
-    white-space: nowrap;
+    text-transform: uppercase;
+    padding: var(--filroden-space-xxs) 0;
+    border-radius: var(--filroden-radius-medium);
+    border: 1px solid rgba(255,255,255,0.1);
+    letter-spacing: 0.05em;
+}
+.visage-disposition-chip.friendly { border-color: #00ffff; }
+.visage-disposition-chip.neutral  { border-color: #ffff00; }
+.visage-disposition-chip.hostile  { border-color: #ff0000; }
+.visage-disposition-chip.secret   { border-color: #ff00ff; }
+.visage-disposition-chip.none { 
+    background: transparent; 
+    border: 1px dashed rgba(255,255,255,0.2); 
+    color: rgba(255,255,255,0.3);
 }
 
-/* Disposition Colors (Foundry Standards) */
-.visage .visage-disposition-chip.friendly { border-color: #00ffff; }
-.visage .visage-disposition-chip.neutral  { border-color: #ffff00; }
-.visage .visage-disposition-chip.hostile  { border-color: #ff0000; }
-.visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
-
-/* --- Ring Editor Warnings --- */
-.visage .visage-warning-box {
-    background: rgba(255, 193, 7, 0.15); /* Amber background */
-    border: 1px solid var(--filroden-color-warning);
-    border-radius: var(--filroden-radius-small);
-    padding: var(--filroden-space-s);
-    margin-bottom: var(--filroden-space-m);
-    display: flex;
-    align-items: center;
-    gap: var(--filroden-space-m);
-    color: #ffc107; /* Bright Amber text */
-    font-size: var(--filroden-font-size-xs);
-}
-
-.visage .visage-warning-box i {
-    font-size: var(--filroden-font-size-m);
-}
-
-/* --- Utilities --- */
-
-/* Force LTR direction (for file paths, code snippets, etc.) */
 .visage .force-ltr {
     direction: ltr !important;
-    text-align: left !important;
+    text-align: start !important;
     unicode-bidi: bidi-override !important;
 }
 
+/* Wildcard Slot Logic for Preview Cards */
+.visage .wildcard-slot i {
+    transform: scaleX(var(--filroden-dir-flip));
+}
+
 /* ==========================================================================
-   3. APPLICATION: VISAGE SELECTOR (HUD)
+   4. APPLICATION: VISAGE SELECTOR (HUD)
    ========================================================================== */
 
-/* Main Window Frame */
 .visage.visage-selector-app {
     position: fixed; 
     display: block;
@@ -293,30 +429,22 @@
 }
 
 .visage.visage-selector-app .window-header {
-    display: none; /* Borderless window */
+    display: none;
 }
 
 .visage.visage-selector-app .window-content {
-    border: none;
     box-shadow: var(--filroden-shadow-window);
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    border-radius: var(--filroden-radius-large);
     z-index: 20;
     transition: all 0.2s ease-out;
-    display: flex;
-    flex-direction: column;
-    padding: var(--filroden-space-m);
 }
 
-/* Internal Header (Title + Config Button) */
 .visage .visage-selector-header {
     flex: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--filroden-space-m);
-    border-bottom: 1px solid var(--filroden-color-border);
+    border-bottom: 1px solid var(--visage-color-border);
     padding-bottom: var(--filroden-space-xs);
 }
 
@@ -324,15 +452,15 @@
     margin: 0;
     font-size: var(--filroden-font-size-m);
     text-align: start;
-    color: var(--filroden-color-text-main-solid);
+    color: var(--visage-color-text-main-solid);
     flex-grow: 1;
     border: none;
 }
 
 .visage .visage-config-button {
     flex: none;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: var(--filroden-font-size-l);
+    height: var(--filroden-font-size-l);
     cursor: pointer;
     padding: 0;
     border: none;
@@ -345,7 +473,97 @@
     opacity: 1;
 }
 
-/* Grid Layout */
+.visage .visage-stack-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xs);
+    margin-bottom: var(--filroden-space-m);
+}
+
+.visage .stack-header {
+    font-size: var(--filroden-font-size-xs);
+    font-weight: var(--filroden-font-weight-bold);
+    color: var(--visage-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--filroden-space-xxs);
+}
+
+.visage .visage-stack-list ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xs);
+}
+
+.visage .stack-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(var(--visage-color-accent-rgb), 0.1); 
+    border: 1px solid var(--visage-color-accent);
+    border-radius: var(--filroden-radius-small);
+    padding: var(--filroden-space-xs) var(--filroden-space-s);
+    min-height: 2rem;
+}
+
+.visage .stack-item .effect-label {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+    color: var(--visage-color-accent);
+    font-weight: var(--filroden-font-weight-bold);
+    font-size: var(--filroden-font-size-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    margin-inline-end: var(--filroden-space-s);
+    cursor: help;
+}
+
+.visage .stack-item .remove-layer-btn {
+    flex: 0 0 1.5rem;
+    width: var(--filroden-font-size-xl);
+    height: var(--filroden-font-size-xl);    
+    background: var(--visage-color-accent);
+    color: var(--visage-color-bg-darkest);    
+    border: none;
+    border-radius: var(--filroden-radius-small);
+    padding: 0;
+    font-size: 10px;
+    cursor: pointer;    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.visage .stack-item .remove-layer-btn:hover {
+    background: var(--visage-color-accent-hover);
+    box-shadow: 0 0 5px var(--visage-color-accent);
+    color: var(--visage-color-text-main);
+}
+
+.visage .revert-all-btn {
+    align-self: flex-end;    
+    background: transparent;
+    border: none;
+    color: var(--visage-color-text-muted);
+    font-size: var(--filroden-font-size-xs);
+    cursor: pointer;
+    padding: var(--filroden-space-xxs) var(--filroden-space-xs);
+    opacity: 0.8;
+}
+
+.visage .revert-all-btn:hover {
+    opacity: 1;
+    color: var(--filroden-color-danger);
+    background: inherit;
+}
+
 .visage .visage-selector-grid-wrapper {
     overflow-y: auto;
     overflow-x: hidden; 
@@ -362,28 +580,27 @@
     width: 100%;
 }
 
-/* Tile Styles */
 .visage .visage-tile {
     position: relative; 
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 2px solid var(--filroden-color-text-accent);
+    border: 2px solid var(--visage-color-accent);
     border-radius: var(--filroden-radius-medium);
     padding-block: var(--filroden-space-xs) var(--filroden-space-l);
     padding-inline: var(--filroden-space-xs); 
     cursor: pointer;
-    background: var(--filroden-color-bg-medium-solid);
+    background: var(--visage-color-bg-medium-solid);
     transition: background-color 0.1s, border-color 0.1s;
 }
 
 .visage .visage-tile:hover {
-    background-color: var(--filroden-color-bg-hover-solid);
-    border-color: var(--filroden-color-text-accent-hover);
+    background-color: var(--visage-color-bg-hover-solid);
+    border-color: var(--visage-color-accent-hover);
 }
 
 .visage .visage-tile.active {
-    background-color: var(--filroden-color-bg-light);
+    background-color: var(--visage-color-bg-light);
     border-color: var(--filroden-color-success);
 }
 
@@ -395,10 +612,8 @@
     text-overflow: ellipsis;
     width: 100%;
     margin-top: var(--filroden-space-xs);
-    color: var(--filroden-color-text-main-solid);
+    color: var(--visage-color-text-main-solid);
 }
-
-/* --- Tile Content (Image & Ring Previews) --- */
 
 .visage-image-wrapper {
     position: relative;
@@ -426,18 +641,743 @@
     border-radius: 50%;
 }
 
-/* The Ring Container */
-.visage-ring-preview {
+.visage .visage-hud-content {
     position: absolute;
     inset: 0;
-    border-radius: 50%;
-    z-index: 0;
-    background: radial-gradient(circle, color-mix(in srgb, var(--ring-bkg), black 70%) 0%, black 100%);
-    transform: scale(0.9);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: var(--filroden-radius-small);
+}
+
+.visage .visage-hud-content.invisible {
+    opacity: 0.5;
+    filter: blur(1px) grayscale(0.5);
+}
+
+/* Disposition Chip: Bottom-Center */
+.visage .visage-tile .visage-disposition-chip {
+    position: absolute;
+    width: auto;
+    bottom: -8px;
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    transform: translateX(calc(-50% * var(--filroden-dir-flip)));
+    padding-block: var(--filroden-space-xxs);
+    padding-inline: var(--filroden-space-xs);
+    border-radius: var(--filroden-radius-large);
+    background-color: var(--filroden-color-bg-medium-solid); 
+    font-size: var(--filroden-font-size-xxs);
+    font-weight: var(--filroden-font-weight-bold);
+    color: var(--filroden-color-text-main-solid);
+    border: 1px solid #000; /* Base border */
+    z-index: 9;
+    white-space: nowrap;
+    letter-spacing: unset;
+}
+.visage .visage-disposition-chip.friendly { border-color: #00ffff; }
+.visage .visage-disposition-chip.neutral  { border-color: #ffff00; }
+.visage .visage-disposition-chip.hostile  { border-color: #ff0000; }
+.visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
+
+/* ==========================================================================
+   5. Actor Sheet Header Icon
+   ========================================================================== */
+
+.visage-icon-mask,
+.visage-icon-domino {
+    display: inline-block;
+    width: var(--filroden-font-size-m);
+    height: var(--filroden-font-size-m);
+    background-color: currentColor;
+    background-image: none !important;
+    margin-inline-end: var(--filroden-space-xs);
+    vertical-align: middle;
+    content: "";
+    transform: scaleX(var(--filroden-dir-flip));
+}
+
+.visage-icon-mask {
+    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
+    mask: url('../icons/switch_account.svg') no-repeat center / contain;
+}
+
+.visage-icon-domino {
+    -webkit-mask: url('../icons/domino_mask.svg') no-repeat center / contain;
+    mask: url('../icons/domino_mask.svg') no-repeat center / contain;
+}
+
+.context-items .visage-icon-mask {
+    height: 1.25em;
+    width: 1.25em;
+    align-self: center;
+    position: relative;
+    top: -1px;
+}
+
+
+/* ==========================================================================
+   6. APPLICATION: VISAGE EDITOR (Unified)
+   ========================================================================== */
+
+.visage.visage-editor {
+    width: 60rem !important;
+    max-width: 95vw;
+    min-height: 40rem;
+    height: auto !important;
+}
+
+.visage.visage-editor label {
+    color: var(--visage-color-text-muted-solid) !important;
+    font-weight: var(--filroden-font-weight-bold);
+}
+
+.visage.visage-editor .hint,
+.visage.visage-editor .visage-notes {
+    color: var(--visage-color-text-main-solid) !important;
+    opacity: 0.8;
+    margin-top: var(--filroden-space-xxs);
+}
+
+.visage.visage-editor .hint {
+    font-size: var(--filroden-font-size-xs);
+}
+
+.visage.visage-editor .visage-notes {
+    margin-bottom: var(--filroden-space-l);
+}
+
+.visage.visage-editor input:disabled,
+.visage.visage-editor select:disabled,
+.visage.visage-editor button:disabled {
+    opacity: 0.7 !important;
+    color: var(--filroden-color-text-muted) !important;
+    cursor: not-allowed !important;
+    border-color: var(--visage-color-border) !important;
+    border-style: dashed !important;
+    box-shadow: none !important;
+}
+
+.visage.visage-editor select {
+    background-color: var(--visage-color-bg-light) !important;
+    color: var(--visage-color-text-main-solid) !important;
+}
+
+.visage.visage-editor select option {
+    background-color: var(--visage-color-bg-darkest) !important; 
+    color: var(--visage-color-text-main-solid) !important;
+}
+
+/* Layout Grids */
+.visage-editor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--filroden-space-l);
+    padding-bottom: var(--filroden-space-m);
+}
+
+.visage-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-m);
+}
+
+.visage-column .column-header {
+    border-bottom: 2px solid var(--visage-color-accent);
+    padding-bottom: var(--filroden-space-xs);
+    margin-bottom: 0;
+    color: var(--visage-color-text-main-solid);
+    font-size: var(--filroden-font-size-m);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Checkbox + Input Group Styling */
+.visage .checkbox-input-group {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+}
+
+.visage .checkbox-input-group:has(label) {
+    grid-template-columns: 1.5rem auto 1fr;
+    gap: var(--filroden-space-s);
+}
+
+.visage .checkbox-input-group .stacked-selects {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-s);
+    width: 100%;
+    height: 4rem;
+}
+
+.visage .master-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    font-weight: var(--filroden-font-weight-bold);
+    color: var(--visage-color-accent);
+    cursor: pointer;
+    line-height: 1.5;
+}
+
+.visage .effects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--filroden-space-xs);
+}
+
+/* Live Preview Container */
+.visage .visage-live-preview-stage {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
 }
 
-/* --- THE BANDS (Structure) --- */
+.visage .visage-live-preview-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    background-image: 
+        linear-gradient(var(--filroden-color-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--filroden-color-border) 1px, transparent 1px);
+    background-size: var(--filroden-font-size-xl) var(--filroden-font-size-xl);
+    z-index: 0;
+}
+
+.visage .visage-live-preview-stage .visage-card {
+    position: relative;
+    z-index: 1;
+    width: 18rem;
+    max-width: 95%; 
+}
+
+/* --- Tag Pills --- */
+.visage-tag-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+    background: var(--visage-color-bg-medium-solid);
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-small);
+    padding: var(--filroden-space-xs);
+    min-height: 2rem;
+    width: 100%;
+    cursor: text;
+    transition: border-color 0.1s;
+}
+
+.visage-tag-container.focused {
+    border-color: var(--visage-color-accent);
+    box-shadow: var(--filroden-shadow-focus);
+}
+
+.visage-tag-input {
+    flex: 1;
+    min-width: 4rem;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: var(--visage-color-text-main-solid);
+}
+
+.visage-tag-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.visage-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+    background: var(--visage-color-accent);
+    color: var(--visage-color-text-on-accent);
+    font-size: var(--filroden-font-size-xs);
+    font-weight: var(--filroden-font-weight-bold);
+    padding: var(--filroden-space-xxs) var(--filroden-space-s);
+    margin-inline-end: var(--filroden-space-xs);
+    margin-bottom: var(--filroden-space-xs);
+    border-radius: var(--filroden-radius-large);
+    white-space: nowrap;
+}
+
+.visage-tag-pill i {
+    cursor: pointer;
+    font-size: var(--filroden-font-size-xs);
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.visage-tag-pill i:hover {
+    opacity: 1;
+    color: var(--visage-color-bg-hover-solid);
+}
+
+/* --- Editor Footer --- */
+.visage .visage-editor-footer {
+    flex: none;
+    margin-top: var(--filroden-space-l);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--filroden-space-m);
+}
+
+.visage .visage-reset-btn {
+    margin-inline-end: auto;    
+    background: transparent;
+    border: 1px solid var(--visage-color-text-muted);
+    color: var(--visage-color-text-muted);
+    width: auto;
+    padding: 0 var(--filroden-space-m);
+    opacity: 0.8;
+}
+
+.visage .visage-reset-btn:hover {
+    opacity: 1;
+    color: var(--filroden-color-warning);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.visage-save.dirty {
+    background: var(--visage-color-accent);
+    border-color: var(--visage-color-accent);
+    color: var(--visage-color-text-on-accent);
+    font-weight: var(--filroden-font-weight-bold);
+}
+
+.visage-save.dirty:hover {
+    background: var(--visage-color-accent-hover);
+    border-color: var(--visage-color-accent-hover);
+    box-shadow: 0 0 8px var(--visage-color-accent-hover);
+}
+
+/* ==========================================================================
+   7. APPLICATION: VISAGE GALLERY (Unified)
+   ========================================================================== */
+
+/* Class selector & Minimum Dimensions */
+.visage.visage-gallery {
+    min-width: 58rem !important; 
+    min-height: 32rem !important;
+    width: 78rem;
+}
+
+.visage-directory-container {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    min-width: 58rem;
+    min-height: 30rem;
+}
+
+.visage-sidebar {
+    width: 16rem;
+    flex: 0 0 16rem;
+    background: rgba(0, 0, 0, 0.25);
+    border-inline-end: 1px solid var(--filroden-color-border);
+    display: flex;
+    flex-direction: column;
+    padding: var(--filroden-space-m);
+    gap: var(--filroden-space-m);
+}
+
+.visage-sidebar .sidebar-header {
+    border-bottom: 2px solid var(--visage-color-accent);
+    font-family: var(--font-primary);
+    font-size: var(--filroden-font-size-m);
+    font-weight: var(--filroden-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--visage-color-text-main-solid);
+    margin: var(--filroden-space-l) 0 var(--filroden-space-s) 0;
+    padding-bottom: var(--filroden-space-xs);
+    line-height: 1;
+}
+
+.visage-browser {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    padding: 0;
+    background: var(--visage-color-bg-darkest);
+    overflow-y: hidden;
+}
+
+.visage-browser-grid {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--filroden-space-m);
+    align-content: start;
+    padding: var(--filroden-space-l);
+}
+
+.visage-mode-switcher {
+    display: flex;
+    background: transparent;
+    gap: 8px;
+}
+
+.visage-mode-switcher button {
+    flex: 1;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: var(--filroden-color-text-muted);
+    font-size: var(--filroden-font-size-s);
+    padding: var(--filroden-space-s);
+    cursor: pointer;
+    border-radius: var(--filroden-radius-medium);
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.visage-mode-switcher button.active {
+    background: var(--visage-color-bg-light-solid);
+    color: var(--visage-color-text-main-solid);
+    border-color: var(--visage-color-accent);
+    font-weight: var(--filroden-font-weight-bold);
+}
+
+.visage-sidebar .search-bar { 
+    position: relative;
+}
+.visage-sidebar .search-bar input {
+    padding-inline-start: 2rem;
+    padding-inline-end: 2rem;
+    background: var(--visage-color-bg-darkest);
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-medium);
+    color: var(--visage-color-text-main-solid);
+    width: 100%;
+}
+.visage-sidebar .search-bar i {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--filroden-color-text-muted);
+    z-index: 2;
+    transition: color 0.2s;
+}
+.visage-sidebar .search-bar i.fa-search {
+    inset-inline-start: var(--filroden-space-s);
+    pointer-events: none; 
+}
+.visage-sidebar .search-bar i.fa-times {
+    inset-inline-end: var(--filroden-space-s);
+    cursor: pointer;
+}
+.visage-sidebar .search-bar i.fa-times:hover {
+    color: var(--filroden-color-text-main-solid);
+}
+
+.visage-create-btn {
+    background: var(--visage-color-accent);
+    color: var(--filroden-color-bg-darkest);
+    border: none;
+    font-weight: var(--filroden-font-weight-bold);
+    width: 100%;
+}
+
+.category-list ul {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 4px;
+}
+.category-list li a {
+    display: block; padding: 6px 10px;
+    color: var(--visage-color-text-muted-solid);
+    border-radius: var(--filroden-radius-medium);
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: rgba(255,255,255,0.03);
+    transition: all 0.2s;
+}
+.category-list li a:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--visage-color-text-main-solid);
+    border-color: rgba(255,255,255,0.1);
+}
+.category-list li.active a {
+    background: var(--visage-color-accent);
+    color: var(--filroden-color-bg-darkest);
+    font-weight: var(--filroden-font-weight-bold);
+}
+
+.visage-filter-bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    padding: var(--filroden-space-m) var(--filroden-space-l);
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--filroden-color-border);
+    min-height: 2.6rem;
+}
+
+.filter-icon {
+    color: var(--filroden-color-text-muted);
+    font-size: var(--filroden-font-size-s);
+}
+
+.filter-pills {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+    flex: 1;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+}
+.filter-pills::-webkit-scrollbar { display: none; }
+
+.filter-divider {
+    width: var(--filroden-space-xxs);
+    height: var(--filroden-space-l);
+    background: var(--filroden-color-border);
+    margin: 0 var(--filroden-space-xs);
+}
+
+.visage-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+    border-radius: var(--filroden-radius-large);
+    font-size: var(--filroden-font-size-xs);
+    font-weight: var(--filroden-font-weight-bold);
+    padding: var(--filroden-space-xxs) var(--filroden-space-m);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    line-height: 1.4;
+    height: 1.6rem;
+}
+
+.visage-pill.active {
+    background: var(--visage-color-accent);
+    color: var(--visage-color-text-on-accent);
+    border: 1px solid var(--visage-color-accent);
+}
+.visage-pill.active i {
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.visage-pill.active:hover {
+    background: var(--visage-color-accent);
+    color: var(--visage-color-text-on-accent);
+    border: 1px solid var(--visage-color-accent);
+    filter: brightness(1.1); 
+    box-shadow: var(--filroden-shadow-focus);
+}
+.visage-pill.active:hover i {
+    opacity: 1;
+}
+
+.visage-pill.suggestion {
+    background: transparent;
+    color: var(--visage-color-text-muted-solid);
+    border: 1px dashed var(--filroden-color-text-muted);
+    opacity: 0.7;
+}
+.visage-pill.suggestion:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--visage-color-text-main-solid);
+    border-color: var(--visage-color-text-main-solid);
+    opacity: 1;
+}
+
+.clear-filters {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--filroden-space-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.clear-filters:hover {
+    opacity: 1;
+}
+
+.visage-icon-clear {
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    -webkit-mask-image: url(../icons/clear_all.svg);
+    mask-image: url(../icons/clear_all.svg);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    background-color: var(--filroden-color-text-muted);
+    transition: background-color 0.2s;
+}
+
+.clear-filters:hover .visage-icon-clear {
+    background-color: var(--filroden-color-danger);
+}
+
+/* --- VISAGE CARD & SHARED VISUALS --- */
+
+.visage-card {
+    background: var(--visage-color-bg-light);
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-medium);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 12rem;
+    width: 100%;
+    box-shadow: var(--filroden-shadow-card);
+    transition: border-color 0.2s;
+}
+.visage-card:hover { 
+    border-color: var(--visage-color-accent); 
+}
+
+.card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    margin: var(--filroden-space-xs) var(--filroden-space-xs) 0 var(--filroden-space-xs); 
+    border-radius: var(--filroden-radius-medium);
+    border: 1px solid rgba(0,0,0,0.5);
+    border-bottom: none;
+}
+
+.card-zone-left {
+    width: 100px; 
+    background: var(--visage-color-bg-medium-solid);
+    border-inline-end: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    padding: var(--filroden-space-m);
+    gap: var(--filroden-space-s);
+    flex-shrink: 0;
+}
+
+.metadata-slot {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    font-size: var(--filroden-font-size-xs);
+    color: var(--visage-color-text-main-solid);
+    width: 100%;
+    height: 1.25rem;
+}
+
+.metadata-slot.inactive {
+    color: var(--filroden-color-text-muted);
+    opacity: 0.4;
+}
+
+.metadata-slot i {
+    width: 1rem;
+    text-align: center;
+    font-size: var(--filroden-font-size-s);
+}
+
+.metadata-slot .slot-value {
+    font-family: var(--filroden-font-family) !important;
+    font-weight: var(--filroden-font-weight-bold);
+    white-space: nowrap;
+}
+
+.metadata-slot.disposition-slot {
+    margin-top: auto;
+    width: 100%;
+    justify-content: center;
+    height: auto;
+}
+
+.card-zone-center {
+    flex: 1;
+    position: relative;
+    background: var(--visage-color-bg-darkest);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+    gap: 8px;
+}
+
+.visual-target {
+    width: 100px; 
+    height: 100px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.visage-card .card-zone-center * {
+    -webkit-user-drag: none;
+    pointer-events: none;
+    user-select: none;
+}
+
+.visage-preview-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 50%;
+    z-index: 10;
+}
+
+.visage-ring-preview {
+    position: absolute;
+    inset: 0;
+    z-index: 1; 
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--ring-bkg), black 70%) 0%, black 100%);
+    transform: scale(0.9);
+}
+
+.visage-preview-content img,
+.visage-preview-content video {
+    position: relative; 
+    z-index: 2; 
+    object-fit: contain;
+    width: 100%; 
+    height: 100%;
+}
+
+.visage-preview-content .fallback-icon {
+    font-size: 3rem; 
+    color: var(--filroden-color-text-muted); 
+    opacity: 0.5;
+    position: relative; 
+    z-index: 2;
+}
 
 .ring-band {
     position: absolute;
@@ -446,61 +1386,53 @@
     border: 2px solid var(--ring-color);
     transform-origin: center;
 }
+.ring-band.outer { inset: 0; }
+.ring-band.inner { inset: 4px; }
 
-/* Outer Ring: 2px wide, sits at the edge */
-.ring-band.outer {
-    inset: 0; 
+@keyframes visage-ring-pulse-shadow {
+    0%, 100% { box-shadow: inset 0 0 0 2px var(--ring-color); }
+    50% { box-shadow: inset 0 0 0 2px #000; }
 }
-
-/* Inner Ring: 2px wide, sits 4px inside (creating 2px black gap) */
-.ring-band.inner {
-    inset: 4px; 
-}
-
-/* --- ANIMATIONS --- */
-
-/* 1. Pulse Effect (Colors <-> Black) */
-@keyframes visage-ring-pulse-border {
-    0%, 100% { border-color: var(--ring-color); }
-    50% { border-color: #000; }
-}
-
 .visage-ring-preview.pulse .ring-band {
-    animation: visage-ring-pulse-border 3s ease-in-out infinite;
+    border: none;
+    animation: visage-ring-pulse-shadow 3s ease-in-out infinite, visage-spin 16s linear infinite;
 }
 
-/* 2. Gradient Effect (Rotating Blended Conic) */
 .visage-ring-preview.gradient .ring-band {
-    border: none; /* Hide solid border */
+    border: none; 
     background: conic-gradient(
-        var(--ring-color) 0deg 120deg,      /* Solid Color 1 */
-        var(--ring-bkg) 180deg 300deg,      /* Blend to Color 2, then Solid */
-        var(--ring-color) 360deg            /* Blend back to Color 1 */
+        var(--ring-color) 0deg 120deg, 
+        var(--ring-bkg) 180deg 300deg, 
+        var(--ring-color) 360deg 
     );
-    
-    /* Mask to turn the solid circle into a 2px ring */
     -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
     mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
-        
-    /* Rotate */
     animation: visage-spin 16s linear infinite;
 }
-
 @keyframes visage-spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
-/* 3. Wave Effect (Ripples) */
-/* Use a pseudo-element on the container so it's behind the image but indepedent of bands */
+.visage-ring-preview.gradient.pulse .ring-band {
+    border: none;
+    box-shadow: none;
+    /* Combine the spin (from gradient) and opacity pulse */
+    animation: visage-spin 16s linear infinite, visage-ring-pulse-opacity 3s ease-in-out infinite;
+}
+
+@keyframes visage-ring-pulse-opacity {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; } /* Pulses to dark */
+}
+
+.visage-ring-preview.wave::before,
 .visage-ring-preview.wave::after {
     content: "";
     position: absolute;
-    inset: -50%; 
-    width: 200%;
-    height: 200%;
-    top: -50%;
-    inset-inline-start: -50%;
+    inset: 0; 
+    width: 100%;
+    height: 100%;
     background: repeating-radial-gradient(circle, var(--ring-bkg), var(--ring-bkg) 6px, #000 10px, #000 16px);
     opacity: 0;
     border-radius: 50%;
@@ -508,641 +1440,287 @@
     animation: visage-ring-wave 4s linear infinite;
 }
 
-@keyframes visage-ring-wave {
-    0% { transform: scale(0.3); opacity: 0.6; }
-    100% { transform: scale(1); opacity: 0; }
+.visage-ring-preview.wave::before {
+    animation-delay: -2s;
 }
 
-/* 4. Invisibility Effect */
-.visage-image-wrapper.invisible img {
-    opacity: 0.7;
+@keyframes visage-ring-wave {
+    0% { transform: scale(0.3); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 1.0; }
+}
+
+.visage-preview-content.invisible img {
+    opacity: 0.5;
+    filter: blur(1px) grayscale(0.5);
     transition: opacity 0.2s ease;
 }
 
-.visage-tile:hover .visage-image-wrapper.invisible img {
-    opacity: 1;
-}
-
-.visage-image-wrapper.invisible {
-    opacity: 1 !important;
-}
-
-/* ==========================================================================
-   4. APPLICATION: VISAGE CONFIGURATION
-   ========================================================================== */
-
-/* Main Window Frame */
-.visage.visage-config-app {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    border-radius: var(--filroden-radius-large);
-    width: 54rem;        
-    max-width: 1200px;
-    height: auto;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.visage.visage-config-app .window-header {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    flex: 0 0 auto !important; 
-    min-height: 30px; 
-    height: auto !important;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.visage.visage-config-app .window-header .window-title {
-    font-size: var(--filroden-font-size-s);
-    line-height: 1.2;
-    text-align: start; 
-    padding-inline-start: var(--filroden-space-s);
-    padding-inline-end: 0;
-    flex: 1;
-}
-
-.visage.visage-config-app .window-header .window-icon {
-    margin-inline-start: var(--filroden-space-xxs);
-    margin-inline-end: 0;
-}
-
-.visage.visage-config-app .window-content {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    display: flex;
-    flex-direction: column;
-    height: 100% !important;
-    padding: var(--filroden-space-l);
-    overflow: hidden;
-    max-height: 70vh;
-}
-
-/* Layout Containers */
-.visage.visage-config-app form {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    margin: 0;
-    height: auto; 
-    min-height: 0;
-}
-
-.visage .visage-config-container {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-}
-
-.visage .visage-config-pane {
-    display: flex;
-    flex-direction: column;
-}
-
-.visage .visage-config-wrapper {
-    overflow-y: auto;
-    flex: 1;
-    min-height: 100px;
-}
-
-.visage .visage-config-fieldset {
-    border: 1px solid var(--filroden-color-border);
-    border-radius: var(--filroden-radius-medium);
-    padding: var(--filroden-space-l);
-    margin-top: var(--filroden-space-l);
-    gap: var(--filroden-space-s);
-    flex-grow: 1;
-}
-
-.visage .visage-config-fieldset legend {
-    color: var(--filroden-color-text-accent);
-    font-weight: var(--filroden-font-weight-bold);
-}
-
-/* --- Inputs & Buttons --- */
-
-.visage input[type="text"],
-.visage input[type="number"],
-.visage select {
-    background: var(--filroden-color-bg-medium-solid);
-    border: 1px solid var(--filroden-color-border);
-    color: var(--filroden-color-text-main-solid);
-    border-radius: var(--filroden-radius-small);
-}
-
-.visage input[type="text"]:focus,
-.visage input[type="number"]:focus,
-.visage select:focus {
-    border-color: var(--filroden-color-text-accent);
-    box-shadow: var(--filroden-shadow-focus);
-}
-
-.visage-config-app input[name$=".path"] {
-    direction: ltr;
-    text-align: left;
-    unicode-bidi: bidi-override;
-}
-
-.visage button {
-    background: var(--filroden-color-bg-light-solid);
-    border: 1px solid var(--filroden-color-border);
-    color: var(--filroden-color-text-main-solid);
-    border-radius: var(--filroden-radius-small);
-    transition: background-color 0.1s, border-color 0.1s, color 0.1s ease;
-}
-
-.visage button:hover {
-    background: var(--filroden-color-bg-hover-solid);
-    border-color: var(--filroden-color-text-accent);
-    box-shadow: none;
-}
-
-.visage .visage-delete {
-    background: var(--filroden-color-bg-light-solid);
-    color: var(--filroden-color-text-main-solid);
-    text-align: center;
-    cursor: pointer;
-    transition: color 0.1s ease;
-}
-
-.visage .visage-delete:hover {
-    border-color: var(--filroden-color-border); 
-    color: var(--filroden-color-danger); 
-    box-shadow: none;
-}
-
-/* Footer & Save Button */
-.visage .visage-config-footer {
-    flex: none;
-    padding-top: var(--filroden-space-m);
-    margin-top: var(--filroden-space-l);
-    display: flex;
-    justify-content: flex-end;
-}
-
-.visage .visage-save.dirty {
-    background: var(--filroden-color-text-accent);
-    border-color: var(--filroden-color-text-accent);
-    color: var(--filroden-color-text-on-accent);
-    font-weight: var(--filroden-font-weight-bold);
-}
-
-.visage .visage-save.dirty:hover {
-    background: var(--filroden-color-text-accent-hover);
-    border-color: var(--filroden-color-text-accent-hover);
-    box-shadow: 0 0 8px var(--filroden-color-text-accent-hover);
-}
-
-/* --- List Item Grid --- */
-
-.visage .visage-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.visage .visage-list-header-group,
-.visage .visage-list-header,
-.visage .visage-list-item.default-row,
-.visage .visage-list .visage-list-item {
-    display: grid;
-    grid-template-columns: 
-        minmax(6rem, 1.5fr)     /* Name */
-        minmax(0, 3.5fr)        /* Image */
-        minmax(4rem, 0.8fr)     /* Scale */
-        minmax(2rem, 0.5fr)     /* Flip */
-        minmax(8rem, 1.5fr)     /* Disposition */
-        minmax(2.5rem, 0.5fr)   /* Ring */
-        minmax(3rem, 0.8fr)     /* Width */
-        minmax(3rem, 0.8fr)     /* Height */
-        minmax(1.25rem, 0.4fr); /* Delete */
-    gap: var(--filroden-space-s);
-    align-items: center;
-}
-
-/* --- Header Group Styling --- */
-.visage .visage-list-header-group {
-    margin-bottom: var(--filroden-space-xxs);
+.token-name-label {
     font-size: var(--filroden-font-size-xs);
     font-weight: var(--filroden-font-weight-bold);
-    color: var(--filroden-color-text-accent);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: none;
-    align-items: end !important; 
-    padding-bottom: var(--filroden-space-xxs);
-}
-
-/* Span the 'Visual' label across Scale(3), Flip(4), Disp(5), Ring(6) */
-.visage .header-group-label.visual {
-    grid-column: 3 / span 4; 
+    color: var(--visage-color-accent);
     text-align: center;
-    border-bottom: 2px solid var(--filroden-color-border);
-    padding-bottom: var(--filroden-space-xxs);
-}
-
-/* Span the 'Dimensions' label across Width(7), Height(8) */
-.visage .header-group-label.dimensions {
-    grid-column: 7 / span 2;
-    text-align: center;
-    border-bottom: 2px solid var(--filroden-color-border);
-    padding-bottom: var(--filroden-space-xxs);
-}
-
-.visage .header-spacer {
-    /* Empty spans for alignment */
-}
-
-/* --- Column Specifics --- */
-
-.visage .visage-list-header .centered,
-.visage .visage-list-item .centered {
-    text-align: center;
-    justify-content: center;
-}
-
-.visage .visage-dimension-group {
-    display: flex;
-    justify-content: center;
-}
-
-.visage .visage-dim-input {
-    width: 100%;
-    text-align: center;
-    padding-inline: var(--filroden-space-xxs);
-}
-
-.visage .visage-list-header > span {
-    padding-inline-start: var(--filroden-space-s); 
-}
-
-.visage .visage-list-header > span:nth-child(4), /* Flip */
-.visage .visage-list-header > span:nth-child(6)  /* Ring */ {
-    text-align: center !important;
-    padding-inline-start: 0 !important;
-    padding-inline-end: 0 !important;
-}
-
-/* Default Row */
-.visage .visage-list-item.default-row input[disabled],
-.visage .visage-list-item.default-row button[disabled] {
-    border: none;
-    background: transparent;
-    color: var(--filroden-color-text-muted-solid);
-    cursor: default;
-    opacity: 1;
-}
-
-.visage .visage-list-item.default-row input[type="checkbox"][disabled] {
-    filter: grayscale(1) opacity(0.5);
-}
-
-/* Scale Group */
-.visage .visage-scale-group {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    grid-column: 3;
-    gap: var(--filroden-space-xs);
-    flex-wrap: nowrap; 
-    width: 100%; 
-}
-
-.visage .visage-scale-input {
-    flex: 1 1 auto;
-    width: auto;
-    min-width: 3ch; 
-    margin-inline-end: 0;
-    text-align: center;
-}
-
-.visage .visage-percent-sign {
-    flex: 0 0 auto; 
-    line-height: 24px;
-    width: auto;
-}
-
-.visage .visage-flip-label {
-    justify-self: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: auto;
-    margin: 0;
-}
-
-.visage .visage-ring-cell {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Disposition Controls */
-.visage .visage-disposition-cell {
-    position: relative;
-    grid-column: 5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.visage .visage-disposition-button {
-    /* font-size: var(--filroden-font-size-xs); */
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    text-align: start;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-block: var(--filroden-space-xs);
-    padding-inline: var(--filroden-space-xs);
+    max-width: 90%;
+    padding-top: var(--filroden-space-xxs);
 }
 
-.visage .visage-disposition-popout {
-    display: none !important; 
-    position: absolute;
-    top: auto;
-    bottom: 100%;
-    inset-inline-start: auto;
-    inset-inline-end: 0;
-    transform: none;
-    margin-bottom: var(--filroden-space-xs);    
-    width: max-content;
-    min-width: 220px;
-    padding: var(--filroden-space-s);
-    border-radius: var(--filroden-radius-medium);
-    z-index: 100;
-    flex-direction: column;
-    gap: var(--filroden-space-s);
-    background: var(--filroden-color-bg-darkest);
-    border: 1px solid var(--filroden-color-border);
-    box-shadow: var(--filroden-shadow-popout);
-    align-items: flex-start;
-}
-
-.visage .visage-disposition-popout.active {
-    display: flex !important;
-}
-
-.visage .visage-disposition-popout .form-group {
-    display: flex !important;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: var(--filroden-space-s);
-    margin: 0 !important;
-    padding: 0;
-    width: 100%;
-    min-height: 0;
-}
-
-.visage .visage-disposition-popout label {
-    margin: 0;
-    padding: 0;
-    white-space: nowrap;
-    flex: 0 0 auto;
-    line-height: 1.5;
-    color: var(--filroden-color-text-main-solid);
-}
-
-.visage .visage-disposition-popout input[type="radio"] {
-    margin: 0;
-    flex: 0 0 auto;
-    width: 1rem;
-    height: 1rem;
-}
-
-.visage .visage-disposition-popout select {
-    flex: 1;
-    width: auto;
-    height: 1.6rem;
-    padding-block: 0;
-    font-size: var(--filroden-font-size-xs);
-}
-
-.visage .visage-disposition-popout select option {
-    background-color: var(--filroden-color-bg-medium-solid);
-    color: var(--filroden-color-text-main-solid);
-}
-
-/* Ring Button */
-.visage .visage-ring-cell { grid-column: 6; }
-
-.visage .visage-ring-button {
-    background: none !important;
-    border: none !important;
-    padding: 0;
-    margin: 0;
-    line-height: 1;
-    cursor: pointer;
-    font-size: var(--filroden-font-size-l);
-    color: var(--filroden-color-text-muted-solid);
-    transition: color 150ms ease, text-shadow 150ms ease;
-    overflow: visible; 
-    position: relative; 
-}
-
-.visage .visage-ring-button:hover { color: var(--filroden-color-text-main-solid); }
-.visage .visage-ring-button.ring-active { color: var(--filroden-color-text-accent); }
-.visage .visage-ring-button.ring-active:hover {
-    color: var(--filroden-color-text-accent-hover);
-    text-shadow: 0 0 5px var(--filroden-color-text-accent);
-}
-
-.visage .visage-ring-button.ring-dirty::after {
-    content: "";
-    position: absolute;
-    top: -2px;
-    inset-inline-end: -2px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: var(--filroden-color-warning);
-    border: 1px solid var(--filroden-color-bg-darkest);
-    box-shadow: 0 0 2px #000;
-    pointer-events: none;
-}
-
-/* Empty State */
-.visage .visage-empty-state {
+.card-zone-right {
+    width: 2.75rem;
+    background: var(--visage-color-bg-medium-solid);
+    border-inline-start: 1px solid rgba(255,255,255,0.05);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--filroden-space-l);
-    margin: var(--filroden-space-s) 0;
-    border: var(--filroden-border-dashed);
-    border-radius: var(--filroden-radius-medium);
-    background: var(--filroden-color-bg-light);
-    color: var(--filroden-color-text-muted-solid);
-    text-align: center;
+    gap: var(--filroden-space-m);
+    padding: var(--filroden-space-s) 0;
 }
 
-/* Tooltip icon */
-.visage .visage-info-icon {
-    margin-left: var(--filroden-space-xxs);
+.card-zone-right button {
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--filroden-radius-medium);
+    border: 1px solid transparent;
+    background: transparent;
     color: var(--filroden-color-text-muted);
-    cursor: help;
-    font-size: var(--filroden-font-size-xs);
-}
-
-.visage .visage-info-icon:hover {
-    color: var(--filroden-color-text-accent);
-}
-
-/* ==========================================================================
-   5. APPLICATION: VISAGE RING EDITOR (Sub-App)
-   ========================================================================== */
-
-.visage.visage-ring-editor {
-    background: var(--filroden-color-bg-darkest) !important;
-    border: 1px solid var(--filroden-color-border);
-    box-shadow: var(--filroden-shadow-popout);
-    border-radius: var(--filroden-radius-large);
-    font-size: var(--filroden-font-size-s);
-    display: flex;
-    flex-direction: column;
-    color: var(--filroden-color-text-main) !important;
-    width: 28rem;
-}
-
-.visage.visage-ring-editor .window-header {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-    flex: 0 0 auto !important; 
-    min-height: 30px; 
-    height: auto !important;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.visage.visage-ring-editor .window-header .window-title {
-    font-size: var(--filroden-font-size-s);
-    line-height: 1.2;
-    text-align: start; 
-    padding-inline-start: var(--filroden-space-s);
-    padding-inline-end: 0;
-    flex: 1;
-}
-
-.visage.visage-ring-editor .window-header .window-icon {
-    margin-inline-start: var(--filroden-space-xxs);
-    margin-inline-end: 0;
-}
-
-.visage.visage-ring-editor .window-content {
-    background: var(--filroden-color-bg-darkest);
-    color: var(--filroden-color-text-main-solid);
-}
-
-.visage .visage-ring-fieldset {
-    border: 1px solid var(--filroden-color-border);
-    border-radius: var(--filroden-radius-medium);
-    padding: var(--filroden-space-m);
-    margin-top: var(--filroden-space-m);
-    display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: var(--filroden-space-s) var(--filroden-space-m);
-    align-items: center;
-}
-
-.visage .visage-ring-fieldset legend {
-    color: var(--filroden-color-text-accent);
-    font-weight: bold;
-    padding-inline: var(--filroden-space-xs);
-}
-
-/* Editor Forms */
-.visage.visage-ring-editor .form-group {
-    display: contents; 
-}
-
-.visage.visage-ring-editor .visage-config-wrapper > .form-group {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--filroden-space-s);
-}
-
-.visage.visage-ring-editor label {
-    white-space: nowrap;
-    color: var(--filroden-color-text-muted-solid);
-}
-
-.visage.visage-ring-editor .form-fields {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--filroden-space-xs);
-    width: 100%;
-}
-
-/* Stacked Group (Effects) */
-.visage.visage-ring-editor .form-group.stacked {
-    display: block;
-    grid-column: 1 / -1;
-}
-
-.visage.visage-ring-editor .form-group.stacked label.group-label {
-    display: block;
-    margin-bottom: var(--filroden-space-xs);
-    color: var(--filroden-color-text-accent);
-}
-
-.visage.visage-ring-editor .form-group.stacked .form-fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr; 
-    gap: var(--filroden-space-xs);
-}
-
-.visage.visage-ring-editor .form-group.stacked .checkbox {
-    display: flex;
-    align-items: center;
-    gap: var(--filroden-space-s);
-    justify-content: flex-start;
+    display: flex; align-items: center; justify-content: center;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
-.visage .visage-ring-footer {
-    flex: 0 0 auto;
-    margin-top: var(--filroden-space-l);
+.card-zone-right button:hover {
+    background: var(--visage-color-bg-light);
+    color: var(--visage-color-text-main-solid);
+    border-color: var(--visage-color-accent);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    transform: translateY(-1px);
+}
+
+.card-zone-right button.danger:hover {
+    color: var(--filroden-color-warning);
+    border-color: var(--filroden-color-warning);
+}
+
+.card-zone-right button[data-action="apply"] {
+    color: var(--visage-color-text-main-solid);
+    opacity: 0.9;
+}
+
+.card-footer {
+    height: 2.2rem;
+    background: var(--visage-color-bg-light-solid);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin: 0 var(--filroden-space-xxs) var(--filroden-space-xxs) var(--filroden-space-xxs);
+    padding: 0 var(--filroden-space-m);
+    border-radius: 0 0 var(--filroden-space-xs) var(--filroden-space-xs);
+    align-content: center;
+    overflow: hidden; 
+    position: relative;
+}
+
+.footer-slider {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footer-slide {
+    position: absolute;
+    inset-inline-start: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
 }
 
-.visage .visage-ring-footer button {
-    width: auto; 
-    padding-block: var(--filroden-space-xs);
-    padding-inline: var(--filroden-space-m);
+.title-slide {
+    top: 0;
+    justify-content: space-between; 
+}
+
+.card-title {
+    margin: 0; 
+    font-size: var(--filroden-font-size-s); 
+    font-weight: var(--filroden-font-weight-bold);
+    font-family: var(--filroden-font-family) !important;
+    color: var(--visage-color-text-main-solid) !important;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
+}
+
+.tags-slide {
+    top: 100%;
+    background: var(--visage-color-bg-light-solid); 
+    justify-content: flex-start;
+}
+
+.visage-card:hover .footer-slider {
+    transform: translateY(-100%);
+}
+
+.card-tags {
+    display: flex;
+    gap: var(--filroden-space-xs);
+    overflow-x: auto; 
+    scrollbar-width: none; 
+    padding-inline-end: var(--filroden-space-xs);
+}
+.card-tags::-webkit-scrollbar { display: none; }
+
+.tag {
+    font-size: 0.65rem; 
+    padding: var(--filroden-space-xxs) var(--filroden-space-xs); 
+    border-radius: var(--filroden-radius-medium);
+    background: var(--visage-color-bg-darkest); 
+    color: var(--visage-color-text-muted-solid);
+    border: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tag:hover {
+    background: var(--visage-color-accent);
+    color: var(--visage-color-text-on-accent);
+    border-color: var(--visage-color-accent);
+}
+
+.tag.active {
+    background: var(--visage-color-accent);
+    color: var(--visage-color-text-on-accent);
+    font-weight: var(--filroden-font-weight-bold);
+    box-shadow: 0 0 5px var(--visage-color-accent);
+}
+
+.no-tags {
+    font-size: var(--filroden-font-size-xs);
+    color: var(--filroden-color-text-muted);
+    font-style: italic;
 }
 
 
 /* ==========================================================================
-   6. Actor Sheet Header Icon and Context Menu Icon
+   8. SCENE CONTROL INTEGRATION
    ========================================================================== */
 
-/* Applies the switch_account.svg as a mask to the <i> tag in the header button. */
-.visage-icon-mask {
-    display: inline-block;
-    width: 1em;
-    height: 1em;
-    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
-    mask: url('../icons/switch_account.svg') no-repeat center / contain;
+.visage-tool-icon::before {
+    content: "";
+    display: block;
+    width: var(--filroden-font-size-xl);
+    height: var(--filroden-font-size-xl);
+    margin: 0 auto;
     background-color: currentColor;
+    -webkit-mask: url('../icons/domino_mask.svg') no-repeat center;
+    mask: url('../icons/domino_mask.svg') no-repeat center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
 }
 
-.context-items .visage-icon-mask {
-    height: 1.25em;
-    width: 1.25em;
-    vertical-align: middle;
-    align-self: center;
-    background-color: currentColor;
-    position: relative;
-    top: -1px;
+button.visage-tool-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* ==========================================================================
+   9. UNIFIED THEME DEFINITIONS (The Engine)
+   ========================================================================== */
+
+/* 1. UNIVERSAL DEFAULTS (The Foundation)
+   Applied to the root .visage class.
+   These act as the "Gold" fallback if no specific theme class is present.
+*/
+.visage {
+    /* Backgrounds */
+    --visage-color-bg-darkest: var(--filroden-color-bg-darkest);
+    --visage-color-bg-medium: var(--filroden-color-bg-medium);
+    --visage-color-bg-medium-solid: var(--filroden-color-bg-medium-solid);
+    --visage-color-bg-light: var(--filroden-color-bg-light);
+    --visage-color-bg-light-solid: var(--filroden-color-bg-light-solid);
+    --visage-color-bg-hover: var(--filroden-color-bg-hover);
+    --visage-color-bg-hover-solid: var(--filroden-color-bg-hover-solid);
+
+    /* Text */
+    --visage-color-text-main: var(--filroden-color-text-main);
+    --visage-color-text-main-solid: var(--filroden-color-text-main-solid);
+    --visage-color-text-muted: var(--filroden-color-text-muted);
+    --visage-color-text-muted-solid: var(--filroden-color-text-muted-solid);
+    --visage-color-text-placeholder: var(--filroden-color-text-placeholder);
+    --visage-color-text-placeholder-solid: var(--filroden-color-text-placeholder-solid);
+
+    /* Accents & Borders */
+    --visage-color-accent: var(--filroden-color-text-accent);
+    --visage-color-accent-hover: var(--filroden-color-text-accent-hover);
+    --visage-color-accent-rgb: var(--filroden-color-text-accent-rgb);
+    --visage-color-text-on-accent: var(--filroden-color-text-on-accent);
+
+    /* Special Mappings */
+    --visage-color-header: var(--filroden-color-bg-darkest);
+    --visage-color-border: var(--filroden-color-text-accent);
+}
+
+/* 2. THEME A: GOLD (Local / Visage) */
+.visage-theme-local {
+    /* Backgrounds */
+    --visage-color-bg-darkest: var(--filroden-color-bg-darkest);
+    --visage-color-bg-medium: var(--filroden-color-bg-medium);
+    --visage-color-bg-medium-solid: var(--filroden-color-bg-medium-solid);
+    --visage-color-bg-light: var(--filroden-color-bg-light);
+    --visage-color-bg-light-solid: var(--filroden-color-bg-light-solid);
+    --visage-color-bg-hover: var(--filroden-color-bg-hover);
+    --visage-color-bg-hover-solid: var(--filroden-color-bg-hover-solid);
+
+    /* Text */
+    --visage-color-text-main: var(--filroden-color-text-main);
+    --visage-color-text-main-solid: var(--filroden-color-text-main-solid);
+    --visage-color-text-muted: var(--filroden-color-text-muted);
+    --visage-color-text-muted-solid: var(--filroden-color-text-muted-solid);
+    --visage-color-text-placeholder: var(--filroden-color-text-placeholder);
+    --visage-color-text-placeholder-solid: var(--filroden-color-text-placeholder-solid);
+
+    /* Accents & Borders */
+    --visage-color-accent: var(--filroden-color-text-accent);
+    --visage-color-accent-hover: var(--filroden-color-text-accent-hover);
+    --visage-color-accent-rgb: var(--filroden-color-text-accent-rgb);
+    --visage-color-text-on-accent: var(--filroden-color-text-on-accent);
+
+    /* Special Mappings */
+    --visage-color-header: var(--filroden-color-bg-darkest);
+    --visage-color-border: var(--filroden-color-text-accent);
+}
+
+/* 3. THEME B: BLUE (Global / Mask) */
+.visage-theme-global {
+    /* Backgrounds (Shifted Hue) */
+    --visage-color-bg-darkest: var(--filroden-color2-bg-darkest);
+    --visage-color-bg-medium: var(--filroden-color2-bg-medium);
+    --visage-color-bg-medium-solid: var(--filroden-color2-bg-medium-solid);
+    --visage-color-bg-light: var(--filroden-color2-bg-light);
+    --visage-color-bg-light-solid: var(--filroden-color2-bg-light-solid);
+    --visage-color-bg-hover: var(--filroden-color2-bg-hover);
+    --visage-color-bg-hover-solid: var(--filroden-color2-bg-hover-solid);
+
+    /* Text (Shifted Hue) */
+    --visage-color-text-main: var(--filroden-color2-text-main);
+    --visage-color-text-main-solid: var(--filroden-color2-text-main-solid);
+    --visage-color-text-muted: var(--filroden-color2-text-muted);
+    --visage-color-text-muted-solid: var(--filroden-color2-text-muted-solid);
+    --visage-color-text-placeholder: var(--filroden-color2-text-placeholder);
+    --visage-color-text-placeholder-solid: var(--filroden-color2-text-placeholder-solid);
+
+    /* Accents & Borders (Shifted Hue) */
+    --visage-color-accent: var(--filroden-color2-text-accent);
+    --visage-color-accent-hover: var(--filroden-color2-text-accent-hover);
+    --visage-color-accent-rgb: var(--filroden-color2-text-accent-rgb);
+    --visage-color-text-on-accent: var(--filroden-color2-text-on-accent);
+
+    /* Special Mappings */
+    --visage-color-header: var(--filroden-color2-bg-darkest);
+    --visage-color-border: var(--filroden-color2-text-accent);
 }
