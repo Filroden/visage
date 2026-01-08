@@ -3,6 +3,8 @@
  * @module visage
  */
 
+import { VisageUtilities } from "./visage-utilities.js";
+
 const SCHEMA_VERSION = 1;
 
 export class VisageData {
@@ -21,63 +23,6 @@ export class VisageData {
             default: {},
             onChange: () => Hooks.callAll("visageDataChanged")
         });
-    }
-
-    // INTERNAL HELPER: Duplicate of Visage.resolvePath to avoid circular dependency
-    static async _resolvePath(path) {
-        if (!path) return path;
-        if (!path.includes('*') && !path.includes('?')) return path;
-
-        try {
-            const browseOptions = {};
-            let source = "data";
-            let directory = "";
-            let pattern = "";
-
-            if (/\.s3\./i.test(path)) {
-                source = "s3";
-                const { bucket, keyPrefix } = foundry.applications.apps.FilePicker.implementation.parseS3URL(path);
-                if (!bucket) return null;
-                browseOptions.bucket = bucket;
-                const lastSlash = keyPrefix.lastIndexOf('/');
-                directory = lastSlash >= 0 ? keyPrefix.slice(0, lastSlash + 1) : "";
-                pattern   = lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
-            }
-            else {
-                if (path.startsWith("icons/")) source = "public";
-                const lastSlash = path.lastIndexOf('/');
-                directory = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : "";
-                pattern   = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
-            }
-
-            const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(`^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
-
-            const content = await foundry.applications.apps.FilePicker.implementation.browse(
-                source,
-                directory,
-                browseOptions
-            );
-
-            const matches = content.files.filter(file => {
-                const rawName = file.split("/").pop();
-                let name;
-                try {
-                    name = decodeURIComponent(rawName);
-                } catch {
-                    name = rawName;
-                }
-                return regex.test(name);
-            });
-
-            if (matches.length) {
-                return matches[Math.floor(Math.random() * matches.length)];
-            }
-        }
-        catch (err) {
-            console.warn(`VisageData | Error resolving wildcard path: ${path} | ${err}`);
-        }
-        return null;
     }
 
     /* -------------------------------------------- */
@@ -134,13 +79,12 @@ export class VisageData {
             changes: foundry.utils.deepClone(data.changes || {})
         };
 
-        // Resolve wildcards here (for Application only, not Saving)
         if (layer.changes.img) {
             if (!layer.changes.texture) layer.changes.texture = {};
-            layer.changes.texture.src = await this._resolvePath(layer.changes.img);
+            layer.changes.texture.src = await VisageUtilities.resolvePath(layer.changes.img);
             delete layer.changes.img;
         } else if (layer.changes.texture?.src) {
-            layer.changes.texture.src = await this._resolvePath(layer.changes.texture.src);
+            layer.changes.texture.src = await VisageUtilities.resolvePath(layer.changes.texture.src);
         }
 
         if (layer.changes.ring) {
@@ -161,18 +105,7 @@ export class VisageData {
         let sourceData = tokenDoc.flags?.[this.MODULE_ID]?.originalState;
 
         if (!sourceData) {
-            sourceData = {
-                name: tokenDoc.name,
-                texture: {
-                    src: tokenDoc.texture.src,
-                    scaleX: tokenDoc.texture.scaleX,
-                    scaleY: tokenDoc.texture.scaleY
-                },
-                width: tokenDoc.width,
-                height: tokenDoc.height,
-                disposition: tokenDoc.disposition,
-                ring: tokenDoc.ring
-            };
+            sourceData = VisageUtilities.extractVisualState(tokenDoc);
         }
 
         const src = sourceData.texture?.src || sourceData.img || tokenDoc.texture.src;
