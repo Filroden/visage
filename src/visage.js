@@ -167,26 +167,37 @@ export class Visage {
     }
 
     static async handleTokenUpdate(tokenDocument, change, options, userId) {
+        // Filter out loops and ownership
         if (options.visageUpdate) return;
         if (game.user.id !== userId) return;
         if (!tokenDocument.object) return;
 
-        const tokenId = tokenDocument.id;
         const flags = tokenDocument.flags[this.MODULE_ID] || {};
         const stack = flags.activeStack || flags.stack || [];
 
+        // Only intercept updates if a Visage is active (masking the default)
         if (stack.length > 0) {
             let base = flags.originalState;
+            
+            // Fallback: If no snapshot exists, capture current state.
             if (!base) {
                 base = VisageUtilities.extractVisualState(tokenDocument);
             }
 
-            const newBase = foundry.utils.mergeObject(base, change, { 
-                insertKeys: false, 
+            // 1. EXPAND: Handle dot-notation keys (e.g. "texture.src")
+            const expandedChange = foundry.utils.expandObject(change);
+
+            // 2. MERGE: Apply changes to the snapshot
+            const dirtyBase = foundry.utils.mergeObject(base, expandedChange, { 
+                insertKeys: true, 
                 inplace: false 
             });
 
-            await VisageComposer.compose(tokenDocument.object, null, newBase);
+            // 3. CLEAN: Strip out non-visual properties
+            const cleanBase = VisageUtilities.extractVisualState(dirtyBase);
+
+            // 4. UPDATE: Write the new snapshot and recompose
+            await VisageComposer.compose(tokenDocument.object, null, cleanBase);
         }
     }
 }

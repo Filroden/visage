@@ -47,12 +47,20 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         
         // Debounced render listener for live data updates
         this._onDataChanged = () => this.render();
+        
+        // Listener for Actor updates (Linked Tokens / Prototype Token)
         this._onActorUpdate = (doc) => {
             if (doc.id === this.actorId) this.render();
         };
 
+        // Listener for Token updates (Unlinked Tokens / Specific Instance Changes)
+        this._onTokenUpdate = (doc, changes, options, userId) => {
+            if (this.tokenId && doc.id === this.tokenId) this.render();
+        };
+
         if (this.isLocal) {
             Hooks.on("updateActor", this._onActorUpdate);
+            Hooks.on("updateToken", this._onTokenUpdate);
         } else {
             Hooks.on("visageDataChanged", this._onDataChanged);
         }
@@ -85,8 +93,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /** @override */
     async close(options) {
-        if (this.isLocal) Hooks.off("updateActor", this._onActorUpdate);
-        else Hooks.off("visageDataChanged", this._onDataChanged);
+        if (this.isLocal) {
+            Hooks.off("updateActor", this._onActorUpdate);
+            Hooks.off("updateToken", this._onTokenUpdate); // <-- Added Cleanup
+        } else {
+            Hooks.off("visageDataChanged", this._onDataChanged);
+        }
         return super.close(options);
     }
 

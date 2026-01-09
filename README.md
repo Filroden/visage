@@ -122,6 +122,7 @@ Software and associated documentation files in this repository are covered by an
 * **Visage Swap (v2.1):** Option to permanently overwrite the default token with the currently selected Visage.
 * **Type Conversion (v2.2):** Ability to move a Local Visage to the Global Library (and vice versa).
 * **Import/Export (v2.3):** Share Visage configurations between worlds.
+* **Add Token Opacity:** Add the ability to customise token opacity with each Visage or Mask
 
 ### Long term
 
