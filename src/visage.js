@@ -5,92 +5,20 @@
 
 import { VisageComposer } from "./visage-composer.js";
 import { VisageData } from "./visage-data.js"; 
+import { VisageUtilities } from "./visage-utilities.js";
 
 export class Visage {
     static MODULE_ID = "visage";
     static DATA_NAMESPACE = "visage";
 
+    // Proxy for backward compatibility
     static log(message, force = false) {
-        const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(this.MODULE_ID);
-        if (shouldLog) console.log(`${this.MODULE_ID} | ${message}`);
+        VisageUtilities.log(message, force);
     }
 
-    /**
-     * Resolves wildcard paths or S3 bucket URLs into a concrete file path.
-     * Filters the directory contents to ensure only files matching the wildcard pattern are selected.
-     * @param {string} path - The image path (e.g., "tokens/guards/bear-*.png").
-     * @returns {Promise<string|null>} The resolved single file path, or null if resolution fails.
-     */
+    // Proxy for backward compatibility
     static async resolvePath(path) {
-        if (!path) return path;
-        
-        // Optimization: If no wildcard, return as is.
-        if (!path.includes('*') && !path.includes('?')) return path;
-
-        try {
-            const browseOptions = {};
-            let source = "data";
-            let directory = "";
-            let pattern = "";
-
-            // Handle S3 Bucket parsing FIRST
-            if (/\.s3\./i.test(path)) {
-                source = "s3";
-                const { bucket, keyPrefix } = foundry.applications.apps.FilePicker.implementation.parseS3URL(path);
-
-                if (!bucket) return null; // Return null on invalid S3 to prevent 404s
-
-                browseOptions.bucket = bucket;
-
-                const lastSlash = keyPrefix.lastIndexOf('/');
-                directory = lastSlash >= 0 ? keyPrefix.slice(0, lastSlash + 1) : "";
-                pattern   = lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
-            }
-            else {
-                // Non-S3 paths
-                if (path.startsWith("icons/")) source = "public";
-
-                const lastSlash = path.lastIndexOf('/');
-                directory = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : "";
-                pattern   = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
-            }
-
-            // Convert wildcard pattern to RegExp
-            // 1. Escape special characters (including dots, brackets, etc.)
-            // 2. Replace * with .*
-            // 3. Replace ? with .
-            const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(`^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
-
-            const content = await foundry.applications.apps.FilePicker.implementation.browse(
-                source,
-                directory,
-                browseOptions
-            );
-
-            // Filter files to those matching the wildcard
-            const matches = content.files.filter(file => {
-                const rawName = file.split("/").pop();
-                let name;
-                try {
-                    name = decodeURIComponent(rawName);
-                } catch {
-                    name = rawName;
-                }
-                return regex.test(name);
-            });
-
-            if (matches.length) {
-                return matches[Math.floor(Math.random() * matches.length)];
-            }
-        }
-        catch (err) {
-            this.log(`Error resolving wildcard path: ${path} | ${err}`, true);
-        }
-
-        // GUARD: If we found no matches or hit an error, return null.
-        // This tells the UI to show a placeholder instead of trying to load "bear-*.png" as an image.
-        return null;
+        return VisageUtilities.resolvePath(path);
     }
 
     static initialize() {
@@ -101,7 +29,7 @@ export class Visage {
             revert: this.revert.bind(this),
             getAvailable: this.getAvailable.bind(this),
             isActive: this.isActive.bind(this),
-            resolvePath: this.resolvePath.bind(this)
+            resolvePath: VisageUtilities.resolvePath.bind(VisageUtilities)
         };
     }
 
@@ -239,54 +167,57 @@ export class Visage {
     }
 
     static async handleTokenUpdate(tokenDocument, change, options, userId) {
+        // Filter out loops and ownership
         if (options.visageUpdate) return;
         if (game.user.id !== userId) return;
+        if (!tokenDocument.object) return;
 
-        const actor = tokenDocument.actor;
-        if (!actor) return;
-        const tokenId = tokenDocument.id;
+        // --- Filter Irrelevant Updates ---
+        // We only trigger a recomposition if a VISUAL property changed.
+        const relevantKeys = [
+            "name", "displayName", "disposition", "width", "height", 
+            "texture", "img", "ring"
+        ];
+        
+        // Flatten the change object to handle nested updates like "texture.src"
+        const flatChange = foundry.utils.flattenObject(change);
 
-        // PART A: CAPTURE DEFAULTS
-        const hasChangedName = "name" in change;
-        const hasChangedTextureSrc = "texture" in change && "src" in change.texture;
-        const hasChangedTextureScale = "texture" in change && ("scaleX" in change.texture || "scaleY" in change.texture);
-        const hasChangedDisposition = "disposition" in change;
-        const hasChangedRing = "ring" in change;
-        const hasChangedSize = "width" in change || "height" in change;
+        // If the token is being Hidden/Unhidden, abort immediately.
+        if ("hidden" in flatChange) return;
+        
+        // Check if ANY key in the change object starts with a relevant key
+        const isRelevant = Object.keys(flatChange).some(key => {
+            return relevantKeys.some(rk => key === rk || key.startsWith(rk + "."));
+        });
 
-        if (hasChangedName || hasChangedTextureSrc || hasChangedTextureScale || hasChangedDisposition || hasChangedRing || hasChangedSize) {
-            const updateData = {};
-            if (hasChangedName) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.name`] = change.name;
-            if (hasChangedTextureSrc) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.token`] = change.texture.src;
-            if (hasChangedTextureScale) {
-                const newScale = change.texture.scaleX ?? change.texture.scaleY; 
-                if (newScale !== undefined) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.scale`] = newScale;
-            }
-            if (hasChangedDisposition) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.disposition`] = change.disposition;
-            if (hasChangedRing) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.ring`] = change.ring;
-            if (hasChangedSize) {
-                if ("width" in change) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.width`] = change.width;
-                if ("height" in change) updateData[`flags.${this.DATA_NAMESPACE}.${tokenId}.defaults.height`] = change.height;
-            }
-            if (Object.keys(updateData).length > 0) actor.update(updateData);
-        }
+        if (!isRelevant) return;
 
-        // PART B: MAINTAIN GLOBAL STACK
         const flags = tokenDocument.flags[this.MODULE_ID] || {};
         const stack = flags.activeStack || flags.stack || [];
 
+        // Only intercept updates if a Visage is active (masking the default)
         if (stack.length > 0) {
             let base = flags.originalState;
+            
+            // Fallback: If no snapshot exists, capture current state.
             if (!base) {
-                base = VisageComposer._captureSnapshot(tokenDocument.object);
+                base = VisageUtilities.extractVisualState(tokenDocument);
             }
 
-            const newBase = foundry.utils.mergeObject(base, change, { 
-                insertKeys: false, 
+            // 1. EXPAND: Handle dot-notation keys (e.g. "texture.src")
+            const expandedChange = foundry.utils.expandObject(change);
+
+            // 2. MERGE: Apply changes to the snapshot
+            const dirtyBase = foundry.utils.mergeObject(base, expandedChange, { 
+                insertKeys: true, 
                 inplace: false 
             });
 
-            await VisageComposer.compose(tokenDocument.object, null, newBase);
+            // 3. CLEAN: Strip out non-visual properties
+            const cleanBase = VisageUtilities.extractVisualState(dirtyBase);
+
+            // 4. UPDATE: Write the new snapshot and recompose
+            await VisageComposer.compose(tokenDocument.object, null, cleanBase);
         }
     }
 }

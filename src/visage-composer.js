@@ -6,6 +6,7 @@
  */
 
 import { Visage } from "./visage.js";
+import { VisageUtilities } from "./visage-utilities.js";
 
 export class VisageComposer {
 
@@ -35,9 +36,8 @@ export class VisageComposer {
         // If no clean snapshot exists, capture the current state as the baseline.
         let base = baseOverride ?? allFlags.originalState;
         if (!base) {
-            base = this._captureSnapshot(token);
+            base = VisageUtilities.extractVisualState(token.document);
         }
-
         // 4. Layer Composition Loop
         // Clone the base state so we don't mutate the reference
         const finalData = foundry.utils.deepClone(base);
@@ -77,8 +77,8 @@ export class VisageComposer {
             if (changes.flipX) finalData.texture.scaleX *= -1;
             if (changes.flipY) finalData.texture.scaleY *= -1;
 
-            // D. Dynamic Ring (v12+)
-            if (changes.ring && changes.ring.enabled) finalData.ring = changes.ring;
+            // D. Dynamic Ring
+            if (changes.ring) { finalData.ring = changes.ring; }
 
             // E. Disposition (Color Ring)
             if (changes.disposition !== undefined && changes.disposition !== null) {
@@ -141,31 +141,5 @@ export class VisageComposer {
         };
 
         await tokenDoc.update(updateData, { visageUpdate: true, animation: { duration: 0 } });
-    }
-
-    /**
-     * Captures the current visual properties of a token to serve as a restoration point.
-     * Only captures cosmetic properties (Name, Image, Scale, Ring), ignores stats (HP, AC).
-     * @param {Token} token - The token object to snapshot.
-     * @returns {Object} A data object representing the token's visual state.
-     * @private
-     */
-    static _captureSnapshot(token) {
-        const doc = token.document;
-        return {
-            name: doc.name,
-            displayName: doc.displayName,
-            disposition: doc.disposition,
-            texture: {
-                src: doc.texture.src,
-                scaleX: doc.texture.scaleX,
-                scaleY: doc.texture.scaleY
-            },
-            // Handle v12 Ring data safely
-            ring: doc.ring?.toObject?.() ?? doc.ring ?? {},
-            width: doc.width,
-            height: doc.height,
-            alpha: doc.alpha
-        };
     }
 }

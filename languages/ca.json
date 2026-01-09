@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Netejar Fitxes de l'Escena",
     "VISAGE.Settings.CleanseScene.Hint": "Elimina totes les dades de Visage de les fitxes de l'escena actual.",
     "VISAGE.Settings.CleanseAll.Name": "Netejar Fitxes del Món",
-    "VISAGE.Settings.CleanseAll.Hint": "Elimina totes les dades de Visage de totes les fitxes del món. Utilitzeu-ho amb precaució!"
+    "VISAGE.Settings.CleanseAll.Hint": "Elimina totes les dades de Visage de totes les fitxes del món. Utilitzeu-ho amb precaució!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Establir com a Per Defecte (Permanent)",
+    "VISAGE.Dialog.SwapDefault.Title": "Actualitzar el Token per defecte?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Estàs segur que vols fer que <strong>{label}</strong> sigui la nova aparença per defecte d'aquest personatge?</p><p>L'actual es guardarà com a còpia de seguretat.</p>"
 }

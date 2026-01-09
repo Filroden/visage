@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "씬 토큰 정리",
     "VISAGE.Settings.CleanseScene.Hint": "현재 씬의 토큰에서 모든 Visage 데이터를 제거합니다.",
     "VISAGE.Settings.CleanseAll.Name": "월드 토큰 정리",
-    "VISAGE.Settings.CleanseAll.Hint": "월드의 모든 토큰에서 모든 Visage 데이터를 제거합니다. 주의해서 사용하세요!"
+    "VISAGE.Settings.CleanseAll.Hint": "월드의 모든 토큰에서 모든 Visage 데이터를 제거합니다. 주의해서 사용하세요!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "기본값으로 설정 (영구)",
+    "VISAGE.Dialog.SwapDefault.Title": "기본 토큰 업데이트?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>정말 <strong>{label}</strong>을(를) 이 캐릭터의 새로운 기본 외형으로 설정하시겠습니까?</p><p>현재 기본값은 백업으로 저장됩니다.</p>"
 }

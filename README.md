@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-2.0.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-2.1.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
@@ -66,6 +66,8 @@ Manage your visual assets in a beautiful, card-based interface.
 
 * **Detailed Search:** Filter by tags, categories, or name to find the right look instantly.
 
+* **Commit to Default (New in v2.1)**: Found a permanent new look? You can now swap a Visage to become the token's new "Default" state directly from the Gallery. Visage automatically creates a backup of the previous default appearance, so you never lose your history.
+
 ### 3. The Visual Editor
 
 An editor that lets you build and **preview** your token's appearance before saving it.
@@ -81,7 +83,7 @@ Key Features:
 
 ### 4. The Token Previewer
 
-**Live Visualisation:** A preview of the token is shown in the Selector HUD, Gallery, Library and in the Editor so you can see a good approximation of how your Visages and Masks will look before you save or apply them (including Dynamic Ring effects). Some effects cannot be shown (such as changes to scale or dimensions) so all previews show full information on the changes included in the Visage or Mask.
+**Live Visualisation:** A preview of the token is shown in the Selector HUD, Gallery, Library and in the Editor so you can see a good approximation of how your Visages and Masks will look before you save or apply them (including Dynamic Ring effects and any subject textures applied). Some effects cannot be shown (such as changes to scale or dimensions) so all previews show full information on the changes included in the Visage or Mask.
 
 ### 5. Non-Destructive Editing
 
@@ -119,9 +121,9 @@ Software and associated documentation files in this repository are covered by an
 
 ### Short term
 
-* **Visage Swap (v2.1):** Option to permanently overwrite the default token with the currently selected Visage.
 * **Type Conversion (v2.2):** Ability to move a Local Visage to the Global Library (and vice versa).
 * **Import/Export (v2.3):** Share Visage configurations between worlds.
+* **Add Token Opacity and image rotation lock (v2.4):** Add the ability to customise token opacity and image rotation lock with each Visage or Mask.
 
 ### Long term
 

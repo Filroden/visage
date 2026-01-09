@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Limpiar Tokens de la Escena",
     "VISAGE.Settings.CleanseScene.Hint": "Elimina todos los datos de Visage de los tokens en la escena actual.",
     "VISAGE.Settings.CleanseAll.Name": "Limpiar Tokens del Mundo",
-    "VISAGE.Settings.CleanseAll.Hint": "Elimina todos los datos de Visage de cada token en el mundo. ¡Úselo con precaución!"
+    "VISAGE.Settings.CleanseAll.Hint": "Elimina todos los datos de Visage de cada token en el mundo. ¡Úselo con precaución!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Establecer como Predeterminado (Permanente)",
+    "VISAGE.Dialog.SwapDefault.Title": "¿Actualizar Token Predeterminado?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>¿Estás seguro de que quieres convertir a <strong>{label}</strong> en la nueva apariencia predeterminada para este personaje?</p><p>La apariencia actual se guardará como copia de seguridad.</p>"
 }

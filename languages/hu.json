@@ -128,5 +128,9 @@
     "VISAGE.Settings.CleanseAll.Hint": "Eltávolítja az összes Visage adatot a világ minden tokenjéről. Használja óvatosan!",
 
     "VISAGE.Notifications.InvalidPath": "A(z) \"{name}\" fájl elérési útjának érvényes kép- vagy videófájlnak kell lennie (pl. .webp, .png, .webm).",
-    "VISAGE.RingConfig.VideoWarning": "A Foundry VTT jelenleg nem támogatja az animált (videó) token képeket a Dinamikus gyűrűk felett. Ez a token statikusan jelenik meg."
+    "VISAGE.RingConfig.VideoWarning": "A Foundry VTT jelenleg nem támogatja az animált (videó) token képeket a Dinamikus gyűrűk felett. Ez a token statikusan jelenik meg.",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Beállítás alapértelmezettként (Végleges)",
+    "VISAGE.Dialog.SwapDefault.Title": "Alapértelmezett token frissítése?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Biztosan a(z) <strong>{label}</strong> kinézetet szeretnéd beállítani a karakter új alapértelmezett megjelenésének?</p><p>A jelenlegi alapértelmezett mentésre kerül biztonsági másolatként.</p>"
 }

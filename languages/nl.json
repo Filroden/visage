@@ -128,5 +128,9 @@
     "VISAGE.Settings.CleanseAll.Hint": "Verwijdert alle Visage-gegevens van elk token in de wereld. Gebruik met voorzichtigheid!",
 
     "VISAGE.Notifications.InvalidPath": "Het bestandspad voor \"{name}\" moet een geldig afbeeldings- of videobestand zijn (bijv. .webp, .png, .webm).",
-    "VISAGE.RingConfig.VideoWarning": "Foundry VTT ondersteunt momenteel geen geanimeerde (video) token-art over Dynamische Ringen. Dit token wordt statisch weergegeven."
+    "VISAGE.RingConfig.VideoWarning": "Foundry VTT ondersteunt momenteel geen geanimeerde (video) token-art over Dynamische Ringen. Dit token wordt statisch weergegeven.",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Instellen als Standaard (Permanent)",
+    "VISAGE.Dialog.SwapDefault.Title": "Standaard Token Bijwerken?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Weet je zeker dat je <strong>{label}</strong> het nieuwe standaard uiterlijk voor dit personage wilt maken?</p><p>De huidige standaard wordt opgeslagen als back-up.</p>"
 }
