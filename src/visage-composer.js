@@ -77,8 +77,8 @@ export class VisageComposer {
             if (changes.flipX) finalData.texture.scaleX *= -1;
             if (changes.flipY) finalData.texture.scaleY *= -1;
 
-            // D. Dynamic Ring (v12+)
-            if (changes.ring && changes.ring.enabled) finalData.ring = changes.ring;
+            // D. Dynamic Ring
+            if (changes.ring) { finalData.ring = changes.ring; }
 
             // E. Disposition (Color Ring)
             if (changes.disposition !== undefined && changes.disposition !== null) {

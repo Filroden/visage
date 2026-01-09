@@ -252,13 +252,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         // --- 4. Generate Presentation Data ---
         // Uses VisageData.toPresentation to normalize UI logic (badges, labels, icons)
         const preparedItems = await Promise.all(items.map(async (entry) => {
-            const rawPath = entry.changes.img || entry.changes.texture?.src;
+            const rawPath = VisageData.getRepresentativeImage(entry.changes);
             const resolvedPath = await Visage.resolvePath(rawPath);
-            
             const context = VisageData.toPresentation(entry, {
                 isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedPath),
                 isWildcard: (rawPath || "").includes('*'),
-                isActive: false // Gallery items are purely representative
+                isActive: false 
             });
 
             context.meta.itemTags = (entry.tags || []).map(t => ({
