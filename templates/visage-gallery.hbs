@@ -162,6 +162,10 @@
                             {{/if}}
                             
                             {{#unless this.isDefault}}
+                                {{#if ../isLocal}}
+                                    <button data-action="swapDefault" data-tooltip="{{localize 'VISAGE.Gallery.Action.SwapDefault'}}" data-visage-id="{{this.id}}"><i class="fas fa-exchange-alt"></i></button>
+                                {{/if}}
+
                                 <button data-action="edit" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Edit'}}"><i class="fas fa-edit"></i></button>
                                 <button data-action="delete" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Delete'}}" class="danger"><i class="fas fa-trash"></i></button>
                             {{/unless}}

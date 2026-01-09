@@ -90,30 +90,39 @@ export class VisageUtilities {
         return null;
     }
 
+    /* visage-utilities.js */
+
     /**
-     * Captures the current visual properties of a token document.
-     * Used for creating snapshots (Composer) and backups (Data).
-     * @param {TokenDocument} tokenDoc - The token document to inspect.
-     * @returns {Object} A standardized visual state object.
+     * Captures the current visual properties of a token document or a plain data object.
+     * STRICT V2 MODE: Expects modern data structure (texture.src, texture.scaleX).
+     * @param {TokenDocument|Object} data - The token document or data object to inspect.
+     * @returns {Object} A standardized visual state object (v2 Schema).
      */
-    static extractVisualState(tokenDoc) {
-        if (!tokenDoc) return {};
+    static extractVisualState(data) {
+        if (!data) return {};
         
-        const ringData = tokenDoc.ring?.toObject?.() ?? tokenDoc.ring ?? {};
-        
+        // Helper to safely get nested properties whether 'data' is a Document or JSON
+        // We keep this because 'dirtyBase' in handleTokenUpdate is a plain object.
+        const get = (key) => foundry.utils.getProperty(data, key);
+
+        const ringData = data.ring?.toObject?.() ?? data.ring ?? {};
+        const textureSrc = get("texture.src");
+        const scaleX = get("texture.scaleX") ?? 1.0;
+        const scaleY = get("texture.scaleY") ?? 1.0;
+
         return {
-            name: tokenDoc.name,
-            displayName: tokenDoc.displayName,
-            disposition: tokenDoc.disposition,
+            name: get("name"),
+            displayName: get("displayName"),
+            disposition: get("disposition"),
+            width: get("width"),
+            height: get("height"),
+            alpha: get("alpha"),
             texture: {
-                src: tokenDoc.texture.src,
-                scaleX: tokenDoc.texture.scaleX,
-                scaleY: tokenDoc.texture.scaleY
+                src: textureSrc,
+                scaleX: scaleX,
+                scaleY: scaleY
             },
-            ring: ringData,
-            width: tokenDoc.width,
-            height: tokenDoc.height,
-            alpha: tokenDoc.alpha
+            ring: ringData
         };
     }
 }

@@ -103,12 +103,7 @@ export class VisageData {
         };
 
         // Resolve Image Paths (Wildcards/S3)
-        // Normalize legacy 'img' property to v10+ 'texture.src' structure
-        if (layer.changes.img) {
-            if (!layer.changes.texture) layer.changes.texture = {};
-            layer.changes.texture.src = await VisageUtilities.resolvePath(layer.changes.img);
-            delete layer.changes.img;
-        } else if (layer.changes.texture?.src) {
+        if (layer.changes.texture?.src) {
             layer.changes.texture.src = await VisageUtilities.resolvePath(layer.changes.texture.src);
         }
 
@@ -163,7 +158,6 @@ export class VisageData {
             isDefault: true,
             changes: {
                 name: sourceData.name,
-                img: src,
                 texture: {
                     src: src,
                     scaleX: Math.abs(scaleX) * (flipX ? -1 : 1),
@@ -381,6 +375,9 @@ export class VisageData {
         // Capture the underlying default state (ignoring currently active masks)
         const currentDefault = this.getDefaultAsVisage(token.document);
         
+        // Safety: If for some reason we can't generate a default, abort.
+        if (!currentDefault) return;
+
         const backupData = {
             label: `${currentDefault.changes.name || token.name} (Backup)`,
             category: "Backup",
@@ -392,26 +389,25 @@ export class VisageData {
         await this._saveLocal(backupData, token.actor);
 
         // 3. Calculate New Default Data
-        // Merge target changes on top of current default.
-        // { inplace: false, insertKeys: true, overwrite: true } ensures partial overrides work correctly.
+        // Merge target changes on top of current default to preserve properties 
+        // not explicitly defined in the Visage (e.g., token size, disposition).
         const newDefaultData = foundry.utils.mergeObject(
             foundry.utils.deepClone(currentDefault.changes), 
             foundry.utils.deepClone(targetVisage.changes), 
             { inplace: false, insertKeys: true, overwrite: true }
         );
 
-        // Map Visage 'changes' schema to standard Foundry Token schema
+        // 4. Build Update Payload (STRICT V2 MAPPING)
         const updatePayload = {};
         
         if (newDefaultData.name) updatePayload.name = newDefaultData.name;
-        if (newDefaultData.img) updatePayload["texture.src"] = newDefaultData.img;
         if (newDefaultData.texture) {
             if (newDefaultData.texture.src) updatePayload["texture.src"] = newDefaultData.texture.src;
             if (newDefaultData.texture.scaleX !== undefined) updatePayload["texture.scaleX"] = newDefaultData.texture.scaleX;
             if (newDefaultData.texture.scaleY !== undefined) updatePayload["texture.scaleY"] = newDefaultData.texture.scaleY;
         }
-        if (newDefaultData.width) updatePayload.width = newDefaultData.width;
-        if (newDefaultData.height) updatePayload.height = newDefaultData.height;
+        if (newDefaultData.width !== undefined) updatePayload.width = newDefaultData.width;
+        if (newDefaultData.height !== undefined) updatePayload.height = newDefaultData.height;
         if (newDefaultData.disposition !== undefined) updatePayload.disposition = newDefaultData.disposition;
         if (newDefaultData.ring) updatePayload.ring = newDefaultData.ring;
 
@@ -420,7 +416,7 @@ export class VisageData {
             if (updatePayload[key] === undefined) delete updatePayload[key];
         }
 
-        // 4. Perform Updates
+        // 5. Perform Updates
         const isLinked = token.document.isLinked;
         
         // A. Update the Actual Default (Prototype or Token)
@@ -431,11 +427,11 @@ export class VisageData {
         }
 
         // B. Update the "Hidden" Base State (flags.visage.originalState)
-        // If we don't update this flag, the next 'revert' operation will restore the OLD default,
-        // undoing this commit.
+        // This ensures that if the user hits "Revert" later, they revert to THIS new state,
+        // not the old backup.
         const newOriginalState = VisageUtilities.extractVisualState({
-            ...token.document.toObject(), // Base props
-            ...foundry.utils.expandObject(updatePayload) // Overwrites
+            ...token.document.toObject(), 
+            ...foundry.utils.expandObject(updatePayload) // Use expandObject to correctly merge "texture.src" into {texture: {src}}
         });
 
         await token.document.update({

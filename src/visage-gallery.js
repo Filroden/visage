@@ -47,12 +47,20 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         
         // Debounced render listener for live data updates
         this._onDataChanged = () => this.render();
+        
+        // Listener for Actor updates (Linked Tokens / Prototype Token)
         this._onActorUpdate = (doc) => {
             if (doc.id === this.actorId) this.render();
         };
 
+        // Listener for Token updates (Unlinked Tokens / Specific Instance Changes)
+        this._onTokenUpdate = (doc, changes, options, userId) => {
+            if (this.tokenId && doc.id === this.tokenId) this.render();
+        };
+
         if (this.isLocal) {
             Hooks.on("updateActor", this._onActorUpdate);
+            Hooks.on("updateToken", this._onTokenUpdate);
         } else {
             Hooks.on("visageDataChanged", this._onDataChanged);
         }
@@ -85,8 +93,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /** @override */
     async close(options) {
-        if (this.isLocal) Hooks.off("updateActor", this._onActorUpdate);
-        else Hooks.off("visageDataChanged", this._onDataChanged);
+        if (this.isLocal) {
+            Hooks.off("updateActor", this._onActorUpdate);
+            Hooks.off("updateToken", this._onTokenUpdate); // <-- Added Cleanup
+        } else {
+            Hooks.off("visageDataChanged", this._onDataChanged);
+        }
         return super.close(options);
     }
 
@@ -111,7 +123,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleBin: VisageGallery.prototype._onToggleBin,
             clearSearch: VisageGallery.prototype._onClearSearch,
             toggleTag: VisageGallery.prototype._onToggleTag,
-            clearTags: VisageGallery.prototype._onClearTags
+            clearTags: VisageGallery.prototype._onClearTags,
+            swapDefault: VisageGallery.prototype._onSwapDefault
         }
     };
 
@@ -345,6 +358,37 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         } else {
             const cards = this.element.querySelectorAll(".visage-card");
             cards.forEach(card => card.removeAttribute("draggable"));
+        }
+    }
+
+    /**
+     * Handles the "Swap to Default" action.
+     * Swaps the selected Visage with the token's Base/Prototype data.
+     */
+    async _onSwapDefault(event, target) {
+        // Safety checks
+        if (!this.isLocal || !this.tokenId) return;
+        const visageId = target.dataset.visageId;
+        const visageLabel = target.closest('.visage-card')?.querySelector('.card-title')?.innerText || "Visage";
+
+        // 1. Confirm with User (Destructive Action)
+        const confirmed = await foundry.applications.api.DialogV2.confirm({
+            window: { title: game.i18n.localize("VISAGE.Dialog.SwapDefault.Title") },
+            content: game.i18n.format("VISAGE.Dialog.SwapDefault.Content", { label: visageLabel }),
+            modal: true,
+            rejectClose: false
+        });
+
+        if (!confirmed) return;
+
+        // 2. Perform Swap
+        try {
+            await VisageData.commitToDefault(this.tokenId, visageId);
+            // No manual re-render needed; VisageData updates the Actor, 
+            // which triggers 'updateActor' hook, which calls this.render() via _bindListeners
+        } catch (err) {
+            console.error(err);
+            ui.notifications.error("Visage | Failed to swap default.");
         }
     }
 
