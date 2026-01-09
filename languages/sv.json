@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Rensa Tokens i Scenen",
     "VISAGE.Settings.CleanseScene.Hint": "Tar bort all Visage-data från tokens i den nuvarande scenen.",
     "VISAGE.Settings.CleanseAll.Name": "Rensa Tokens i Världen",
-    "VISAGE.Settings.CleanseAll.Hint": "Tar bort all Visage-data från varje token i världen. Använd med försiktighet!"
+    "VISAGE.Settings.CleanseAll.Hint": "Tar bort all Visage-data från varje token i världen. Använd med försiktighet!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Gör till Standard (Permanent)",
+    "VISAGE.Dialog.SwapDefault.Title": "Uppdatera Standardtoken?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Är du säker på att du vill göra <strong>{label}</strong> till det nya standardutseendet för denna karaktär?</p><p>Den nuvarande standarden sparas som en säkerhetskopia.</p>"
 }

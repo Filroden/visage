@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Pulisci Token Scena",
     "VISAGE.Settings.CleanseScene.Hint": "Rimuove tutti i dati Visage dai token nella scena corrente.",
     "VISAGE.Settings.CleanseAll.Name": "Pulisci Token Mondo",
-    "VISAGE.Settings.CleanseAll.Hint": "Rimuove tutti i dati Visage da ogni token nel mondo. Usare con cautela!"
+    "VISAGE.Settings.CleanseAll.Hint": "Rimuove tutti i dati Visage da ogni token nel mondo. Usare con cautela!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Imposta come Predefinito (Permanente)",
+    "VISAGE.Dialog.SwapDefault.Title": "Aggiornare il Token Predefinito?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Sei sicuro di voler rendere <strong>{label}</strong> il nuovo aspetto predefinito per questo personaggio?</p><p>Il predefinito attuale verrà salvato come backup.</p>"
 }

@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "נקה טוקנים בסצנה",
     "VISAGE.Settings.CleanseScene.Hint": "מסיר את כל נתוני Visage מטוקנים בסצנה הנוכחית.",
     "VISAGE.Settings.CleanseAll.Name": "נקה טוקנים בעולם",
-    "VISAGE.Settings.CleanseAll.Hint": "מסיר את כל נתוני Visage מכל טוקן בעולם. השתמש בזהירות!"
+    "VISAGE.Settings.CleanseAll.Hint": "מסיר את כל נתוני Visage מכל טוקן בעולם. השתמש בזהירות!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "הפוך לברירת מחדל (קבוע)",
+    "VISAGE.Dialog.SwapDefault.Title": "עדכון טוקן ברירת מחדל?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>האם אתה בטוח שברצונך להפוך את <strong>{label}</strong> למראה ברירת המחדל החדש עבור דמות זו?</p><p>ברירת המחדל הנוכחית תישמר כגיבוי.</p>"
 }

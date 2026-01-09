@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "清除場景指示物",
     "VISAGE.Settings.CleanseScene.Hint": "移除當前場景中指示物的所有 Visage 資料。",
     "VISAGE.Settings.CleanseAll.Name": "清除世界指示物",
-    "VISAGE.Settings.CleanseAll.Hint": "移除世界中每個指示物的所有 Visage 資料。請謹慎使用！"
+    "VISAGE.Settings.CleanseAll.Hint": "移除世界中每個指示物的所有 Visage 資料。請謹慎使用！",
+
+    "VISAGE.Gallery.Action.SwapDefault": "設為預設（永久）",
+    "VISAGE.Dialog.SwapDefault.Title": "更新預設指示物？",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>您確定要將 <strong>{label}</strong> 設為該角色的新預設外觀嗎？</p><p>目前的預設外觀將被儲存為備份。</p>"
 }

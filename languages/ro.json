@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Curăță Token-uri Scenă",
     "VISAGE.Settings.CleanseScene.Hint": "Elimină toate datele Visage de pe token-urile din scena curentă.",
     "VISAGE.Settings.CleanseAll.Name": "Curăță Token-uri Lume",
-    "VISAGE.Settings.CleanseAll.Hint": "Elimină toate datele Visage de pe fiecare token din lume. Folosiți cu prudență!"
+    "VISAGE.Settings.CleanseAll.Hint": "Elimină toate datele Visage de pe fiecare token din lume. Folosiți cu prudență!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Setează ca Implicit (Permanent)",
+    "VISAGE.Dialog.SwapDefault.Title": "Actualizare Token Implicit?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Sigur dorești să setezi <strong>{label}</strong> ca noua înfățișare implicită pentru acest personaj?</p><p>Înfățișarea implicită curentă va fi salvată ca rezervă.</p>"
 }

@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Szenen-Tokens bereinigen",
     "VISAGE.Settings.CleanseScene.Hint": "Entfernt alle Visage-Daten von Tokens in der aktuellen Szene.",
     "VISAGE.Settings.CleanseAll.Name": "Welt-Tokens bereinigen",
-    "VISAGE.Settings.CleanseAll.Hint": "Entfernt alle Visage-Daten von jedem Token in der Welt. Mit Vorsicht verwenden!"
+    "VISAGE.Settings.CleanseAll.Hint": "Entfernt alle Visage-Daten von jedem Token in der Welt. Mit Vorsicht verwenden!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Als Standard festlegen (Dauerhaft)",
+    "VISAGE.Dialog.SwapDefault.Title": "Standard-Token aktualisieren?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Bist du sicher, dass du <strong>{label}</strong> als neues Standardaussehen für diesen Charakter festlegen möchtest?</p><p>Der aktuelle Standard wird als Backup gespeichert.</p>"
 }

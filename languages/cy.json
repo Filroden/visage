@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Glanhau Tocynnau'r Golygfa",
     "VISAGE.Settings.CleanseScene.Hint": "Yn tynnu'r holl ddata Visage o docynnau yn y golygfa bresennol.",
     "VISAGE.Settings.CleanseAll.Name": "Glanhau Tocynnau'r Byd",
-    "VISAGE.Settings.CleanseAll.Hint": "Yn tynnu'r holl ddata Visage o bob tocyn yn y byd. Defnyddiwch gyda gofal!"
+    "VISAGE.Settings.CleanseAll.Hint": "Yn tynnu'r holl ddata Visage o bob tocyn yn y byd. Defnyddiwch gyda gofal!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Gwnewch hwn yn Ddiofyn (Parhaol)",
+    "VISAGE.Dialog.SwapDefault.Title": "Diweddaru Tocyn Diofyn?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Ydych chi'n siŵr eich bod am wneud <strong>{label}</strong> yr ymddangosiad diofyn newydd ar gyfer y cymeriad hwn?</p><p>Bydd y diofyn cyfredol yn cael ei gadw fel copi wrth gefn.</p>"
 }

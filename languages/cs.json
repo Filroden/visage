@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Vyčistit tokeny scény",
     "VISAGE.Settings.CleanseScene.Hint": "Odstraní všechna data Visage z tokenů v aktuální scéně.",
     "VISAGE.Settings.CleanseAll.Name": "Vyčistit tokeny světa",
-    "VISAGE.Settings.CleanseAll.Hint": "Odstraní všechna data Visage z každého tokenu ve světě. Používejte s opatrností!"
+    "VISAGE.Settings.CleanseAll.Hint": "Odstraní všechna data Visage z každého tokenu ve světě. Používejte s opatrností!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Nastavit jako výchozí (trvalé)",
+    "VISAGE.Dialog.SwapDefault.Title": "Aktualizovat výchozí token?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Opravdu chcete nastavit <strong>{label}</strong> jako nový výchozí vzhled této postavy?</p><p>Současný výchozí vzhled bude uložen jako záloha.</p>"
 }

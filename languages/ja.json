@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "シーン内トークンのクリーンアップ",
     "VISAGE.Settings.CleanseScene.Hint": "現在のシーン内のトークンからすべてのVisageデータを削除します。",
     "VISAGE.Settings.CleanseAll.Name": "ワールド内トークンのクリーンアップ",
-    "VISAGE.Settings.CleanseAll.Hint": "ワールド内のすべてのトークンからすべてのVisageデータを削除します。注意して使用してください！"
+    "VISAGE.Settings.CleanseAll.Hint": "ワールド内のすべてのトークンからすべてのVisageデータを削除します。注意して使用してください！",
+
+    "VISAGE.Gallery.Action.SwapDefault": "デフォルトに設定 (永続的)",
+    "VISAGE.Dialog.SwapDefault.Title": "デフォルトトークンを更新しますか？",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>本当に <strong>{label}</strong> をこのキャラクターの新しいデフォルトの見た目に設定してもよろしいですか？</p><p>現在のデフォルトはバックアップとして保存されます。</p>"
 }
