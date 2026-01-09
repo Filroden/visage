@@ -172,6 +172,26 @@ export class Visage {
         if (game.user.id !== userId) return;
         if (!tokenDocument.object) return;
 
+        // --- Filter Irrelevant Updates ---
+        // We only trigger a recomposition if a VISUAL property changed.
+        const relevantKeys = [
+            "name", "displayName", "disposition", "width", "height", 
+            "texture", "img", "ring"
+        ];
+        
+        // Flatten the change object to handle nested updates like "texture.src"
+        const flatChange = foundry.utils.flattenObject(change);
+
+        // If the token is being Hidden/Unhidden, abort immediately.
+        if ("hidden" in flatChange) return;
+        
+        // Check if ANY key in the change object starts with a relevant key
+        const isRelevant = Object.keys(flatChange).some(key => {
+            return relevantKeys.some(rk => key === rk || key.startsWith(rk + "."));
+        });
+
+        if (!isRelevant) return;
+
         const flags = tokenDocument.flags[this.MODULE_ID] || {};
         const stack = flags.activeStack || flags.stack || [];
 
