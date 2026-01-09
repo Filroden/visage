@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "تنظيف رموز المشهد",
     "VISAGE.Settings.CleanseScene.Hint": "يزيل جميع بيانات Visage من الرموز في المشهد الحالي.",
     "VISAGE.Settings.CleanseAll.Name": "تنظيف رموز العالم",
-    "VISAGE.Settings.CleanseAll.Hint": "يزيل جميع بيانات Visage من كل رمز في العالم. استخدمه بحذر!"
+    "VISAGE.Settings.CleanseAll.Hint": "يزيل جميع بيانات Visage من كل رمز في العالم. استخدمه بحذر!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "اجعل هذا الافتراضي (دائم)",
+    "VISAGE.Dialog.SwapDefault.Title": "تحديث الرمز الافتراضي؟",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>هل أنت متأكد من رغبتك في جعل <strong>{label}</strong> المظهر الافتراضي الجديد لهذه الشخصية؟</p><p>سيتم حفظ الافتراضي الحالي كنسخة احتياطية.</p>"
 }

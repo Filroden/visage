@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Sahne Tokenlerini Temizle",
     "VISAGE.Settings.CleanseScene.Hint": "Mevcut sahnedeki tokenlerden tüm Visage verilerini kaldırır.",
     "VISAGE.Settings.CleanseAll.Name": "Dünya Tokenlerini Temizle",
-    "VISAGE.Settings.CleanseAll.Hint": "Dünyadaki her tokenden tüm Visage verilerini kaldırır. Dikkatli kullanın!"
+    "VISAGE.Settings.CleanseAll.Hint": "Dünyadaki her tokenden tüm Visage verilerini kaldırır. Dikkatli kullanın!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Varsayılan Yap (Kalıcı)",
+    "VISAGE.Dialog.SwapDefault.Title": "Varsayılan Token Güncellensin mi?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p><strong>{label}</strong> öğesini bu karakter için yeni varsayılan görünüm yapmak istediğinizden emin misiniz?</p><p>Mevcut varsayılan yedek olarak kaydedilecektir.</p>"
 }

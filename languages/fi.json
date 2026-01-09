@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Puhdista näkymän pelinappulat",
     "VISAGE.Settings.CleanseScene.Hint": "Poistaa kaikki Visage-tiedot nykyisen näkymän pelinappuloista.",
     "VISAGE.Settings.CleanseAll.Name": "Puhdista maailman pelinappulat",
-    "VISAGE.Settings.CleanseAll.Hint": "Poistaa kaikki Visage-tiedot kaikista maailman pelinappuloista. Käytä varoen!"
+    "VISAGE.Settings.CleanseAll.Hint": "Poistaa kaikki Visage-tiedot kaikista maailman pelinappuloista. Käytä varoen!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Aseta oletukseksi (Pysyvä)",
+    "VISAGE.Dialog.SwapDefault.Title": "Päivitä oletuspelimerkki?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Haluatko varmasti asettaa <strong>{label}</strong>:n tämän hahmon uudeksi oletusulkoasuksi?</p><p>Nykyinen oletus tallennetaan varmuuskopiona.</p>"
 }

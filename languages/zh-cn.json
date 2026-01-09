@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "清除场景标记",
     "VISAGE.Settings.CleanseScene.Hint": "移除当前场景中标记的所有 Visage 数据。",
     "VISAGE.Settings.CleanseAll.Name": "清除世界标记",
-    "VISAGE.Settings.CleanseAll.Hint": "移除世界中每个标记的所有 Visage 数据。请谨慎使用！"
+    "VISAGE.Settings.CleanseAll.Hint": "移除世界中每个标记的所有 Visage 数据。请谨慎使用！",
+
+    "VISAGE.Gallery.Action.SwapDefault": "设为默认（永久）",
+    "VISAGE.Dialog.SwapDefault.Title": "更新默认指示物？",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>您确定要将 <strong>{label}</strong> 设为该角色的新默认外观吗？</p><p>当前的默认外观将被保存为备份。</p>"
 }

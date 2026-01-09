@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Wyczyść tokeny sceny",
     "VISAGE.Settings.CleanseScene.Hint": "Usuwa wszystkie dane Visage z tokenów na bieżącej scenie.",
     "VISAGE.Settings.CleanseAll.Name": "Wyczyść tokeny świata",
-    "VISAGE.Settings.CleanseAll.Hint": "Usuwa wszystkie dane Visage z każdego tokena na świecie. Używaj ostrożnie!"
+    "VISAGE.Settings.CleanseAll.Hint": "Usuwa wszystkie dane Visage z każdego tokena na świecie. Używaj ostrożnie!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Ustaw jako domyślne (Trwałe)",
+    "VISAGE.Dialog.SwapDefault.Title": "Zaktualizować domyślny token?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Czy na pewno chcesz ustawić <strong>{label}</strong> jako nowy domyślny wygląd tej postaci?</p><p>Obecny domyślny wygląd zostanie zapisany jako kopia zapasowa.</p>"
 }

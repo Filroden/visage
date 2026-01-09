@@ -125,5 +125,9 @@
     "VISAGE.Settings.CleanseScene.Name": "Очистить токены сцены",
     "VISAGE.Settings.CleanseScene.Hint": "Удаляет все данные Visage из токенов в текущей сцене.",
     "VISAGE.Settings.CleanseAll.Name": "Очистить токены мира",
-    "VISAGE.Settings.CleanseAll.Hint": "Удаляет все данные Visage из всех токенов в мире. Используйте с осторожностью!"
+    "VISAGE.Settings.CleanseAll.Hint": "Удаляет все данные Visage из всех токенов в мире. Используйте с осторожностью!",
+
+    "VISAGE.Gallery.Action.SwapDefault": "Сделать по умолчанию (Постоянно)",
+    "VISAGE.Dialog.SwapDefault.Title": "Обновить токен по умолчанию?",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Вы уверены, что хотите сделать <strong>{label}</strong> новым внешним видом по умолчанию для этого персонажа?</p><p>Текущий вид будет сохранен как резервная копия.</p>"
 }
