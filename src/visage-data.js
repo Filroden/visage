@@ -172,6 +172,23 @@ export class VisageData {
     }
 
     /**
+     * Determines the primary image path for a Visage, handling Ring Subject Textures.
+     * @param {Object} changes - The changes object from the Visage data.
+     * @returns {string} The path to the image that should be displayed.
+     */
+    static getRepresentativeImage(changes) {
+        if (!changes) return "";
+        
+        // Priority 1: If Ring is Enabled AND has a Subject Texture override
+        if (changes.ring?.enabled && changes.ring.subject?.texture) {
+            return changes.ring.subject.texture;
+        }
+
+        // Priority 2: Standard Token Image
+        return changes.img || changes.texture?.src || "";
+    }
+
+    /**
      * Prepares a Visage data object for display in the UI (Gallery/HUD).
      * Calculates human-readable labels for scale, dimensions, and flip state.
      * @param {Object} data - The raw Visage data.
@@ -182,6 +199,8 @@ export class VisageData {
         const c = data.changes || {};
         const tx = c.texture || {};
         
+        const displayPath = this.getRepresentativeImage(c);
+
         // Calculate Scale display (e.g., "150%")
         const rawScaleX = tx.scaleX ?? 1.0;
         const rawScaleY = tx.scaleY ?? 1.0;
@@ -238,15 +257,12 @@ export class VisageData {
             isActive: options.isActive ?? false,
             isVideo: options.isVideo ?? false,
             isWildcard: options.isWildcard ?? false,
-            
-            path: c.img || c.texture?.src,
+            path: displayPath,
             scale: absScale,
             isFlippedX,
             isFlippedY,
-            
             forceFlipX: isFlippedX,
             forceFlipY: isFlippedY,
-            
             meta: {
                 hasRing: ringCtx.enabled,
                 hasPulse: ringCtx.hasPulse,
@@ -255,13 +271,10 @@ export class VisageData {
                 hasInvisibility: ringCtx.hasInvisibility,
                 ringColor: ringCtx.colors.ring,
                 ringBkg: ringCtx.colors.background,
-                
                 showDataChip: (scaleLabel !== "") || (sizeLabel !== ""),
                 showFlipBadge: flipActive,
                 showDispositionChip: dispClass !== "none",
-                
                 tokenName: c.name || null,
-                
                 slots: {
                     scale: { active: !isScaleDefault, val: scaleLabel },
                     dim: { active: !isSizeDefault, val: sizeLabel },

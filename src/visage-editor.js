@@ -272,7 +272,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
 
         // 4. Resolve Path & Generate Context
-        const rawPath = mockData.changes.img || "";
+        // Determine which image to show (Main vs Subject)
+        const ringEnabled = formData["ring.enabled"];
+        const subjectTexture = formData.ringSubjectTexture;
+        const mainImage = mockData.changes.img || "";
+
+        // If Ring is enabled AND has a specific subject texture, that is what the user sees on canvas.
+        const rawPath = (ringEnabled && subjectTexture) ? subjectTexture : mainImage;
+
         const resolvedPath = await Visage.resolvePath(rawPath);
 
         const context = VisageData.toPresentation(mockData, {
@@ -636,6 +643,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 },
                 effects: effectsMask
             };
+        } else {
+            payload.changes.ring = { enabled: false };
         }
 
         try {
