@@ -111,7 +111,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleBin: VisageGallery.prototype._onToggleBin,
             clearSearch: VisageGallery.prototype._onClearSearch,
             toggleTag: VisageGallery.prototype._onToggleTag,
-            clearTags: VisageGallery.prototype._onClearTags
+            clearTags: VisageGallery.prototype._onClearTags,
+            swapDefault: VisageGallery.prototype._onSwapDefault
         }
     };
 
@@ -345,6 +346,37 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         } else {
             const cards = this.element.querySelectorAll(".visage-card");
             cards.forEach(card => card.removeAttribute("draggable"));
+        }
+    }
+
+    /**
+     * Handles the "Swap to Default" action.
+     * Swaps the selected Visage with the token's Base/Prototype data.
+     */
+    async _onSwapDefault(event, target) {
+        // Safety checks
+        if (!this.isLocal || !this.tokenId) return;
+        const visageId = target.dataset.visageId;
+        const visageLabel = target.closest('.visage-card')?.querySelector('.card-title')?.innerText || "Visage";
+
+        // 1. Confirm with User (Destructive Action)
+        const confirmed = await foundry.applications.api.DialogV2.confirm({
+            window: { title: game.i18n.localize("VISAGE.Dialog.SwapDefault.Title") },
+            content: game.i18n.format("VISAGE.Dialog.SwapDefault.Content", { label: visageLabel }),
+            modal: true,
+            rejectClose: false
+        });
+
+        if (!confirmed) return;
+
+        // 2. Perform Swap
+        try {
+            await VisageData.commitToDefault(this.tokenId, visageId);
+            // No manual re-render needed; VisageData updates the Actor, 
+            // which triggers 'updateActor' hook, which calls this.render() via _bindListeners
+        } catch (err) {
+            console.error(err);
+            ui.notifications.error("Visage | Failed to swap default.");
         }
     }
 
