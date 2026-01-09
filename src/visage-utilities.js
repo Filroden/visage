@@ -116,7 +116,6 @@ export class VisageUtilities {
             disposition: get("disposition"),
             width: get("width"),
             height: get("height"),
-            alpha: get("alpha"),
             texture: {
                 src: textureSrc,
                 scaleX: scaleX,
