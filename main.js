@@ -26,7 +26,7 @@ let globalDirectoryInstance = null;
  * Worlds on a version older than this will trigger the migration utility.
  * @constant {string}
  */
-const NEEDS_MIGRATION_VERSION = "1.6.3"; 
+const NEEDS_MIGRATION_VERSION = "2.2.0"; 
 
 /**
  * Opens the Visage Configuration window (Gallery) for a specific actor or token.
