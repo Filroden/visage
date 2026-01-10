@@ -6,7 +6,8 @@
 
 import { Visage } from "./visage.js";
 import { VisageData } from "./visage-data.js"; 
-import { VisageEditor } from "./visage-editor.js"; 
+import { VisageEditor } from "./visage-editor.js";
+import { VisageUtilities } from "./visage-utilities.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -78,17 +79,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
      * @type {Actor|null}
      */
     get actor() {
-        if (this.tokenId) {
-            const token = canvas.tokens.get(this.tokenId);
-            if (token?.actor) return token.actor;
-            if (this.sceneId) {
-                const scene = game.scenes.get(this.sceneId);
-                const tokenDoc = scene?.tokens.get(this.tokenId);
-                if (tokenDoc?.actor) return tokenDoc.actor;
-            }
-        }
-        if (this.actorId) return game.actors.get(this.actorId);
-        return null;
+        return VisageUtilities.resolveTarget(this.options).actor;
     }
 
     /** @override */
@@ -255,7 +246,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             const rawPath = VisageData.getRepresentativeImage(entry.changes);
             const resolvedPath = await Visage.resolvePath(rawPath);
             const context = VisageData.toPresentation(entry, {
-                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedPath),
                 isWildcard: (rawPath || "").includes('*'),
                 isActive: false 
             });
@@ -305,20 +295,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onRender(context, options) {
         // Handle RTL Support
-        const rtlLanguages = ["ar", "he", "fa", "ur"];
-        if (rtlLanguages.includes(game.i18n.lang)) {
-            this.element.setAttribute("dir", "rtl");
-            this.element.classList.add("rtl");
-        }
-
-        // Apply Theme Classes
-        if (this.isLocal) {
-            this.element.classList.add("visage-theme-local");
-            this.element.classList.remove("visage-theme-global");
-        } else {
-            this.element.classList.add("visage-theme-global");
-            this.element.classList.remove("visage-theme-local");
-        }
+        VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
         // Setup live listener for data changes
         if (!this._dataListener) {
