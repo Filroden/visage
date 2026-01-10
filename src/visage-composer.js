@@ -47,8 +47,7 @@ export class VisageComposer {
             const changes = layer.changes || {};
 
             // A. Texture/Image
-            if (changes.img) finalData.texture.src = changes.img;
-            else if (changes.texture?.src) finalData.texture.src = changes.texture.src;
+            if (changes.texture?.src) finalData.texture.src = changes.texture.src;
 
             // B. Scale Handling
             // Supports both legacy top-level 'scale' and v10+ 'texture.scaleX/Y'

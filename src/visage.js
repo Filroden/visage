@@ -176,7 +176,7 @@ export class Visage {
         // We only trigger a recomposition if a VISUAL property changed.
         const relevantKeys = [
             "name", "displayName", "disposition", "width", "height", 
-            "texture", "img", "ring"
+            "texture", "ring"
         ];
         
         // Flatten the change object to handle nested updates like "texture.src"

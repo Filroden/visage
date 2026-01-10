@@ -1,132 +1,117 @@
 /**
  * @file Handles data migration logic for the Visage module.
- * Performs a "Hard Migration" to upgrade legacy data (v1.x) to the modern Unified Model (v2.0).
+ * Performs a "Hard Migration" to upgrade legacy data (v1.x) to the modern Unified Model (v2.0/v2.2).
  * Also handles garbage collection for orphaned token data.
  * @module visage
  */
 
 import { Visage } from "./visage.js";
+import { VisageData } from "./visage-data.js"; // Added import for SETTING_KEY
 
-/**
- * Performs a global migration of all Visage data across all Actors in the world.
- * * STRATEGY:
- * 1. **Index**: Build a map of all valid tokens in all scenes.
- * 2. **Library Migration**: Convert legacy "visages" format to the new "alternateVisages" format.
- * 3. **Snapshot Repair**: Patch "Default" snapshots with missing v2 properties (Dynamic Ring, Dimensions).
- * 4. **Garbage Collection**: Delete data for tokens that no longer exist in the world.
- */
 export async function migrateWorldData() {
     const ns = Visage.DATA_NAMESPACE;
-    const legacyKey = Visage.LEGACY_FLAG_KEY || "visages"; // Fallback if constant is missing
+    const legacyKey = Visage.LEGACY_FLAG_KEY || "visages"; 
     const newKey = Visage.ALTERNATE_FLAG_KEY || "alternateVisages";
 
-    ui.notifications.info("Visage: Starting Migration to v2.0...");
-    console.group("Visage | Migration v2.0");
+    ui.notifications.info("Visage: Starting Migration to v2.2...");
+    console.group("Visage | Migration v2.2");
 
     // --- PHASE 0: INDEX ALL TOKENS ---
-    // We need a complete list of valid tokens to determine if data is orphaned.
-    const worldTokenMap = new Map(); // ID -> TokenDocument
+    const worldTokenMap = new Map(); 
     for (const scene of game.scenes) {
         for (const token of scene.tokens) {
             worldTokenMap.set(token.id, token);
         }
     }
 
-    // Identify unique Actors to process (Real Actors + Synthetic Token Actors)
     const actorsToUpdate = new Map();
     for (const actor of game.actors) actorsToUpdate.set(actor.id, actor);
-    
-    // Add unlinked actors found in the scene index
     for (const token of worldTokenMap.values()) {
         if (!token.actorLink && token.actor) {
             actorsToUpdate.set(token.actor.id, token.actor);
         }
     }
 
-    if (actorsToUpdate.size === 0) {
-        console.log("Visage | No actors found to migrate.");
-        console.groupEnd();
-        return;
-    }
-
+    // =========================================================
+    // PHASE 1: MIGRATE ACTORS (Local Library & Defaults)
+    // =========================================================
     for (const actor of actorsToUpdate.values()) {
         const actorFlags = actor.flags[ns] || {};
-        
-        // Skip actors with no visage data to save DB writes
         if (Object.keys(actorFlags).length === 0) continue;
 
         let updates = {};
         let performUpdate = false;
 
-        // =========================================================
-        // PHASE 1: MIGRATE LIBRARY (The "Visages")
-        // =========================================================
         const legacyData = actorFlags[legacyKey];
         const modernData = actorFlags[newKey];
 
-        // If either exists, we must ensure they are unified under the new key
-        if (legacyData || modernData) {
-            const allSourceData = { ...(legacyData || {}), ...(modernData || {}) };
-            const cleanData = {};
-            const getUUID = () => foundry.utils.randomID(16);
-
-            for (const [key, raw] of Object.entries(allSourceData)) {
-                // Safety Check: Is this valid data?
+        // 1a. Convert v1 -> v2 if legacy exists
+        if (legacyData) {
+            const cleanData = modernData ? foundry.utils.deepClone(modernData) : {};
+            for (const [key, raw] of Object.entries(legacyData)) {
                 if (!raw) continue;
-                
-                // If key is not a standard 16-char ID (e.g., sequential integer from v1), generate a new UUID
-                const isLegacyKey = key.length !== 16;
-                const uuid = isLegacyKey ? getUUID() : key;
-                
+                const uuid = foundry.utils.randomID(16);
                 cleanData[uuid] = normalizeEntry(uuid, raw, key);
             }
-
-            // Nuke the old key and write the new clean object
-            if (legacyData) updates[`flags.${ns}.-=${legacyKey}`] = null;
+            updates[`flags.${ns}.-=${legacyKey}`] = null;
             updates[`flags.${ns}.${newKey}`] = cleanData;
             performUpdate = true;
         }
 
-        // =========================================================
-        // PHASE 2: MIGRATE DEFAULTS (The "Snapshots")
-        // =========================================================
-        // Iterate over flag keys. Keys that are 16-chars long (Token IDs) represent specific token state snapshots.
+        // 1b. Repair v2 Schema (img -> texture.src) for existing local data
+        if (modernData && !legacyData) {
+            for (const [id, entry] of Object.entries(modernData)) {
+                if (entry.changes && entry.changes.img && !entry.changes.texture?.src) {
+                    const texture = entry.changes.texture || { scaleX: 1, scaleY: 1 };
+                    texture.src = entry.changes.img;
+                    
+                    updates[`flags.${ns}.${newKey}.${id}.changes.texture`] = texture;
+                    updates[`flags.${ns}.${newKey}.${id}.changes.-=img`] = null;
+                    performUpdate = true;
+                }
+            }
+        }
+
+        // 1c. Snapshot & Defaults Repair
         for (const [key, flagData] of Object.entries(actorFlags)) {
-            if (key === legacyKey || key === newKey) continue; // Skip library containers
-            if (key.length !== 16) continue; // Not a valid Token ID
+            if (key === legacyKey || key === newKey) continue; 
+            if (key.length !== 16) continue; 
 
             const tokenDoc = worldTokenMap.get(key);
 
-            // A. GARBAGE COLLECTION
-            // If the token ID in the flags doesn't match any token in the world index, delete it.
+            // Garbage Collection
             if (!tokenDoc) {
                 updates[`flags.${ns}.-=${key}`] = null;
                 performUpdate = true;
-                console.log(`Visage | GC: Removing orphaned data for missing token ${key}`);
                 continue;
             }
 
-            // B. SNAPSHOT REPAIR
-            // If the token exists, check if its "Default State" snapshot is missing new v2 properties.
+            // Snapshot Repair
             if (flagData?.defaults) {
-                const defs = flagData.defaults;
-                const sourceData = tokenDoc.toObject(); // Get current state to patch missing holes
+                const defs = foundry.utils.deepClone(flagData.defaults);
+                let defaultsChanged = false;
 
-                // Check for specific v2 properties
-                const missingRing = defs.ring === undefined;
-                const missingDims = defs.width === undefined || defs.height === undefined;
+                if (defs.img && !defs.texture?.src) {
+                    if (!defs.texture) defs.texture = { scaleX: 1, scaleY: 1 };
+                    defs.texture.src = defs.img;
+                    delete defs.img;
+                    defaultsChanged = true;
+                }
+                if (defs.token && !defs.texture?.src) {
+                    if (!defs.texture) defs.texture = { scaleX: 1, scaleY: 1 };
+                    defs.texture.src = defs.token;
+                    delete defs.token;
+                    defaultsChanged = true;
+                }
 
-                if (missingRing || missingDims) {
-                    const newDefaults = { ...defs };
-                    
-                    if (missingRing) newDefaults.ring = sourceData.ring;
-                    if (missingDims) {
-                        newDefaults.width = sourceData.width ?? 1;
-                        newDefaults.height = sourceData.height ?? 1;
-                    }
+                // Patch Missing Properties
+                const sourceData = tokenDoc.toObject();
+                if (defs.ring === undefined) { defs.ring = sourceData.ring; defaultsChanged = true; }
+                if (defs.width === undefined) { defs.width = sourceData.width ?? 1; defaultsChanged = true; }
+                if (defs.height === undefined) { defs.height = sourceData.height ?? 1; defaultsChanged = true; }
 
-                    // Write the patched defaults back to the actor
-                    updates[`flags.${ns}.${key}.defaults`] = newDefaults;
+                if (defaultsChanged) {
+                    updates[`flags.${ns}.${key}.defaults`] = defs;
                     performUpdate = true;
                 }
             }
@@ -134,7 +119,58 @@ export async function migrateWorldData() {
 
         if (performUpdate) {
             await actor.update(updates);
-            console.log(`Migrated ${actor.name}`);
+            console.log(`Visage | Migrated Actor: ${actor.name}`);
+        }
+    }
+
+    // =========================================================
+    // PHASE 2: MIGRATE ACTIVE TOKENS (On Canvas)
+    // =========================================================
+    for (const token of worldTokenMap.values()) {
+        const originalState = token.flags[ns]?.originalState;
+        
+        if (originalState && (originalState.img || originalState.token) && !originalState.texture?.src) {
+            const newState = foundry.utils.deepClone(originalState);
+            
+            if (!newState.texture) newState.texture = { scaleX: 1, scaleY: 1 };
+            newState.texture.src = newState.img || newState.token;
+            
+            delete newState.img; 
+            delete newState.token;
+
+            await token.update({
+                [`flags.${ns}.originalState`]: newState
+            });
+            console.log(`Visage | Repaired Active Token Snapshot: ${token.name}`);
+        }
+    }
+
+    // =========================================================
+    // PHASE 3: MIGRATE GLOBAL MASKS (World Settings)
+    // =========================================================
+    // This fixes the issue you identified: migrating the Global Library
+    const globalKey = VisageData.SETTING_KEY;
+    const globals = game.settings.get(Visage.MODULE_ID, globalKey);
+    let globalsDirty = false;
+
+    if (globals) {
+        // We iterate the object directly since we write the whole object back at the end
+        for (const [id, entry] of Object.entries(globals)) {
+             if (entry.changes && entry.changes.img && !entry.changes.texture?.src) {
+                const texture = entry.changes.texture || { scaleX: 1, scaleY: 1 };
+                texture.src = entry.changes.img;
+                
+                // Direct mutation for update
+                entry.changes.texture = texture;
+                delete entry.changes.img;
+                
+                globalsDirty = true;
+             }
+        }
+
+        if (globalsDirty) {
+            await game.settings.set(Visage.MODULE_ID, globalKey, globals);
+            console.log("Visage | Migrated Global Mask Library");
         }
     }
 
@@ -142,40 +178,36 @@ export async function migrateWorldData() {
     ui.notifications.info(`Visage: Migration & Cleanup Complete.`);
 }
 
-/**
- * Helper: Converts any raw data format (v1 or partial v2) into the strict Unified Model v2.0.
- * Handles normalizing image paths, flip logic, and ring structure.
- * * @param {string} id - The ID for the entry.
- * @param {Object} data - The raw data to normalize.
- * @param {string} fallbackName - A fallback name if the data lacks a label.
- * @returns {Object} A fully compliant Visage Data Object.
- */
 function normalizeEntry(id, data, fallbackName) {
-    // If it already has the 'changes' structure, just pass it through with minor cleanup
+    // v2.0 Data Pass-through & Repair
     if (data.changes) {
+        const changes = foundry.utils.deepClone(data.changes);
+        if (changes.img && !changes.texture?.src) {
+            if (!changes.texture) changes.texture = { scaleX: 1, scaleY: 1 };
+            changes.texture.src = changes.img;
+            delete changes.img;
+        }
         return {
             id: id,
             label: data.label || data.name || fallbackName,
             category: data.category || "",
             tags: Array.isArray(data.tags) ? data.tags : [],
-            changes: data.changes,
+            changes: changes,
             deleted: !!data.deleted,
             updated: Date.now()
         };
     }
 
-    // Handle legacy flat format (v1)
+    // v1.0 Data Conversion
     const isObject = typeof data === 'object' && data !== null;
     const path = isObject ? (data.path || data.token || "") : (data || "");
     const label = (isObject && data.name) ? data.name : fallbackName;
     
-    // Scale & Flip Logic
     const rawScale = isObject ? (data.scale ?? 1.0) : 1.0;
     const scale = Math.abs(rawScale);
     let isFlippedX = (isObject && data.isFlippedX !== undefined) ? data.isFlippedX : (rawScale < 0);
     const isFlippedY = (isObject && data.isFlippedY) || false;
 
-    // Disposition Mapping
     let disposition = (isObject && data.disposition !== undefined) ? data.disposition : null;
     if (disposition === 2 || (isObject && data.secret === true)) disposition = -2;
 
@@ -188,8 +220,8 @@ function normalizeEntry(id, data, fallbackName) {
         updated: Date.now(),
         changes: {
             name: label,
-            img: path,
-            texture: { 
+            texture: {
+                src: path,
                 scaleX: scale * (isFlippedX ? -1 : 1), 
                 scaleY: scale * (isFlippedY ? -1 : 1) 
             },
