@@ -26,7 +26,7 @@ let globalDirectoryInstance = null;
  * Worlds on a version older than this will trigger the migration utility.
  * @constant {string}
  */
-const NEEDS_MIGRATION_VERSION = "2.2.0"; 
+const NEEDS_MIGRATION_VERSION = "1.6.3"; 
 
 /**
  * Opens the Visage Configuration window (Gallery) for a specific actor or token.
@@ -264,26 +264,6 @@ function registerSettings() {
         config: false,
         type: String,
         default: "0.0.0"
-    });
-
-    // --- Manual Migration Trigger ---
-    game.settings.register(Visage.MODULE_ID, "manualMigration", {
-        name: "VISAGE.Settings.ManualMigration.Name",
-        hint: "VISAGE.Settings.ManualMigration.Hint",
-        scope: "world",
-        config: true,
-        restricted: true,
-        type: Boolean,
-        default: false,
-        onChange: (value) => {
-            if (value) {
-                // Run the full migration suite
-                migrateWorldData();
-                
-                // Reset the switch automatically
-                game.settings.set(Visage.MODULE_ID, "manualMigration", false);
-            }
-        }
     });
 }
 

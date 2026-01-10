@@ -1,25 +1,58 @@
-/* visage-editor.js */
+/**
+ * @file The Editor application for creating and modifying Visage entries.
+ * Handles the form logic, live preview updates, and data persistence.
+ * @module visage
+ */
+
 import { Visage } from "./visage.js";
 import { VisageData } from "./visage-data.js";
-import { VisageUtilities } from "./visage-utilities.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+/**
+ * Application class for editing Visage/Mask data.
+ * Supports both Local (Actor-specific) and Global (World-setting) modes.
+ */
 export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     
+    /**
+     * @param {Object} options - Application options.
+     * @param {string|null} [options.visageId=null] - The ID of the visage to edit. If null, creates a new one.
+     * @param {string|null} [options.actorId=null] - The ID of the actor (if local mode).
+     * @param {string|null} [options.tokenId=null] - The ID of the token (if triggered from a specific token).
+     */
     constructor(options = {}) {
         super(options);
         this.visageId = options.visageId || null;
         this.actorId = options.actorId || null;
         this.tokenId = options.tokenId || null;
         this.isDirty = false;
+
+        // Set icon based on mode: Domino for Global, Mask for Local
         this.options.window.icon = !this.isLocal ? "visage-icon-domino" : "visage-header-icon";
     }
 
+    /**
+     * Determines if we are editing a Local Visage (Actor flag) or Global Mask (World setting).
+     * @type {boolean}
+     */
     get isLocal() { return !!this.actorId; }
 
+    /**
+     * Retrieves the target Actor document.
+     * Handles both real Actors and synthetic Token Actors.
+     * @type {Actor|null}
+     */
     get actor() {
-        return VisageUtilities.resolveTarget(this.options).actor;
+        if (this.tokenId) {
+            const token = canvas.tokens.get(this.tokenId);
+            if (token?.actor) return token.actor;
+            const scene = game.scenes.current; 
+            const doc = scene?.tokens.get(this.tokenId);
+            if(doc?.actor) return doc.actor;
+        }
+        if (this.actorId) return game.actors.get(this.actorId);
+        return null;
     }
 
     static DEFAULT_OPTIONS = {
@@ -49,6 +82,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
+    /** @override */
     get title() {
         if (this.isLocal) {
             return this.visageId 
@@ -60,8 +94,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             : game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global");
     }
 
+    /**
+     * Prepares the data context for the Handlebars template.
+     * Fetches existing data, resolves wildcards, and generates the preview state.
+     * @override
+     */
     async _prepareContext(options) {
         let data;
+
+        // 1. Fetch Data (Edit Mode vs Create Mode)
         if (this.visageId) {
             if (this.isLocal) {
                 const visages = VisageData.getLocal(this.actor);
@@ -73,7 +114,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
             this._currentLabel = data.label;
         } else {
+            // New Entry Defaults
             if (this.isLocal) {
+                // If local, try to pre-fill with current token appearance
                 const token = canvas.tokens.get(this.tokenId) || this.actor.prototypeToken;
                 const tokenDoc = token.document || token; 
                 data = VisageData.getDefaultAsVisage(tokenDoc);
@@ -90,14 +133,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._currentLabel = "";
         }
 
-        const rawImg = data.changes.texture?.src || "";
-        const resolvedImg = await VisageUtilities.resolvePath(rawImg);
+        // 2. Resolve Image Path (Async)
+        const rawImg = data.changes.img || data.changes.texture?.src || "";
+        const resolvedImg = await Visage.resolvePath(rawImg);
 
+        // 3. Generate Presentation Context (Metadata, Icons, Badges)
         const context = VisageData.toPresentation(data, {
+            isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedImg),
             isWildcard: rawImg.includes('*'),
             isActive: false
         });
 
+        // 4. Gather Auto-Complete Options (Categories/Tags) from existing globals
         const allVisages = VisageData.globals; 
         const categorySet = new Set();
         const tagSet = new Set();
@@ -107,6 +154,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         });
 
         const c = data.changes || {};
+
+        // Helper to format values for input fields
         const prep = (val, def) => {
             const isDefined = val !== null && val !== undefined;
             const isNotEmpty = typeof val === "string" ? val !== "" : true;
@@ -127,6 +176,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             allTags: Array.from(tagSet).sort(),
             tagsString: (data.tags || []).join(","), 
             
+            // Form Values
             img: prep(rawImg, ""),
             scale: { 
                 value: Math.round(context.scale * 100), 
@@ -144,9 +194,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 ...ringContext
             },
 
+            // Preview Card Data
             preview: {
                 ...context.meta, 
-                img: resolvedImg || rawImg, // Fallback here too
+                img: resolvedImg, 
                 isVideo: context.isVideo,
                 flipX: context.isFlippedX,
                 flipY: context.isFlippedY,
@@ -155,40 +206,43 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
+    /**
+     * Live Preview Logic.
+     * Updates the preview card DOM directly based on current form values without a full re-render.
+     * This provides immediate feedback for scale, color, and text changes.
+     * @private
+     */
     async _updatePreview() {
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
         const el = this.element;
 
+        // Helper to get active values only
         const getVal = (key, type = String) => {
             const isActive = formData[`${key}_active`];
             if (!isActive) return undefined;
             const raw = formData[key];
             if (type === Number) return parseFloat(raw);
             if (type === Boolean) return !!raw;
-            return (typeof raw === "string") ? raw.trim() : raw;
+            return raw;
         };
 
+        // 1. Calculate Texture Transforms
         const isScaleActive = formData.scale_active;
         const isFlipXActive = formData.isFlippedX !== "";
         const isFlipYActive = formData.isFlippedY !== "";
-        const imgSrc = getVal("img"); 
 
-        let texture = {};
-        if (imgSrc) {
-            texture.src = imgSrc;
-        }
-
+        let texture = undefined;
         if (isScaleActive || isFlipXActive || isFlipYActive) {
             const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
             const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
             const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
-            
-            texture.scaleX = rawScale * (flipX ? -1 : 1);
-            texture.scaleY = rawScale * (flipY ? -1 : 1);
+            texture = {
+                scaleX: rawScale * (flipX ? -1 : 1),
+                scaleY: rawScale * (flipY ? -1 : 1)
+            };
         }
 
-        if (Object.keys(texture).length === 0) texture = undefined;
-
+        // 2. Reconstruct Ring Data (Bitmask)
         let ring = null;
         if (formData["ring.enabled"]) {
             let effectsMask = 0;
@@ -203,10 +257,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
 
+        // 3. Create Mock Data Object
         const mockData = {
             changes: {
                 name: getVal("nameOverride"),
-                texture: texture, 
+                img: getVal("img"),
+                texture: texture,
                 width: getVal("width", Number),
                 height: getVal("height", Number),
                 disposition: getVal("disposition", Number),
@@ -215,29 +271,25 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             tags: (formData.tags || "").split(",").map(t => t.trim()).filter(t => t)
         };
 
+        // 4. Resolve Path & Generate Context
+        // Determine which image to show (Main vs Subject)
         const ringEnabled = formData["ring.enabled"];
         const subjectTexture = formData.ringSubjectTexture;
-        
-        const mainImage = mockData.changes.texture?.src || "";
-        const rawPath = (ringEnabled && subjectTexture) ? subjectTexture : mainImage;
-        
-        // --- PREVIEW LOGIC UPDATE ---
-        // 1. Attempt resolution
-        const resolved = await VisageUtilities.resolvePath(rawPath);
-        
-        // 2. Safety Fallback: If resolution failed (null), use the raw string.
-        // This mirrors the logic in VisageData.toLayer, ensuring consistency.
-        const resolvedPath = resolved || rawPath;
+        const mainImage = mockData.changes.img || "";
 
-        // Debug log to confirm what is happening
-        // console.log(`Visage Editor | Path: '${rawPath}' -> Resolved: '${resolvedPath}'`);
+        // If Ring is enabled AND has a specific subject texture, that is what the user sees on canvas.
+        const rawPath = (ringEnabled && subjectTexture) ? subjectTexture : mainImage;
+
+        const resolvedPath = await Visage.resolvePath(rawPath);
 
         const context = VisageData.toPresentation(mockData, {
+            isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(resolvedPath),
             isWildcard: rawPath.includes('*')
         });
 
         const meta = context.meta;
 
+        // 5. Update DOM Elements
         const updateSlot = (cls, val, active, icon) => {
             const slot = el.querySelector(`.card-zone-left .${cls}`);
             if (!slot) return;
@@ -251,6 +303,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         updateSlot("dim-slot", meta.slots.dim.val, meta.slots.dim.active);
         updateSlot("flip-slot", meta.slots.flip.val, meta.slots.flip.active, meta.slots.flip.icon);
 
+        // Update Disposition Chip
         const dispSlot = el.querySelector(".card-zone-left .disposition-slot .visage-disposition-chip");
         if (dispSlot) {
             dispSlot.textContent = meta.slots.disposition.val;
@@ -259,6 +312,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             else dispSlot.classList.remove("inactive");
         }
 
+        // Update Name Label
         const nameEl = el.querySelector(".token-name-label");
         if (nameEl) {
             nameEl.textContent = mockData.changes.name || "";
@@ -266,6 +320,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             nameEl.style.opacity = formData.nameOverride_active ? "1" : "0.5";
         }
 
+        // Update Dynamic Ring Styles
         const ringEl = el.querySelector(".visage-ring-preview");
         if (ringEl) {
             ringEl.style.display = meta.hasRing ? "block" : "none";
@@ -286,6 +341,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
+        // Update Image/Video Source & Transform
         const transform = `scale(${context.isFlippedX ? -1 : 1}, ${context.isFlippedY ? -1 : 1})`;
         const vidEl = el.querySelector(".visage-preview-video");
         const imgEl = el.querySelector(".visage-preview-img");
@@ -316,6 +372,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (iconEl) iconEl.style.display = "none";
         }
 
+        // Update Title & Tags
         const titleEl = el.querySelector(".card-title");
         if (titleEl) titleEl.textContent = formData.label || game.i18n.localize("VISAGE.GlobalEditor.TitleNew");
         
@@ -345,6 +402,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         fp.browse();
     }
 
+    /**
+     * Enables or disables form fields based on their associated "Active" checkbox.
+     * Also triggers a preview update.
+     */
     _onToggleField(event, target) {
         const fieldName = target.dataset.target;
         const group = target.closest('.form-group');
@@ -367,8 +428,23 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onRender(context, options) {
-        VisageUtilities.applyVisageTheme(this.element, this.isLocal);
+        // Handle RTL support
+        const rtlLanguages = ["ar", "he", "fa", "ur"];
+        if (rtlLanguages.includes(game.i18n.lang)) {
+            this.element.setAttribute("dir", "rtl");
+            this.element.classList.add("rtl");
+        }
 
+        // Apply Theme classes (Local vs Global)
+        if (this.isLocal) {
+            this.element.classList.add("visage-theme-local");
+            this.element.classList.remove("visage-theme-global");
+        } else {
+            this.element.classList.add("visage-theme-global");
+            this.element.classList.remove("visage-theme-local");
+        }
+
+        // Attach listeners for live preview
         this.element.addEventListener("change", () => this._markDirty());
         this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
@@ -378,6 +454,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._updatePreview();
         });
         
+        // DEBOUNCE: Delay preview updates for text inputs (typing)
         let debounceTimer;
         this.element.addEventListener("input", (event) => {
             this._markDirty();
@@ -385,13 +462,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                  clearTimeout(debounceTimer);
                  debounceTimer = setTimeout(() => {
                      this._updatePreview();
-                 }, 500); 
+                 }, 500); // Wait 500ms after last keystroke
             }
         });
         
         this._updatePreview();
     }
 
+    /**
+     * Initializes the custom Tag Pill input component.
+     * Handles adding, removing, and synchronizing tags with the hidden input field.
+     * @private
+     */
     _bindTagInput() {
         const container = this.element.querySelector(".visage-tag-container");
         if (!container) return;
@@ -475,40 +557,42 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         ui.notifications.info(game.i18n.localize("VISAGE.Notifications.SettingsReset"));
     }
 
+    /**
+     * Handles form submission.
+     * Constructs the data payload, including bitwise ring effects, and saves via VisageData.
+     */
     async _onSave(event, target) {
         event.preventDefault();
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
 
+        // Helper to extract values only if their "Active" checkbox is checked
         const getVal = (key, type = String) => {
             const isActive = formData[`${key}_active`];
             if (!isActive) return null;
             const raw = formData[key];
             if (type === Number) return parseFloat(raw);
             if (type === Boolean) return !!raw;
-            return (typeof raw === "string") ? raw.trim() : raw;
+            return raw;
         };
 
-        let texture = {};
-        const imgSrc = getVal("img");
-
-        if (imgSrc) {
-            texture.src = imgSrc;
-        }
+        let texture = undefined;
+        let flipX = undefined;
+        let flipY = undefined;
 
         const isScaleActive = formData.scale_active;
         const isFlipXActive = formData.isFlippedX !== "";
         const isFlipYActive = formData.isFlippedY !== "";
 
-        if (isScaleActive || isFlipXActive || isFlipYActive) {
-            const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
-            const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
-            const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
-            
-            texture.scaleX = rawScale * (flipX ? -1 : 1); 
-            texture.scaleY = rawScale * (flipY ? -1 : 1);
+        if (isScaleActive) {
+            const rawScale = parseFloat(formData.scale) / 100;
+            texture = { 
+                scaleX: rawScale, 
+                scaleY: rawScale 
+            };
         }
 
-        if (Object.keys(texture).length === 0) texture = undefined;
+        if (isFlipXActive && formData.isFlippedX === "true") flipX = true;
+        if (isFlipYActive && formData.isFlippedY === "true") flipY = true;
 
         const label = formData.label ? formData.label.trim() : game.i18n.localize("VISAGE.GlobalEditor.DefaultLabel");
         let cleanCategory = "";
@@ -527,7 +611,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             
             changes: {
                 name: getVal("nameOverride"),
-                texture: texture, 
+                img: getVal("img"),
+                texture: texture,
+                flipX: flipX,
+                flipY: flipY,
                 width: getVal("width", Number),
                 height: getVal("height", Number),
                 disposition: getVal("disposition", Number),
@@ -535,6 +622,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         };
 
+        // Construct Ring Data (Bitmask)
         if (formData["ring.enabled"]) {
             let effectsMask = 0;
             for (const [k, v] of Object.entries(formData)) {

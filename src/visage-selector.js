@@ -8,8 +8,7 @@
 import { Visage } from "./visage.js";
 import { VisageGallery } from "./visage-gallery.js"; 
 import { VisageComposer } from "./visage-composer.js";
-import { VisageData } from "./visage-data.js";
-import { VisageUtilities } from "./visage-utilities.js";
+import { VisageData } from "./visage-data.js"; 
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -91,6 +90,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
         const defaultForm = VisageData.toPresentation(defaultRaw, {
             isActive: currentFormKey === "default",
+            isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(defaultRaw.changes.img || "")
         });
         defaultForm.key = "default";
 
@@ -99,6 +99,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const alternateForms = localVisages.map(data => {
             const form = VisageData.toPresentation(data, {
                 isActive: data.id === currentFormKey,
+                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(data.changes.img || ""),
                 isWildcard: (data.changes.img || "").includes('*')
             });
             form.key = data.id;
@@ -191,7 +192,11 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onRender(context, options) {
-        VisageUtilities.applyVisageTheme(this.element, true);
+        const rtlLanguages = ["ar", "he", "fa", "ur"];
+        if (rtlLanguages.includes(game.i18n.lang)) {
+            this.element.setAttribute("dir", "rtl");
+            this.element.classList.add("rtl");
+        }
         this._unbindDismissListeners();
         this._bindDismissListeners();
     }
