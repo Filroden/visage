@@ -277,6 +277,39 @@ export class VisageData {
         return results.sort((a, b) => a.label.localeCompare(b.label));
     }
 
+    /* -------------------------------------------- */
+    /* DATA OPERATIONS                              */
+    /* -------------------------------------------- */
+
+    /**
+     * Promotes a Local Visage to the Global Mask Library.
+     * Creates a deep copy of the data in the world settings.
+     * @param {Actor} actor - The source actor.
+     * @param {string} visageId - The ID of the local visage to promote.
+     */
+    static async promote(actor, visageId) {
+        const localVisages = this.getLocal(actor);
+        const source = localVisages.find(v => v.id === visageId);
+        
+        if (!source) {
+            ui.notifications.warn("Visage | Could not find source visage to promote.");
+            return;
+        }
+
+        // Prepare Payload: Deep Clone and Strip ID
+        const payload = {
+            label: source.label,
+            category: source.category,
+            tags: source.tags ? [...source.tags] : [],
+            changes: foundry.utils.deepClone(source.changes)
+        };
+
+        // Note: _saveGlobal handles ID generation and timestamping
+        await this._saveGlobal(payload);
+        
+        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Promoted", { name: payload.label }));
+    }
+
     static async commitToDefault(tokenOrId, visageId) {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token || !token.actor) return ui.notifications.warn("Visage | No actor found for commit.");
