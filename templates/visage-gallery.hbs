@@ -155,18 +155,27 @@
                             <button data-action="restore" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Restore'}}"><i class="fas fa-trash-restore"></i></button>
                             <button data-action="destroy" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Destroy'}}" class="danger"><i class="fas fa-ban"></i></button>
                         {{else}}
+                            
+                            {{!-- 1. APPLY (Always visible) --}}
                             {{#if ../isLocal}}
                                 <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Activate'}}"><i class="fas fa-play"></i></button>
                             {{else}}
-                                <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Apply'}}"><i class="fas fa-check"></i></button>
+                                <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Apply'}}"><i class="fas fa-play"></i></button>
                             {{/if}}
                             
                             {{#unless this.isDefault}}
+                                {{!-- 2. EDIT (Visible in both modes) --}}
+                                <button data-action="edit" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Edit'}}"><i class="fas fa-edit"></i></button>
+                                
                                 {{#if ../isLocal}}
+                                    {{!-- 3. SWAP DEFAULT (Local Only) --}}
                                     <button data-action="swapDefault" data-tooltip="{{localize 'VISAGE.Gallery.Action.SwapDefault'}}" data-visage-id="{{this.id}}"><i class="fas fa-exchange-alt"></i></button>
+                                    
+                                    {{!-- 4. PROMOTE (Local Only) --}}
+                                    <button data-action="promote" data-tooltip="{{localize 'VISAGE.Gallery.Action.Promote'}}"  data-visage-id="{{this.id}}"><i class="visage-icon-action domino"></i></button>
                                 {{/if}}
 
-                                <button data-action="edit" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Edit'}}"><i class="fas fa-edit"></i></button>
+                                {{!-- 5. DELETE (Visible in both modes) --}}
                                 <button data-action="delete" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Delete'}}" class="danger"><i class="fas fa-trash"></i></button>
                             {{/unless}}
                         {{/if}}

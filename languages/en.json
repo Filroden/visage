@@ -132,5 +132,7 @@
     "VISAGE.Dialog.SwapDefault.Content": "<p>Are you sure you want to make <strong>{label}</strong> the new default appearance for this character?</p><p>The current default will be saved as a backup.</p>",
 
     "VISAGE.Settings.ManualMigration.Name": "Migrate Data ",
-    "VISAGE.Settings.ManualMigration.Hint": "Manually trigger the data migration script. Use this if you have imported old Actors or if your Visages or Masks are not displaying correctly."
+    "VISAGE.Settings.ManualMigration.Hint": "Manually trigger the data migration script. Use this if you have imported old Actors or if your Visages or Masks are not displaying correctly.",
+    "VISAGE.Gallery.Action.Promote": "Promote to global Mask",
+    "VISAGE.Notifications.Promoted": "Promoted '{name}' to global Mask Library."
 }
