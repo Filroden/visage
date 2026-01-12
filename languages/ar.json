@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "اجعل هذا الافتراضي (دائم)",
     "VISAGE.Dialog.SwapDefault.Title": "تحديث الرمز الافتراضي؟",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>هل أنت متأكد من رغبتك في جعل <strong>{label}</strong> المظهر الافتراضي الجديد لهذه الشخصية؟</p><p>سيتم حفظ الافتراضي الحالي كنسخة احتياطية.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>هل أنت متأكد من رغبتك في جعل <strong>{label}</strong> المظهر الافتراضي الجديد لهذه الشخصية؟</p><p>سيتم حفظ الافتراضي الحالي كنسخة احتياطية.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "ترحيل البيانات",
+    "VISAGE.Settings.ManualMigration.Hint": "شغّل نص ترحيل البيانات يدوياً. استخدم هذا الخيار إذا قمت باستيراد Actors قديمة أو إذا لم يتم عرض Visages أو Masks بشكل صحيح.",
+    "VISAGE.Gallery.Action.Promote": "ترقية إلى Mask عالمي",
+    "VISAGE.Notifications.Promoted": "تمت ترقية '{name}' إلى مكتبة Mask العالمية."
 }

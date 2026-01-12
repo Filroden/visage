@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "기본값으로 설정 (영구)",
     "VISAGE.Dialog.SwapDefault.Title": "기본 토큰 업데이트?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>정말 <strong>{label}</strong>을(를) 이 캐릭터의 새로운 기본 외형으로 설정하시겠습니까?</p><p>현재 기본값은 백업으로 저장됩니다.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>정말 <strong>{label}</strong>을(를) 이 캐릭터의 새로운 기본 외형으로 설정하시겠습니까?</p><p>현재 기본값은 백업으로 저장됩니다.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "데이터 마이그레이션",
+    "VISAGE.Settings.ManualMigration.Hint": "데이터 마이그레이션 스크립트를 수동으로 실행합니다. 오래된 액터(Actors)를 가져왔거나 Visage 또는 Mask가 올바르게 표시되지 않는 경우 이 기능을 사용하세요.",
+    "VISAGE.Gallery.Action.Promote": "글로벌 마스크로 승격",
+    "VISAGE.Notifications.Promoted": "'{name}'이(가) 글로벌 마스크 라이브러리로 승격되었습니다."
 }

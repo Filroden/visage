@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "设为默认（永久）",
     "VISAGE.Dialog.SwapDefault.Title": "更新默认指示物？",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>您确定要将 <strong>{label}</strong> 设为该角色的新默认外观吗？</p><p>当前的默认外观将被保存为备份。</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>您确定要将 <strong>{label}</strong> 设为该角色的新默认外观吗？</p><p>当前的默认外观将被保存为备份。</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "迁移数据",
+    "VISAGE.Settings.ManualMigration.Hint": "手动触发数据迁移脚本。如果您导入了旧的角色（Actors）或您的 Visages 或 Masks 显示不正确，请使用此选项。",
+    "VISAGE.Gallery.Action.Promote": "提升为全局面具",
+    "VISAGE.Notifications.Promoted": "已将 '{name}' 提升到全局面具库。"
 }

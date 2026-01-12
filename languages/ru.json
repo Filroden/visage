@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Сделать по умолчанию (Постоянно)",
     "VISAGE.Dialog.SwapDefault.Title": "Обновить токен по умолчанию?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Вы уверены, что хотите сделать <strong>{label}</strong> новым внешним видом по умолчанию для этого персонажа?</p><p>Текущий вид будет сохранен как резервная копия.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Вы уверены, что хотите сделать <strong>{label}</strong> новым внешним видом по умолчанию для этого персонажа?</p><p>Текущий вид будет сохранен как резервная копия.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Миграция данных",
+    "VISAGE.Settings.ManualMigration.Hint": "Вручную запустить скрипт миграции данных. Используйте это, если вы импортировали старых Актёров или если ваши Visages или Masks отображаются некорректно.",
+    "VISAGE.Gallery.Action.Promote": "Сделать глобальной Маской",
+    "VISAGE.Notifications.Promoted": "'{name}' добавлен в глобальную библиотеку Масок."
 }

@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Nastavit jako výchozí (trvalé)",
     "VISAGE.Dialog.SwapDefault.Title": "Aktualizovat výchozí token?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Opravdu chcete nastavit <strong>{label}</strong> jako nový výchozí vzhled této postavy?</p><p>Současný výchozí vzhled bude uložen jako záloha.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Opravdu chcete nastavit <strong>{label}</strong> jako nový výchozí vzhled této postavy?</p><p>Současný výchozí vzhled bude uložen jako záloha.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Migrovat data",
+    "VISAGE.Settings.ManualMigration.Hint": "Ručně spustit skript pro migraci dat. Použijte to, pokud jste importovali staré Aktéry (Actors) nebo pokud se vaše Visages či Masks nezobrazují správně.",
+    "VISAGE.Gallery.Action.Promote": "Povýšit na globální Masku",
+    "VISAGE.Notifications.Promoted": "'{name}' byl povýšen do globální knihovny Masek."
 }

@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Gwnewch hwn yn Ddiofyn (Parhaol)",
     "VISAGE.Dialog.SwapDefault.Title": "Diweddaru Tocyn Diofyn?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Ydych chi'n siŵr eich bod am wneud <strong>{label}</strong> yr ymddangosiad diofyn newydd ar gyfer y cymeriad hwn?</p><p>Bydd y diofyn cyfredol yn cael ei gadw fel copi wrth gefn.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Ydych chi'n siŵr eich bod am wneud <strong>{label}</strong> yr ymddangosiad diofyn newydd ar gyfer y cymeriad hwn?</p><p>Bydd y diofyn cyfredol yn cael ei gadw fel copi wrth gefn.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Mudo Data",
+    "VISAGE.Settings.ManualMigration.Hint": "Sbarduno'r sgript mudo data â llaw. Defnyddiwch hwn os ydych wedi mewnforio hen Actorion neu os nad yw eich Visages neu Masks yn arddangos yn gywir.",
+    "VISAGE.Gallery.Action.Promote": "Dyrchafu i Mask byd-eang",
+    "VISAGE.Notifications.Promoted": "Wedi dyrchafu '{name}' i'r Llyfrgell Mask byd-eang."
 }

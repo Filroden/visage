@@ -132,5 +132,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Beállítás alapértelmezettként (Végleges)",
     "VISAGE.Dialog.SwapDefault.Title": "Alapértelmezett token frissítése?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Biztosan a(z) <strong>{label}</strong> kinézetet szeretnéd beállítani a karakter új alapértelmezett megjelenésének?</p><p>A jelenlegi alapértelmezett mentésre kerül biztonsági másolatként.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Biztosan a(z) <strong>{label}</strong> kinézetet szeretnéd beállítani a karakter új alapértelmezett megjelenésének?</p><p>A jelenlegi alapértelmezett mentésre kerül biztonsági másolatként.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Adatok migrálása",
+    "VISAGE.Settings.ManualMigration.Hint": "Az adatmigrációs szkript manuális indítása. Használd ezt, ha régi Actorokat importáltál, vagy ha a Visage-ok vagy Maskok nem jelennek meg megfelelően.",
+    "VISAGE.Gallery.Action.Promote": "Kiemelés globális Maskká",
+    "VISAGE.Notifications.Promoted": "'{name}' kiemelve a globális Mask könyvtárba."
 }

@@ -132,5 +132,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Instellen als Standaard (Permanent)",
     "VISAGE.Dialog.SwapDefault.Title": "Standaard Token Bijwerken?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Weet je zeker dat je <strong>{label}</strong> het nieuwe standaard uiterlijk voor dit personage wilt maken?</p><p>De huidige standaard wordt opgeslagen als back-up.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Weet je zeker dat je <strong>{label}</strong> het nieuwe standaard uiterlijk voor dit personage wilt maken?</p><p>De huidige standaard wordt opgeslagen als back-up.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Gegevens Migreren",
+    "VISAGE.Settings.ManualMigration.Hint": "Activeer handmatig het gegevensmigratiescript. Gebruik dit als je oude Actors hebt geïmporteerd of als je Visages of Masks niet correct worden weergegeven.",
+    "VISAGE.Gallery.Action.Promote": "Promoveren naar globaal Masker",
+    "VISAGE.Notifications.Promoted": "'{name}' gepromoveerd naar globale Masker Bibliotheek."
 }

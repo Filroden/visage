@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Setează ca Implicit (Permanent)",
     "VISAGE.Dialog.SwapDefault.Title": "Actualizare Token Implicit?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Sigur dorești să setezi <strong>{label}</strong> ca noua înfățișare implicită pentru acest personaj?</p><p>Înfățișarea implicită curentă va fi salvată ca rezervă.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Sigur dorești să setezi <strong>{label}</strong> ca noua înfățișare implicită pentru acest personaj?</p><p>Înfățișarea implicită curentă va fi salvată ca rezervă.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Migrare Date",
+    "VISAGE.Settings.ManualMigration.Hint": "Declanșează manual scriptul de migrare a datelor. Folosește asta dacă ai importat Actori vechi sau dacă Visages sau Masks nu se afișează corect.",
+    "VISAGE.Gallery.Action.Promote": "Promovează la Mască globală",
+    "VISAGE.Notifications.Promoted": "'{name}' a fost promovat în Biblioteca globală de Măști."
 }

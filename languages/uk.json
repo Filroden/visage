@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Зробити за замовчуванням (Постійно)",
     "VISAGE.Dialog.SwapDefault.Title": "Оновити токен за замовчуванням?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Ви впевнені, що хочете зробити <strong>{label}</strong> новим виглядом за замовчуванням для цього персонажа?</p><p>Поточний вигляд буде збережено як резервну копію.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Ви впевнені, що хочете зробити <strong>{label}</strong> новим виглядом за замовчуванням для цього персонажа?</p><p>Поточний вигляд буде збережено як резервну копію.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Міграція даних",
+    "VISAGE.Settings.ManualMigration.Hint": "Вручну запустити скрипт міграції даних. Використовуйте це, якщо ви імпортували старих Акторів або якщо ваші Visages чи Masks відображаються некоректно.",
+    "VISAGE.Gallery.Action.Promote": "Підвищити до глобальної Маски",
+    "VISAGE.Notifications.Promoted": "'{name}' підвищено до глобальної бібліотеки Масок."
 }

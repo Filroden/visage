@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Tornar Padrão (Permanente)",
     "VISAGE.Dialog.SwapDefault.Title": "Atualizar Token Padrão?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Tem certeza de que deseja tornar <strong>{label}</strong> a nova aparência padrão para este personagem?</p><p>O padrão atual será salvo como backup.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Tem certeza de que deseja tornar <strong>{label}</strong> a nova aparência padrão para este personagem?</p><p>O padrão atual será salvo como backup.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Migrar Dados",
+    "VISAGE.Settings.ManualMigration.Hint": "Acionar manualmente o script de migração de dados. Use isso se você importou Atores antigos ou se seus Visages ou Masks não estiverem sendo exibidos corretamente.",
+    "VISAGE.Gallery.Action.Promote": "Promover para Máscara global",
+    "VISAGE.Notifications.Promoted": "'{name}' promovido para a Biblioteca de Máscaras global."
 }
