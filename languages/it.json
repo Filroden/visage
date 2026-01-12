@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Imposta come Predefinito (Permanente)",
     "VISAGE.Dialog.SwapDefault.Title": "Aggiornare il Token Predefinito?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Sei sicuro di voler rendere <strong>{label}</strong> il nuovo aspetto predefinito per questo personaggio?</p><p>Il predefinito attuale verrà salvato come backup.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Sei sicuro di voler rendere <strong>{label}</strong> il nuovo aspetto predefinito per questo personaggio?</p><p>Il predefinito attuale verrà salvato come backup.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Migra Dati",
+    "VISAGE.Settings.ManualMigration.Hint": "Avvia manualmente lo script di migrazione dati. Usalo se hai importato vecchi Attori o se i tuoi Visage o Mask non vengono visualizzati correttamente.",
+    "VISAGE.Gallery.Action.Promote": "Promuovi a Mask globale",
+    "VISAGE.Notifications.Promoted": "'{name}' promosso alla Libreria Mask globale."
 }

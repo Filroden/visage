@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Gör till Standard (Permanent)",
     "VISAGE.Dialog.SwapDefault.Title": "Uppdatera Standardtoken?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Är du säker på att du vill göra <strong>{label}</strong> till det nya standardutseendet för denna karaktär?</p><p>Den nuvarande standarden sparas som en säkerhetskopia.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Är du säker på att du vill göra <strong>{label}</strong> till det nya standardutseendet för denna karaktär?</p><p>Den nuvarande standarden sparas som en säkerhetskopia.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Migrera Data",
+    "VISAGE.Settings.ManualMigration.Hint": "Kör datamigreringsskriptet manuellt. Använd detta om du har importerat gamla Aktörer eller om dina Visages eller Masks inte visas korrekt.",
+    "VISAGE.Gallery.Action.Promote": "Upphöj till global Mask",
+    "VISAGE.Notifications.Promoted": "Upphöjde '{name}' till det globala Mask-biblioteket."
 }

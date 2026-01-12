@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Ustaw jako domyślne (Trwałe)",
     "VISAGE.Dialog.SwapDefault.Title": "Zaktualizować domyślny token?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Czy na pewno chcesz ustawić <strong>{label}</strong> jako nowy domyślny wygląd tej postaci?</p><p>Obecny domyślny wygląd zostanie zapisany jako kopia zapasowa.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Czy na pewno chcesz ustawić <strong>{label}</strong> jako nowy domyślny wygląd tej postaci?</p><p>Obecny domyślny wygląd zostanie zapisany jako kopia zapasowa.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Migracja danych",
+    "VISAGE.Settings.ManualMigration.Hint": "Ręcznie uruchom skrypt migracji danych. Użyj tego, jeśli zaimportowano starych Aktorów lub jeśli Visages lub Masks nie wyświetlają się poprawnie.",
+    "VISAGE.Gallery.Action.Promote": "Promuj do globalnej Maski",
+    "VISAGE.Notifications.Promoted": "Promowano '{name}' do globalnej Biblioteki Masek."
 }

@@ -129,5 +129,10 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "انتخاب به عنوان پیش‌فرض (دائمی)",
     "VISAGE.Dialog.SwapDefault.Title": "به‌روزرسانی توکن پیش‌فرض؟",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>آیا مطمئن هستید که می‌خواهید <strong>{label}</strong> را به عنوان ظاهر پیش‌فرض جدید برای این شخصیت تعیین کنید؟</p><p>پیش‌فرض فعلی به عنوان پشتیبان ذخیره خواهد شد.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>آیا مطمئن هستید که می‌خواهید <strong>{label}</strong> را به عنوان ظاهر پیش‌فرض جدید برای این شخصیت تعیین کنید؟</p><p>پیش‌فرض فعلی به عنوان پشتیبان ذخیره خواهد شد.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "انتقال داده‌ها",
+    "VISAGE.Settings.ManualMigration.Hint": "اجرای دستی اسکریپت انتقال داده. اگر بازیگران (Actors) قدیمی وارد کرده‌اید یا Visageها و Maskهای شما به درستی نمایش داده نمی‌شوند، از این گزینه استفاده کنید.",
+    "VISAGE.Gallery.Action.Promote": "ارتقاء به ماسک جهانی",
+    "VISAGE.Notifications.Promoted": "'{name}' به کتابخانه ماسک جهانی ارتقاء یافت."
 }
