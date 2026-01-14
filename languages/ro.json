@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Lățime",
     "VISAGE.Config.List.Height": "Înălțime",
 
-    "VISAGE.Mirror.Horizontal.Label": "Oriz.",
-    "VISAGE.Mirror.Vertical.Label": "Vert.",
-    "VISAGE.Mirror.Label.Combined": "O+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Orizontal: Fără Modificare",
     "VISAGE.Mirror.Horizontal.Standard": "Orizontal: Standard",
     "VISAGE.Mirror.Horizontal.Mirrored": "Orizontal: Oglindit",
@@ -134,5 +131,9 @@
     "VISAGE.Settings.ManualMigration.Name": "Migrare Date",
     "VISAGE.Settings.ManualMigration.Hint": "Declanșează manual scriptul de migrare a datelor. Folosește asta dacă ai importat Actori vechi sau dacă Visages sau Masks nu se afișează corect.",
     "VISAGE.Gallery.Action.Promote": "Promovează la Mască globală",
-    "VISAGE.Notifications.Promoted": "'{name}' a fost promovat în Biblioteca globală de Măști."
+    "VISAGE.Notifications.Promoted": "'{name}' a fost promovat în Biblioteca globală de Măști.",
+
+    "VISAGE.Mirror.Badge.H": "Orizontal",
+    "VISAGE.Mirror.Badge.V": "Vertical",
+    "VISAGE.Wildcard.Label": "Wildcard"
 }

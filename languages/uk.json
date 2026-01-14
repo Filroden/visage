@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Ширина",
     "VISAGE.Config.List.Height": "Висота",
 
-    "VISAGE.Mirror.Horizontal.Label": "Гор.",
-    "VISAGE.Mirror.Vertical.Label": "Верт.",
-    "VISAGE.Mirror.Label.Combined": "Г+В",
     "VISAGE.Mirror.Horizontal.Unchanged": "Горизонтально: Без змін",
     "VISAGE.Mirror.Horizontal.Standard": "Горизонтально: Стандарт",
     "VISAGE.Mirror.Horizontal.Mirrored": "Горизонтально: Віддзеркалено",
@@ -134,5 +131,9 @@
     "VISAGE.Settings.ManualMigration.Name": "Міграція даних",
     "VISAGE.Settings.ManualMigration.Hint": "Вручну запустити скрипт міграції даних. Використовуйте це, якщо ви імпортували старих Акторів або якщо ваші Visages чи Masks відображаються некоректно.",
     "VISAGE.Gallery.Action.Promote": "Підвищити до глобальної Маски",
-    "VISAGE.Notifications.Promoted": "'{name}' підвищено до глобальної бібліотеки Масок."
+    "VISAGE.Notifications.Promoted": "'{name}' підвищено до глобальної бібліотеки Масок.",
+
+    "VISAGE.Mirror.Badge.H": "Гориз.",
+    "VISAGE.Mirror.Badge.V": "Верт.",
+    "VISAGE.Wildcard.Label": "Джокер"
 }

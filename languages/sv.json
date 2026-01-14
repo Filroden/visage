@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Bredd",
     "VISAGE.Config.List.Height": "Höjd",
 
-    "VISAGE.Mirror.Horizontal.Label": "Spegla H",
-    "VISAGE.Mirror.Vertical.Label": "Spegla V",
-    "VISAGE.Mirror.Label.Combined": "H+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Horisontell: Ingen ändring",
     "VISAGE.Mirror.Horizontal.Standard": "Horisontell: Standard",
     "VISAGE.Mirror.Horizontal.Mirrored": "Horisontell: Spegelvänd",
@@ -134,5 +131,9 @@
     "VISAGE.Settings.ManualMigration.Name": "Migrera Data",
     "VISAGE.Settings.ManualMigration.Hint": "Kör datamigreringsskriptet manuellt. Använd detta om du har importerat gamla Aktörer eller om dina Visages eller Masks inte visas korrekt.",
     "VISAGE.Gallery.Action.Promote": "Upphöj till global Mask",
-    "VISAGE.Notifications.Promoted": "Upphöjde '{name}' till det globala Mask-biblioteket."
+    "VISAGE.Notifications.Promoted": "Upphöjde '{name}' till det globala Mask-biblioteket.",
+
+    "VISAGE.Mirror.Badge.H": "Horisontell",
+    "VISAGE.Mirror.Badge.V": "Vertikal",
+    "VISAGE.Wildcard.Label": "Jokertecken"
 }

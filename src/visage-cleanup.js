@@ -27,10 +27,10 @@ async function getRevertData(token) {
         }
         
         // Restore dimensions and scaling
-        if (original.width) updates["width"] = original.width;
-        if (original.height) updates["height"] = original.height;
-        if (original.texture?.scaleX) updates["texture.scaleX"] = original.texture.scaleX;
-        if (original.texture?.scaleY) updates["texture.scaleY"] = original.texture.scaleY;
+        if (original.width !== undefined) updates["width"] = original.width;
+        if (original.height !== undefined) updates["height"] = original.height;
+        if (original.texture?.scaleX !== undefined) updates["texture.scaleX"] = original.texture.scaleX;
+        if (original.texture?.scaleY !== undefined) updates["texture.scaleY"] = original.texture.scaleY;
         
         // Restore Ring Data
         if (original.ring) updates["ring"] = original.ring;
@@ -81,24 +81,18 @@ export async function cleanseAllTokens() {
   
   ui.notifications.info("Visage | Starting Global Cleanup...");
 
-  // 1. Iterate over every Scene
+  // 1. Iterate over every Scene (Handle Tokens & Unlinked Actors)
   for (const scene of game.scenes) {
     const tokenUpdates = []; 
-    const actorUpdates = new Map();
     const unlinkedPromises = [];
 
     for (const token of scene.tokens) {
-        // A. Actor Cleanup (Remove Local Visages)
-        const actor = token.actor;
-        if (actor?.flags?.[Visage.DATA_NAMESPACE]) {
-            const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
-            const updateData = { _id: actor.id, [deleteKey]: null };
-            
-            if (token.actorLink) {
-                 if (!actorUpdates.has(actor.id)) actorUpdates.set(actor.id, updateData);
-            } else {
-                // Unlinked actors must be updated individually via the token's synthetic actor
-                unlinkedPromises.push(actor.update({ [deleteKey]: null }));
+        // A. Unlinked Actor Cleanup (Synthetic Actors)
+        // We ONLY touch the actor here if it is unlinked. Linked actors are handled in Step 2.
+        if (!token.actorLink && token.actor) {
+            if (token.actor.flags?.[Visage.DATA_NAMESPACE]) {
+                const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
+                unlinkedPromises.push(token.actor.update({ [deleteKey]: null }));
             }
         }
 
@@ -113,12 +107,12 @@ export async function cleanseAllTokens() {
     }
     
     // Execute per-scene bulk updates to prevent database locks
-    if (actorUpdates.size > 0) await Actor.updateDocuments(Array.from(actorUpdates.values()));
     if (unlinkedPromises.length > 0) await Promise.all(unlinkedPromises);
     if (tokenUpdates.length > 0) await scene.updateEmbeddedDocuments("Token", tokenUpdates);
   }
 
-  // 2. Clean Actors in the Sidebar (that might not be on any scene)
+  // 2. Clean Actors in the Sidebar (Handle Linked Actors)
+  // This covers every "real" character in the game, regardless of what scene they are on.
   const sidebarActorUpdates = [];
   for (const actor of game.actors) {
       if (actor.flags?.[Visage.DATA_NAMESPACE]) {
@@ -128,7 +122,9 @@ export async function cleanseAllTokens() {
           });
       }
   }
+  
   if (sidebarActorUpdates.length > 0) {
+      // Use Actor.updateDocuments for efficient bulk update
       await Actor.updateDocuments(sidebarActorUpdates);
       count += sidebarActorUpdates.length;
   }

@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Lled",
     "VISAGE.Config.List.Height": "Uchder",
 
-    "VISAGE.Mirror.Horizontal.Label": "Fflipio Ll",
-    "VISAGE.Mirror.Vertical.Label": "Fflipio F",
-    "VISAGE.Mirror.Label.Combined": "Fflipio Ll+F",
     "VISAGE.Mirror.Horizontal.Unchanged": "Llorweddol: Dim Newid",
     "VISAGE.Mirror.Horizontal.Standard": "Llorweddol: Safonol",
     "VISAGE.Mirror.Horizontal.Mirrored": "Llorweddol: Wedi'i Fflipio",
@@ -134,5 +131,9 @@
     "VISAGE.Settings.ManualMigration.Name": "Mudo Data",
     "VISAGE.Settings.ManualMigration.Hint": "Sbarduno'r sgript mudo data â llaw. Defnyddiwch hwn os ydych wedi mewnforio hen Actorion neu os nad yw eich Visages neu Masks yn arddangos yn gywir.",
     "VISAGE.Gallery.Action.Promote": "Dyrchafu i Mask byd-eang",
-    "VISAGE.Notifications.Promoted": "Wedi dyrchafu '{name}' i'r Llyfrgell Mask byd-eang."
+    "VISAGE.Notifications.Promoted": "Wedi dyrchafu '{name}' i'r Llyfrgell Mask byd-eang.",
+
+    "VISAGE.Mirror.Badge.H": "Llorweddol",
+    "VISAGE.Mirror.Badge.V": "Fertigol",
+    "VISAGE.Wildcard.Label": "Gwyllt"
 }

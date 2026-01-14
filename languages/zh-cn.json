@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "宽度",
     "VISAGE.Config.List.Height": "高度",
 
-    "VISAGE.Mirror.Horizontal.Label": "水平",
-    "VISAGE.Mirror.Vertical.Label": "垂直",
-    "VISAGE.Mirror.Label.Combined": "双向",
     "VISAGE.Mirror.Horizontal.Unchanged": "水平：无更改",
     "VISAGE.Mirror.Horizontal.Standard": "水平：标准",
     "VISAGE.Mirror.Horizontal.Mirrored": "水平：已翻转",
@@ -134,5 +131,9 @@
     "VISAGE.Settings.ManualMigration.Name": "迁移数据",
     "VISAGE.Settings.ManualMigration.Hint": "手动触发数据迁移脚本。如果您导入了旧的角色（Actors）或您的 Visages 或 Masks 显示不正确，请使用此选项。",
     "VISAGE.Gallery.Action.Promote": "提升为全局面具",
-    "VISAGE.Notifications.Promoted": "已将 '{name}' 提升到全局面具库。"
+    "VISAGE.Notifications.Promoted": "已将 '{name}' 提升到全局面具库。",
+
+    "VISAGE.Mirror.Badge.H": "水平",
+    "VISAGE.Mirror.Badge.V": "垂直",
+    "VISAGE.Wildcard.Label": "通配符"
 }

@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Ancho",
     "VISAGE.Config.List.Height": "Alto",
 
-    "VISAGE.Mirror.Horizontal.Label": "Voltear H",
-    "VISAGE.Mirror.Vertical.Label": "Voltear V",
-    "VISAGE.Mirror.Label.Combined": "Voltear H+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Horizontal: Sin Cambios",
     "VISAGE.Mirror.Horizontal.Standard": "Horizontal: Estándar",
     "VISAGE.Mirror.Horizontal.Mirrored": "Horizontal: Volteado",
@@ -134,5 +131,9 @@
     "VISAGE.Settings.ManualMigration.Name": "Migrar Datos",
     "VISAGE.Settings.ManualMigration.Hint": "Ejecuta manualmente el script de migración de datos. Úsalo si has importado Actores antiguos o si tus Visages o Masks no se visualizan correctamente.",
     "VISAGE.Gallery.Action.Promote": "Promover a Máscara global",
-    "VISAGE.Notifications.Promoted": "Se promovió '{name}' a la Biblioteca de Máscaras global."
+    "VISAGE.Notifications.Promoted": "Se promovió '{name}' a la Biblioteca de Máscaras global.",
+
+    "VISAGE.Mirror.Badge.H": "Horizontal",
+    "VISAGE.Mirror.Badge.V": "Vertical",
+    "VISAGE.Wildcard.Label": "Comodín"
 }

@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Largeur",
     "VISAGE.Config.List.Height": "Hauteur",
 
-    "VISAGE.Mirror.Horizontal.Label": "Retourner H",
-    "VISAGE.Mirror.Vertical.Label": "Retourner V",
-    "VISAGE.Mirror.Label.Combined": "Retourner H+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Horizontal : Aucun Changement",
     "VISAGE.Mirror.Horizontal.Standard": "Horizontal : Standard",
     "VISAGE.Mirror.Horizontal.Mirrored": "Horizontal : Retourné",
@@ -134,5 +131,9 @@
     "VISAGE.Settings.ManualMigration.Name": "Migrer les données",
     "VISAGE.Settings.ManualMigration.Hint": "Déclenchez manuellement le script de migration des données. Utilisez cette option si vous avez importé d'anciens Acteurs ou si vos Visages ou Masques ne s'affichent pas correctement.",
     "VISAGE.Gallery.Action.Promote": "Promouvoir en Masque global",
-    "VISAGE.Notifications.Promoted": "'{name}' promu dans la bibliothèque de Masques globale."
+    "VISAGE.Notifications.Promoted": "'{name}' promu dans la bibliothèque de Masques globale.",
+
+    "VISAGE.Mirror.Badge.H": "Horizontal",
+    "VISAGE.Mirror.Badge.V": "Vertical",
+    "VISAGE.Wildcard.Label": "Joker"
 }
