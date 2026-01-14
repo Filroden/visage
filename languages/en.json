@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Width",
     "VISAGE.Config.List.Height": "Height",
 
-    "VISAGE.Mirror.Horizontal.Label": "Flip H",
-    "VISAGE.Mirror.Vertical.Label": "Flip V",
-    "VISAGE.Mirror.Label.Combined": "Flip H+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Horizontal: No Change",
     "VISAGE.Mirror.Horizontal.Standard": "Horizontal: Standard",
     "VISAGE.Mirror.Horizontal.Mirrored": "Horizontal: Flipped",
@@ -129,5 +126,14 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Make this the Default (Permanent)",
     "VISAGE.Dialog.SwapDefault.Title": "Update Default Token?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Are you sure you want to make <strong>{label}</strong> the new default appearance for this character?</p><p>The current default will be saved as a backup.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Are you sure you want to make <strong>{label}</strong> the new default appearance for this character?</p><p>The current default will be saved as a backup.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Migrate Data ",
+    "VISAGE.Settings.ManualMigration.Hint": "Manually trigger the data migration script. Use this if you have imported old Actors or if your Visages or Masks are not displaying correctly.",
+    "VISAGE.Gallery.Action.Promote": "Promote to global Mask",
+    "VISAGE.Notifications.Promoted": "Promoted '{name}' to global Mask Library.",
+
+    "VISAGE.Mirror.Badge.H": "Horizontal",
+    "VISAGE.Mirror.Badge.V": "Vertical",
+    "VISAGE.Wildcard.Label": "Wildcard"
 }

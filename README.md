@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-2.1.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-2.2.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
@@ -11,7 +11,7 @@
 ![Issues](https://img.shields.io/github/issues/Filroden/visage)
 
 
-**Visage** is the ultimate token management tool for Foundry VTT. It allows players and GMs to instantly switch a token's appearance, disposition, size, scale, orientation and Dynamic Token Ring configuration using a dedicated HUD. Use it in any game system to support dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
+**Visage** is the ultimate token management tool for Foundry VTT. It allows players and GMs to instantly switch a token's appearance, disposition, size, scale, horizontal/vertical orientation and Dynamic Token Ring configuration using a dedicated HUD. Use it in any game system to support dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
 
 **New in v2.0:** Visage now features a **Non-Destructive Stack System**. You can layer partial overrides ("Masks") on top of identity swaps ("Visages"). For example, change a token's image (Visage), then change its size to 2x2 (Mask) to show an "enlarge" effect, and remove them individually to return to the original state perfectly every time.
 
@@ -68,6 +68,8 @@ Manage your visual assets in a beautiful, card-based interface.
 
 * **Commit to Default (New in v2.1)**: Found a permanent new look? You can now swap a Visage to become the token's new "Default" state directly from the Gallery. Visage automatically creates a backup of the previous default appearance, so you never lose your history.
 
+* **Promote Visage to the global Mask Library (New in v2.2)**: As a GM, do you like a particular look and want to use it on other tokens? Simply "Promote" (copy) it to the Mask Library.
+
 ### 3. The Visual Editor
 
 An editor that lets you build and **preview** your token's appearance before saving it.
@@ -79,7 +81,7 @@ Key Features:
 
   ![Live Preview of animated tokens](images/v2/visage_animated_preview.gif?raw=true)
 
-* **Wildcard Support:** Point a Visage to a folder (e.g., `creatures/wolves/*`). Every time you apply it, a random image from that folder is chosen.
+* **Wildcard Support:** Point a Visage to a folder (e.g., `creatures/wolves/*`) or include wildcards (`*` or `?`) within the filename. Every time you apply it, a random image that matches is chosen.
 
 ### 4. The Token Previewer
 
@@ -121,7 +123,6 @@ Software and associated documentation files in this repository are covered by an
 
 ### Short term
 
-* **Type Conversion (v2.2):** Ability to move a Local Visage to the Global Library (and vice versa).
 * **Import/Export (v2.3):** Share Visage configurations between worlds.
 * **Add Token Opacity and image rotation lock (v2.4):** Add the ability to customise token opacity and image rotation lock with each Visage or Mask.
 

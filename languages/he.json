@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "רוחב",
     "VISAGE.Config.List.Height": "גובה",
 
-    "VISAGE.Mirror.Horizontal.Label": "אופקי",
-    "VISAGE.Mirror.Vertical.Label": "אנכי",
-    "VISAGE.Mirror.Label.Combined": "שניהם",
     "VISAGE.Mirror.Horizontal.Unchanged": "אופקי: ללא שינוי",
     "VISAGE.Mirror.Horizontal.Standard": "אופקי: רגיל",
     "VISAGE.Mirror.Horizontal.Mirrored": "אופקי: הפוך",
@@ -129,5 +126,14 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "הפוך לברירת מחדל (קבוע)",
     "VISAGE.Dialog.SwapDefault.Title": "עדכון טוקן ברירת מחדל?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>האם אתה בטוח שברצונך להפוך את <strong>{label}</strong> למראה ברירת המחדל החדש עבור דמות זו?</p><p>ברירת המחדל הנוכחית תישמר כגיבוי.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>האם אתה בטוח שברצונך להפוך את <strong>{label}</strong> למראה ברירת המחדל החדש עבור דמות זו?</p><p>ברירת המחדל הנוכחית תישמר כגיבוי.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "הגירת נתונים",
+    "VISAGE.Settings.ManualMigration.Hint": "הפעל ידנית את סקריפט הגירת הנתונים. השתמש בזה אם ייבאת שחקנים (Actors) ישנים או אם ה-Visages או ה-Masks שלך לא מוצגים כראוי.",
+    "VISAGE.Gallery.Action.Promote": "קדֵם ל-Mask גלובלי",
+    "VISAGE.Notifications.Promoted": "'{name}' קודם לספריית ה-Masks הגלובלית.",
+
+    "VISAGE.Mirror.Badge.H": "אופקי",
+    "VISAGE.Mirror.Badge.V": "אנכי",
+    "VISAGE.Wildcard.Label": "תו כללי"
 }

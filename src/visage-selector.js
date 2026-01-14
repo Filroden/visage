@@ -1,20 +1,21 @@
 /**
  * @file Defines the VisageSelector application (The "HUD").
- * A transient, pop-up UI that allows users to quickly swap token appearances
- * or manage active mask layers directly from the canvas.
+ * A transient, pop-up UI that allows users to quickly swap token appearances ("Identities")
+ * or manage active global effects ("Mask Layers") directly from the canvas.
  * @module visage
  */
 
 import { Visage } from "./visage.js";
 import { VisageGallery } from "./visage-gallery.js"; 
 import { VisageComposer } from "./visage-composer.js";
-import { VisageData } from "./visage-data.js"; 
+import { VisageData } from "./visage-data.js";
+import { VisageUtilities } from "./visage-utilities.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
- * The HUD application spawned by clicking the button in the Token HUD.
- * Designed to be lightweight and close automatically when focus is lost.
+ * The HUD application spawned by clicking the Visage button in the Token HUD.
+ * Designed to be lightweight, context-aware, and transient (closes on blur).
  */
 export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     
@@ -53,8 +54,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     };
 
     /**
+     * Action: Clear All Effects.
      * Removes all "Mask" layers from the stack, leaving only the base Identity.
-     * This is the "Strip Disguise" feature.
+     * This essentially "Strips Disguises" while keeping the current face.
      */
     async _onRevertGlobal(event, target) {
         const token = canvas.tokens.get(this.tokenId);
@@ -73,8 +75,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /**
      * Prepares data for rendering the HUD.
-     * * COMPLEXITY: This method must combine "Local Identity" options (faces)
-     * with "Active Stack" layers (current effects) into a single UI context.
+     * * COMPLEXITY: This method must combine two distinct data sources:
+     * 1. "Local Identities": The static list of faces this actor can assume.
+     * 2. "Active Stack": The dynamic list of global effects currently applied.
      * @override
      */
     async _prepareContext(options) {
@@ -86,21 +89,23 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentFormKey = token.document.getFlag(ns, "identity") || "default";
 
         // --- 1. Prepare "Default" Visage Entry ---
-        // Represents the token's original, unmodified appearance.
+        // Represents the token's original, unmodified appearance (fallback).
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
         const defaultForm = VisageData.toPresentation(defaultRaw, {
             isActive: currentFormKey === "default",
-            isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(defaultRaw.changes.img || "")
         });
         defaultForm.key = "default";
 
         // --- 2. Process Alternate Visages (Local Identity Options) ---
         const localVisages = VisageData.getLocal(actor).filter(v => !v.deleted);
         const alternateForms = localVisages.map(data => {
+            // Helper handles both v1 (img) and v2 (texture.src) paths
+            const rawPath = VisageData.getRepresentativeImage(data.changes);
+            
             const form = VisageData.toPresentation(data, {
                 isActive: data.id === currentFormKey,
-                isVideo: foundry.helpers.media.VideoHelper.hasVideoExtension(data.changes.img || ""),
-                isWildcard: (data.changes.img || "").includes('*')
+                // Wildcard detection for the UI badge
+                isWildcard: (rawPath || "").includes('*') 
             });
             form.key = data.id;
             return form;
@@ -111,7 +116,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const orderedForms = [defaultForm, ...alternateForms];
 
         // --- 4. Resolve Image Paths (Async) ---
-        // Resolves wildcards so the HUD shows a real image, not a random "*" path.
+        // Resolves wildcards so the HUD shows a real preview image, not a generic icon.
         for (const form of orderedForms) {
             form.resolvedPath = await Visage.resolvePath(form.path);
         }
@@ -122,7 +127,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const activeStack = flags.activeStack || flags.stack || [];
         
         // Visual Filter: Hide the base Identity Layer from the "Effects" list
-        // so it doesn't appear twice (once as selected face, once as stack item).
+        // so the user only sees "added" effects (like "Invisibility").
         const visibleStack = activeStack.filter(layer => layer.id !== currentFormKey);
 
         const stackDisplay = visibleStack.map(layer => {
@@ -132,7 +137,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 label: layer.label,
                 icon: img
             };
-        }).reverse(); // Show newest on top
+        }).reverse(); // Show top-most layer first
 
         return { 
             forms: orderedForms,
@@ -143,20 +148,18 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     
     /**
      * Handles clicking a Visage Tile to swap appearance.
-     * @param {PointerEvent} event 
-     * @param {HTMLElement} target 
+     * Performs an "Identity Swap" (replaces base layer) while preserving masks.
      */
     async _onSelectVisage(event, target) {
         const formKey = target.dataset.formKey;
         if (formKey) {
             if (formKey === "default") {
-                // If "Default" selected, remove the current Identity Layer only.
-                // Do NOT call revert() as that wipes masks.
+                // Default: Remove the custom Identity layer, falling back to prototype token.
                 const token = canvas.tokens.get(this.tokenId);
                 const currentIdentity = token.document.getFlag(Visage.MODULE_ID, "identity");
                 if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
             } else {
-                // Apply new Identity, but preserve existing masks (switchIdentity: true)
+                // Apply new Identity, switchIdentity: true ensures masks stay put.
                 await Visage.apply(this.tokenId, formKey, { switchIdentity: true });
             }
             this.close();
@@ -165,6 +168,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onOpenConfig(event, target) {
         const appId = `visage-gallery-${this.actorId}-${this.tokenId}`;
+        // Bring to top if already open, else spawn new Gallery instance
         if (Visage.apps[appId]) {
             Visage.apps[appId].bringToTop();
         } else {
@@ -192,11 +196,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onRender(context, options) {
-        const rtlLanguages = ["ar", "he", "fa", "ur"];
-        if (rtlLanguages.includes(game.i18n.lang)) {
-            this.element.setAttribute("dir", "rtl");
-            this.element.classList.add("rtl");
-        }
+        VisageUtilities.applyVisageTheme(this.element, true);
         this._unbindDismissListeners();
         this._bindDismissListeners();
     }
@@ -207,8 +207,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Binds listeners to detect clicks outside the HUD or token updates.
-     * Used to auto-close the HUD if the user interacts with the canvas or selects a different token.
+     * Binds listeners to detect "Click Away" events.
+     * Ensures the HUD behaves like a transient menu (closes when focus is lost).
      * @private
      */
     _bindDismissListeners() {
@@ -217,11 +217,11 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             if (!root) return;
             // Ignore clicks inside the HUD itself
             if (root.contains(ev.target)) return;
-            // Ignore clicks on the toggle button
+            // Ignore clicks on the toggle button (prevent immediate reopen)
             const hudBtn = document.querySelector('.visage-button');
             if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
             
-            // Ignore clicks on other Visage windows (Editor/Gallery)
+            // Ignore clicks on other Visage windows (Editor/Gallery) to allow multitasking
             const dirApp = ev.target.closest('.visage-gallery');
             const editorApp = ev.target.closest('.visage-editor');
             if (dirApp || editorApp) return;
@@ -230,7 +230,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         };
         document.addEventListener('pointerdown', this._onDocPointerDown, true);
         
-        // Auto-refresh HUD if the token changes while open
+        // Auto-refresh HUD if the token changes while open (e.g. GM applies effect)
         this._onTokenUpdate = (document, change, options, userId) => {
             if (document.id === this.tokenId) {
                 this.render();

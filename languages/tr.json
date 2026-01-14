@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Genişlik",
     "VISAGE.Config.List.Height": "Yükseklik",
 
-    "VISAGE.Mirror.Horizontal.Label": "Çevir Y",
-    "VISAGE.Mirror.Vertical.Label": "Çevir D",
-    "VISAGE.Mirror.Label.Combined": "Çevir Y+D",
     "VISAGE.Mirror.Horizontal.Unchanged": "Yatay: Değişiklik Yok",
     "VISAGE.Mirror.Horizontal.Standard": "Yatay: Standart",
     "VISAGE.Mirror.Horizontal.Mirrored": "Yatay: Çevrilmiş",
@@ -129,5 +126,14 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Varsayılan Yap (Kalıcı)",
     "VISAGE.Dialog.SwapDefault.Title": "Varsayılan Token Güncellensin mi?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p><strong>{label}</strong> öğesini bu karakter için yeni varsayılan görünüm yapmak istediğinizden emin misiniz?</p><p>Mevcut varsayılan yedek olarak kaydedilecektir.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p><strong>{label}</strong> öğesini bu karakter için yeni varsayılan görünüm yapmak istediğinizden emin misiniz?</p><p>Mevcut varsayılan yedek olarak kaydedilecektir.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Verileri Taşı",
+    "VISAGE.Settings.ManualMigration.Hint": "Veri taşıma komut dosyasını manuel olarak tetikleyin. Eski Aktörleri içe aktardıysanız veya Visage'larınız ya da Mask'larınız doğru görüntülenmiyorsa bunu kullanın.",
+    "VISAGE.Gallery.Action.Promote": "Küresel Maskeye Yükselt",
+    "VISAGE.Notifications.Promoted": "'{name}' küresel Maske Kütüphanesine yükseltildi.",
+
+    "VISAGE.Mirror.Badge.H": "Yatay",
+    "VISAGE.Mirror.Badge.V": "Dikey",
+    "VISAGE.Wildcard.Label": "Joker"
 }

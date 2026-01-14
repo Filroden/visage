@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "幅",
     "VISAGE.Config.List.Height": "高さ",
 
-    "VISAGE.Mirror.Horizontal.Label": "水平",
-    "VISAGE.Mirror.Vertical.Label": "垂直",
-    "VISAGE.Mirror.Label.Combined": "両方",
     "VISAGE.Mirror.Horizontal.Unchanged": "水平: 変更なし",
     "VISAGE.Mirror.Horizontal.Standard": "水平: 標準",
     "VISAGE.Mirror.Horizontal.Mirrored": "水平: 反転",
@@ -129,5 +126,14 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "デフォルトに設定 (永続的)",
     "VISAGE.Dialog.SwapDefault.Title": "デフォルトトークンを更新しますか？",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>本当に <strong>{label}</strong> をこのキャラクターの新しいデフォルトの見た目に設定してもよろしいですか？</p><p>現在のデフォルトはバックアップとして保存されます。</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>本当に <strong>{label}</strong> をこのキャラクターの新しいデフォルトの見た目に設定してもよろしいですか？</p><p>現在のデフォルトはバックアップとして保存されます。</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "データの移行",
+    "VISAGE.Settings.ManualMigration.Hint": "データ移行スクリプトを手動で実行します。古いアクターをインポートした場合や、VisageやMaskが正しく表示されない場合に使用してください。",
+    "VISAGE.Gallery.Action.Promote": "グローバルマスクに昇格",
+    "VISAGE.Notifications.Promoted": "'{name}' をグローバルマスクライブラリに昇格させました。",
+
+    "VISAGE.Mirror.Badge.H": "水平",
+    "VISAGE.Mirror.Badge.V": "垂直",
+    "VISAGE.Wildcard.Label": "ワイルドカード"
 }

@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Breite",
     "VISAGE.Config.List.Height": "Höhe",
 
-    "VISAGE.Mirror.Horizontal.Label": "H spiegeln",
-    "VISAGE.Mirror.Vertical.Label": "V spiegeln",
-    "VISAGE.Mirror.Label.Combined": "H+V spiegeln",
     "VISAGE.Mirror.Horizontal.Unchanged": "Horizontal: Keine Änderung",
     "VISAGE.Mirror.Horizontal.Standard": "Horizontal: Standard",
     "VISAGE.Mirror.Horizontal.Mirrored": "Horizontal: Gespiegelt",
@@ -129,5 +126,14 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Als Standard festlegen (Dauerhaft)",
     "VISAGE.Dialog.SwapDefault.Title": "Standard-Token aktualisieren?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Bist du sicher, dass du <strong>{label}</strong> als neues Standardaussehen für diesen Charakter festlegen möchtest?</p><p>Der aktuelle Standard wird als Backup gespeichert.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Bist du sicher, dass du <strong>{label}</strong> als neues Standardaussehen für diesen Charakter festlegen möchtest?</p><p>Der aktuelle Standard wird als Backup gespeichert.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Daten migrieren",
+    "VISAGE.Settings.ManualMigration.Hint": "Lösen Sie das Datenmigrationsskript manuell aus. Verwenden Sie dies, wenn Sie alte Akteure importiert haben oder wenn Ihre Visages oder Masks nicht korrekt angezeigt werden.",
+    "VISAGE.Gallery.Action.Promote": "Zu globaler Maske hochstufen",
+    "VISAGE.Notifications.Promoted": "'{name}' wurde in die globale Maskenbibliothek hochgestuft.",
+
+    "VISAGE.Mirror.Badge.H": "Horizontal",
+    "VISAGE.Mirror.Badge.V": "Vertikal",
+    "VISAGE.Wildcard.Label": "Platzhalter"
 }

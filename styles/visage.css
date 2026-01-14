@@ -78,6 +78,7 @@
     line-height: 1.4;
     text-align: start;
     z-index: var(--z-index-tooltip, 9999);
+    margin-top: var(--filroden-space-m);
 }
 
 /* --- Inputs and Selects --- */
@@ -174,6 +175,7 @@
     height: 4px;
     width: 100%;
     background-color: var(--visage-color-accent);
+    background-image: none;
     margin: 0;
     opacity: 1;
 }
@@ -202,6 +204,30 @@
     filter: invert(1); 
 }
 
+/* SVG Icon styling to match Font Awesome */
+.visage-icon-action {
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    background-color: currentColor;
+    
+    /* Standard Mask Properties */
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    
+    /* Reset margins if reusing styles */
+    margin: 0;
+}
+
+/* Specific Icon Definitions */
+.visage-icon-action.domino {
+    -webkit-mask-image: url('../icons/domino_mask.svg');
+    mask-image: url('../icons/domino_mask.svg');
+}
 
 /* ==========================================================================
    3. Application: Universal Shell
@@ -780,8 +806,7 @@
 }
 
 .visage-column {
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: var(--filroden-space-m);
 }
 
@@ -859,7 +884,6 @@
     position: relative;
     z-index: 1;
     width: 18rem;
-    max-width: 95%; 
 }
 
 /* --- Tag Pills --- */
@@ -1249,7 +1273,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 12rem;
+    height: 13rem;
     width: 100%;
     box-shadow: var(--filroden-shadow-card);
     transition: border-color 0.2s;
@@ -1312,6 +1336,17 @@
     width: 100%;
     justify-content: center;
     height: auto;
+}
+
+/* Mirroring Icons */
+.visage-rotate-0   { transform: rotate(0deg); }   /* Points Up */
+.visage-rotate-90  { transform: rotate(90deg); }  /* Points Right */
+.visage-rotate-180 { transform: rotate(180deg); } /* Points Down */
+.visage-rotate-270 { transform: rotate(270deg); } /* Points Left */
+.metadata-slot img.visage-icon-nav {
+    width: 1rem;
+    height: 1rem;
+    border: none;
 }
 
 .card-zone-center {
@@ -1475,8 +1510,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--filroden-space-m);
-    padding: var(--filroden-space-s) 0;
+    gap: var(--filroden-space-xs);
+    padding: var(--filroden-space-xs) 0;
 }
 
 .card-zone-right button {
@@ -1489,6 +1524,7 @@
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
+    padding: 0;
 }
 
 .card-zone-right button:hover {

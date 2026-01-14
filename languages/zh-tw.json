@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "寬度",
     "VISAGE.Config.List.Height": "高度",
 
-    "VISAGE.Mirror.Horizontal.Label": "水平",
-    "VISAGE.Mirror.Vertical.Label": "垂直",
-    "VISAGE.Mirror.Label.Combined": "雙向",
     "VISAGE.Mirror.Horizontal.Unchanged": "水平：無變更",
     "VISAGE.Mirror.Horizontal.Standard": "水平：標準",
     "VISAGE.Mirror.Horizontal.Mirrored": "水平：已翻轉",
@@ -129,5 +126,14 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "設為預設（永久）",
     "VISAGE.Dialog.SwapDefault.Title": "更新預設指示物？",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>您確定要將 <strong>{label}</strong> 設為該角色的新預設外觀嗎？</p><p>目前的預設外觀將被儲存為備份。</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>您確定要將 <strong>{label}</strong> 設為該角色的新預設外觀嗎？</p><p>目前的預設外觀將被儲存為備份。</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "遷移數據",
+    "VISAGE.Settings.ManualMigration.Hint": "手動觸發數據遷移腳本。如果您導入了舊的角色（Actors）或您的 Visages 或 Masks 顯示不正確，請使用此選項。",
+    "VISAGE.Gallery.Action.Promote": "提升為全局面具",
+    "VISAGE.Notifications.Promoted": "已將 '{name}' 提升到全局面具庫。",
+
+    "VISAGE.Mirror.Badge.H": "水平",
+    "VISAGE.Mirror.Badge.V": "垂直",
+    "VISAGE.Wildcard.Label": "萬用字元"
 }

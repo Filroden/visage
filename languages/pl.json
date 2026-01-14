@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Szerokość",
     "VISAGE.Config.List.Height": "Wysokość",
 
-    "VISAGE.Mirror.Horizontal.Label": "Odbij H",
-    "VISAGE.Mirror.Vertical.Label": "Odbij V",
-    "VISAGE.Mirror.Label.Combined": "Odbij H+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Poziomo: Bez zmian",
     "VISAGE.Mirror.Horizontal.Standard": "Poziomo: Standardowo",
     "VISAGE.Mirror.Horizontal.Mirrored": "Poziomo: Odwrócony",
@@ -129,5 +126,14 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Ustaw jako domyślne (Trwałe)",
     "VISAGE.Dialog.SwapDefault.Title": "Zaktualizować domyślny token?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Czy na pewno chcesz ustawić <strong>{label}</strong> jako nowy domyślny wygląd tej postaci?</p><p>Obecny domyślny wygląd zostanie zapisany jako kopia zapasowa.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Czy na pewno chcesz ustawić <strong>{label}</strong> jako nowy domyślny wygląd tej postaci?</p><p>Obecny domyślny wygląd zostanie zapisany jako kopia zapasowa.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Migracja danych",
+    "VISAGE.Settings.ManualMigration.Hint": "Ręcznie uruchom skrypt migracji danych. Użyj tego, jeśli zaimportowano starych Aktorów lub jeśli Visages lub Masks nie wyświetlają się poprawnie.",
+    "VISAGE.Gallery.Action.Promote": "Promuj do globalnej Maski",
+    "VISAGE.Notifications.Promoted": "Promowano '{name}' do globalnej Biblioteki Masek.",
+
+    "VISAGE.Mirror.Badge.H": "Poziomo",
+    "VISAGE.Mirror.Badge.V": "Pionowo",
+    "VISAGE.Wildcard.Label": "Joker"
 }

@@ -26,12 +26,12 @@ let globalDirectoryInstance = null;
  * Worlds on a version older than this will trigger the migration utility.
  * @constant {string}
  */
-const NEEDS_MIGRATION_VERSION = "1.6.3"; 
+const NEEDS_MIGRATION_VERSION = "2.2.0"; 
 
 /**
  * Opens the Visage Configuration window (Gallery) for a specific actor or token.
  * Handles duplicate window checks to bring existing windows to focus.
- * * @param {Actor} actor - The target actor document.
+ * @param {Actor} actor - The target actor document.
  * @param {TokenDocument|null} [token=null] - The specific token document, if applicable.
  */
 function openVisageConfig(actor, token = null) {
@@ -69,7 +69,7 @@ function openVisageConfig(actor, token = null) {
 /**
  * Helper to extract the Actor ID from a DOM element (directory entry).
  * Supports both jQuery and native DOM elements.
- * * @param {jQuery|HTMLElement} li - The list item element.
+ * @param {jQuery|HTMLElement} li - The list item element.
  * @returns {string|undefined} The Actor ID.
  */
 function getActorIdFromElement(li) {
@@ -95,12 +95,14 @@ Hooks.once("init", () => {
         game.modules.get("visage").api.Editor = VisageEditor;
         game.modules.get("visage").api.Gallery = VisageGallery;
 
-        // Register Handlebars helpers
+        // 1. Register Handlebars helpers (Use global Handlebars)
         Handlebars.registerHelper("visageNeq", (a, b) => a !== b);
         Handlebars.registerHelper("visageSelected", (condition) => condition ? "selected" : "");
         Handlebars.registerHelper("visageJson", (context) => JSON.stringify(context));
 
-        loadTemplates([
+        // 2. Load Templates (use V13 namespaced loader)
+        // This fixes the deprecation warning without breaking the helpers
+        foundry.applications.handlebars.loadTemplates([
             "modules/visage/templates/visage-selector.hbs",
             "modules/visage/templates/visage-editor.hbs",
             "modules/visage/templates/visage-gallery.hbs",
@@ -265,13 +267,33 @@ function registerSettings() {
         type: String,
         default: "0.0.0"
     });
+
+    // --- Manual Migration Trigger ---
+    game.settings.register(Visage.MODULE_ID, "manualMigration", {
+        name: "VISAGE.Settings.ManualMigration.Name",
+        hint: "VISAGE.Settings.ManualMigration.Hint",
+        scope: "world",
+        config: true,
+        restricted: true,
+        type: Boolean,
+        default: false,
+        onChange: (value) => {
+            if (value) {
+                // Run the full migration suite
+                migrateWorldData();
+                
+                // Reset the switch automatically
+                game.settings.set(Visage.MODULE_ID, "manualMigration", false);
+            }
+        }
+    });
 }
 
 /* -------------------------------------------- */
 /* Ready & Runtime Hooks                       */
 /* -------------------------------------------- */
 
-Hooks.once("ready", () => {
+Hooks.once("ready", async () => {
     if (!game.user.isGM) return;
 
     try {
@@ -285,9 +307,12 @@ Hooks.once("ready", () => {
             // Trigger data migration if the previous version is older than the schema change
             if (foundry.utils.isNewerVersion(NEEDS_MIGRATION_VERSION, lastVersion)) {
                 console.log(`Visage | Detected legacy data (v${lastVersion}). Migrating to v${NEEDS_MIGRATION_VERSION}...`);
-                migrateWorldData();
+                
+                // Await migration before updating version
+                await migrateWorldData();
             }
-            game.settings.set(Visage.MODULE_ID, "worldVersion", currentVersion);
+            // Only update the version flag if migration succeeded
+            await game.settings.set(Visage.MODULE_ID, "worldVersion", currentVersion);
         }
     } catch (err) {
         console.warn("Visage | Version check failed:", err);

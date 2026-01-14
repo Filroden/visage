@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Largura",
     "VISAGE.Config.List.Height": "Altura",
 
-    "VISAGE.Mirror.Horizontal.Label": "Esp. H",
-    "VISAGE.Mirror.Vertical.Label": "Esp. V",
-    "VISAGE.Mirror.Label.Combined": "Esp. H+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Horizontal: Sem Alteração",
     "VISAGE.Mirror.Horizontal.Standard": "Horizontal: Padrão",
     "VISAGE.Mirror.Horizontal.Mirrored": "Horizontal: Espelhado",
@@ -129,5 +126,14 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "Definir como Predefinição (Permanente)",
     "VISAGE.Dialog.SwapDefault.Title": "Atualizar Token Predefinido?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>Tem a certeza que deseja definir <strong>{label}</strong> como a nova aparência predefinida para esta personagem?</p><p>A predefinição atual será guardada como cópia de segurança.</p>"
+    "VISAGE.Dialog.SwapDefault.Content": "<p>Tem a certeza que deseja definir <strong>{label}</strong> como a nova aparência predefinida para esta personagem?</p><p>A predefinição atual será guardada como cópia de segurança.</p>",
+
+    "VISAGE.Settings.ManualMigration.Name": "Migrar Dados",
+    "VISAGE.Settings.ManualMigration.Hint": "Acionar manualmente o script de migração de dados. Utilize isto se importou Atores antigos ou se os seus Visages ou Masks não estiverem a ser exibidos corretamente.",
+    "VISAGE.Gallery.Action.Promote": "Promover a Máscara global",
+    "VISAGE.Notifications.Promoted": "'{name}' promovido para a Biblioteca de Máscaras global.",
+
+    "VISAGE.Mirror.Badge.H": "Horizontal",
+    "VISAGE.Mirror.Badge.V": "Vertical",
+    "VISAGE.Wildcard.Label": "Curinga"
 }
