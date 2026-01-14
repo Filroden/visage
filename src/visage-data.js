@@ -1,9 +1,4 @@
-/**
- * @file Manages data persistence, retrieval, and transformation for the Visage module.
- * Acts as the Data Access Object (DAO) for both Local (Actor Flags) and Global (World Settings) data.
- * @module visage
- */
-
+/* visage-data.js */
 import { VisageUtilities } from "./visage-utilities.js";
 
 const SCHEMA_VERSION = 1;
@@ -143,8 +138,13 @@ export class VisageData {
     static getDefaultAsVisage(tokenDoc) {
         if (!tokenDoc) return null;
 
-        // Use the snapshot if available (representing true default), otherwise current state
+        // 1. Try Snapshot (Highest Priority)
+        // If a Visage is active, 'originalState' holds the true default data.
         let sourceData = tokenDoc.flags?.[this.MODULE_ID]?.originalState;
+        
+        // 2. Fallback (If no Visage is active, the token IS the default)
+        // We use the current visual state of the token document itself.
+        // This ensures we capture any manual edits made to the specific token instance.
         if (!sourceData) {
             sourceData = VisageUtilities.extractVisualState(tokenDoc);
         }

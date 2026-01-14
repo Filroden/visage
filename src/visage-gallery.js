@@ -1,11 +1,4 @@
-/**
- * @file Defines the VisageGallery application.
- * A unified "Card Browser" interface that serves two distinct purposes:
- * 1. The "Visage Gallery" (Local): Manages identity swaps on a specific Actor.
- * 2. The "Mask Library" (Global): Manages generic effects stored in the World.
- * @module visage
- */
-
+/* visage-gallery.js */
 import { Visage } from "./visage.js";
 import { VisageData } from "./visage-data.js"; 
 import { VisageEditor } from "./visage-editor.js";
@@ -57,7 +50,15 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         };
 
         this._onTokenUpdate = (doc, changes, options, userId) => {
-            if (this.tokenId && doc.id === this.tokenId) this.render();
+            if (this.tokenId && doc.id === this.tokenId) {
+                // RACE CONDITION FIX: 
+                // When a token reverts to default, the data update on the server happens instantly,
+                // but the client-side document might lag by a few frames. 
+                // A small delay ensures the Gallery reads the *new* default state, not the old cached one.
+                setTimeout(() => {
+                    if (this.rendered) this.render();
+                }, 100); 
+            }
         };
 
         if (this.isLocal) {
