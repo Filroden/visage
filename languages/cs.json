@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Šířka",
     "VISAGE.Config.List.Height": "Výška",
 
-    "VISAGE.Mirror.Horizontal.Label": "Převrátit H",
-    "VISAGE.Mirror.Vertical.Label": "Převrátit V",
-    "VISAGE.Mirror.Label.Combined": "Převrátit H+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Vodorovně: Beze změny",
     "VISAGE.Mirror.Horizontal.Standard": "Vodorovně: Standardní",
     "VISAGE.Mirror.Horizontal.Mirrored": "Vodorovně: Převrácené",
@@ -134,5 +131,9 @@
     "VISAGE.Settings.ManualMigration.Name": "Migrovat data",
     "VISAGE.Settings.ManualMigration.Hint": "Ručně spustit skript pro migraci dat. Použijte to, pokud jste importovali staré Aktéry (Actors) nebo pokud se vaše Visages či Masks nezobrazují správně.",
     "VISAGE.Gallery.Action.Promote": "Povýšit na globální Masku",
-    "VISAGE.Notifications.Promoted": "'{name}' byl povýšen do globální knihovny Masek."
+    "VISAGE.Notifications.Promoted": "'{name}' byl povýšen do globální knihovny Masek.",
+
+    "VISAGE.Mirror.Badge.H": "Vodorovně",
+    "VISAGE.Mirror.Badge.V": "Svisle",
+    "VISAGE.Wildcard.Label": "Zástupný"
 }

@@ -50,7 +50,7 @@ export function handleGhostEdit(app, html, data) {
     }
 
     if (!form) {
-        console.warn("Visage | Ghost Edit: Could not find <form> element in Token Config.");
+        // Silent fail is acceptable here if the UI is non-standard
         return;
     }
 
@@ -102,6 +102,9 @@ export function handleGhostEdit(app, html, data) {
         } 
         else if (input.tagName === "COLOR-PICKER") {
             input.value = value; 
+            // Color pickers sometimes need an explicit input event to update their swatch
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
         }
         else {
             if (input.value != value) {

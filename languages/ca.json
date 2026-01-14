@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Amplada",
     "VISAGE.Config.List.Height": "Alçada",
 
-    "VISAGE.Mirror.Horizontal.Label": "Invertir H",
-    "VISAGE.Mirror.Vertical.Label": "Invertir V",
-    "VISAGE.Mirror.Label.Combined": "Invertir H+V",
     "VISAGE.Mirror.Horizontal.Unchanged": "Horitzontal: Sense Canvis",
     "VISAGE.Mirror.Horizontal.Standard": "Horitzontal: Estàndard",
     "VISAGE.Mirror.Horizontal.Mirrored": "Horitzontal: Invertit",
@@ -134,5 +131,9 @@
     "VISAGE.Settings.ManualMigration.Name": "Migrar Dades",
     "VISAGE.Settings.ManualMigration.Hint": "Executa manualment l'script de migració de dades. Utilitza-ho si has importat Actors antics o si els teus Visages o Masks no es mostren correctament.",
     "VISAGE.Gallery.Action.Promote": "Promoure a Mask global",
-    "VISAGE.Notifications.Promoted": "S'ha promogut '{name}' a la llibreria global de Masks."
+    "VISAGE.Notifications.Promoted": "S'ha promogut '{name}' a la llibreria global de Masks.",
+
+    "VISAGE.Mirror.Badge.H": "Horitzontal",
+    "VISAGE.Mirror.Badge.V": "Vertical",
+    "VISAGE.Wildcard.Label": "Comodí"
 }

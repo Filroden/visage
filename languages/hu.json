@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Szélesség",
     "VISAGE.Config.List.Height": "Magasság",
 
-    "VISAGE.Mirror.Horizontal.Label": "Vízsz.",
-    "VISAGE.Mirror.Vertical.Label": "Függ.",
-    "VISAGE.Mirror.Label.Combined": "V+F",
     "VISAGE.Mirror.Horizontal.Unchanged": "Vízszintes: Nincs változás",
     "VISAGE.Mirror.Horizontal.Standard": "Vízszintes: Normál",
     "VISAGE.Mirror.Horizontal.Mirrored": "Vízszintes: Tükrözött",
@@ -137,5 +134,9 @@
     "VISAGE.Settings.ManualMigration.Name": "Adatok migrálása",
     "VISAGE.Settings.ManualMigration.Hint": "Az adatmigrációs szkript manuális indítása. Használd ezt, ha régi Actorokat importáltál, vagy ha a Visage-ok vagy Maskok nem jelennek meg megfelelően.",
     "VISAGE.Gallery.Action.Promote": "Kiemelés globális Maskká",
-    "VISAGE.Notifications.Promoted": "'{name}' kiemelve a globális Mask könyvtárba."
+    "VISAGE.Notifications.Promoted": "'{name}' kiemelve a globális Mask könyvtárba.",
+
+    "VISAGE.Mirror.Badge.H": "Vízszintes",
+    "VISAGE.Mirror.Badge.V": "Függ.",
+    "VISAGE.Wildcard.Label": "Joker"
 }

@@ -11,7 +11,7 @@
 ![Issues](https://img.shields.io/github/issues/Filroden/visage)
 
 
-**Visage** is the ultimate token management tool for Foundry VTT. It allows players and GMs to instantly switch a token's appearance, disposition, size, scale, orientation and Dynamic Token Ring configuration using a dedicated HUD. Use it in any game system to support dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
+**Visage** is the ultimate token management tool for Foundry VTT. It allows players and GMs to instantly switch a token's appearance, disposition, size, scale, horizontal/vertical orientation and Dynamic Token Ring configuration using a dedicated HUD. Use it in any game system to support dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
 
 **New in v2.0:** Visage now features a **Non-Destructive Stack System**. You can layer partial overrides ("Masks") on top of identity swaps ("Visages"). For example, change a token's image (Visage), then change its size to 2x2 (Mask) to show an "enlarge" effect, and remove them individually to return to the original state perfectly every time.
 
@@ -81,7 +81,7 @@ Key Features:
 
   ![Live Preview of animated tokens](images/v2/visage_animated_preview.gif?raw=true)
 
-* **Wildcard Support:** Point a Visage to a folder (e.g., `creatures/wolves/*`). Every time you apply it, a random image from that folder is chosen.
+* **Wildcard Support:** Point a Visage to a folder (e.g., `creatures/wolves/*`) or include wildcards (`*` or `?`) within the filename. Every time you apply it, a random image that matches is chosen.
 
 ### 4. The Token Previewer
 

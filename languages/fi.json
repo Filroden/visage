@@ -93,9 +93,6 @@
     "VISAGE.Config.List.Width": "Leveys",
     "VISAGE.Config.List.Height": "Korkeus",
 
-    "VISAGE.Mirror.Horizontal.Label": "Peil. V",
-    "VISAGE.Mirror.Vertical.Label": "Peil. P",
-    "VISAGE.Mirror.Label.Combined": "Peil. V+P",
     "VISAGE.Mirror.Horizontal.Unchanged": "Vaaka: Ei muutosta",
     "VISAGE.Mirror.Horizontal.Standard": "Vaaka: Vakio",
     "VISAGE.Mirror.Horizontal.Mirrored": "Vaaka: Peilattu",
@@ -134,5 +131,9 @@
     "VISAGE.Settings.ManualMigration.Name": "Siirrä tiedot",
     "VISAGE.Settings.ManualMigration.Hint": "Käynnistä tiedonsiirtokomentosarja manuaalisesti. Käytä tätä, jos olet tuonut vanhoja näyttelijöitä (Actors) tai jos Visage- tai Mask-elementtisi eivät näy oikein.",
     "VISAGE.Gallery.Action.Promote": "Ylennä globaaliksi Maskiksi",
-    "VISAGE.Notifications.Promoted": "'{name}' ylennettiin globaaliin Mask-kirjastoon."
+    "VISAGE.Notifications.Promoted": "'{name}' ylennettiin globaaliin Mask-kirjastoon.",
+
+    "VISAGE.Mirror.Badge.H": "Vaaka",
+    "VISAGE.Mirror.Badge.V": "Pysty",
+    "VISAGE.Wildcard.Label": "Jokerimerkki"
 }
