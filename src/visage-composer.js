@@ -27,80 +27,72 @@ export class VisageComposer {
         const currentStack = stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
         
         // 2. Revert Condition
-        // If the stack is empty and we aren't simulating a specific base, revert to default.
         if (currentStack.length === 0 && !baseOverride) {
             return this.revertToDefault(token.document);
         }
 
-        // 3. Establish Base State (The "Canvas" to paint on)
-        // If no clean snapshot exists, capture the current state as the baseline.
+        // 3. Establish Base State (The "Canvas")
         let base = baseOverride ?? allFlags.originalState;
         if (!base) {
             base = VisageUtilities.extractVisualState(token.document);
         }
+        
+        // --- DECOUPLE BASE STATE ---
+        // Extract atomic properties from the base Foundry data
+        let currentSrc = base.texture?.src || "";
+        let currentScaleX = Math.abs(base.texture?.scaleX ?? 1);
+        let currentScaleY = Math.abs(base.texture?.scaleY ?? 1);
+        let currentMirrorX = (base.texture?.scaleX ?? 1) < 0;
+        let currentMirrorY = (base.texture?.scaleY ?? 1) < 0;
+
         // 4. Layer Composition Loop
-        // Clone the base state so we don't mutate the reference
         const finalData = foundry.utils.deepClone(base);
         if (!finalData.texture) finalData.texture = {};
 
         for (const layer of currentStack) {
-            const changes = layer.changes || {};
+            const c = layer.changes || {}; // Use 'c' consistently
 
-            // A. Texture/Image
-            if (changes.texture?.src) finalData.texture.src = changes.texture.src;
+            // A. Texture Source
+            if (c.texture?.src) currentSrc = c.texture.src;
 
-            // B. Scale Handling
-            // Supports both legacy top-level 'scale' and v10+ 'texture.scaleX/Y'
-            if (changes.texture) {
-                if (changes.texture.scaleX !== undefined) {
-                    const currentSign = finalData.texture.scaleX < 0 ? -1 : 1;
-                    finalData.texture.scaleX = Math.abs(changes.texture.scaleX) * currentSign;
-                }
-                if (changes.texture.scaleY !== undefined) {
-                    const currentSign = finalData.texture.scaleY < 0 ? -1 : 1;
-                    finalData.texture.scaleY = Math.abs(changes.texture.scaleY) * currentSign;
-                }
-            } 
-            else if (changes.scale !== undefined && changes.scale !== null) {
-                const absScale = Math.abs(changes.scale);
-                // Preserve existing flip orientation (sign)
-                const currentSignX = finalData.texture.scaleX < 0 ? -1 : 1;
-                const currentSignY = finalData.texture.scaleY < 0 ? -1 : 1;
-                
-                finalData.texture.scaleX = absScale * currentSignX;
-                finalData.texture.scaleY = absScale * currentSignY;
+            // B. Scale (Magnitude Override)
+            if (c.scale !== undefined && c.scale !== null) {
+                currentScaleX = c.scale;
+                currentScaleY = c.scale; 
             }
 
-            // C. Flip Flags (Multiplicative)
-            // Toggling a flip multiplies the current scale by -1
-            if (changes.flipX) finalData.texture.scaleX *= -1;
-            if (changes.flipY) finalData.texture.scaleY *= -1;
+            // C. Mirroring (Orientation Override)
+            if (c.mirrorX !== undefined && c.mirrorX !== null) currentMirrorX = c.mirrorX;
+            if (c.mirrorY !== undefined && c.mirrorY !== null) currentMirrorY = c.mirrorY;
 
             // D. Dynamic Ring
-            if (changes.ring) { finalData.ring = changes.ring; }
+            if (c.ring) { finalData.ring = c.ring; }
 
-            // E. Disposition (Color Ring)
-            if (changes.disposition !== undefined && changes.disposition !== null) {
-                finalData.disposition = changes.disposition;
+            // E. Disposition
+            if (c.disposition !== undefined && c.disposition !== null) {
+                finalData.disposition = c.disposition;
             }
             
             // F. Name Override
-            if (changes.name) finalData.name = changes.name;
+            if (c.name) finalData.name = c.name;
 
-            // G. Dimensions (Grid Size)
-            if (changes.width !== undefined && changes.width !== null) finalData.width = changes.width;
-            if (changes.height !== undefined && changes.height !== null) finalData.height = changes.height;
+            // G. Dimensions
+            if (c.width !== undefined && c.width !== null) finalData.width = c.width;
+            if (c.height !== undefined && c.height !== null) finalData.height = c.height;
         }
 
-        // 5. Atomic Update
-        // Write the visual changes AND the stack state in a single database transaction.
+        // 5. Reconstruct Foundry Data
+        finalData.texture.src = currentSrc;
+        finalData.texture.scaleX = currentScaleX * (currentMirrorX ? -1 : 1);
+        finalData.texture.scaleY = currentScaleY * (currentMirrorY ? -1 : 1);
+
+        // 6. Atomic Update
         const updateData = {
             ...finalData,
             [`flags.${Visage.MODULE_ID}.activeStack`]: currentStack,
             [`flags.${Visage.MODULE_ID}.originalState`]: base
         };
 
-        // Disable animation for instant cosmetic swaps
         await token.document.update(updateData, { visageUpdate: true, animation: { duration: 0 } });
     }
 

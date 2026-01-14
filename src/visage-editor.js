@@ -90,9 +90,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._currentLabel = "";
         }
 
-        const rawImg = data.changes.texture?.src || "";
+        // --- RAW DATA EXTRACTION ---
+        const c = data.changes || {};
+        const rawImg = c.texture?.src || "";
         const resolvedImg = await VisageUtilities.resolvePath(rawImg);
 
+        // --- PREVIEW CONTEXT ---
         const context = VisageData.toPresentation(data, {
             isWildcard: rawImg.includes('*'),
             isActive: false
@@ -106,7 +109,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (v.tags && Array.isArray(v.tags)) v.tags.forEach(t => tagSet.add(t));
         });
 
-        const c = data.changes || {};
         const prep = (val, def) => {
             const isDefined = val !== null && val !== undefined;
             const isNotEmpty = typeof val === "string" ? val !== "" : true;
@@ -128,12 +130,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             tagsString: (data.tags || []).join(","), 
             
             img: prep(rawImg, ""),
+            
+            // --- UPDATED LOGIC HERE ---
+            // We read raw 'scale', 'mirrorX', and 'mirrorY' directly.
+            // If they are null/undefined, active is false.
             scale: { 
-                value: Math.round(context.scale * 100), 
-                active: c.texture?.scaleX !== undefined 
+                value: (c.scale !== undefined && c.scale !== null) ? Math.round(c.scale * 100) : 100, 
+                active: c.scale !== undefined && c.scale !== null 
             },
-            isFlippedX: { value: context.isFlippedX, active: c.texture?.scaleX !== undefined && context.isFlippedX },
-            isFlippedY: { value: context.isFlippedY, active: c.texture?.scaleX !== undefined && context.isFlippedY },
+            isFlippedX: { 
+                value: c.mirrorX, // Pass raw null/true/false directly 
+                active: c.mirrorX !== undefined && c.mirrorX !== null 
+            },
+            isFlippedY: { 
+                value: c.mirrorY, 
+                active: c.mirrorY !== undefined && c.mirrorY !== null 
+            },
+            // --------------------------
+
             width: prep(c.width, 1),
             height: prep(c.height, 1),
             disposition: prep(c.disposition, 0),
@@ -146,7 +160,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
             preview: {
                 ...context.meta, 
-                img: resolvedImg || rawImg, // Fallback here too
+                img: resolvedImg || rawImg, 
                 isVideo: context.isVideo,
                 flipX: context.isFlippedX,
                 flipY: context.isFlippedY,
@@ -173,20 +187,21 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const isFlipYActive = formData.isFlippedY !== "";
         const imgSrc = getVal("img"); 
 
+        // 1. Calculate Derived Values (Moved up so they are accessible to mockData)
+        const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
+        const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
+        const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
+
         let texture = {};
         if (imgSrc) {
             texture.src = imgSrc;
         }
 
+        // 2. Populate Texture (Baked Fallback for visual preview)
         if (isScaleActive || isFlipXActive || isFlipYActive) {
-            const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
-            const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
-            const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
-            
             texture.scaleX = rawScale * (flipX ? -1 : 1);
             texture.scaleY = rawScale * (flipY ? -1 : 1);
         }
-
         if (Object.keys(texture).length === 0) texture = undefined;
 
         let ring = null;
@@ -203,10 +218,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
 
+        // 3. Construct Mock Data (Now including Atomic Intents)
         const mockData = {
             changes: {
                 name: getVal("nameOverride"),
                 texture: texture, 
+                // NEW: Pass these so toPresentation detects them as "Intent"
+                scale: isScaleActive ? rawScale : null,
+                mirrorX: isFlipXActive ? flipX : null,
+                mirrorY: isFlipYActive ? flipY : null,
+                
                 width: getVal("width", Number),
                 height: getVal("height", Number),
                 disposition: getVal("disposition", Number),
@@ -221,16 +242,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const mainImage = mockData.changes.texture?.src || "";
         const rawPath = (ringEnabled && subjectTexture) ? subjectTexture : mainImage;
         
-        // --- PREVIEW LOGIC UPDATE ---
-        // 1. Attempt resolution
         const resolved = await VisageUtilities.resolvePath(rawPath);
-        
-        // 2. Safety Fallback: If resolution failed (null), use the raw string.
-        // This mirrors the logic in VisageData.toLayer, ensuring consistency.
         const resolvedPath = resolved || rawPath;
-
-        // Debug log to confirm what is happening
-        // console.log(`Visage Editor | Path: '${rawPath}' -> Resolved: '${resolvedPath}'`);
 
         const context = VisageData.toPresentation(mockData, {
             isWildcard: rawPath.includes('*')
@@ -238,19 +251,31 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const meta = context.meta;
 
-        const updateSlot = (cls, val, active, icon) => {
+        const updateSlot = (cls, data) => {
             const slot = el.querySelector(`.card-zone-left .${cls}`);
             if (!slot) return;
-            slot.querySelector(".slot-value").textContent = val;
-            if (active) slot.classList.remove("inactive");
+            
+            slot.querySelector(".slot-value").textContent = data.val;
+            
+            if (data.active) slot.classList.remove("inactive");
             else slot.classList.add("inactive");
-            if (icon) slot.querySelector("i").className = icon;
+
+            const img = slot.querySelector("img");
+            if (img) {
+                img.src = data.src;
+                // Remove all rotation classes first
+                img.classList.remove("visage-rotate-0", "visage-rotate-90", "visage-rotate-180", "visage-rotate-270");
+                img.classList.add(data.cls);
+            }
         };
 
-        updateSlot("scale-slot", meta.slots.scale.val, meta.slots.scale.active);
-        updateSlot("dim-slot", meta.slots.dim.val, meta.slots.dim.active);
-        updateSlot("flip-slot", meta.slots.flip.val, meta.slots.flip.active, meta.slots.flip.icon);
+        updateSlot("scale-slot", meta.slots.scale);
+        updateSlot("dim-slot", meta.slots.dim);
+        updateSlot("flip-h-slot", meta.slots.flipH);
+        updateSlot("flip-v-slot", meta.slots.flipV);
+        updateSlot("wildcard-slot", meta.slots.wildcard);
 
+        // ... [Rest of method remains the same] ...
         const dispSlot = el.querySelector(".card-zone-left .disposition-slot .visage-disposition-chip");
         if (dispSlot) {
             dispSlot.textContent = meta.slots.disposition.val;
@@ -488,27 +513,23 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             return (typeof raw === "string") ? raw.trim() : raw;
         };
 
+        // 1. Prepare Texture (Source Only)
         let texture = {};
         const imgSrc = getVal("img");
-
         if (imgSrc) {
             texture.src = imgSrc;
         }
+        if (Object.keys(texture).length === 0) texture = undefined;
 
+        // 2. Prepare Atomic Values (Scoped correctly)
         const isScaleActive = formData.scale_active;
         const isFlipXActive = formData.isFlippedX !== "";
         const isFlipYActive = formData.isFlippedY !== "";
 
-        if (isScaleActive || isFlipXActive || isFlipYActive) {
-            const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
-            const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
-            const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
-            
-            texture.scaleX = rawScale * (flipX ? -1 : 1); 
-            texture.scaleY = rawScale * (flipY ? -1 : 1);
-        }
-
-        if (Object.keys(texture).length === 0) texture = undefined;
+        // We calculate these regardless of the 'if' block so they are available for the payload
+        const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
+        const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
+        const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
 
         const label = formData.label ? formData.label.trim() : game.i18n.localize("VISAGE.GlobalEditor.DefaultLabel");
         let cleanCategory = "";
@@ -527,7 +548,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             
             changes: {
                 name: getVal("nameOverride"),
-                texture: texture, 
+                scale: isScaleActive ? rawScale : null,
+                mirrorX: isFlipXActive ? flipX : null,
+                mirrorY: isFlipYActive ? flipY : null,
+                texture: texture,
                 width: getVal("width", Number),
                 height: getVal("height", Number),
                 disposition: getVal("disposition", Number),

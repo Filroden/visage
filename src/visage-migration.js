@@ -72,7 +72,20 @@ export async function migrateWorldData() {
             }
         }
 
-        // 1c. Snapshot & Defaults Repair
+        // 1c. Upgrade to v2.2 (Decouple Scale & Mirror)
+        const dataToCheck = modernData || (updates[`flags.${ns}.${newKey}`] || {});
+        
+        for (const [id, entry] of Object.entries(dataToCheck)) {
+            // Check if this entry still has legacy scale data
+            if (entry.changes?.texture?.scaleX !== undefined) {
+                // Clone, Migrate, and Stage Update
+                const migrated = migrateEntryV2_2(foundry.utils.deepClone(entry));
+                updates[`flags.${ns}.${newKey}.${id}`] = migrated;
+                performUpdate = true;
+            }
+        }
+
+        // 1d. Snapshot & Defaults Repair
         for (const [key, flagData] of Object.entries(actorFlags)) {
             if (key === legacyKey || key === newKey) continue; 
             if (key.length !== 16) continue; 
@@ -129,6 +142,7 @@ export async function migrateWorldData() {
     for (const token of worldTokenMap.values()) {
         const originalState = token.flags[ns]?.originalState;
         
+        // 1. Snapshot Repair (Existing Logic)
         if (originalState && (originalState.img || originalState.token) && !originalState.texture?.src) {
             const newState = foundry.utils.deepClone(originalState);
             
@@ -143,6 +157,28 @@ export async function migrateWorldData() {
             });
             console.log(`Visage | Repaired Active Token Snapshot: ${token.name}`);
         }
+
+        // 2. Migrate Active Stacks (MOVED INSIDE THE LOOP)
+        const stack = token.flags[ns]?.activeStack;
+        if (stack && Array.isArray(stack)) {
+            let stackDirty = false;
+            
+            // Map through the stack and migrate any legacy layers
+            const newStack = stack.map(layer => {
+                if (layer.changes?.texture?.scaleX !== undefined) {
+                    stackDirty = true;
+                    return migrateEntryV2_2(foundry.utils.deepClone(layer));
+                }
+                return layer;
+            });
+
+            if (stackDirty) {
+                await token.update({
+                    [`flags.${ns}.activeStack`]: newStack
+                });
+                console.log(`Visage | Migrated Active Stack for Token: ${token.name}`);
+            }
+        }
     }
 
     // =========================================================
@@ -154,17 +190,21 @@ export async function migrateWorldData() {
     let globalsDirty = false;
 
     if (globals) {
-        // We iterate the object directly since we write the whole object back at the end
         for (const [id, entry] of Object.entries(globals)) {
+             // Repair img -> texture.src
              if (entry.changes && entry.changes.img && !entry.changes.texture?.src) {
                 const texture = entry.changes.texture || { scaleX: 1, scaleY: 1 };
                 texture.src = entry.changes.img;
-                
-                // Direct mutation for update
                 entry.changes.texture = texture;
                 delete entry.changes.img;
-                
                 globalsDirty = true;
+             }
+
+             // Upgrade to v2.2
+             // We run this directly on the object because we save the whole thing later
+             if (entry.changes?.texture?.scaleX !== undefined) {
+                 migrateEntryV2_2(entry); // Mutates 'entry' in place
+                 globalsDirty = true;
              }
         }
 
@@ -231,4 +271,41 @@ function normalizeEntry(id, data, fallbackName) {
             ring: (isObject && data.ring) ? data.ring : null
         }
     };
+}
+
+/**
+ * Helper: Migrates a single Visage entry from v2.1 (Destructive) to v2.2 (Intent-based).
+ * Extracts baked 'texture.scaleX/Y' into atomic 'scale', 'mirrorX', and 'mirrorY'.
+ * @param {Object} entry - The visage data object.
+ * @returns {Object} The migrated entry.
+ */
+function migrateEntryV2_2(entry) {
+    if (!entry.changes) return entry;
+    
+    const c = entry.changes;
+    const tx = c.texture;
+    
+    // Check if migration is needed (presence of legacy baked scale)
+    if (tx && (tx.scaleX !== undefined || tx.scaleY !== undefined)) {
+        
+        // 1. Extract Magnitude (Scale)
+        // We prioritize scaleX magnitude. Default to 1.0 if missing.
+        const rawScale = Math.abs(tx.scaleX ?? (tx.scaleY ?? 1.0));
+        
+        // 2. Extract Orientation (Mirror)
+        // In Foundry, negative value = flipped.
+        const isFlippedX = (tx.scaleX ?? 1) < 0;
+        const isFlippedY = (tx.scaleY ?? 1) < 0;
+
+        // 3. Set New Atomic Properties (Intent)
+        c.scale = rawScale;
+        c.mirrorX = isFlippedX;
+        c.mirrorY = isFlippedY;
+
+        // 4. Clean Legacy Data
+        // We delete these so the Composer knows to use the atomic properties
+        delete tx.scaleX;
+        delete tx.scaleY;
+    }
+    return entry;
 }

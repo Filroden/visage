@@ -150,39 +150,50 @@ export class VisageData {
         const displayPath = this.getRepresentativeImage(c);
         const isVideo = options.isVideo ?? foundry.helpers.media.VideoHelper.hasVideoExtension(displayPath);
 
-        const rawScaleX = tx.scaleX ?? 1.0;
-        const rawScaleY = tx.scaleY ?? 1.0;
-        const absScale = Math.abs(rawScaleX);
-        const displayScale = Math.round(absScale * 100);
+        // --- 1. RESOLVE VALUES ---
+        const atomicScale = c.scale;
+        const bakedScaleX = tx.scaleX ?? 1.0;
+        const bakedScaleY = tx.scaleY ?? 1.0;
+
+        // Visual State (Image Preview)
+        const isFlippedX = (c.mirrorX !== undefined && c.mirrorX !== null) ? c.mirrorX : (bakedScaleX < 0);
+        const isFlippedY = (c.mirrorY !== undefined && c.mirrorY !== null) ? c.mirrorY : (bakedScaleY < 0);
+
+        // --- ICON LOGIC ---
+        const pathIcon = "modules/visage/icons/navigation.svg";
+
+        // A. Horizontal Badge
+        const hActive = (c.mirrorX !== undefined && c.mirrorX !== null) || (bakedScaleX < 0);
+        const hRot = isFlippedX ? "visage-rotate-270" : "visage-rotate-90";
+        const hLabel = game.i18n.localize("VISAGE.Mirror.Badge.H");
+
+        // B. Vertical Badge
+        const vActive = (c.mirrorY !== undefined && c.mirrorY !== null) || (bakedScaleY < 0);
+        const vRot = isFlippedY ? "visage-rotate-180" : "visage-rotate-0";
+        const vLabel = game.i18n.localize("VISAGE.Mirror.Badge.V");
+
+        // C. Scale Badge
+        const isScaleIntent = (atomicScale !== undefined && atomicScale !== null);
+        const isScaleNonDefault = Math.abs(bakedScaleX) !== 1.0;
+        const isScaleActive = isScaleIntent || isScaleNonDefault;
         
-        const isFlippedX = rawScaleX < 0;
-        const isFlippedY = rawScaleY < 0;
-        const isScaleDefault = absScale === 1.0;
-        const scaleLabel = isScaleDefault ? "" : `${displayScale}%`;
-        
+        const finalScale = (atomicScale !== undefined && atomicScale !== null) 
+            ? atomicScale 
+            : Math.abs(bakedScaleX);
+        const displayScaleVal = Math.round(finalScale * 100);
+        const scaleLabel = `${displayScaleVal}%`;
+
+        // D. Dimensions
         const w = c.width ?? 1;
         const h = c.height ?? 1;
         const isSizeDefault = w === 1 && h === 1;
-        const sizeLabel = isSizeDefault ? "" : `${w}x${h}`;
+        const sizeLabel = `${w}x${h}`;
 
-        let flipIcon = "fas fa-arrows-alt-h"; 
-        let flipLabel = "-";
-        let flipActive = false;
+        // E. Wildcard Badge
+        const isWildcard = options.isWildcard ?? false;
+        const wildcardLabel = game.i18n.localize("VISAGE.Wildcard.Label");
 
-        if (isFlippedX || isFlippedY) {
-            flipActive = true;
-            if (isFlippedX && !isFlippedY) {
-                flipIcon = "fas fa-arrow-left";
-                flipLabel = game.i18n.localize("VISAGE.Mirror.Horizontal.Label");
-            } else if (isFlippedY && !isFlippedX) {
-                flipIcon = "fas fa-arrow-down";
-                flipLabel = game.i18n.localize("VISAGE.Mirror.Vertical.Label");
-            } else {
-                flipIcon = "fas fa-expand-arrows-alt";
-                flipLabel = game.i18n.localize("VISAGE.Mirror.Label.Combined");
-            }
-        }
-
+        // F. Disposition
         let dispClass = "none";
         let dispLabel = game.i18n.localize("VISAGE.Disposition.NoChange");
         if (c.disposition !== null && c.disposition !== undefined) {
@@ -200,13 +211,15 @@ export class VisageData {
             ...data,
             isActive: options.isActive ?? false,
             isVideo: isVideo,
-            isWildcard: options.isWildcard ?? false,
+            isWildcard: isWildcard,
             path: displayPath,
-            scale: absScale,
+            scale: finalScale,
+            
             isFlippedX,
             isFlippedY,
             forceFlipX: isFlippedX,
             forceFlipY: isFlippedY,
+            
             meta: {
                 hasRing: ringCtx.enabled,
                 hasPulse: ringCtx.hasPulse,
@@ -215,14 +228,18 @@ export class VisageData {
                 hasInvisibility: ringCtx.hasInvisibility,
                 ringColor: ringCtx.colors.ring,
                 ringBkg: ringCtx.colors.background,
-                showDataChip: (scaleLabel !== "") || (sizeLabel !== ""),
-                showFlipBadge: flipActive,
+                
+                showDataChip: isScaleActive || !isSizeDefault,
+                showFlipBadge: hActive || vActive,
                 showDispositionChip: dispClass !== "none",
                 tokenName: c.name || null,
+                
                 slots: {
-                    scale: { active: !isScaleDefault, val: scaleLabel },
+                    scale: { active: isScaleActive, val: scaleLabel },
                     dim: { active: !isSizeDefault, val: sizeLabel },
-                    flip: { active: flipActive, icon: flipIcon, val: flipLabel },
+                    flipH: { active: hActive, src: pathIcon, cls: hRot, val: hLabel },
+                    flipV: { active: vActive, src: pathIcon, cls: vRot, val: vLabel },
+                    wildcard: { active: isWildcard, val: wildcardLabel },
                     disposition: { class: dispClass, val: dispLabel }
                 }
             }
