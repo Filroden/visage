@@ -1037,6 +1037,11 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
+.visage-reset-btn i {
+    transform: scaleX(var(--filroden-dir-flip));
+    display: inline-block;
+}
+
 .visage-save.dirty {
     background: var(--visage-color-accent);
     border-color: var(--visage-color-accent);
@@ -1621,6 +1626,10 @@
 .card-zone-right button[data-action="apply"] {
     color: var(--visage-color-text-main-solid);
     opacity: 0.9;
+}
+.card-zone-right button[data-action="apply"] i {
+    transform: scaleX(var(--filroden-dir-flip));
+    display: inline-block;
 }
 
 .card-footer {
