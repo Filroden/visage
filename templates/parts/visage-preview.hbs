@@ -1,27 +1,38 @@
 {{!-- modules/visage/templates/parts/visage-preview.hbs --}}
-<div class="{{#if wrapperClass}}{{wrapperClass}}{{else}}visage-preview-content{{/if}} {{#if hasInvisibility}}invisible{{/if}}">
+{{!-- 
+    Expected Context:
+    - wrapperClass: CSS class for outer container (default: visage-preview-content)
+    - hasCheckerboard: Boolean to enable the checkerboard background
+    - alpha: Opacity value (0.0 - 1.0)
+    - hasInvisibility: Boolean for invisible effect
+    ... (standard visual props)
+--}}
+<div class="{{#if wrapperClass}}{{wrapperClass}}{{else}}visage-preview-content{{/if}} {{#if hasCheckerboard}}visage-checkerboard-bg{{/if}} {{#if hasInvisibility}}invisible{{/if}}">
     
-    {{!-- LAYER 1: RING --}}
-    <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}" 
-         style="display: {{#if hasRing}}block{{else}}none{{/if}}; --ring-color: {{ringColor}}; --ring-bkg: {{ringBkg}};">
-         <div class="ring-band outer"></div>
-         <div class="ring-band inner"></div>
+    {{!-- INNER CONTAINER: Handles Opacity & Centering --}}
+    {{!-- We isolate opacity here so it doesn't affect the checkerboard background --}}
+    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; opacity: {{#if alpha}}{{alpha}}{{else}}1{{/if}};">
+
+        {{!-- LAYER 1: RING --}}
+        <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}" 
+             style="display: {{#if hasRing}}block{{else}}none{{/if}}; --ring-color: {{ringColor}}; --ring-bkg: {{ringBkg}};">
+             <div class="ring-band outer"></div>
+             <div class="ring-band inner"></div>
+        </div>
+
+        {{!-- LAYER 2: MEDIA --}}
+        <video class="visage-preview-video {{#if hasRing}}circular{{/if}}" 
+               src="{{#if isVideo}}{{resolvedPath}}{{/if}}" 
+               autoplay loop muted playsinline
+               style="display: {{#if isVideo}}block{{else}}none{{/if}}; transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"></video>
+
+        <img class="visage-preview-img {{#if hasRing}}circular{{/if}}" 
+             src="{{#unless isVideo}}{{resolvedPath}}{{/unless}}" 
+             alt="{{name}}"
+             style="display: {{#if (and resolvedPath (not isVideo))}}block{{else}}none{{/if}}; transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"/>
+
+        <i class="visage-icon-mask fallback-icon" 
+           style="display: {{#if resolvedPath}}none{{else}}block{{/if}};"></i>
+           
     </div>
-
-    {{!-- LAYER 2: MEDIA --}}
-    {{!-- We render ALL elements so the Editor JS can toggle them dynamically --}}
-    
-    <video class="visage-preview-video {{#if hasRing}}circular{{/if}}" 
-           src="{{#if isVideo}}{{resolvedPath}}{{/if}}" 
-           autoplay loop muted playsinline
-           style="display: {{#if isVideo}}block{{else}}none{{/if}}; transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"></video>
-
-    <img class="visage-preview-img {{#if hasRing}}circular{{/if}}" 
-         src="{{#unless isVideo}}{{resolvedPath}}{{/unless}}" 
-         alt="{{name}}"
-         style="display: {{#if (and resolvedPath (not isVideo))}}block{{else}}none{{/if}}; transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"/>
-
-    <i class="visage-icon-mask fallback-icon" 
-       style="display: {{#if resolvedPath}}none{{else}}block{{/if}};"></i>
-
 </div>

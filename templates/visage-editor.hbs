@@ -15,6 +15,13 @@
                         
                         {{!-- ZONE 1: METADATA (Left) --}}
                         <div class="card-zone-left">
+                            
+                            <div class="metadata-slot lock-slot {{#unless preview.slots.lock.active}}inactive{{/unless}}"
+                                 data-tooltip="{{localize 'VISAGE.RotationLock.Label'}}">
+                                <img src="modules/visage/icons/lock_reset.svg" class="visage-icon-nav"/>
+                                <span class="slot-value">{{preview.slots.lock.val}}</span>
+                             </div>
+
                             <div class="metadata-slot scale-slot {{#unless preview.slots.scale.active}}inactive{{/unless}}" 
                                  data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Scale'}}">
                                 <i class="fas fa-ruler-combined"></i>
@@ -28,7 +35,7 @@
                             </div>
 
                             <div class="metadata-slot flip-h-slot {{#unless this.meta.slots.flipH.active}}inactive{{/unless}}"
-                                data-tooltip="{{localize 'VISAGE.Mirror.Horizontal.Label'}}">
+                                 data-tooltip="{{localize 'VISAGE.Mirror.Horizontal.Label'}}">
                                 <img src="{{this.meta.slots.flipH.src}}" class="visage-icon-nav {{this.meta.slots.flipH.cls}}"/>
                                 <span class="slot-value">{{this.meta.slots.flipH.val}}</span>
                             </div>
@@ -55,9 +62,13 @@
                         {{!-- ZONE 2: VISUAL PREVIEW (Center) --}}
                         <div class="card-zone-center">
                             <div class="visual-target">
+                                {{!-- UPDATED: Passed Checkerboard and Alpha --}}
                                 {{> "modules/visage/templates/parts/visage-preview.hbs" 
                                     resolvedPath=preview.img 
                                     name=preview.name
+                                    hasCheckerboard=true
+                                    alpha=preview.alpha
+
                                     isVideo=preview.isVideo                                    
                                     hasRing=preview.hasRing 
                                     hasInvisibility=preview.hasInvisibility
@@ -73,8 +84,6 @@
                             <div class="token-name-label">{{preview.name}}</div>
                         </div>
 
-                        {{!-- ZONE 3: ACTIONS (Right) - Empty but structurally necessary --}}
-                        <div class="card-zone-right"></div>
                     </div>
 
                     {{!-- FOOTER --}}
@@ -92,13 +101,11 @@
                 <div class="form-group">
                     <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
                     <div class="visage-form-fields">
-                        {{!-- ADDED: required attribute --}}
                         <input type="text" name="label" value="{{label}}" placeholder="e.g. Ancient Red Dragon" required>
                     </div>
                     <p class="hint">{{localize "VISAGE.GlobalEditor.LabelHint"}}</p>
                 </div>
 
-                {{!-- Categories and Tags kept visible for BOTH modes --}}
                 <div class="form-group">
                     <label>{{localize "VISAGE.GlobalEditor.Category"}}</label>
                     <div class="visage-form-fields">
@@ -162,7 +169,29 @@
                     </div>
                 </div>
 
-                {{!-- 4. Flips --}}
+                {{!-- 4. Opacity --}}
+                <div class="form-group checkbox-input-group">
+                    <input class="visage-checkbox" type="checkbox" name="alpha_active" data-action="toggleField" data-target="alpha" {{checked alpha.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
+                     <label>{{localize "VISAGE.Config.Opacity.LabelPercent"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="number" name="alpha" value="{{alpha.value}}" min="0" max="100" step="1" {{disabled (not alpha.active)}}>
+                    </div>
+                </div>
+
+                {{!-- 5. Rotation Lock --}}
+                <div class="form-group checkbox-input-group">
+                    <label style="grid-column: 1 / span 3; margin-bottom: 0.25rem;">{{localize "VISAGE.RotationLock.Label"}}</label>
+                    <div class="visage-form-fields" style="grid-column: 1 / span 3;">
+                        <select name="lockRotation">
+                            <option value="" {{visageSelected (eq lockRotation.value "")}}>{{localize "VISAGE.RotationLock.Unset"}}</option>
+                            <option value="false" {{visageSelected (eq lockRotation.value "false")}}>{{localize "VISAGE.RotationLock.Off"}}</option>
+                            <option value="true" {{visageSelected (eq lockRotation.value "true")}}>{{localize "VISAGE.RotationLock.On"}}</option>
+                        </select>
+                    </div>
+                    <p class="hint" style="grid-column: 1 / span 3;">{{localize "VISAGE.RotationLock.Hint"}}</p>
+                </div>
+
+                {{!-- 6. Flips --}}
                 <div class="form-group checkbox-input-group">
                     <label style="grid-column: 1 / span 3; margin-bottom: 0.25rem;">{{localize "VISAGE.GlobalEditor.Mirroring"}}</label>
                     <div class="visage-form-fields stacked-selects" style="grid-column: 1 / span 3;">
@@ -180,7 +209,7 @@
                     <p class="hint" style="grid-column: 1 / span 3;">{{localize "VISAGE.GlobalEditor.MirrorHint"}}</p>
                 </div>
 
-                {{!-- 5. Disposition --}}
+                {{!-- 7. Disposition --}}
                 <div class="form-group checkbox-input-group">
                     <input class="visage-checkbox" type="checkbox" name="disposition_active" data-action="toggleField" data-target="disposition" {{checked disposition.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
                     <div class="visage-form-fields">
@@ -193,16 +222,20 @@
                     </div>
                 </div>
 
-                {{!-- 6. Dimensions --}}
+                {{!-- 8. Dimensions --}}
                 <div class="form-group checkbox-input-group">
                     <input class="visage-checkbox" type="checkbox" name="width_active" data-action="toggleField" data-target="width" {{checked width.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
                     <label>{{localize "VISAGE.Config.List.Width"}}</label>
-                    <input type="number" name="width" value="{{width.value}}" {{disabled (not width.active)}}>
+                    <div class="visage-form-fields">
+                        <input type="number" name="width" value="{{width.value}}" {{disabled (not width.active)}}>
+                    </div>
                 </div>
                 <div class="form-group checkbox-input-group">
                     <input class="visage-checkbox" type="checkbox" name="height_active" data-action="toggleField" data-target="height" {{checked height.active}} data-tooltip="{{localize 'VISAGE.GlobalEditor.OverrideTooltip'}}">
                     <label>{{localize "VISAGE.Config.List.Height"}}</label>
-                    <input type="number" name="height" value="{{height.value}}" {{disabled (not height.active)}}>
+                    <div class="visage-form-fields">
+                        <input type="number" name="height" value="{{height.value}}" {{disabled (not height.active)}}>
+                    </div>
                 </div>
             </fieldset>
         </div>

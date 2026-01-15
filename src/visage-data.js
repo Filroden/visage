@@ -211,6 +211,10 @@ export class VisageData {
         const isFlippedX = (c.mirrorX !== undefined && c.mirrorX !== null) ? c.mirrorX : (bakedScaleX < 0);
         const isFlippedY = (c.mirrorY !== undefined && c.mirrorY !== null) ? c.mirrorY : (bakedScaleY < 0);
 
+        // Alpha and Lock Rotation states
+        const alpha = c.alpha ?? 1.0;
+        const lockRotation = c.lockRotation ?? false;
+
         // --- ICON LOGIC ---
         const pathIcon = "modules/visage/icons/navigation.svg";
 
@@ -263,6 +267,18 @@ export class VisageData {
             }
         }
 
+        // G. Opacity Logic
+        // Only active if intent exists AND it's not 1.0
+        const isAlphaActive = (c.alpha !== undefined && c.alpha !== null) && c.alpha !== 1.0;
+        
+        // H. Lock Rotation Logic
+        // Active if explicit intent exists (true OR false).
+        const isLockActive = (c.lockRotation !== undefined && c.lockRotation !== null);
+        const isLocked = (c.lockRotation === true);
+        const lockLabel = isLocked 
+            ? game.i18n.localize("VISAGE.RotationLock.Locked") 
+            : game.i18n.localize("VISAGE.RotationLock.Unlocked");
+
         const ringCtx = this.prepareRingContext(c.ring);
 
         return {
@@ -277,6 +293,9 @@ export class VisageData {
             isFlippedY,
             forceFlipX: isFlippedX,
             forceFlipY: isFlippedY,
+
+            alpha: alpha,
+            lockRotation: lockRotation,
             
             meta: {
                 hasRing: ringCtx.enabled,
@@ -294,7 +313,9 @@ export class VisageData {
                 
                 slots: {
                     scale: { active: isScaleActive, val: scaleLabel },
-                    dim: { active: isDimActive, val: sizeLabel }, 
+                    dim: { active: isDimActive, val: sizeLabel },
+                    alpha: { active: isAlphaActive, val: `${Math.round(alpha * 100)}%` },
+                    lock: { active: isLockActive, val: lockLabel },
                     flipH: { active: hActive, src: pathIcon, cls: hRot, val: hLabel },
                     flipV: { active: vActive, src: pathIcon, cls: vRot, val: vLabel },
                     wildcard: { active: isWildcard, val: wildcardLabel },
