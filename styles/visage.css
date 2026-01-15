@@ -228,6 +228,10 @@
     -webkit-mask-image: url('../icons/domino_mask.svg');
     mask-image: url('../icons/domino_mask.svg');
 }
+.visage-icon-action.visage {
+    -webkit-mask-image: url('../icons/switch_account.svg');
+    mask-image: url('../icons/switch_account.svg');
+}
 
 /* ==========================================================================
    3. Application: Universal Shell
@@ -1143,6 +1147,14 @@
     background: var(--visage-color-accent);
     color: var(--filroden-color-bg-darkest);
     font-weight: var(--filroden-font-weight-bold);
+}
+
+.visage-sidebar-actions {
+    margin-top: auto;
+    display: flex;
+    gap: var(--filroden-space-s);
+    padding-top: var(--filroden-space-l);
+    border-top: 1px solid var(--visage-color-border);
 }
 
 .visage-filter-bar {
