@@ -1,5 +1,3 @@
-/* visage-utilities.js */
-
 /**
  * @file Shared utility functions for the Visage module.
  * Centralizes logging, path resolution, token state extraction, and theme management.
@@ -115,12 +113,19 @@ export class VisageUtilities {
     static extractVisualState(data) {
         if (!data) return {};
         
-        const get = (key) => foundry.utils.getProperty(data, key);
+        // Helper: Prefer raw source data (if Document) to avoid temporary flags/mods
+        // e.g. Foundry changes document.alpha when hidden; we want the true user setting from _source.
+        const source = data._source || data;
+        
+        // Fallback helper for nested properties which might not be in _source if not updated
+        const get = (key) => foundry.utils.getProperty(source, key) ?? foundry.utils.getProperty(data, key);
 
-        const ringData = data.ring?.toObject?.() ?? data.ring ?? {};
+        const ringData = source.ring?.toObject?.() ?? source.ring ?? {};
         const textureSrc = get("texture.src");
         const scaleX = get("texture.scaleX") ?? 1.0;
         const scaleY = get("texture.scaleY") ?? 1.0;
+        const alpha = get("alpha") ?? 1.0;
+        const lockRotation = get("lockRotation") ?? false;
 
         return {
             name: get("name"),
@@ -128,6 +133,8 @@ export class VisageUtilities {
             disposition: get("disposition"),
             width: get("width"),
             height: get("height"),
+            alpha: alpha,
+            lockRotation: lockRotation,
             texture: {
                 src: textureSrc,
                 scaleX: scaleX,

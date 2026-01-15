@@ -108,6 +108,12 @@ export class VisageComposer {
             // G. Dimensions
             if (c.width !== undefined && c.width !== null) finalData.width = c.width;
             if (c.height !== undefined && c.height !== null) finalData.height = c.height;
+        
+            // H. Opacity
+            if (c.alpha !== undefined && c.alpha !== null) finalData.alpha = c.alpha;
+
+            // I. Rotation Lock
+            if (c.lockRotation !== undefined && c.lockRotation !== null) finalData.lockRotation = c.lockRotation;
         }
 
         // 5. Reconstruction Phase

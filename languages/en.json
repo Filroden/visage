@@ -135,5 +135,24 @@
 
     "VISAGE.Mirror.Badge.H": "Horizontal",
     "VISAGE.Mirror.Badge.V": "Vertical",
-    "VISAGE.Wildcard.Label": "Wildcard"
+    "VISAGE.Wildcard.Label": "Wildcard",
+
+    "VISAGE.Notifications.ExportEmpty": "Visage | No items to export.",
+    "VISAGE.Notifications.Exported": "Visage | Exported {count} items.",
+    "VISAGE.Notifications.ImportStats": "Visage | Import: {imported} added, {skipped} duplicates skipped.",
+    "VISAGE.Notifications.ImportEmpty": "Visage | No valid items found to import.",
+    "VISAGE.Notifications.ImportError": "Visage | Import failed. Check console for details.",
+    "VISAGE.Notifications.CopyStats": "Visage | Copied \"{label}\" to {count} actors.",
+    "VISAGE.Errors.ImportInvalidFormat": "Invalid format: Root must be an array.",
+    "VISAGE.Actions.Export": "Export",
+    "VISAGE.Actions.Import": "Import",
+    "VISAGE.Gallery.Action.CopyToLocal": "Copy Mask to Visage Gallery of selection",
+    "VISAGE.RotationLock.Label": "Rotation Lock",
+    "VISAGE.RotationLock.Hint": "Prevents the token from rotating with its movement.",
+    "VISAGE.RotationLock.Locked": "Locked",
+    "VISAGE.RotationLock.Unlocked": "Unlocked",
+    "VISAGE.RotationLock.Unset": "Rotation Lock: Unset",
+    "VISAGE.RotationLock.Off": "Rotation Lock: Off",
+    "VISAGE.RotationLock.On": "Rotation Lock: On",    
+    "VISAGE.Config.Opacity.LabelPercent": "Opacity (%)"
 }

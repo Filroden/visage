@@ -82,7 +82,7 @@ export async function migrateWorldData() {
 
             if (hasLegacyScale || hasLegacyImg || hasVisual) {
                 // A. Migrate Data (In Memory)
-                const migrated = migrateEntryV2_2(foundry.utils.deepClone(entry));
+                const migrated = cleanVisageData(foundry.utils.deepClone(entry));
                 
                 // B. Stage New Data
                 const flagRoot = `flags.${ns}.${newKey}.${id}`;
@@ -179,7 +179,7 @@ export async function migrateWorldData() {
 
                 if (hasLegacy) {
                     stackDirty = true;
-                    return migrateEntryV2_2(foundry.utils.deepClone(layer));
+                    return cleanVisageData(foundry.utils.deepClone(layer));
                 }
                 return layer;
             });
@@ -207,7 +207,7 @@ export async function migrateWorldData() {
                             || entry.changes?.visual !== undefined;
 
              if (hasLegacy) {
-                 migrateEntryV2_2(entry); // Mutates 'entry' in place
+                 cleanVisageData(entry); // Mutates 'entry' in place
                  globalsDirty = true;
              }
         }
@@ -229,7 +229,7 @@ export async function migrateWorldData() {
  */
 function normalizeEntry(id, data, fallbackName) {
     if (data.changes) {
-        return migrateEntryV2_2(foundry.utils.deepClone(data));
+        return cleanVisageData(foundry.utils.deepClone(data));
     }
     
     // Fallback construction for raw v1 data
@@ -249,7 +249,7 @@ function normalizeEntry(id, data, fallbackName) {
  * @param {Object} entry - The visage data object.
  * @returns {Object} The clean, migrated entry.
  */
-function migrateEntryV2_2(entry) {
+export function cleanVisageData(entry) {
     if (!entry.changes) return entry;
     
     const c = entry.changes;

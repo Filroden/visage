@@ -228,6 +228,68 @@
     -webkit-mask-image: url('../icons/domino_mask.svg');
     mask-image: url('../icons/domino_mask.svg');
 }
+.visage-icon-action.visage {
+    -webkit-mask-image: url('../icons/switch_account.svg');
+    mask-image: url('../icons/switch_account.svg');
+}
+
+/* --- Opacity & Lock Additions --- */
+/* Chequerboard Background for Opacity Previews */
+.visage-checkerboard-bg {
+    background-color: var(--visage-color-bg-darkest);
+    background-image: conic-gradient(
+        var(--visage-color-bg-light) 90deg, 
+        var(--visage-color-bg-medium) 90deg 180deg, 
+        var(--visage-color-bg-light) 180deg 270deg, 
+        var(--visage-color-bg-medium) 270deg
+    );
+    background-size: 20px 20px;
+    background-position: center;
+}
+
+/* Lock Indicator Badge (HUD) - Left Flank Position */
+.visage .visage-lock-indicator {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: -8px; 
+    transform: translateY(-50%);
+    width: var(--filroden-font-size-l);
+    height: var(--filroden-font-size-l);
+    border-radius: 50%;
+    background-color: var(--filroden-color-text-muted-solid);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.visage .visage-lock-indicator img {
+    width: var(--filroden-space-m);
+    height: var(--filroden-space-m);
+    border: none;
+    filter: invert(100%);
+}
+
+/* Ghost Lock Watermark (Preview Cards) - Top Right Overlay */
+.visage-watermark-lock {
+    position: absolute;
+    top: 4px;
+    inset-inline-end: 4px;
+    width: 1.5rem;
+    height: 1.5rem;
+    z-index: 5;
+    opacity: 0.5;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.8));
+}
+
+.visage-watermark-lock img {
+    width: 100%;
+    height: 100%;
+    border: none;
+    filter: invert(100%); 
+}
 
 /* ==========================================================================
    3. Application: Universal Shell
@@ -975,6 +1037,11 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
+.visage-reset-btn i {
+    transform: scaleX(var(--filroden-dir-flip));
+    display: inline-block;
+}
+
 .visage-save.dirty {
     background: var(--visage-color-accent);
     border-color: var(--visage-color-accent);
@@ -1121,6 +1188,14 @@
     width: 100%;
 }
 
+.visage-action-btn {
+    background: var(--visage-color-accent);
+    color: var(--filroden-color-bg-darkest);
+    border: none;
+    font-weight: var(--filroden-font-weight-bold);
+    width: 100%;
+}
+
 .category-list ul {
     list-style: none; padding: 0; margin: 0;
     display: flex; flex-direction: column; gap: 4px;
@@ -1143,6 +1218,14 @@
     background: var(--visage-color-accent);
     color: var(--filroden-color-bg-darkest);
     font-weight: var(--filroden-font-weight-bold);
+}
+
+.visage-sidebar-actions {
+    margin-top: auto;
+    display: flex;
+    gap: var(--filroden-space-s);
+    padding-top: var(--filroden-space-l);
+    border-top: 1px solid var(--visage-color-border);
 }
 
 .visage-filter-bar {
@@ -1273,7 +1356,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 13rem;
+    height: 15rem;
     width: 100%;
     box-shadow: var(--filroden-shadow-card);
     transition: border-color 0.2s;
@@ -1363,8 +1446,8 @@
 }
 
 .visual-target {
-    width: 100px; 
-    height: 100px;
+    width: 120px; 
+    height: 120px;
     position: relative;
     flex-shrink: 0;
 }
@@ -1383,7 +1466,6 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border-radius: 50%;
     z-index: 10;
 }
 
@@ -1407,7 +1489,8 @@
 }
 
 .visage-preview-content .fallback-icon {
-    font-size: 3rem; 
+    height: 3rem;
+    width: 3rem;
     color: var(--filroden-color-text-muted); 
     opacity: 0.5;
     position: relative; 
@@ -1543,6 +1626,10 @@
 .card-zone-right button[data-action="apply"] {
     color: var(--visage-color-text-main-solid);
     opacity: 0.9;
+}
+.card-zone-right button[data-action="apply"] i {
+    transform: scaleX(var(--filroden-dir-flip));
+    display: inline-block;
 }
 
 .card-footer {

@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-2.2.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-2.3.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
@@ -11,7 +11,7 @@
 ![Issues](https://img.shields.io/github/issues/Filroden/visage)
 
 
-**Visage** is the ultimate token management tool for Foundry VTT. It allows players and GMs to instantly switch a token's appearance, disposition, size, scale, horizontal/vertical orientation and Dynamic Token Ring configuration using a dedicated HUD. Use it in any game system to support dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
+**Visage** is the ultimate token management tool for Foundry VTT. It allows players and GMs to instantly switch a token's appearance, disposition, size, scale, horizontal/vertical orientation, opacity, rotation lock, and Dynamic Token Ring configuration using a dedicated HUD. Use it in any game system to support dynamic gameplay without requiring time-consuming manual edits in the core Token Configuration window every change.
 
 **New in v2.0:** Visage now features a **Non-Destructive Stack System**. You can layer partial overrides ("Masks") on top of identity swaps ("Visages"). For example, change a token's image (Visage), then change its size to 2x2 (Mask) to show an "enlarge" effect, and remove them individually to return to the original state perfectly every time.
 
@@ -70,6 +70,10 @@ Manage your visual assets in a beautiful, card-based interface.
 
 * **Promote Visage to the global Mask Library (New in v2.2)**: As a GM, do you like a particular look and want to use it on other tokens? Simply "Promote" (copy) it to the Mask Library.
 
+* **Copy Mask to the local Visage Gallery of selected token(s) (New in v2.3)**: As a GM, you can also do the reverse, and transfer a Mask to the selected token(s)'s Visage Gallery.
+
+* **Import/Export Visages and Masks (New in v2.3)**: Export your entire Mask Library so it can be transferred to another world. Save all the Visages from one token so they can be added to others. Importing will prevent duplication of existing Masks or Visages if they share the same unique ID. When importing Masks or Visages created in earlier versions of the module, it will intelligently make any changes needed to the data to bring it up to date.
+
 ### 3. The Visual Editor
 
 An editor that lets you build and **preview** your token's appearance before saving it.
@@ -121,12 +125,13 @@ Software and associated documentation files in this repository are covered by an
 
 ## Roadmap
 
-### Short term
-
-* **Import/Export (v2.3):** Share Visage configurations between worlds.
-* **Add Token Opacity and image rotation lock (v2.4):** Add the ability to customise token opacity and image rotation lock with each Visage or Mask.
-
-### Long term
+### Medium term (v3.0.0)
 
 * **Unified Card Architecture:** Refactoring UI for greater consistency.
-* **Visual FX Layers:** Integration with PIXI filters for true visual effects (Bloom, Glitch, Opacity adjustments, etc.).
+* **Improve the display of metadata and actions**: As part of the UI re-design, create a cleaner display for metadata and actions for the selected Mask or Visage.
+* **Additional Mask/Visage actions:** export individual Masks or Visages, create duplicates of existing Masks or Visages.
+
+### Long term (no promises!)
+
+* **JB2A/PSFX or Sequencer integration:** Look to integrate with JB2A animated assets and PSFX sounds (probably via Sequencer) so they can be configured to each Mask or Visage and play when applied.
+* **Visual FX Layers:** Integration with PIXI filters for true visual effects (Bloom, Glitch, Opacity adjustments, etc.). The idea here is to create a power-user tool to create your own tokens by blending multiple images/videos through normal blend modes (screen, overlay, etc), or to add simple effects like colour tints.

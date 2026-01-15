@@ -48,6 +48,16 @@
                 {{/each}}
             </ul>
         </nav>
+
+        <div class="visage-sidebar-actions">
+            <button type="button" data-action="export" class="visage-action-btn" data-tooltip="VISAGE.Actions.Export">
+                <i class="fas fa-file-export"></i> {{localize "VISAGE.Actions.Export"}}
+            </button>
+            <button type="button" data-action="import" class="visage-action-btn" data-tooltip="VISAGE.Actions.Import">
+                <i class="fas fa-file-import"></i> {{localize "VISAGE.Actions.Import"}}
+            </button>
+        </div>
+
     </aside>
 
     {{!-- MAIN BROWSER --}}
@@ -94,6 +104,13 @@
                     
                     {{!-- LEFT: METADATA --}}
                     <div class="card-zone-left">
+                        {{!-- LOCK SLOT --}}
+                        <div class="metadata-slot {{#unless this.meta.slots.lock.active}}inactive{{/unless}}"
+                             data-tooltip="{{localize 'VISAGE.RotationLock.Label'}}">
+                            <img src="modules/visage/icons/lock_reset.svg" class="visage-icon-nav"/>
+                            <span class="slot-value">{{this.meta.slots.lock.val}}</span>
+                        </div>
+
                         {{!-- SCALE SLOT --}}
                         <div class="metadata-slot {{#unless this.meta.slots.scale.active}}inactive{{/unless}}" 
                              data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Scale'}}">
@@ -143,6 +160,8 @@
                              {{> "modules/visage/templates/parts/visage-preview.hbs" 
                                 resolvedPath=this.changes.img 
                                 name=this.label
+                                hasCheckerboard=true 
+                                alpha=this.alpha
                                 isVideo=this.isVideo                                
                                 hasRing=this.meta.hasRing 
                                 hasInvisibility=this.meta.hasInvisibility
@@ -168,7 +187,7 @@
                             <button data-action="destroy" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Destroy'}}" class="danger"><i class="fas fa-ban"></i></button>
                         {{else}}
                             
-                            {{!-- 1. APPLY (Always visible) --}}
+                            {{!-- APPLY (Always visible) --}}
                             {{#if ../isLocal}}
                                 <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Activate'}}"><i class="fas fa-play"></i></button>
                             {{else}}
@@ -176,18 +195,21 @@
                             {{/if}}
                             
                             {{#unless this.isDefault}}
-                                {{!-- 2. EDIT (Visible in both modes) --}}
+                                {{!-- EDIT (Visible in both modes) --}}
                                 <button data-action="edit" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Edit'}}"><i class="fas fa-edit"></i></button>
                                 
                                 {{#if ../isLocal}}
-                                    {{!-- 3. SWAP DEFAULT (Local Only) --}}
+                                    {{!-- SWAP DEFAULT (Local Only) --}}
                                     <button data-action="swapDefault" data-tooltip="{{localize 'VISAGE.Gallery.Action.SwapDefault'}}" data-visage-id="{{this.id}}"><i class="fas fa-exchange-alt"></i></button>
                                     
-                                    {{!-- 4. PROMOTE (Local Only) --}}
+                                    {{!-- PROMOTE (Local Only) --}}
                                     <button data-action="promote" data-tooltip="{{localize 'VISAGE.Gallery.Action.Promote'}}"  data-visage-id="{{this.id}}"><i class="visage-icon-action domino"></i></button>
+                                {{else}}
+                                    {{!-- COPY TO VISAGE (Global Only) --}}
+                                    <button data-action="copyToLocal" data-tooltip="{{localize 'VISAGE.Gallery.Action.CopyToLocal'}}"><i class="visage-icon-action visage"></i></button>
                                 {{/if}}
 
-                                {{!-- 5. DELETE (Visible in both modes) --}}
+                                {{!-- DELETE (Visible in both modes) --}}
                                 <button data-action="delete" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Delete'}}" class="danger"><i class="fas fa-trash"></i></button>
                             {{/unless}}
                         {{/if}}
