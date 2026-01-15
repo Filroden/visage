@@ -12,18 +12,18 @@
     "VISAGE.Selector.Wildcard": "رمز عشوائي",
     "VISAGE.Selector.WildcardAlt": "صورة عشوائية",
 
-    "VISAGE.Notifications.Created": "تم إنشاء الوجه: {name}",
-    "VISAGE.Notifications.Updated": "تم تحديث الوجه: {name}",
-    "VISAGE.Notifications.Deleted": "تم حذف الوجه: {name}",
-    "VISAGE.Notifications.Restored": "تمت استعادة الوجه: {name}",
-    "VISAGE.Notifications.Destroyed": "تم التدمير نهائياً: {name}",
-    "VISAGE.Notifications.Applied": "تم تطبيق القناع: {label}",
-    "VISAGE.Notifications.Saved": "تم حفظ التغييرات بنجاح.",
-    "VISAGE.Notifications.SaveFailed": "فشل حفظ بيانات Visage.",
-    "VISAGE.Notifications.NoTokens": "لم يتم تحديد أي رموز لتطبيق القناع عليها.",
-    "VISAGE.Notifications.SettingsReset": "تمت إعادة تعيين جميع الإعدادات إلى الوضع الافتراضي.",
+    "VISAGE.Notifications.Created": "\u200FVisage | تم إنشاء الوجه: \u2068{name}\u2069",
+    "VISAGE.Notifications.Updated": "\u200FVisage | تم تحديث الوجه: \u2068{name}\u2069",
+    "VISAGE.Notifications.Deleted": "\u200FVisage | تم حذف الوجه: \u2068{name}\u2069",
+    "VISAGE.Notifications.Restored": "\u200FVisage | تمت استعادة الوجه: \u2068{name}\u2069",
+    "VISAGE.Notifications.Destroyed": "\u200FVisage | تم التدمير نهائياً: \u2068{name}\u2069",
+    "VISAGE.Notifications.Applied": "\u200FVisage | تم تطبيق القناع: \u2068{label}\u2069",
+    "VISAGE.Notifications.Saved": "\u200FVisage | تم حفظ التغييرات بنجاح.",
+    "VISAGE.Notifications.SaveFailed": "\u200FVisage | فشل حفظ بيانات Visage.",
+    "VISAGE.Notifications.NoTokens": "\u200FVisage | لم يتم تحديد أي رموز لتطبيق القناع عليها.",
+    "VISAGE.Notifications.SettingsReset": "\u200FVisage | تمت إعادة تعيين جميع الإعدادات إلى الوضع الافتراضي.",
 
-    "VISAGE.Warnings.GhostEdit": "تكوين الرمز: يوجد وجه أو قناع نشط حالياً على هذا الرمز. التغييرات التي يتم إجراؤها هنا ستعدل الرمز الافتراضي، وليس الوجه أو القناع.",
+    "VISAGE.Warnings.GhostEdit": "\u200FVisage | تكوين الرمز: يوجد وجه أو قناع نشط حالياً على هذا الرمز. التغييرات التي يتم إجراؤها هنا ستعدل الرمز الافتراضي، وليس الوجه أو القناع.",
 
     "VISAGE.Directory.Title.Global": "مكتبة الأقنعة",
     "VISAGE.Directory.Title.Local": "معرض الوجوه: {actor}",
@@ -60,8 +60,8 @@
     "VISAGE.GlobalEditor.TitleNew.Global": "إنشاء قناع جديد",
     "VISAGE.GlobalEditor.TitleNew.Local": "إنشاء وجه جديد",
     
-    "VISAGE.GlobalEditor.TitleEdit": "تعديل القناع: {name}",
-    "VISAGE.GlobalEditor.Title.Local": "تعديل الوجه: {name}",
+    "VISAGE.GlobalEditor.TitleEdit": "تعديل القناع: \u2068{name}\u2069",
+    "VISAGE.GlobalEditor.Title.Local": "تعديل الوجه: \u2068{name}\u2069",
     
     "VISAGE.GlobalEditor.Save.Global": "حفظ القناع",
     "VISAGE.GlobalEditor.Save.Local": "تحديث الوجه",
@@ -126,14 +126,33 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "اجعل هذا الافتراضي (دائم)",
     "VISAGE.Dialog.SwapDefault.Title": "تحديث الرمز الافتراضي؟",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>هل أنت متأكد من رغبتك في جعل <strong>{label}</strong> المظهر الافتراضي الجديد لهذه الشخصية؟</p><p>سيتم حفظ الافتراضي الحالي كنسخة احتياطية.</p>",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>هل أنت متأكد من رغبتك في جعل <strong>\u2068{label}\u2069</strong> المظهر الافتراضي الجديد لهذه الشخصية؟</p><p>سيتم حفظ الافتراضي الحالي كنسخة احتياطية.</p>",
 
     "VISAGE.Settings.ManualMigration.Name": "ترحيل البيانات",
     "VISAGE.Settings.ManualMigration.Hint": "شغّل نص ترحيل البيانات يدوياً. استخدم هذا الخيار إذا قمت باستيراد Actors قديمة أو إذا لم يتم عرض Visages أو Masks بشكل صحيح.",
     "VISAGE.Gallery.Action.Promote": "ترقية إلى Mask عالمي",
-    "VISAGE.Notifications.Promoted": "تمت ترقية '{name}' إلى مكتبة Mask العالمية.",
+    "VISAGE.Notifications.Promoted": "\u200FVisage | تمت ترقية '\u2068{name}\u2069' إلى مكتبة Mask العالمية.",
 
     "VISAGE.Mirror.Badge.H": "أفقي",
     "VISAGE.Mirror.Badge.V": "عمودي",
-    "VISAGE.Wildcard.Label": "محرف بدل"
+    "VISAGE.Wildcard.Label": "محرف بدل",
+
+    "VISAGE.Notifications.ExportEmpty": "\u200FVisage | لا توجد عناصر للتصدير.",
+    "VISAGE.Notifications.Exported": "\u200FVisage | تم تصدير \u2068{count}\u2069 عنصرًا.",
+    "VISAGE.Notifications.ImportStats": "\u200FVisage | استيراد: تمت إضافة \u2068{imported}\u2069، وتخطي \u2068{skipped}\u2069 مكررًا.",
+    "VISAGE.Notifications.ImportEmpty": "\u200FVisage | لم يتم العثور على عناصر صالحة للاستيراد.",
+    "VISAGE.Notifications.ImportError": "\u200FVisage | فشل الاستيراد. تحقق من وحدة التحكم للتفاصيل.",
+    "VISAGE.Notifications.CopyStats": "\u200FVisage | تم نسخ \"\u2068{label}\u2069\" إلى \u2068{count}\u2069 من الممثلين (Actors).",
+    "VISAGE.Errors.ImportInvalidFormat": "تنسيق غير صالح: يجب أن يكون الجذر (Root) مصفوفة.",
+    "VISAGE.Actions.Export": "تصدير",
+    "VISAGE.Actions.Import": "استيراد",
+    "VISAGE.Gallery.Action.CopyToLocal": "نسخ Mask إلى معرض Visage للمحدد",
+    "VISAGE.RotationLock.Label": "قفل الدوران",
+    "VISAGE.RotationLock.Hint": "يمنع الرمز (Token) من الدوران مع حركته.",
+    "VISAGE.RotationLock.Locked": "مقفل",
+    "VISAGE.RotationLock.Unlocked": "غير مقفل",
+    "VISAGE.RotationLock.Unset": "\u200Fقفل الدوران: غير محدد",
+    "VISAGE.RotationLock.Off": "\u200Fقفل الدوران: إيقاف",
+    "VISAGE.RotationLock.On": "\u200Fقفل الدوران: تشغيل",
+    "VISAGE.Config.Opacity.LabelPercent": "شفافية (%)"
 }

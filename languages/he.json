@@ -12,18 +12,18 @@
     "VISAGE.Selector.Wildcard": "טוקן תו כללי",
     "VISAGE.Selector.WildcardAlt": "תמונה אקראית",
 
-    "VISAGE.Notifications.Created": "Visage נוצר: {name}",
-    "VISAGE.Notifications.Updated": "Visage עודכן: {name}",
-    "VISAGE.Notifications.Deleted": "Visage נמחק: {name}",
-    "VISAGE.Notifications.Restored": "Visage שוחזר: {name}",
-    "VISAGE.Notifications.Destroyed": "הושמד לצמיתות: {name}",
-    "VISAGE.Notifications.Applied": "מסכה הוחלה: {label}",
-    "VISAGE.Notifications.Saved": "השינויים נשמרו בהצלחה.",
-    "VISAGE.Notifications.SaveFailed": "שמירת נתוני Visage נכשלה.",
-    "VISAGE.Notifications.NoTokens": "לא נבחרו טוקנים להחלת המסכה.",
-    "VISAGE.Notifications.SettingsReset": "כל ההגדרות אופסו לברירת המחדל.",
+    "VISAGE.Notifications.Created": "\u200FVisage | Visage נוצר: \u2068{name}\u2069",
+    "VISAGE.Notifications.Updated": "\u200FVisage | Visage עודכן: \u2068{name}\u2069",
+    "VISAGE.Notifications.Deleted": "\u200FVisage | Visage נמחק: \u2068{name}\u2069",
+    "VISAGE.Notifications.Restored": "\u200FVisage | Visage שוחזר: \u2068{name}\u2069",
+    "VISAGE.Notifications.Destroyed": "\u200FVisage | הושמד לצמיתות: \u2068{name}\u2069",
+    "VISAGE.Notifications.Applied": "\u200FVisage | מסכה הוחלה: \u2068{label}\u2069",
+    "VISAGE.Notifications.Saved": "\u200FVisage | השינויים נשמרו בהצלחה.",
+    "VISAGE.Notifications.SaveFailed": "\u200FVisage | שמירת נתוני Visage נכשלה.",
+    "VISAGE.Notifications.NoTokens": "\u200FVisage | לא נבחרו טוקנים להחלת המסכה.",
+    "VISAGE.Notifications.SettingsReset": "\u200FVisage | כל ההגדרות אופסו לברירת המחדל.",
 
-    "VISAGE.Warnings.GhostEdit": "תצורת טוקן: Visage או מסכה פעילים כרגע על טוקן זה. שינויים שייעשו כאן ישנו את טוקן ברירת המחדל, לא את ה-Visage או המסכה.",
+    "VISAGE.Warnings.GhostEdit": "\u200FVisage | תצורת טוקן: Visage או מסכה פעילים כרגע על טוקן זה. שינויים שייעשו כאן ישנו את טוקן ברירת המחדל, לא את ה-Visage או המסכה.",
 
     "VISAGE.Directory.Title.Global": "ספריית מסכות",
     "VISAGE.Directory.Title.Local": "גלריית Visage: {actor}",
@@ -60,8 +60,8 @@
     "VISAGE.GlobalEditor.TitleNew.Global": "צור מסכה חדשה",
     "VISAGE.GlobalEditor.TitleNew.Local": "צור Visage חדש",
     
-    "VISAGE.GlobalEditor.TitleEdit": "ערוך מסכה: {name}",
-    "VISAGE.GlobalEditor.Title.Local": "ערוך Visage: {name}",
+    "VISAGE.GlobalEditor.TitleEdit": "ערוך מסכה: \u2068{name}\u2069",
+    "VISAGE.GlobalEditor.Title.Local": "ערוך Visage: \u2068{name}\u2069",
     
     "VISAGE.GlobalEditor.Save.Global": "שמור מסכה",
     "VISAGE.GlobalEditor.Save.Local": "עדכן Visage",
@@ -126,14 +126,33 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "הפוך לברירת מחדל (קבוע)",
     "VISAGE.Dialog.SwapDefault.Title": "עדכון טוקן ברירת מחדל?",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>האם אתה בטוח שברצונך להפוך את <strong>{label}</strong> למראה ברירת המחדל החדש עבור דמות זו?</p><p>ברירת המחדל הנוכחית תישמר כגיבוי.</p>",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>האם אתה בטוח שברצונך להפוך את <strong>\u2068{label}\u2069</strong> למראה ברירת המחדל החדש עבור דמות זו?</p><p>ברירת המחדל הנוכחית תישמר כגיבוי.</p>",
 
     "VISAGE.Settings.ManualMigration.Name": "הגירת נתונים",
     "VISAGE.Settings.ManualMigration.Hint": "הפעל ידנית את סקריפט הגירת הנתונים. השתמש בזה אם ייבאת שחקנים (Actors) ישנים או אם ה-Visages או ה-Masks שלך לא מוצגים כראוי.",
     "VISAGE.Gallery.Action.Promote": "קדֵם ל-Mask גלובלי",
-    "VISAGE.Notifications.Promoted": "'{name}' קודם לספריית ה-Masks הגלובלית.",
+    "VISAGE.Notifications.Promoted": "\u200FVisage | '\u2068{name}\u2069' קודם לספריית ה-Masks הגלובלית.",
 
     "VISAGE.Mirror.Badge.H": "אופקי",
     "VISAGE.Mirror.Badge.V": "אנכי",
-    "VISAGE.Wildcard.Label": "תו כללי"
+    "VISAGE.Wildcard.Label": "תו כללי",
+
+    "VISAGE.Notifications.ExportEmpty": "\u200FVisage | אין פריטים לייצוא.",
+    "VISAGE.Notifications.Exported": "\u200FVisage | יוצאו \u2068{count}\u2069 פריטים.",
+    "VISAGE.Notifications.ImportStats": "\u200FVisage | ייבוא: \u2068{imported}\u2069 נוספו, \u2068{skipped}\u2069 כפילויות דולגו.",
+    "VISAGE.Notifications.ImportEmpty": "\u200FVisage | לא נמצאו פריטים תקינים לייבוא.",
+    "VISAGE.Notifications.ImportError": "\u200FVisage | הייבוא נכשל. בדוק את הקונסולה לפרטים.",
+    "VISAGE.Notifications.CopyStats": "\u200FVisage | הועתק \"\u2068{label}\u2069\" ל-\u2068{count}\u2069 שחקנים (Actors).",
+    "VISAGE.Errors.ImportInvalidFormat": "פורמט לא חוקי: Root חייב להיות מערך (array).",
+    "VISAGE.Actions.Export": "ייצוא",
+    "VISAGE.Actions.Import": "ייבוא",
+    "VISAGE.Gallery.Action.CopyToLocal": "העתק Mask לגלריית Visage של הבחירה",
+    "VISAGE.RotationLock.Label": "נעילת סיבוב",
+    "VISAGE.RotationLock.Hint": "מונע מהטוקן להסתובב עם התנועה שלו.",
+    "VISAGE.RotationLock.Locked": "נעול",
+    "VISAGE.RotationLock.Unlocked": "לא נעול",
+    "VISAGE.RotationLock.Unset": "\u200Fנעילת סיבוב: לא מוגדר",
+    "VISAGE.RotationLock.Off": "\u200Fנעילת סיבוב: כבוי",
+    "VISAGE.RotationLock.On": "\u200Fנעילת סיבוב: פעיל",
+    "VISAGE.Config.Opacity.LabelPercent": "אטימות (%)"
 }

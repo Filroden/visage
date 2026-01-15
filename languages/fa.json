@@ -12,18 +12,18 @@
     "VISAGE.Selector.Wildcard": "توکن الگوی جایگزین",
     "VISAGE.Selector.WildcardAlt": "تصویر تصادفی",
 
-    "VISAGE.Notifications.Created": "Visage ایجاد شد: {name}",
-    "VISAGE.Notifications.Updated": "Visage به‌روزرسانی شد: {name}",
-    "VISAGE.Notifications.Deleted": "Visage حذف شد: {name}",
-    "VISAGE.Notifications.Restored": "Visage بازیابی شد: {name}",
-    "VISAGE.Notifications.Destroyed": "به‌طور دائمی نابود شد: {name}",
-    "VISAGE.Notifications.Applied": "ماسک اعمال شد: {label}",
-    "VISAGE.Notifications.Saved": "تغییرات با موفقیت ذخیره شد.",
-    "VISAGE.Notifications.SaveFailed": "ذخیره داده‌های Visage ناموفق بود.",
-    "VISAGE.Notifications.NoTokens": "هیچ توکنی برای اعمال ماسک انتخاب نشده است.",
-    "VISAGE.Notifications.SettingsReset": "تمام تنظیمات به حالت پیش‌فرض بازنشانی شدند.",
+    "VISAGE.Notifications.Created": "\u200FVisage | Visage ایجاد شد: \u2068{name}\u2069",
+    "VISAGE.Notifications.Updated": "\u200FVisage | Visage به‌روزرسانی شد: \u2068{name}\u2069",
+    "VISAGE.Notifications.Deleted": "\u200FVisage | Visage حذف شد: \u2068{name}\u2069",
+    "VISAGE.Notifications.Restored": "\u200FVisage | Visage بازیابی شد: \u2068{name}\u2069",
+    "VISAGE.Notifications.Destroyed": "\u200FVisage | به‌طور دائمی نابود شد: \u2068{name}\u2069",
+    "VISAGE.Notifications.Applied": "\u200FVisage | ماسک اعمال شد: \u2068{label}\u2069",
+    "VISAGE.Notifications.Saved": "\u200FVisage | تغییرات با موفقیت ذخیره شد.",
+    "VISAGE.Notifications.SaveFailed": "\u200FVisage | ذخیره داده‌های Visage ناموفق بود.",
+    "VISAGE.Notifications.NoTokens": "\u200FVisage | هیچ توکنی برای اعمال ماسک انتخاب نشده است.",
+    "VISAGE.Notifications.SettingsReset": "\u200FVisage | تمام تنظیمات به حالت پیش‌فرض بازنشانی شدند.",
 
-    "VISAGE.Warnings.GhostEdit": "پیکربندی توکن: یک Visage یا ماسک در حال حاضر روی این توکن فعال است. تغییراتی که اینجا انجام دهید، توکن پیش‌فرض را تغییر می‌دهد، نه Visage یا ماسک را.",
+    "VISAGE.Warnings.GhostEdit": "\u200FVisage | پیکربندی توکن: یک Visage یا ماسک در حال حاضر روی این توکن فعال است. تغییراتی که اینجا انجام دهید، توکن پیش‌فرض را تغییر می‌دهد، نه Visage یا ماسک را.",
 
     "VISAGE.Directory.Title.Global": "کتابخانه ماسک",
     "VISAGE.Directory.Title.Local": "گالری Visage: {actor}",
@@ -60,8 +60,8 @@
     "VISAGE.GlobalEditor.TitleNew.Global": "ایجاد ماسک جدید",
     "VISAGE.GlobalEditor.TitleNew.Local": "ایجاد Visage جدید",
     
-    "VISAGE.GlobalEditor.TitleEdit": "ویرایش ماسک: {name}",
-    "VISAGE.GlobalEditor.Title.Local": "ویرایش Visage: {name}",
+    "VISAGE.GlobalEditor.TitleEdit": "ویرایش ماسک: \u2068{name}\u2069",
+    "VISAGE.GlobalEditor.Title.Local": "ویرایش Visage: \u2068{name}\u2069",
     
     "VISAGE.GlobalEditor.Save.Global": "ذخیره ماسک",
     "VISAGE.GlobalEditor.Save.Local": "به‌روزرسانی Visage",
@@ -126,14 +126,33 @@
 
     "VISAGE.Gallery.Action.SwapDefault": "انتخاب به عنوان پیش‌فرض (دائمی)",
     "VISAGE.Dialog.SwapDefault.Title": "به‌روزرسانی توکن پیش‌فرض؟",
-    "VISAGE.Dialog.SwapDefault.Content": "<p>آیا مطمئن هستید که می‌خواهید <strong>{label}</strong> را به عنوان ظاهر پیش‌فرض جدید برای این شخصیت تعیین کنید؟</p><p>پیش‌فرض فعلی به عنوان پشتیبان ذخیره خواهد شد.</p>",
+    "VISAGE.Dialog.SwapDefault.Content": "<p>آیا مطمئن هستید که می‌خواهید <strong>\u2068{label}\u2069</strong> را به عنوان ظاهر پیش‌فرض جدید برای این شخصیت تعیین کنید؟</p><p>پیش‌فرض فعلی به عنوان پشتیبان ذخیره خواهد شد.</p>",
 
     "VISAGE.Settings.ManualMigration.Name": "انتقال داده‌ها",
     "VISAGE.Settings.ManualMigration.Hint": "اجرای دستی اسکریپت انتقال داده. اگر بازیگران (Actors) قدیمی وارد کرده‌اید یا Visageها و Maskهای شما به درستی نمایش داده نمی‌شوند، از این گزینه استفاده کنید.",
     "VISAGE.Gallery.Action.Promote": "ارتقاء به ماسک جهانی",
-    "VISAGE.Notifications.Promoted": "'{name}' به کتابخانه ماسک جهانی ارتقاء یافت.",
+    "VISAGE.Notifications.Promoted": "\u200FVisage | '\u2068{name}\u2069' به کتابخانه ماسک جهانی ارتقاء یافت.",
 
     "VISAGE.Mirror.Badge.H": "افقی",
     "VISAGE.Mirror.Badge.V": "عمودی",
-    "VISAGE.Wildcard.Label": "نویسه عام"
+    "VISAGE.Wildcard.Label": "نویسه عام",
+
+    "VISAGE.Notifications.ExportEmpty": "\u200FVisage | موردی برای خروجی گرفتن وجود ندارد.",
+    "VISAGE.Notifications.Exported": "\u200FVisage | \u2068{count}\u2069 مورد صادر شد.",
+    "VISAGE.Notifications.ImportStats": "\u200FVisage | وارد کردن: \u2068{imported}\u2069 اضافه شد، \u2068{skipped}\u2069 تکراری نادیده گرفته شد.",
+    "VISAGE.Notifications.ImportEmpty": "\u200FVisage | مورد معتبری برای وارد کردن پیدا نشد.",
+    "VISAGE.Notifications.ImportError": "\u200FVisage | وارد کردن ناموفق بود. برای جزئیات کنسول را بررسی کنید.",
+    "VISAGE.Notifications.CopyStats": "\u200FVisage | \"\u2068{label}\u2069\" به \u2068{count}\u2069 بازیگر کپی شد.",
+    "VISAGE.Errors.ImportInvalidFormat": "فرمت نامعتبر: ریشه (Root) باید یک آرایه باشد.",
+    "VISAGE.Actions.Export": "خروجی گرفتن",
+    "VISAGE.Actions.Import": "وارد کردن",
+    "VISAGE.Gallery.Action.CopyToLocal": "کپی ماسک به گالری Visage انتخاب شده",
+    "VISAGE.RotationLock.Label": "قفل چرخش",
+    "VISAGE.RotationLock.Hint": "از چرخش توکن همراه با حرکتش جلوگیری می‌کند.",
+    "VISAGE.RotationLock.Locked": "قفل شده",
+    "VISAGE.RotationLock.Unlocked": "باز شده",
+    "VISAGE.RotationLock.Unset": "\u200Fقفل چرخش: تنظیم نشده",
+    "VISAGE.RotationLock.Off": "\u200Fقفل چرخش: خاموش",
+    "VISAGE.RotationLock.On": "\u200Fقفل چرخش: روشن",
+    "VISAGE.Config.Opacity.LabelPercent": "شفافیت (%)"
 }
