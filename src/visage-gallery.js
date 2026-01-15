@@ -1,8 +1,8 @@
-/* visage-gallery.js */
 import { Visage } from "./visage.js";
 import { VisageData } from "./visage-data.js"; 
 import { VisageEditor } from "./visage-editor.js";
 import { VisageUtilities } from "./visage-utilities.js";
+import { cleanVisageData } from "./visage-migration.js"; // <--- ADDED THIS IMPORT
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -112,7 +112,10 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleTag: VisageGallery.prototype._onToggleTag,
             clearTags: VisageGallery.prototype._onClearTags,
             swapDefault: VisageGallery.prototype._onSwapDefault,
-            promote: VisageGallery.prototype._onPromote 
+            promote: VisageGallery.prototype._onPromote,
+            copyToLocal: VisageGallery.prototype._onCopyToLocal,
+            export: VisageGallery.prototype._onExport,
+            import: VisageGallery.prototype._onImport
         }
     };
 
@@ -340,14 +343,56 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Action: Promote to Library.
-     * Copies a Local Visage to the Global Mask Library.
+     * Action: Promote to Library (Local -> Global).
      */
     async _onPromote(event, target) {
         const visageId = target.dataset.visageId;
         if (!visageId || !this.isLocal) return;
         
         await VisageData.promote(this.actor, visageId);
+    }
+
+    /**
+     * Action: Copy to Visage (Global -> Local).
+     * Copies the selected Mask from the Library to the Actors of all selected tokens.
+     */
+    async _onCopyToLocal(event, target) {
+        if (this.isLocal) return; // Only valid in Global Library
+
+        // 1. Get Global Data
+        const card = target.closest(".visage-card");
+        const id = card.dataset.id;
+        const globalMask = VisageData.getGlobal(id);
+        if (!globalMask) return;
+
+        // 2. Identify Targets
+        // Matches "Apply" logic: owned tokens on canvas.
+        const tokens = canvas.tokens.controlled.filter(t => t.document.isOwner);
+        if (tokens.length === 0) return ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
+
+        // 3. Deduplicate Actors
+        // If we select 3 Goblins (same actor), we only want to copy the visage once to the "Goblin" actor.
+        const targetActors = new Set(tokens.map(t => t.actor).filter(a => a));
+
+        // 4. Copy Operation
+        let count = 0;
+        for (const actor of targetActors) {
+            // Construct payload without ID (to force generation of a new Local ID)
+            const payload = {
+                label: globalMask.label,
+                category: globalMask.category,
+                tags: globalMask.tags ? [...globalMask.tags] : [],
+                changes: foundry.utils.deepClone(globalMask.changes)
+            };
+
+            await VisageData.save(payload, actor);
+            count++;
+        }
+
+        ui.notifications.info(game.i18n.format("VISAGE.Notifications.CopyStats", { 
+            label: globalMask.label, 
+            count: count 
+        }));
     }
 
     /**
@@ -374,6 +419,101 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             console.error(err);
             ui.notifications.error("Visage | Failed to swap default.");
         }
+    }
+
+    /**
+     * Action: Export Visages/Masks.
+     * Dumps the current context (Active Local or Active Global) to a JSON file.
+     * Excludes deleted items.
+     */
+    async _onExport(event, target) {
+        let data;
+        let filename;
+
+        if (this.isLocal) {
+            // Local Export: Filter to only active items (exclude 'deleted')
+            data = VisageData.getLocal(this.actor).filter(v => !v.deleted);
+            // Sanitize filename to prevent OS issues
+            const safeName = this.actor.name.replace(/[^a-z0-9]/gi, '_');
+            filename = `Visage_Local_${safeName}.json`;
+        } else {
+            // Global Export: Globals getter already filters out deleted items
+            data = VisageData.globals;
+            filename = "Visage_Global_Library.json";
+        }
+
+        if (data.length === 0) {
+            return ui.notifications.warn("VISAGE.Notifications.ExportEmpty", { localize: true });
+        }
+        
+        saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
+        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Exported", { count: data.length }));
+    }
+
+    /**
+     * Action: Import Visages/Masks.
+     * Reads a JSON file, sanitizes data, and imports non-duplicate items.
+     */
+    async _onImport(event, target) {
+        // Create hidden file input
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json";
+        
+        input.onchange = async () => {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (!Array.isArray(json)) throw new Error(game.i18n.localize("VISAGE.Errors.ImportInvalidFormat"));
+
+                    let imported = 0;
+                    let skipped = 0;
+
+                    // Fetch existing items to check for duplicates (UUID collision)
+                    const currentItems = this.isLocal ? VisageData.getLocal(this.actor) : VisageData.globals;
+                    const currentIds = new Set(currentItems.map(i => i.id));
+
+                    for (const entry of json) {
+                        // 1. Sanitize & Migrate (using v2.2 schema cleaner)
+                        const cleanEntry = cleanVisageData(entry);
+                        
+                        // 2. Basic Validation
+                        if (!cleanEntry.id || !cleanEntry.changes) continue;
+
+                        // 3. Duplicate Check: If UUID exists, SKIP.
+                        if (currentIds.has(cleanEntry.id)) {
+                            skipped++;
+                            continue;
+                        }
+
+                        // 4. Save (Context Aware)
+                        await VisageData.save(cleanEntry, this.isLocal ? this.actor : null);
+                        imported++;
+                    }
+
+                    if (imported > 0 || skipped > 0) {
+                        ui.notifications.info(game.i18n.format("VISAGE.Notifications.ImportStats", {
+                            imported: imported,
+                            skipped: skipped
+                        }));
+                        this.render();
+                    } else {
+                        ui.notifications.warn("VISAGE.Notifications.ImportEmpty", { localize: true });
+                    }
+
+                } catch (err) {
+                    console.error("Visage | Import Failed:", err);
+                    ui.notifications.error("VISAGE.Notifications.ImportError", { localize: true });
+                }
+            };
+            reader.readAsText(file);
+        };
+        
+        input.click();
     }
 
     _onDragStart(event) {
