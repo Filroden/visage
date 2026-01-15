@@ -146,5 +146,15 @@
     "VISAGE.Errors.ImportInvalidFormat": "Invalid format: Root must be an array.",
     "VISAGE.Actions.Export": "Export",
     "VISAGE.Actions.Import": "Import",
-    "VISAGE.Gallery.Action.CopyToLocal": "Copy Mask to Visage Gallery of selection"
+    "VISAGE.Gallery.Action.CopyToLocal": "Copy Mask to Visage Gallery of selection",
+
+    "VISAGE.RotationLock.Label": "Rotation Lock",
+    "VISAGE.RotationLock.Hint": "Prevents the token from rotating with its movement.",
+    "VISAGE.RotationLock.Locked": "Locked",
+    "VISAGE.RotationLock.Unlocked": "Unlocked",
+    "VISAGE.RotationLock.Unset": "Rotation Lock: Unset",
+    "VISAGE.RotationLock.Off": "Rotation Lock: Off",
+    "VISAGE.RotationLock.On": "Rotation Lock: On",
+    
+    "VISAGE.Config.Opacity.LabelPercent": "Opacity (%)"
 }
