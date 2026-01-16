@@ -424,7 +424,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         const safeName = source.label.replace(/[^a-z0-9]/gi, '_');
         const filename = `Visage_${safeName}.json`;
         
-        saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
+        foundry.utils.saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
         target.closest('.visage-popover-menu').classList.remove('active');
     }
 
@@ -532,7 +532,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             return ui.notifications.warn("VISAGE.Notifications.ExportEmpty", { localize: true });
         }
         
-        saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
+        foundry.utils.saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
         ui.notifications.info(game.i18n.format("VISAGE.Notifications.Exported", { count: data.length }));
     }
 
