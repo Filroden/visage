@@ -125,13 +125,16 @@ Software and associated documentation files in this repository are covered by an
 
 ## Roadmap
 
+### Short term (v2.4.0)
+
+* **Context Menus:** Introduce a "More Actions" (kebab) menu to Gallery and Library cards to declutter the interface while making advanced actions accessible.
+* **Extended Actions:** Add support for duplicating existing Masks or Visages and exporting individual entries.
+* **Transition Animations:** Restore smooth transition animations when swapping Visages, leveraging the improved data architecture to prevent race conditions.
+
 ### Medium term (v3.0.0)
 
-* **Unified Card Architecture:** Refactoring UI for greater consistency.
-* **Improve the display of metadata and actions**: As part of the UI re-design, create a cleaner display for metadata and actions for the selected Mask or Visage.
-* **Additional Mask/Visage actions:** export individual Masks or Visages, create duplicates of existing Masks or Visages.
+* **Sequencer Integration:** Deep integration with the **Sequencer** module (and libraries like JB2A/PSFX). Allow users to attach specific visual effects and sounds to a Visage or Mask that trigger automatically when applied or removed, or remain as a persistant effect.
 
 ### Long term (no promises!)
 
-* **JB2A/PSFX or Sequencer integration:** Look to integrate with JB2A animated assets and PSFX sounds (probably via Sequencer) so they can be configured to each Mask or Visage and play when applied.
-* **Visual FX Layers:** Integration with PIXI filters for true visual effects (Bloom, Glitch, Opacity adjustments, etc.). The idea here is to create a power-user tool to create your own tokens by blending multiple images/videos through normal blend modes (screen, overlay, etc), or to add simple effects like colour tints.
+* **Visual FX Layers/token image builder:** Integration with PIXI filters for true visual effects (Bloom, Glitch, Opacity adjustments, etc.). The idea here is to create a power-user tool to create your own tokens by blending multiple images/videos through normal blend modes (screen, overlay, etc), or to add simple effects like colour tints.
