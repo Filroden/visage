@@ -157,5 +157,13 @@
     "VISAGE.RotationLock.Unset": "Forgatás zárolása: Nincs beállítva",
     "VISAGE.RotationLock.Off": "Forgatás zárolása: Ki",
     "VISAGE.RotationLock.On": "Forgatás zárolása: Be",
-    "VISAGE.Config.Opacity.LabelPercent": "Átlátszatlanság (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Átlátszatlanság (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "További műveletek",
+    "VISAGE.Actions.Duplicate": "Másolat készítése",
+    "VISAGE.Actions.MakeDefault": "Beállítás alapértelmezettként",
+    "VISAGE.Actions.Promote": "Kiemelés globálissá",
+    "VISAGE.Actions.CopyToSelection": "Másolás a kijelölésbe",
+    "VISAGE.Actions.Delete": "Törlés",
+    "VISAGE.Suffix.Copy": " (Másolat)"
 }

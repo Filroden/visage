@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Rotationssperre: Nicht gesetzt",
     "VISAGE.RotationLock.Off": "Rotationssperre: Aus",
     "VISAGE.RotationLock.On": "Rotationssperre: An",
-    "VISAGE.Config.Opacity.LabelPercent": "Deckkraft (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Deckkraft (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Mehr Aktionen",
+    "VISAGE.Actions.Duplicate": "Duplizieren",
+    "VISAGE.Actions.MakeDefault": "Als Standard festlegen",
+    "VISAGE.Actions.Promote": "Zu Global hochstufen",
+    "VISAGE.Actions.CopyToSelection": "In Auswahl kopieren",
+    "VISAGE.Actions.Delete": "Löschen",
+    "VISAGE.Suffix.Copy": " (Kopie)"
 }

@@ -25,7 +25,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.isDirty = false;
         
         // Dynamic Icon: Domino Mask for Global, Face Mask for Local
-        this.options.window.icon = !this.isLocal ? "visage-icon-domino" : "visage-header-icon";
+        this.options.window.icon = !this.isLocal ? "visage-icon-domino" : "visage-icon-mask";
     }
 
     /**

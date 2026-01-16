@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "\u200Fנעילת סיבוב: לא מוגדר",
     "VISAGE.RotationLock.Off": "\u200Fנעילת סיבוב: כבוי",
     "VISAGE.RotationLock.On": "\u200Fנעילת סיבוב: פעיל",
-    "VISAGE.Config.Opacity.LabelPercent": "אטימות (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "אטימות (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "פעולות נוספות",
+    "VISAGE.Actions.Duplicate": "שכפל",
+    "VISAGE.Actions.MakeDefault": "קבע כברירת מחדל",
+    "VISAGE.Actions.Promote": "קדם לגלובלי",
+    "VISAGE.Actions.CopyToSelection": "העתק לבחירה",
+    "VISAGE.Actions.Delete": "מחק",
+    "VISAGE.Suffix.Copy": " (עותק)"
 }

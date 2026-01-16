@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Bloqueio de Rotação: Não definido",
     "VISAGE.RotationLock.Off": "Bloqueio de Rotação: Desligado",
     "VISAGE.RotationLock.On": "Bloqueio de Rotação: Ligado",
-    "VISAGE.Config.Opacity.LabelPercent": "Opacidade (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Opacidade (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Mais Ações",
+    "VISAGE.Actions.Duplicate": "Duplicar",
+    "VISAGE.Actions.MakeDefault": "Tornar Padrão",
+    "VISAGE.Actions.Promote": "Promover para Global",
+    "VISAGE.Actions.CopyToSelection": "Copiar para Seleção",
+    "VISAGE.Actions.Delete": "Excluir",
+    "VISAGE.Suffix.Copy": " (Cópia)"
 }

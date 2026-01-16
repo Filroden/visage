@@ -6,11 +6,12 @@
  * 2. Shared Styles
  * 3. Application: Universal Shell
  * 4. Application: Visage Selector (HUD)
- * 5. Actor Sheet Header Icon
+ * 5. Icons
  * 6. Application: Visage Editor
  * 7. Application: Visage Gallery
- * 8. Scene Control Integration
- * 9. Theme Definitions (The Engine)
+ * 8. Popout Menu
+ * 9. Scene Control Integration
+ * 10. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
@@ -772,38 +773,100 @@
 .visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
 
 /* ==========================================================================
-   5. Actor Sheet Header Icon
+   5. Icons
    ========================================================================== */
 
-.visage-icon-mask,
-.visage-icon-domino {
+.visage-icon {
     display: inline-block;
-    width: var(--filroden-font-size-m);
-    height: var(--filroden-font-size-m);
+    /* Use em to scale with text, preventing huge icons in small buttons */
+    width: var(--filroden-font-size-l); 
+    height: var(--filroden-font-size-l);
+    min-width: var(--filroden-font-size-l);
     background-color: currentColor;
     background-image: none !important;
-    margin-inline-end: var(--filroden-space-xs);
-    vertical-align: middle;
+    vertical-align: -0.125em; 
     content: "";
     transform: scaleX(var(--filroden-dir-flip));
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    margin: 0;
+    margin-inline-end: var(--filroden-space-xs);
 }
 
-.visage-icon-mask {
-    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / contain;
-    mask: url('../icons/switch_account.svg') no-repeat center / contain;
+.visage-sidebar .search-bar .visage-icon.search {
+    position: absolute;
+    width: var(--filroden-font-size-l);
+    height: var(--filroden-font-size-l);
+    top: 50%;
+    inset-inline-start: var(--filroden-space-s);
+    transform: translateY(-50%);
+    color: var(--filroden-color-text-muted);
+    z-index: 2;
+    pointer-events: none;
+    margin: 0;
 }
 
+/* Header Icon Aliases */
+/* These map the legacy class names used in JS to the new SVG system */
 .visage-icon-domino {
-    -webkit-mask: url('../icons/domino_mask.svg') no-repeat center / contain;
-    mask: url('../icons/domino_mask.svg') no-repeat center / contain;
+    display: inline-block;
+    width: var(--filroden-font-size-l);
+    height: var(--filroden-font-size-l);
+    background-color: currentColor;
+    -webkit-mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
+    mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
+    margin-inline-end: 0.5rem;
 }
 
-.context-items .visage-icon-mask {
-    height: 1.25em;
-    width: 1.25em;
-    align-self: center;
-    position: relative;
-    top: -1px;
+.visage-icon-mask, 
+.visage-header-icon {
+    display: inline-block;
+    width: var(--filroden-font-size-l);
+    height: var(--filroden-font-size-l);
+    background-color: currentColor;
+    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / 100% 100%;
+    mask: url('../icons/switch_account.svg') no-repeat center / 100% 100%;
+    margin-inline-end: 0.5rem;
+}
+
+/* Specific Mappings */
+.visage-icon.play        { -webkit-mask-image: url('../icons/play_arrow.svg'); mask-image: url('../icons/play_arrow.svg'); }
+.visage-icon.edit        { -webkit-mask-image: url('../icons/edit_square.svg'); mask-image: url('../icons/edit_square.svg'); }
+.visage-icon.delete      { -webkit-mask-image: url('../icons/delete.svg'); mask-image: url('../icons/delete.svg'); }
+.visage-icon.save        { -webkit-mask-image: url('../icons/file_save.svg'); mask-image: url('../icons/file_save.svg'); }
+.visage-icon.open        { -webkit-mask-image: url('../icons/file_open.svg'); mask-image: url('../icons/file_open.svg'); }
+.visage-icon.copy        { -webkit-mask-image: url('../icons/content_copy.svg'); mask-image: url('../icons/content_copy.svg'); }
+.visage-icon.library     { -webkit-mask-image: url('../icons/menu_book.svg'); mask-image: url('../icons/menu_book.svg'); }
+.visage-icon.add         { -webkit-mask-image: url('../icons/add.svg'); mask-image: url('../icons/add.svg'); }
+.visage-icon.filter      { -webkit-mask-image: url('../icons/filter.svg'); mask-image: url('../icons/filter.svg'); }
+.visage-icon.search      { -webkit-mask-image: url('../icons/search.svg'); mask-image: url('../icons/search.svg'); }
+.visage-icon.kebab       { -webkit-mask-image: url('../icons/more_vert.svg'); mask-image: url('../icons/more_vert.svg'); }
+.visage-icon.close       { -webkit-mask-image: url('../icons/close.svg'); mask-image: url('../icons/close.svg'); }
+.visage-icon.sync        { -webkit-mask-image: url('../icons/sync_alt.svg'); mask-image: url('../icons/sync_alt.svg'); }
+.visage-icon.domino      { -webkit-mask-image: url('../icons/domino_mask.svg'); mask-image: url('../icons/domino_mask.svg'); }
+.visage-icon.visage      { -webkit-mask-image: url('../icons/switch_account.svg'); mask-image: url('../icons/switch_account.svg'); }
+
+#token-hud .control-icon .visage-icon,
+#token-hud .control-icon .visage-icon-mask,
+#token-hud .control-icon .visage-icon-domino {
+    display: block; 
+    margin: auto;
+    width: 26px;
+    height: 26px;
+    vertical-align: baseline;
+    transform: none; 
+    background-color: inherit; 
+    opacity: 0.8;
+}
+
+#token-hud .control-icon:hover .visage-icon,
+#token-hud .control-icon:hover .visage-icon-mask,
+#token-hud .control-icon:hover .visage-icon-domino {
+    opacity: 1;
 }
 
 
@@ -1078,8 +1141,7 @@
 }
 
 .visage-sidebar {
-    width: 16rem;
-    flex: 0 0 16rem;
+    flex: 0 0 17rem;
     background: rgba(0, 0, 0, 0.25);
     border-inline-end: 1px solid var(--filroden-color-border);
     display: flex;
@@ -1353,23 +1415,30 @@
     background: var(--visage-color-bg-light);
     border: 1px solid var(--visage-color-border);
     border-radius: var(--filroden-radius-medium);
-    overflow: hidden;
+    overflow: visible; 
     display: flex;
     flex-direction: column;
     height: 15rem;
     width: 100%;
     box-shadow: var(--filroden-shadow-card);
     transition: border-color 0.2s;
+    position: relative; /* Context for z-index */
+    z-index: 1; /* Base z-index */
 }
 .visage-card:hover { 
-    border-color: var(--visage-color-accent); 
+    border-color: var(--visage-color-accent);
+    z-index: 100; /* Bring to front on hover so menu overlaps neighbours */
+}
+.visage-card:has(.visage-popover-menu.active) { 
+    border-color: var(--visage-color-accent);
+    z-index: 200; 
 }
 
 .card-body {
     flex: 1;
     display: flex;
     flex-direction: row;
-    overflow: hidden;
+    overflow: visible; 
     margin: var(--filroden-space-xs) var(--filroden-space-xs) 0 var(--filroden-space-xs); 
     border-radius: var(--filroden-radius-medium);
     border: 1px solid rgba(0,0,0,0.5);
@@ -1385,6 +1454,12 @@
     padding: var(--filroden-space-m);
     gap: var(--filroden-space-s);
     flex-shrink: 0;
+    border-top-left-radius: var(--filroden-radius-medium);
+    border-top-right-radius: 0;
+}
+.visage[dir="rtl"] .card-zone-left {
+    border-top-left-radius: 0;
+    border-top-right-radius: var(--filroden-radius-medium);
 }
 
 .metadata-slot {
@@ -1595,6 +1670,12 @@
     justify-content: center;
     gap: var(--filroden-space-xs);
     padding: var(--filroden-space-xs) 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: var(--filroden-radius-medium);
+}
+.visage[dir="rtl"] .card-zone-right {
+    border-top-right-radius: 0;
+    border-top-left-radius: var(--filroden-radius-medium);
 }
 
 .card-zone-right button {
@@ -1728,7 +1809,84 @@
 
 
 /* ==========================================================================
-   8. SCENE CONTROL INTEGRATION
+   8. POPOUT MENU (Kebab Actions)
+   ========================================================================== */
+
+.visage-menu-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.visage-popover-menu {
+    position: absolute;
+    top: 0;
+    inset-inline-end: 3.5rem;
+    
+    min-width: 10rem;
+    background: var(--visage-color-bg-light);
+    border: 1px solid var(--visage-color-accent);
+    border-radius: var(--filroden-radius-medium);
+    box-shadow: var(--filroden-shadow-popout);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    padding: var(--filroden-space-xs);
+    gap: var(--filroden-space-xxs);
+    
+    /* Animation */
+    opacity: 0;
+    transform: translateX(10px);
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.visage-popover-menu.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+}
+
+.visage-popover-menu button {
+    width: 100%;
+    height: auto;
+    padding: var(--filroden-space-xs) var(--filroden-space-m);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--filroden-space-s);
+    background: transparent;
+    border: none;
+    color: var(--visage-color-text-main-solid);
+    font-size: var(--filroden-font-size-xs);
+    text-align: start;
+    border-radius: var(--filroden-radius-small);
+}
+
+.visage-popover-menu button:hover {
+    background: var(--visage-color-accent);
+    color: var(--visage-color-text-on-accent);
+    box-shadow: none;
+}
+
+.visage-popover-menu hr {
+    width: 100%;
+    height: 1px;
+    background: var(--visage-color-border);
+    border: none;
+    margin: var(--filroden-space-xxs) 0;
+}
+
+.visage-popover-menu button.danger:hover {
+    background: var(--filroden-color-danger);
+    color: white;
+}
+
+
+/* ==========================================================================
+   9. SCENE CONTROL INTEGRATION
    ========================================================================== */
 
 .visage-tool-icon::before {
@@ -1752,7 +1910,7 @@ button.visage-tool-icon {
 }
 
 /* ==========================================================================
-   9. UNIFIED THEME DEFINITIONS (The Engine)
+   10. UNIFIED THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
 /* 1. UNIVERSAL DEFAULTS (The Foundation)

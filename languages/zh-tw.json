@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "旋轉鎖定：未設置",
     "VISAGE.RotationLock.Off": "旋轉鎖定：關閉",
     "VISAGE.RotationLock.On": "旋轉鎖定：開啟",
-    "VISAGE.Config.Opacity.LabelPercent": "不透明度 (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "不透明度 (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "更多操作",
+    "VISAGE.Actions.Duplicate": "複製",
+    "VISAGE.Actions.MakeDefault": "設為預設",
+    "VISAGE.Actions.Promote": "提升為全局",
+    "VISAGE.Actions.CopyToSelection": "複製到選取項目",
+    "VISAGE.Actions.Delete": "刪除",
+    "VISAGE.Suffix.Copy": " (副本)"
 }

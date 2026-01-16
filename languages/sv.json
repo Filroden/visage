@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Rotationslås: Ej inställt",
     "VISAGE.RotationLock.Off": "Rotationslås: Av",
     "VISAGE.RotationLock.On": "Rotationslås: På",
-    "VISAGE.Config.Opacity.LabelPercent": "Opacitet (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Opacitet (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Fler åtgärder",
+    "VISAGE.Actions.Duplicate": "Duplicera",
+    "VISAGE.Actions.MakeDefault": "Gör till standard",
+    "VISAGE.Actions.Promote": "Upphöj till global",
+    "VISAGE.Actions.CopyToSelection": "Kopiera till markering",
+    "VISAGE.Actions.Delete": "Ta bort",
+    "VISAGE.Suffix.Copy": " (Kopia)"
 }

@@ -28,9 +28,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         
         // Theme Adaptation: Different icons/styles help users distinguish modes instantly.
         if (!this.isLocal) {
-            this.options.window.icon = "visage-icon-domino"; // Global (Masks)
+            this.options.window.icon = "visage-icon-domino"; // Global
         } else {
-            this.options.window.icon = "visage-icon-mask";   // Local (Identities)
+            this.options.window.icon = "visage-icon-mask";   // Local
         }
         
         this.filters = {
@@ -115,7 +115,10 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             promote: VisageGallery.prototype._onPromote,
             copyToLocal: VisageGallery.prototype._onCopyToLocal,
             export: VisageGallery.prototype._onExport,
-            import: VisageGallery.prototype._onImport
+            import: VisageGallery.prototype._onImport,
+            toggleMenu: VisageGallery.prototype._onToggleMenu,
+            duplicate: VisageGallery.prototype._onDuplicate,
+            exportIndividual: VisageGallery.prototype._onExportIndividual
         }
     };
 
@@ -306,6 +309,19 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             this._dataListener = Hooks.on("visageDataChanged", () => this.render());
         }
 
+        // Global Click Listener to close popout menus
+        if (!this._clickListener) {
+            this._clickListener = (event) => {
+                // If click is NOT inside a toggle button or a menu, close all menus
+                if (!event.target.closest('[data-action="toggleMenu"]') && !event.target.closest('.visage-popover-menu')) {
+                    this.element.querySelectorAll('.visage-popover-menu.active').forEach(menu => {
+                        menu.classList.remove('active');
+                    });
+                }
+            };
+            this.element.addEventListener('click', this._clickListener);
+        }
+
         // Search Debounce
         const searchInput = this.element.querySelector(".search-bar input");
         if (searchInput) {
@@ -340,6 +356,76 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             const cards = this.element.querySelectorAll(".visage-card");
             cards.forEach(card => card.removeAttribute("draggable"));
         }
+    }
+
+    /**
+     * Action: Toggle Card Menu (Kebab).
+     */
+    _onToggleMenu(event, target) {
+        // Close all other menus first
+        this.element.querySelectorAll('.visage-popover-menu.active').forEach(menu => {
+            if (menu !== target.nextElementSibling) menu.classList.remove('active');
+        });
+        
+        // Toggle this menu
+        const menu = target.nextElementSibling;
+        if (menu) menu.classList.toggle('active');
+    }
+
+    /**
+     * Action: Duplicate.
+     * Creates a copy of the selected item with "(Copy)" appended to the name.
+     */
+    async _onDuplicate(event, target) {
+        const card = target.closest(".visage-card");
+        const id = card.dataset.id;
+        
+        let source;
+        if (this.isLocal) {
+            source = VisageData.getLocal(this.actor).find(v => v.id === id);
+        } else {
+            source = VisageData.getGlobal(id);
+        }
+
+        if (!source) return;
+
+        const copySuffix = game.i18n.localize("VISAGE.Suffix.Copy");
+        const copy = {
+            label: `${source.label}${copySuffix}`,
+            category: source.category,
+            tags: source.tags ? [...source.tags] : [],
+            changes: foundry.utils.deepClone(source.changes)
+        };
+
+        await VisageData.save(copy, this.isLocal ? this.actor : null);
+        
+        // Hide menu
+        target.closest('.visage-popover-menu').classList.remove('active');
+    }
+
+    /**
+     * Action: Export Individual.
+     */
+    async _onExportIndividual(event, target) {
+        const card = target.closest(".visage-card");
+        const id = card.dataset.id;
+        
+        let source;
+        if (this.isLocal) {
+            source = VisageData.getLocal(this.actor).find(v => v.id === id);
+        } else {
+            source = VisageData.getGlobal(id);
+        }
+
+        if (!source) return;
+
+        // Wrap in array for consistency with bulk import logic
+        const data = [source];
+        const safeName = source.label.replace(/[^a-z0-9]/gi, '_');
+        const filename = `Visage_${safeName}.json`;
+        
+        foundry.utils.saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
+        target.closest('.visage-popover-menu').classList.remove('active');
     }
 
     /**
@@ -446,7 +532,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             return ui.notifications.warn("VISAGE.Notifications.ExportEmpty", { localize: true });
         }
         
-        saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
+        foundry.utils.saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
         ui.notifications.info(game.i18n.format("VISAGE.Notifications.Exported", { count: data.length }));
     }
 

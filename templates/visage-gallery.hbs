@@ -6,16 +6,16 @@
         {{!-- MODE SWITCHER (TABS) --}}
         <div class="visage-mode-switcher">
             <button type="button" class="{{#unless isBin}}active{{/unless}}" data-action="toggleBin" data-mode="library">
-                <i class="fas fa-book-open"></i> {{modeLabel}}
+                <i class="visage-icon library"></i> {{modeLabel}}
             </button>
             <button type="button" class="{{#if isBin}}active{{/if}}" data-action="toggleBin" data-mode="bin">
-                <i class="fas fa-trash"></i> {{localize "VISAGE.Directory.Mode.Bin"}}
+                <i class="visage-icon delete"></i> {{localize "VISAGE.Directory.Mode.Bin"}}
             </button>
         </div>
 
         {{!-- SEARCH --}}
         <div class="search-bar">
-            <i class="fas fa-search"></i>
+            <i class="visage-icon search"></i>
             <input type="text" value="{{filters.search}}" placeholder="{{localize 'VISAGE.Directory.SearchPlaceholder'}}">
             {{#if filters.search}}
             <a data-action="clearSearch"><i class="fas fa-times"></i></a>
@@ -25,7 +25,7 @@
         {{!-- CREATE BTN --}}
         {{#unless isBin}}
         <button class="visage-create-btn" data-action="create">
-            <i class="fas fa-plus"></i> 
+            <i class="visage-icon add"></i> 
             {{#if isLocal}}
                 {{localize "VISAGE.Directory.CreateNew.Local"}}
             {{else}}
@@ -51,10 +51,10 @@
 
         <div class="visage-sidebar-actions">
             <button type="button" data-action="export" class="visage-action-btn" data-tooltip="VISAGE.Actions.Export">
-                <i class="fas fa-file-export"></i> {{localize "VISAGE.Actions.Export"}}
+                <i class="visage-icon save"></i> {{localize "VISAGE.Actions.Export"}}
             </button>
             <button type="button" data-action="import" class="visage-action-btn" data-tooltip="VISAGE.Actions.Import">
-                <i class="fas fa-file-import"></i> {{localize "VISAGE.Actions.Import"}}
+                <i class="visage-icon open"></i> {{localize "VISAGE.Actions.Import"}}
             </button>
         </div>
 
@@ -66,7 +66,7 @@
         {{!-- TAG FILTER BAR --}}
         {{#if hasFilterBar}}
         <div class="visage-filter-bar">
-            <i class="fas fa-filter filter-icon" title="{{localize 'VISAGE.Directory.Filters'}}"></i>
+            <i class="visage-icon filter filter-icon" title="{{localize 'VISAGE.Directory.Filters'}}"></i>
             
             <div class="filter-pills">
                 {{#each activeTags}}
@@ -114,7 +114,7 @@
                         {{!-- SCALE SLOT --}}
                         <div class="metadata-slot {{#unless this.meta.slots.scale.active}}inactive{{/unless}}" 
                              data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Scale'}}">
-                            <i class="fas fa-ruler-combined"></i>
+                             <i class="fas fa-ruler-combined"></i>
                             <span class="slot-value">{{this.meta.slots.scale.val}}</span>
                         </div>
 
@@ -127,7 +127,7 @@
 
                         {{!-- HORIZONTAL FLIP SLOT --}}
                         <div class="metadata-slot flip-h-slot {{#unless this.meta.slots.flipH.active}}inactive{{/unless}}"
-                             data-tooltip="{{localize 'VISAGE.Mirror.Horizontal.Label'}}">
+                              data-tooltip="{{localize 'VISAGE.Mirror.Horizontal.Label'}}">
                             <img src="{{this.meta.slots.flipH.src}}" class="visage-icon-nav {{this.meta.slots.flipH.cls}}"/>
                             <span class="slot-value">{{this.meta.slots.flipH.val}}</span>
                         </div>
@@ -135,7 +135,7 @@
                         {{!-- VERTICAL FLIP SLOT --}}
                         <div class="metadata-slot flip-v-slot {{#unless this.meta.slots.flipV.active}}inactive{{/unless}}"
                              data-tooltip="{{localize 'VISAGE.Mirror.Vertical.Label'}}">
-                            <img src="{{this.meta.slots.flipV.src}}" class="visage-icon-nav {{this.meta.slots.flipV.cls}}"/>
+                             <img src="{{this.meta.slots.flipV.src}}" class="visage-icon-nav {{this.meta.slots.flipV.cls}}"/>
                             <span class="slot-value">{{this.meta.slots.flipV.val}}</span>
                         </div>
 
@@ -143,12 +143,12 @@
                         <div class="metadata-slot wildcard-slot {{#unless this.meta.slots.wildcard.active}}inactive{{/unless}}"
                             data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Wildcard'}}">
                             <i class="fas fa-random"></i>
-                            <span class="slot-value">{{this.meta.slots.wildcard.val}}</span>
+                             <span class="slot-value">{{this.meta.slots.wildcard.val}}</span>
                         </div>
 
                         {{!-- DISPOSITION SLOT --}}
                         <div class="metadata-slot disposition-slot">
-                            <div class="visage-disposition-chip {{this.meta.slots.disposition.class}}">
+                             <div class="visage-disposition-chip {{this.meta.slots.disposition.class}}">
                                 {{this.meta.slots.disposition.val}}
                             </div>
                         </div>
@@ -176,7 +176,7 @@
                         </div>
                         
                         {{#if this.meta.tokenName}}
-                           <div class="token-name-label">{{this.meta.tokenName}}</div>
+                        <div class="token-name-label">{{this.meta.tokenName}}</div>
                         {{/if}}
                     </div>
 
@@ -187,30 +187,52 @@
                             <button data-action="destroy" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Destroy'}}" class="danger"><i class="fas fa-ban"></i></button>
                         {{else}}
                             
-                            {{!-- APPLY (Always visible) --}}
+                            {{!-- 1. APPLY (Play) --}}
                             {{#if ../isLocal}}
-                                <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Activate'}}"><i class="fas fa-play"></i></button>
+                                <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Activate'}}"><i class="visage-icon play"></i></button>
                             {{else}}
-                                <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Apply'}}"><i class="fas fa-play"></i></button>
+                                <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Apply'}}"><i class="visage-icon play"></i></button>
                             {{/if}}
                             
                             {{#unless this.isDefault}}
-                                {{!-- EDIT (Visible in both modes) --}}
-                                <button data-action="edit" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Edit'}}"><i class="fas fa-edit"></i></button>
+                                {{!-- 2. EDIT --}}
+                                <button data-action="edit" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Edit'}}"><i class="visage-icon edit"></i></button>
                                 
-                                {{#if ../isLocal}}
-                                    {{!-- SWAP DEFAULT (Local Only) --}}
-                                    <button data-action="swapDefault" data-tooltip="{{localize 'VISAGE.Gallery.Action.SwapDefault'}}" data-visage-id="{{this.id}}"><i class="fas fa-exchange-alt"></i></button>
-                                    
-                                    {{!-- PROMOTE (Local Only) --}}
-                                    <button data-action="promote" data-tooltip="{{localize 'VISAGE.Gallery.Action.Promote'}}"  data-visage-id="{{this.id}}"><i class="visage-icon-action domino"></i></button>
-                                {{else}}
-                                    {{!-- COPY TO VISAGE (Global Only) --}}
-                                    <button data-action="copyToLocal" data-tooltip="{{localize 'VISAGE.Gallery.Action.CopyToLocal'}}"><i class="visage-icon-action visage"></i></button>
-                                {{/if}}
+                                {{!-- 3. MENU WRAPPER --}}
+                                <div class="visage-menu-wrapper">
+                                    {{!-- TOGGLE --}}
+                                    <button data-action="toggleMenu" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.MoreActions'}}"><i class="visage-icon kebab"></i></button>
 
-                                {{!-- DELETE (Visible in both modes) --}}
-                                <button data-action="delete" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Delete'}}" class="danger"><i class="fas fa-trash"></i></button>
+                                    {{!-- POPOUT MENU --}}
+                                    <div class="visage-popover-menu">
+                                        {{!-- DUPLICATE --}}
+                                        <button data-action="duplicate"><i class="visage-icon copy"></i> {{localize "VISAGE.Actions.Duplicate"}}</button>
+                                        
+                                        {{!-- EXPORT INDIVIDUAL --}}
+                                        <button data-action="exportIndividual"><i class="visage-icon save"></i> {{localize "VISAGE.Actions.Export"}}</button>
+
+                                        <hr>
+
+                                        {{#if ../isLocal}}
+                                            {{!-- SWAP DEFAULT --}}
+                                            {{!-- SWAP DEFAULT --}}
+                                            <button data-action="swapDefault" data-visage-id="{{this.id}}">
+                                                <i class="visage-icon sync"></i> {{localize "VISAGE.Actions.MakeDefault"}}
+                                            </button>
+                                            {{!-- PROMOTE --}}
+                                            <button data-action="promote" data-visage-id="{{this.id}}">
+                                                <i class="visage-icon domino"></i> {{localize "VISAGE.Actions.Promote"}}
+                                            </button>
+                                        {{else}}
+                                            {{!-- COPY TO LOCAL --}}
+                                            <button data-action="copyToLocal"><i class="visage-icon visage"></i> {{localize "VISAGE.Actions.CopyToSelection"}}</button>
+                                        {{/if}}
+
+                                        <hr>
+                                        {{!-- DELETE --}}
+                                        <button data-action="delete" class="danger"><i class="visage-icon delete"></i> {{localize "VISAGE.Actions.Delete"}}</button>
+                                    </div>
+                                </div>
                             {{/unless}}
                         {{/if}}
                     </div>
