@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "\u200Fقفل الدوران: غير محدد",
     "VISAGE.RotationLock.Off": "\u200Fقفل الدوران: إيقاف",
     "VISAGE.RotationLock.On": "\u200Fقفل الدوران: تشغيل",
-    "VISAGE.Config.Opacity.LabelPercent": "شفافية (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "شفافية (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "المزيد من الإجراءات",
+    "VISAGE.Actions.Duplicate": "تكرار",
+    "VISAGE.Actions.MakeDefault": "تعيين كافتراضي",
+    "VISAGE.Actions.Promote": "ترقية إلى عالمي",
+    "VISAGE.Actions.CopyToSelection": "نسخ للتحديد",
+    "VISAGE.Actions.Delete": "حذف",
+    "VISAGE.Suffix.Copy": " (نسخة)"
 }

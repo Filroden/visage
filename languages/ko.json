@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "회전 잠금: 설정 안 됨",
     "VISAGE.RotationLock.Off": "회전 잠금: 끔",
     "VISAGE.RotationLock.On": "회전 잠금: 켬",
-    "VISAGE.Config.Opacity.LabelPercent": "불투명도 (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "불투명도 (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "추가 작업",
+    "VISAGE.Actions.Duplicate": "복제",
+    "VISAGE.Actions.MakeDefault": "기본값 만들기",
+    "VISAGE.Actions.Promote": "글로벌로 승격",
+    "VISAGE.Actions.CopyToSelection": "선택 항목으로 복사",
+    "VISAGE.Actions.Delete": "삭제",
+    "VISAGE.Suffix.Copy": " (복사)"
 }

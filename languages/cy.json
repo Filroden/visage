@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Cloi Cylchdroi: Heb ei osod",
     "VISAGE.RotationLock.Off": "Cloi Cylchdroi: I ffwrdd",
     "VISAGE.RotationLock.On": "Cloi Cylchdroi: Ymlaen",
-    "VISAGE.Config.Opacity.LabelPercent": "Didreiddedd (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Didreiddedd (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Mwy o Gamau",
+    "VISAGE.Actions.Duplicate": "Dyblygu",
+    "VISAGE.Actions.MakeDefault": "Gwneud yn Ddiofyn",
+    "VISAGE.Actions.Promote": "Dyrchafu i Fyd-eang",
+    "VISAGE.Actions.CopyToSelection": "Copïo i'r Dewis",
+    "VISAGE.Actions.Delete": "Dileu",
+    "VISAGE.Suffix.Copy": " (Copi)"
 }

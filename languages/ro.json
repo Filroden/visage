@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Blocare Rotație: Nesetat",
     "VISAGE.RotationLock.Off": "Blocare Rotație: Oprit",
     "VISAGE.RotationLock.On": "Blocare Rotație: Pornit",
-    "VISAGE.Config.Opacity.LabelPercent": "Opacitate (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Opacitate (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Mai multe acțiuni",
+    "VISAGE.Actions.Duplicate": "Duplică",
+    "VISAGE.Actions.MakeDefault": "Setează ca implicit",
+    "VISAGE.Actions.Promote": "Promovează la Global",
+    "VISAGE.Actions.CopyToSelection": "Copiază în selecție",
+    "VISAGE.Actions.Delete": "Șterge",
+    "VISAGE.Suffix.Copy": " (Copie)"
 }

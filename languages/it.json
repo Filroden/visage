@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Blocco Rotazione: Non impostato",
     "VISAGE.RotationLock.Off": "Blocco Rotazione: Spento",
     "VISAGE.RotationLock.On": "Blocco Rotazione: Acceso",
-    "VISAGE.Config.Opacity.LabelPercent": "Opacità (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Opacità (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Altre azioni",
+    "VISAGE.Actions.Duplicate": "Duplica",
+    "VISAGE.Actions.MakeDefault": "Imposta come predefinito",
+    "VISAGE.Actions.Promote": "Promuovi a Globale",
+    "VISAGE.Actions.CopyToSelection": "Copia nella selezione",
+    "VISAGE.Actions.Delete": "Elimina",
+    "VISAGE.Suffix.Copy": " (Copia)"
 }

@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Kiertolukitus: Ei asetettu",
     "VISAGE.RotationLock.Off": "Kiertolukitus: Pois",
     "VISAGE.RotationLock.On": "Kiertolukitus: Päällä",
-    "VISAGE.Config.Opacity.LabelPercent": "Läpinäkyvyys (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Läpinäkyvyys (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Lisää toimintoja",
+    "VISAGE.Actions.Duplicate": "Monista",
+    "VISAGE.Actions.MakeDefault": "Aseta oletukseksi",
+    "VISAGE.Actions.Promote": "Ylennä globaaliksi",
+    "VISAGE.Actions.CopyToSelection": "Kopioi valintaan",
+    "VISAGE.Actions.Delete": "Poista",
+    "VISAGE.Suffix.Copy": " (Kopio)"
 }

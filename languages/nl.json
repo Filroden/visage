@@ -157,5 +157,13 @@
     "VISAGE.RotationLock.Unset": "Rotatievergrendeling: Niet ingesteld",
     "VISAGE.RotationLock.Off": "Rotatievergrendeling: Uit",
     "VISAGE.RotationLock.On": "Rotatievergrendeling: Aan",
-    "VISAGE.Config.Opacity.LabelPercent": "Dekking (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Dekking (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Meer acties",
+    "VISAGE.Actions.Duplicate": "Dupliceren",
+    "VISAGE.Actions.MakeDefault": "Als standaard instellen",
+    "VISAGE.Actions.Promote": "Promoveren naar Globaal",
+    "VISAGE.Actions.CopyToSelection": "Kopiëren naar selectie",
+    "VISAGE.Actions.Delete": "Verwijderen",
+    "VISAGE.Suffix.Copy": " (Kopie)"
 }

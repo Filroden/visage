@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Блокировка вращения: Не задано",
     "VISAGE.RotationLock.Off": "Блокировка вращения: Выкл",
     "VISAGE.RotationLock.On": "Блокировка вращения: Вкл",
-    "VISAGE.Config.Opacity.LabelPercent": "Непрозрачность (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Непрозрачность (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Другие действия",
+    "VISAGE.Actions.Duplicate": "Дублировать",
+    "VISAGE.Actions.MakeDefault": "Сделать по умолчанию",
+    "VISAGE.Actions.Promote": "Сделать глобальным",
+    "VISAGE.Actions.CopyToSelection": "Копировать в выделенное",
+    "VISAGE.Actions.Delete": "Удалить",
+    "VISAGE.Suffix.Copy": " (Копия)"
 }
