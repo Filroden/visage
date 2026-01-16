@@ -130,7 +130,7 @@ export class VisageComposer {
             [`flags.${Visage.MODULE_ID}.originalState`]: base
         };
 
-        await token.document.update(updateData, { visageUpdate: true, animation: { duration: 0 } });
+        await token.document.update(updateData, { visageUpdate: true });
     }
 
     /**
@@ -170,6 +170,6 @@ export class VisageComposer {
             [`flags.${Visage.MODULE_ID}.-=originalState`]: null
         };
 
-        await tokenDoc.update(updateData, { visageUpdate: true, animation: { duration: 0 } });
+        await tokenDoc.update(updateData, { visageUpdate: true });
     }
 }
