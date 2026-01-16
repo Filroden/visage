@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Блокування обертання: Не встановлено",
     "VISAGE.RotationLock.Off": "Блокування обертання: Вимк",
     "VISAGE.RotationLock.On": "Блокування обертання: Увімк",
-    "VISAGE.Config.Opacity.LabelPercent": "Непрозорість (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Непрозорість (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Більше дій",
+    "VISAGE.Actions.Duplicate": "Дублювати",
+    "VISAGE.Actions.MakeDefault": "Зробити за замовчуванням",
+    "VISAGE.Actions.Promote": "Підвищити до глобального",
+    "VISAGE.Actions.CopyToSelection": "Копіювати у виділене",
+    "VISAGE.Actions.Delete": "Видалити",
+    "VISAGE.Suffix.Copy": " (Копія)"
 }

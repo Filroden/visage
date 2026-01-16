@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "\u200Fقفل چرخش: تنظیم نشده",
     "VISAGE.RotationLock.Off": "\u200Fقفل چرخش: خاموش",
     "VISAGE.RotationLock.On": "\u200Fقفل چرخش: روشن",
-    "VISAGE.Config.Opacity.LabelPercent": "شفافیت (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "شفافیت (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "اقدامات بیشتر",
+    "VISAGE.Actions.Duplicate": "تکثیر",
+    "VISAGE.Actions.MakeDefault": "پیش‌فرض کردن",
+    "VISAGE.Actions.Promote": "ارتقاء به جهانی",
+    "VISAGE.Actions.CopyToSelection": "کپی به انتخاب",
+    "VISAGE.Actions.Delete": "حذف",
+    "VISAGE.Suffix.Copy": " (کپی)"
 }

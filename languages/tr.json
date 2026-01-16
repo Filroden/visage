@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Döndürme Kilidi: Ayarlanmamış",
     "VISAGE.RotationLock.Off": "Döndürme Kilidi: Kapalı",
     "VISAGE.RotationLock.On": "Döndürme Kilidi: Açık",
-    "VISAGE.Config.Opacity.LabelPercent": "Opaklık (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Opaklık (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Diğer İşlemler",
+    "VISAGE.Actions.Duplicate": "Çoğalt",
+    "VISAGE.Actions.MakeDefault": "Varsayılan Yap",
+    "VISAGE.Actions.Promote": "Küresele Yükselt",
+    "VISAGE.Actions.CopyToSelection": "Seçime Kopyala",
+    "VISAGE.Actions.Delete": "Sil",
+    "VISAGE.Suffix.Copy": " (Kopya)"
 }

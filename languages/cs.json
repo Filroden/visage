@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "Zámek otáčení: Nenastaveno",
     "VISAGE.RotationLock.Off": "Zámek otáčení: Vypnuto",
     "VISAGE.RotationLock.On": "Zámek otáčení: Zapnuto",
-    "VISAGE.Config.Opacity.LabelPercent": "Neprůhlednost (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "Neprůhlednost (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "Další akce",
+    "VISAGE.Actions.Duplicate": "Duplikovat",
+    "VISAGE.Actions.MakeDefault": "Nastavit jako výchozí",
+    "VISAGE.Actions.Promote": "Povýšit na globální",
+    "VISAGE.Actions.CopyToSelection": "Kopírovat do výběru",
+    "VISAGE.Actions.Delete": "Smazat",
+    "VISAGE.Suffix.Copy": " (Kopie)"
 }

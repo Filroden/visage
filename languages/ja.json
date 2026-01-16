@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "回転ロック: 未設定",
     "VISAGE.RotationLock.Off": "回転ロック: オフ",
     "VISAGE.RotationLock.On": "回転ロック: オン",
-    "VISAGE.Config.Opacity.LabelPercent": "不透明度 (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "不透明度 (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "その他の操作",
+    "VISAGE.Actions.Duplicate": "複製",
+    "VISAGE.Actions.MakeDefault": "デフォルトにする",
+    "VISAGE.Actions.Promote": "グローバルに昇格",
+    "VISAGE.Actions.CopyToSelection": "選択対象にコピー",
+    "VISAGE.Actions.Delete": "削除",
+    "VISAGE.Suffix.Copy": " (コピー)"
 }

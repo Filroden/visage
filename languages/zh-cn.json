@@ -154,5 +154,13 @@
     "VISAGE.RotationLock.Unset": "旋转锁定：未设置",
     "VISAGE.RotationLock.Off": "旋转锁定：关闭",
     "VISAGE.RotationLock.On": "旋转锁定：开启",
-    "VISAGE.Config.Opacity.LabelPercent": "不透明度 (%)"
+    "VISAGE.Config.Opacity.LabelPercent": "不透明度 (%)",
+
+    "VISAGE.Directory.Tooltip.MoreActions": "更多操作",
+    "VISAGE.Actions.Duplicate": "复制",
+    "VISAGE.Actions.MakeDefault": "设为默认",
+    "VISAGE.Actions.Promote": "提升为全局",
+    "VISAGE.Actions.CopyToSelection": "复制到当前选中",
+    "VISAGE.Actions.Delete": "删除",
+    "VISAGE.Suffix.Copy": " (副本)"
 }

@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-2.3.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-2.4.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
@@ -54,7 +54,7 @@ Access the token's entire Visage library directly from the Token HUD to quickly 
 
 ### 2. The Gallery (for Visages) & Library (for Masks)
 
-Manage your visual assets in a beautiful, card-based interface.
+Manage your visual assets in a beautiful, card-based interface with a detailed search where you can filter by tags, categories, or name to find the right look instantly.
 
 * **Visage Gallery:** Accessed from the HUD, from an actor's sheet header or by right-clicking an actor in the sidebar. Manage Visages specific to that token/actor.
 
@@ -64,15 +64,19 @@ Manage your visual assets in a beautiful, card-based interface.
 
   ![Mask Library](images/v2/mask_library.png?raw=true)
 
-* **Detailed Search:** Filter by tags, categories, or name to find the right look instantly.
+Available actions (some only available when you are in the Visage Gallery or the Mask Library):
 
+* **Apply**: Apply the selected Mask or Visage to the token(s).
+* **Edit**: Edit the Mask or Visage using the Editor.
+
+And within the popup menu:
+
+* **Duplicate (New in v2.4)**: Create a copy of an existing Mask or Visage.
 * **Commit to Default (New in v2.1)**: Found a permanent new look? You can now swap a Visage to become the token's new "Default" state directly from the Gallery. Visage automatically creates a backup of the previous default appearance, so you never lose your history.
-
 * **Promote Visage to the global Mask Library (New in v2.2)**: As a GM, do you like a particular look and want to use it on other tokens? Simply "Promote" (copy) it to the Mask Library.
-
 * **Copy Mask to the local Visage Gallery of selected token(s) (New in v2.3)**: As a GM, you can also do the reverse, and transfer a Mask to the selected token(s)'s Visage Gallery.
-
-* **Import/Export Visages and Masks (New in v2.3)**: Export your entire Mask Library so it can be transferred to another world. Save all the Visages from one token so they can be added to others. Importing will prevent duplication of existing Masks or Visages if they share the same unique ID. When importing Masks or Visages created in earlier versions of the module, it will intelligently make any changes needed to the data to bring it up to date.
+* **Import/Export Visages and Masks (New in v2.3 and v2.4)**: Export your entire Mask Library so it can be transferred to another world or export them individually. Save one or all the Visages from one token so they can be added to others. Importing will prevent duplication of existing Masks or Visages if they share the same unique ID. When importing Masks or Visages created in earlier versions of the module, it will intelligently make any changes needed to the data to bring it up to date.
+* **Delete**: Soft delete (send to Recycle Bin).
 
 ### 3. The Visual Editor
 
@@ -125,13 +129,7 @@ Software and associated documentation files in this repository are covered by an
 
 ## Roadmap
 
-### Short term (v2.4.0)
-
-* **Context Menus:** Introduce a "More Actions" (kebab) menu to Gallery and Library cards to declutter the interface while making advanced actions accessible.
-* **Extended Actions:** Add support for duplicating existing Masks or Visages and exporting individual entries.
-* **Transition Animations:** Restore smooth transition animations when swapping Visages, leveraging the improved data architecture to prevent race conditions.
-
-### Medium term (v3.0.0)
+### Next Major Update (v3.0.0)
 
 * **Sequencer Integration:** Deep integration with the **Sequencer** module (and libraries like JB2A/PSFX). Allow users to attach specific visual effects and sounds to a Visage or Mask that trigger automatically when applied or removed, or remain as a persistant effect.
 
