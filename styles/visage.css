@@ -173,7 +173,7 @@
 
 .visage-divider {
     border: none;
-    height: 4px;
+    height: 2px;
     width: 100%;
     background-color: var(--visage-color-accent);
     background-image: none;
@@ -871,19 +871,51 @@
 
 
 /* ==========================================================================
-   6. APPLICATION: VISAGE EDITOR (Unified)
+   6. APPLICATION: VISAGE EDITOR (Unified Workstation)
    ========================================================================== */
 
+/* --- 6.1 Base Window & Typography--- */
+
 .visage.visage-editor {
-    width: 60rem !important;
+    min-width: 65rem !important;
     max-width: 95vw;
-    min-height: 40rem;
-    height: auto !important;
+    min-height: 45rem;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.visage.visage-editor .window-content {
+    flex: 1;    
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important; 
+    overflow: hidden;
+    background: var(--visage-color-bg-darkest);
+    min-height: 0;
+}
+
+.visage.visage-editor .window-content form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+}
+
+.visage-editor-container.workstation-layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    min-height: 0;
 }
 
 .visage.visage-editor label {
     color: var(--visage-color-text-muted-solid) !important;
     font-weight: var(--filroden-font-weight-bold);
+    font-size: var(--filroden-font-size-xs);
+    text-transform: uppercase;
 }
 
 .visage.visage-editor .hint,
@@ -897,52 +929,29 @@
     font-size: var(--filroden-font-size-xs);
 }
 
-.visage.visage-editor .visage-notes {
-    margin-bottom: var(--filroden-space-l);
-}
+/* --- 6.2 Form Elements & States --- */
 
 .visage.visage-editor input:disabled,
 .visage.visage-editor select:disabled,
 .visage.visage-editor button:disabled {
-    opacity: 0.7 !important;
+    opacity: 0.5 !important;
     color: var(--filroden-color-text-muted) !important;
     cursor: not-allowed !important;
-    border-color: var(--visage-color-border) !important;
-    border-style: dashed !important;
+    border-color: transparent !important;
+    background: rgba(0,0,0,0.2) !important;
     box-shadow: none !important;
 }
 
 .visage.visage-editor select {
     background-color: var(--visage-color-bg-light) !important;
     color: var(--visage-color-text-main-solid) !important;
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-small);
 }
 
 .visage.visage-editor select option {
     background-color: var(--visage-color-bg-darkest) !important; 
     color: var(--visage-color-text-main-solid) !important;
-}
-
-/* Layout Grids */
-.visage-editor-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: var(--filroden-space-l);
-    padding-bottom: var(--filroden-space-m);
-}
-
-.visage-column {
-    display: grid;
-    gap: var(--filroden-space-m);
-}
-
-.visage-column .column-header {
-    border-bottom: 2px solid var(--visage-color-accent);
-    padding-bottom: var(--filroden-space-xs);
-    margin-bottom: 0;
-    color: var(--visage-color-text-main-solid);
-    font-size: var(--filroden-font-size-m);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 /* Checkbox + Input Group Styling */
@@ -951,11 +960,18 @@
     grid-template-columns: 1.5rem 1fr;
     align-items: center;
     gap: var(--filroden-space-xs);
+    margin-bottom: var(--filroden-space-s);
 }
 
 .visage .checkbox-input-group:has(label) {
-    grid-template-columns: 1.5rem auto 1fr;
+    grid-template-columns: 1.5rem max-content 1fr;
     gap: var(--filroden-space-s);
+}
+
+.visage .checkbox-input-group .visage-form-fields {
+    display: flex;
+    gap: var(--filroden-space-xs);
+    width: 100%;
 }
 
 .visage .checkbox-input-group .stacked-selects {
@@ -963,7 +979,20 @@
     flex-direction: column;
     gap: var(--filroden-space-s);
     width: 100%;
-    height: 4rem;
+}
+
+.visage .visage-form-fields.mirroring-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--filroden-space-s) var(--filroden-space-m);
+    align-items: center;
+    width: 100%;
+}
+
+.visage .mirroring-grid label {
+    margin: 0;
+    text-align: right;
+    color: var(--visage-color-text-muted);
 }
 
 .visage .master-toggle {
@@ -974,6 +1003,7 @@
     color: var(--visage-color-accent);
     cursor: pointer;
     line-height: 1.5;
+    margin-bottom: var(--filroden-space-s);
 }
 
 .visage .effects-grid {
@@ -982,42 +1012,13 @@
     gap: var(--filroden-space-xs);
 }
 
-/* Live Preview Container */
-.visage .visage-live-preview-stage {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.visage .visage-live-preview-stage::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    opacity: 0.1;
-    background-image: 
-        linear-gradient(var(--filroden-color-border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--filroden-color-border) 1px, transparent 1px);
-    background-size: var(--filroden-font-size-xl) var(--filroden-font-size-xl);
-    z-index: 0;
-}
-
-.visage .visage-live-preview-stage .visage-card {
-    position: relative;
-    z-index: 1;
-    width: 18rem;
-}
-
-/* --- Tag Pills --- */
+/* --- 6.3 Tag Pills --- */
 .visage-tag-container {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--filroden-space-xs);
-    background: var(--visage-color-bg-medium-solid);
+    background: var(--visage-color-bg-darkest);
     border: 1px solid var(--visage-color-border);
     border-radius: var(--filroden-radius-small);
     padding: var(--filroden-space-xs);
@@ -1057,8 +1058,6 @@
     font-size: var(--filroden-font-size-xs);
     font-weight: var(--filroden-font-weight-bold);
     padding: var(--filroden-space-xxs) var(--filroden-space-s);
-    margin-inline-end: var(--filroden-space-xs);
-    margin-bottom: var(--filroden-space-xs);
     border-radius: var(--filroden-radius-large);
     white-space: nowrap;
 }
@@ -1075,16 +1074,268 @@
     color: var(--visage-color-bg-hover-solid);
 }
 
-/* --- Editor Footer --- */
-.visage .visage-editor-footer {
-    flex: none;
-    margin-top: var(--filroden-space-l);
+/* --- 6.4 WORKSTATION LAYOUT --- */
+
+.visage-workstation {
+    flex: 1;
+    display: flex;
+    overflow: hidden; 
+    min-height: 0;
+    height: 100%;
+}
+
+/* A. Global Header */
+.visage-editor-header {
+    background: var(--visage-color-bg-medium-solid);
+    border-bottom: 1px solid var(--visage-color-border);
+    padding: var(--filroden-space-m);
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row; 
+    align-items: flex-end; /* Align inputs to bottom */
+    gap: var(--filroden-space-l);
+}
+
+/* Header Form Groups */
+.header-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xs);
+}
+
+.header-form-group.label-group {
+    flex: 1; 
+    min-width: 12rem;
+}
+
+.header-form-group.category-group {
+    flex: 0 0 12rem;
+}
+
+.header-form-group.tags-group {
+    flex: 1.5;
+    min-width: 15rem;
+}
+
+/* Input Overrides for Header */
+.visage-editor-header input {
+    width: 100%;
+    background: var(--visage-color-bg-darkest);
+}
+
+.visage-tag-container.compact {
+    min-height: 1.6rem;
+    padding: 0 var(--filroden-space-xs);
+    background: var(--visage-color-bg-medium-solid);
+}
+
+/* B. Left Panel (Stage) */
+.visage-stage-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #000; /* Cinema black for preview */
+    position: relative;
+    border-inline-end: 1px solid var(--visage-color-border);
+    min-width: 0; /* Flexbox text overflow fix */
+}
+
+/* Merged Live Preview Styles */
+.visage-live-preview-stage {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 25rem;
+    
+    /* Define this as a query container for size relative units */
+    container-type: size;
+
+    /* Checkerboard background */
+    background-color: var(--visage-color-bg-darkest);
+    background-image: conic-gradient(
+        rgba(255,255,255,0.05) 90deg, 
+        transparent 90deg 180deg, 
+        rgba(255,255,255,0.05) 180deg 270deg, 
+        transparent 270deg
+    );
+    background-size: 20px 20px;
+    background-position: center;
+}
+
+.visage-live-preview-stage::before {
+    /* Retain the grid overlay effect if desired */
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    background-image: 
+        linear-gradient(var(--filroden-color-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--filroden-color-border) 1px, transparent 1px);
+    background-size: var(--filroden-font-size-xl) var(--filroden-font-size-xl);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Used for the token preview content wrapper */
+.visage-preview-content.stage-mode {
+    /* Use Container Query units to force a square that fits the smallest dimension */
+    width: 80cqmin;
+    height: 80cqmin;
+    max-width: none;
+    max-height: none;
+    z-index: 1;
+}
+
+.stage-overlay-name {
+    position: absolute;
+    top: var(--filroden-space-m);
+    left: 0; 
+    right: 0;
+    text-align: center;
+    color: var(--visage-color-text-main-solid);
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    pointer-events: none;
+    z-index: 20;
+}
+
+/* Metadata Grid (Bottom of Left Panel) */
+.metadata-grid {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: var(--filroden-space-m); 
+    padding: var(--filroden-space-m);
+    background: var(--visage-color-bg-medium-solid);
+    border-top: 1px solid var(--visage-color-border);
+    font-size: var(--filroden-font-size-m); 
+    color: var(--visage-color-text-muted);
+}
+
+.meta-item {
+    display: grid;
+    grid-template-columns: max-content 1fr 1fr; 
+    align-items: center;
+    gap: var(--filroden-space-s);
+    min-width: 0;
+}
+
+.meta-item i, .meta-item img {
+    width: 1.2em;
+    height: 1.2em;
+    font-size: 1em;
+    text-align: center;
+    color: var(--visage-color-accent);
+}
+
+.meta-label {
+    font-weight: bold;
+    color: var(--visage-color-text-muted-solid);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meta-value {
+    color: var(--visage-color-text-main-solid);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: start;
+}
+
+.meta-item.inactive { opacity: 0.4; }
+
+.visage-disposition-text {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+.visage-disposition-text.friendly { color: #00ffff; }
+.visage-disposition-text.neutral  { color: #ffff00; }
+.visage-disposition-text.hostile  { color: #ff0000; }
+.visage-disposition-text.secret   { color: #ff00ff; }
+
+/* C. Right Panel (Inspector) */
+.visage-inspector-panel {
+    flex: 0 0 24rem; /* Fixed width for controls */
+    display: flex;
+    flex-direction: column;
+    background: var(--visage-color-bg-darkest);
+    border-inline-start: 1px solid var(--filroden-color-border);
+}
+
+/* Tabs */
+.visage-tabs {
+    flex: 0 0 auto;
+    display: flex;
+    background: var(--visage-color-bg-medium-solid);
+    border-bottom: 1px solid var(--visage-color-border);
+}
+
+.visage-tabs .item {
+    flex: 1;
+    text-align: center;
+    padding: var(--filroden-space-s);
+    color: var(--visage-color-text-muted);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: var(--filroden-font-size-s);
+    transition: all 0.2s;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.visage-tabs .item:hover {
+    color: var(--visage-color-text-main-solid);
+    background: rgba(255,255,255,0.05);
+}
+
+.visage-tabs .item.active {
+    color: var(--visage-color-accent);
+    border-bottom-color: var(--visage-color-accent);
+    background: transparent;
+    text-shadow: none;
+}
+
+.visage-tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--filroden-space-l);
+}
+
+/* Ensure form groups in inspector have spacing */
+.visage-tab-content .form-group {
+    margin-bottom: var(--filroden-space-m);
+}
+
+/* Clean up fieldsets inside inspector */
+.visage .inspector-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    box-shadow: none;
+}
+.visage .inspector-fieldset legend {
+    display: none; /* Tabs serve as legends */
+}
+
+/* --- 6.5 Footer --- */
+.visage-editor-footer {
+    flex: 0 0 auto;
+    padding: var(--filroden-space-m);
+    border-top: 1px solid var(--visage-color-border);
+    background: var(--visage-color-bg-medium-solid);
     display: flex;
     justify-content: flex-end;
     gap: var(--filroden-space-m);
 }
 
-.visage .visage-reset-btn {
+.visage-reset-btn {
     margin-inline-end: auto;    
     background: transparent;
     border: 1px solid var(--visage-color-text-muted);
@@ -1094,7 +1345,7 @@
     opacity: 0.8;
 }
 
-.visage .visage-reset-btn:hover {
+.visage-reset-btn:hover {
     opacity: 1;
     color: var(--filroden-color-warning);
     background: rgba(255, 255, 255, 0.05);
@@ -1117,6 +1368,18 @@
     border-color: var(--visage-color-accent-hover);
     box-shadow: 0 0 8px var(--visage-color-accent-hover);
 }
+
+/* Placeholder for v3 Effects Tab */
+.empty-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--visage-color-text-muted);
+    text-align: center;
+}
+
 
 /* ==========================================================================
    7. APPLICATION: VISAGE GALLERY (Unified)
@@ -1550,7 +1813,7 @@
     z-index: 1; 
     pointer-events: none;
     border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--ring-bkg), black 70%) 0%, black 100%);
+    background: color-mix(in srgb, var(--ring-bkg), black 60%);
     transform: scale(0.9);
 }
 
