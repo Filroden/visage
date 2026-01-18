@@ -170,5 +170,11 @@
     "VISAGE.Mirror.Option.Flipped": "Flipped",
 
     "VISAGE.GlobalEditor.NameOverride": "Name",
-    "VISAGE.GlobalEditor.TokenImage": "Image"
+    "VISAGE.GlobalEditor.TokenImage": "Image",
+
+    "VISAGE.Editor.StageHint": "Drag to Pan • Scroll to Zoom",
+    "VISAGE.Editor.ZoomIn": "Zoom In",
+    "VISAGE.Editor.ZoomOut": "Zoom Out",
+    "VISAGE.Editor.ResetView": "Reset View",
+    "VISAGE.Editor.ToggleGrid": "Toggle Grid Overlay"
 }
