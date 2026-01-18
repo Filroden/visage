@@ -29,6 +29,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         
         // Dynamic Icon: Domino Mask for Global, Face Mask for Local
         this.options.window.icon = !this.isLocal ? "visage-icon-domino" : "visage-icon-mask";
+
+        // Viewport State for Stage
+        this._viewState = {
+            scale: 1.0,
+            x: 0,
+            y: 0,
+            isDragging: false,
+            lastX: 0,
+            lastY: 0
+        };
     }
 
     /**
@@ -58,7 +68,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             save: VisageEditor.prototype._onSave,
             toggleField: VisageEditor.prototype._onToggleField,
             openFilePicker: VisageEditor.prototype._onOpenFilePicker,
-            resetSettings: VisageEditor.prototype._onResetSettings
+            resetSettings: VisageEditor.prototype._onResetSettings,
+            zoomIn: VisageEditor.prototype._onZoomIn,
+            zoomOut: VisageEditor.prototype._onZoomOut,
+            resetZoom: VisageEditor.prototype._onResetZoom,
+            toggleGrid: VisageEditor.prototype._onToggleGrid
         }
     };
 
@@ -220,6 +234,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
         const el = this.element;
 
+        // Helper to extract values only if their "active" checkbox is checked
         const getVal = (key, type = String) => {
             const isActive = formData[`${key}_active`];
             if (!isActive) return undefined;
@@ -229,37 +244,45 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             return (typeof raw === "string") ? raw.trim() : raw;
         };
 
+        // 1. Extract & Calculate Values
         const isScaleActive = formData.scale_active;
         const isFlipXActive = formData.isFlippedX !== "";
         const isFlipYActive = formData.isFlippedY !== "";
         const imgSrc = getVal("img"); 
 
-        // 1. Calculate Derived Values
         const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
         const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
         const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
 
         const isAlphaActive = formData.alpha_active;
-        // Convert 0-100 Input back to 0-1 Float
         const rawAlpha = isAlphaActive ? (parseFloat(formData.alpha) / 100) : 1.0;
         
-        // Parse Lock Select
         const lockVal = formData.lockRotation;
-        const isLockActive = (lockVal === "true") || (lockVal === "true"); // Intent exists if true/false
         const rawLock = (lockVal === "true");
 
+        // NEW: Extract Dimensions for Grid (Default to 1 if inactive/unset)
+        const width = getVal("width", Number) || 1;
+        const height = getVal("height", Number) || 1;
+
+        // 2. Pass Dimensions to CSS for the Grid Overlay
+        const content = el.querySelector('.visage-preview-content.stage-mode');
+        if (content) {
+            content.style.setProperty('--visage-dim-w', width);
+            content.style.setProperty('--visage-dim-h', height);
+        }
+
+        // 3. Build Texture Object (Baked fallback for preview rendering)
         let texture = {};
         if (imgSrc) {
             texture.src = imgSrc;
         }
-
-        // 2. Populate Texture (Baked Fallback for visual preview rendering)
         if (isScaleActive || isFlipXActive || isFlipYActive) {
             texture.scaleX = rawScale * (flipX ? -1 : 1);
             texture.scaleY = rawScale * (flipY ? -1 : 1);
         }
         if (Object.keys(texture).length === 0) texture = undefined;
 
+        // 4. Build Ring Data
         let ring = null;
         if (formData["ring.enabled"]) {
             let effectsMask = 0;
@@ -274,7 +297,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
 
-        // 3. Construct Mock Data (Including Atomic Intents)
+        // 5. Construct Mock Data (Including Atomic Intents)
         const mockData = {
             changes: {
                 name: getVal("nameOverride"),
@@ -296,6 +319,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             tags: (formData.tags || "").split(",").map(t => t.trim()).filter(t => t)
         };
 
+        // 6. Resolve Image Paths
         const ringEnabled = formData["ring.enabled"];
         const subjectTexture = formData.ringSubjectTexture;
         const mainImage = mockData.changes.texture?.src || "";
@@ -303,50 +327,48 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const resolved = await VisageUtilities.resolvePath(rawPath);
         const resolvedPath = resolved || rawPath;
 
-        // 4. Generate Presentation Context
+        // 7. Generate Presentation Context
         const context = VisageData.toPresentation(mockData, {
             isWildcard: rawPath.includes('*')
         });
 
         const meta = context.meta;
 
-        // 5. Update UI Slots (Badges)       
-       
-        // Helper to find meta-item by icon class
+        // 8. Update UI Slots (Badges)
         const findItem = (iconClass) => {
             const icon = el.querySelector(`.metadata-grid i.${iconClass}`) || el.querySelector(`.metadata-grid img[src*="${iconClass}"]`);
             return icon ? icon.closest('.meta-item') : null;
         };
 
-        // 1. Scale
+        // Scale
         const scaleItem = findItem('scale'); 
         if (scaleItem && meta.slots.scale) {
             scaleItem.querySelector('.meta-value').textContent = meta.slots.scale.val;
             if(meta.slots.scale.active) scaleItem.classList.remove('inactive'); else scaleItem.classList.add('inactive');
         }
 
-        // 2. Dimensions
+        // Dimensions
         const dimItem = findItem('dimensions');
         if (dimItem && meta.slots.dim) {
             dimItem.querySelector('.meta-value').textContent = meta.slots.dim.val;
             if(meta.slots.dim.active) dimItem.classList.remove('inactive'); else dimItem.classList.add('inactive');
         }
 
-        // 3. Lock
+        // Lock
         const lockItem = findItem('lock'); 
         if (lockItem && meta.slots.lock) {
             lockItem.querySelector('.meta-value').textContent = meta.slots.lock.val;
             if(meta.slots.lock.active) lockItem.classList.remove('inactive'); else lockItem.classList.add('inactive');
         }
 
-        // 4. Wildcard
+        // Wildcard
         const wildItem = findItem('wildcard');
         if (wildItem && meta.slots.wildcard) {
             wildItem.querySelector('.meta-value').textContent = meta.slots.wildcard.val;
             if(meta.slots.wildcard.active) wildItem.classList.remove('inactive'); else wildItem.classList.add('inactive');
         }
 
-        // 5. Disposition
+        // Disposition
         const dispItem = el.querySelector('.disposition-item');
         if (dispItem && meta.slots.disposition) {
             const valSpan = dispItem.querySelector('.visage-disposition-text');
@@ -356,22 +378,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // 6. Mirroring (Split Logic)
+        // Mirroring (Split Logic)
         const updateMirrorSlot = (type, slotData) => {
             const slot = el.querySelector(`.mirror-sub-slot.${type}`);
             if (!slot) return;
-            
             const img = slot.querySelector('img');
             
-            // Toggle Active State (Opacity)
             if (slotData.active) slot.classList.remove('inactive');
             else slot.classList.add('inactive');
 
-            // Update Rotation Class
             if (img) {
-                // Remove old rotation classes
                 img.classList.remove('visage-rotate-0', 'visage-rotate-90', 'visage-rotate-180', 'visage-rotate-270');
-                // Add new one
                 img.classList.add(slotData.cls);
             }
         };
@@ -379,7 +396,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (meta.slots.flipH) updateMirrorSlot('horizontal', meta.slots.flipH);
         if (meta.slots.flipV) updateMirrorSlot('vertical', meta.slots.flipV);
 
-        // Update Name Label
+        // 9. Update Name Label
         const nameEl = el.querySelector(".token-name-label");
         if (nameEl) {
             nameEl.textContent = mockData.changes.name || "";
@@ -387,7 +404,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             nameEl.style.opacity = formData.nameOverride_active ? "1" : "0.5";
         }
 
-        // Update Dynamic Ring Visuals
+        // 10. Update Dynamic Ring Visuals
         const ringEl = el.querySelector(".visage-ring-preview");
         if (ringEl) {
             ringEl.style.display = meta.hasRing ? "block" : "none";
@@ -400,22 +417,35 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 toggle("pulse", meta.hasPulse);
                 toggle("gradient", meta.hasGradient);
                 toggle("wave", meta.hasWave);
-                const content = el.querySelector(".visage-preview-content");
-                if (content) {
-                     if (meta.hasInvisibility) content.classList.add("invisible");
-                     else content.classList.remove("invisible");
+                const previewContent = el.querySelector(".visage-preview-content");
+                if (previewContent) {
+                     if (meta.hasInvisibility) previewContent.classList.add("invisible");
+                     else previewContent.classList.remove("invisible");
                 }
             }
         }
 
-        // Update Opacity Visual
+        // 11. Update Opacity Visual
         const previewContainer = el.querySelector(".visage-preview-content > div");
         if (previewContainer) {
             previewContainer.style.opacity = isAlphaActive ? rawAlpha : 1.0;
         }
 
-        // Update Main Visual (Image/Video)
-        const transform = `scale(${context.isFlippedX ? -1 : 1}, ${context.isFlippedY ? -1 : 1})`;
+        // 12. Update Main Visual (Image/Video)
+        // A. Determine Scale Magnitude
+        let visualScale = rawScale; 
+        if (meta.hasRing && formData.ringSubjectTexture) {
+             visualScale = parseFloat(formData.ringSubjectScale) || 1.0;
+        }
+
+        // Cache the visual scale for the Zoom logic
+        this._currentVisualScale = visualScale;
+
+        // B. Combine Magnitude with Direction (Mirroring)
+        const scaleX = visualScale * (context.isFlippedX ? -1 : 1);
+        const scaleY = visualScale * (context.isFlippedY ? -1 : 1);
+        const transform = `scale(${scaleX}, ${scaleY})`;
+
         const vidEl = el.querySelector(".visage-preview-video");
         const imgEl = el.querySelector(".visage-preview-img");
         const iconEl = el.querySelector(".fallback-icon");
@@ -431,7 +461,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (vidEl) {
                 vidEl.src = resolvedPath;
                 vidEl.style.display = "block";
-                vidEl.style.transform = transform;
+                vidEl.style.transform = transform; // Apply Scaled Transform
             }
             if (imgEl) imgEl.style.display = "none";
             if (iconEl) iconEl.style.display = "none";
@@ -440,12 +470,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (imgEl) {
                 imgEl.src = resolvedPath;
                 imgEl.style.display = "block";
-                imgEl.style.transform = transform;
+                imgEl.style.transform = transform; // Apply Scaled Transform
             }
             if (iconEl) iconEl.style.display = "none";
         }
 
-        // Update Title & Tags
+        // 13. Update Title & Tags
         const titleEl = el.querySelector(".card-title");
         if (titleEl) titleEl.textContent = formData.label || game.i18n.localize("VISAGE.GlobalEditor.TitleNew");
         
@@ -519,7 +549,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         });
 
-        // --- NEW: TAB HANDLING ---
+        // --- TAB HANDLING ---
         const tabs = this.element.querySelectorAll(".visage-tabs .item");
         tabs.forEach(t => {
             t.addEventListener("click", (e) => {
@@ -532,6 +562,129 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this._activeTab) this._activateTab(this._activeTab);
         
         this._updatePreview();
+
+        // Bind Stage Interactions
+        this._bindStageInteractions();
+        
+        // Apply current transform (persists across re-renders)
+        this._applyStageTransform();
+        this._updatePreview();
+
+        // Restore Grid State if it was active
+        if (this._showGrid) {
+            const stage = this.element.querySelector('.visage-live-preview-stage');
+            const btn = this.element.querySelector('[data-action="toggleGrid"] i');
+            if (stage) stage.classList.add('show-grid');
+            if (btn) {
+                btn.classList.remove('grid-on');
+                btn.classList.add('grid-off');
+            }
+        }
+    }
+
+    /* -------------------------------------------- */
+    /* Stage Interaction Methods                   */
+    /* -------------------------------------------- */
+
+    _onToggleGrid(event, target) {
+        this._showGrid = !this._showGrid;
+        const stage = this.element.querySelector('.visage-live-preview-stage');
+        const icon = target.querySelector('i');
+
+        if (stage) stage.classList.toggle('show-grid', this._showGrid);
+        
+        if (icon) {
+            if (this._showGrid) {
+                // Grid is ON -> Show "Off" icon
+                icon.classList.remove('grid-on');
+                icon.classList.add('grid-off');
+            } else {
+                // Grid is OFF -> Show "On" icon
+                icon.classList.remove('grid-off');
+                icon.classList.add('grid-on');
+            }
+        }
+    }
+
+    _bindStageInteractions() {
+        const stage = this.element.querySelector('.visage-live-preview-stage');
+        const content = this.element.querySelector('.visage-preview-content.stage-mode');
+        if (!stage || !content) return;
+
+        // 1. Mouse Wheel Zoom
+        stage.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            this._viewState.scale = Math.min(Math.max(this._viewState.scale * delta, 0.1), 5.0);
+            this._applyStageTransform();
+        });
+
+        // 2. Drag to Pan
+        content.addEventListener('mousedown', (e) => {
+            // Only left or middle mouse
+            if (e.button !== 0 && e.button !== 1) return;
+            e.preventDefault(); // Prevent native drag
+            this._viewState.isDragging = true;
+            this._viewState.lastX = e.clientX;
+            this._viewState.lastY = e.clientY;
+            content.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!this._viewState.isDragging) return;
+            const dx = e.clientX - this._viewState.lastX;
+            const dy = e.clientY - this._viewState.lastY;
+            
+            this._viewState.x += dx;
+            this._viewState.y += dy;
+            this._viewState.lastX = e.clientX;
+            this._viewState.lastY = e.clientY;
+            
+            this._applyStageTransform();
+        });
+
+        const stopDrag = () => {
+            if (this._viewState.isDragging) {
+                this._viewState.isDragging = false;
+                if (content) content.style.cursor = 'grab';
+            }
+        };
+
+        window.addEventListener('mouseup', stopDrag);
+        // We don't bind mouseleave generally because dragging often goes outside the window
+    }
+
+    _applyStageTransform() {
+        const content = this.element.querySelector('.visage-preview-content.stage-mode');
+        if (content) {
+            content.style.transform = `translate(${this._viewState.x}px, ${this._viewState.y}px) scale(${this._viewState.scale})`;
+        }
+    }
+
+    _onZoomIn() {
+        this._viewState.scale = Math.min(this._viewState.scale + 0.25, 5.0);
+        this._applyStageTransform();
+    }
+
+    _onZoomOut() {
+        this._viewState.scale = Math.max(this._viewState.scale - 0.25, 0.1);
+        this._applyStageTransform();
+    }
+
+    _onResetZoom() {
+        // Default to 1.0
+        let targetScale = 1.0;
+
+        // Smart Reset: If the visual content is larger than the stage (Scale > 1.0),
+        // zoom out so the whole image fits.
+        if (this._currentVisualScale && this._currentVisualScale > 1.0) {
+            targetScale = 1.0 / this._currentVisualScale;
+        }
+
+        this._viewState.scale = targetScale;
+        this._viewState.x = 0;
+        this._viewState.y = 0;
+        this._applyStageTransform();
     }
 
     /**

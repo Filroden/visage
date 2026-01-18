@@ -870,6 +870,11 @@
 .visage-icon.undo        { -webkit-mask-image: url('../icons/undo.svg'); mask-image: url('../icons/undo.svg'); }
 .visage-icon.save-update { -webkit-mask-image: url('../icons/save.svg'); mask-image: url('../icons/save.svg'); }
 .visage-icon.wand-stars  { -webkit-mask-image: url('../icons/wand_stars.svg'); mask-image: url('../icons/wand_stars.svg'); }
+.visage-icon.zoom-in       { -webkit-mask-image: url('../icons/zoom_in.svg'); mask-image: url('../icons/zoom_in.svg'); }
+.visage-icon.zoom-out      { -webkit-mask-image: url('../icons/zoom_out.svg'); mask-image: url('../icons/zoom_out.svg'); }
+.visage-icon.center-focus  { -webkit-mask-image: url('../icons/center_focus_strong.svg'); mask-image: url('../icons/center_focus_strong.svg'); }
+.visage-icon.grid-on       { -webkit-mask-image: url('../icons/grid_3x3.svg'); mask-image: url('../icons/grid_3x3.svg'); }
+.visage-icon.grid-off      { -webkit-mask-image: url('../icons/grid_3x3_off.svg'); mask-image: url('../icons/grid_3x3_off.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-mask,
@@ -1084,6 +1089,7 @@
     font-size: var(--filroden-font-size-xs);
     font-weight: var(--filroden-font-weight-bold);
     padding: var(--filroden-space-xxs) var(--filroden-space-s);
+    margin-inline-end: var(--filroden-space-xs);
     border-radius: var(--filroden-radius-large);
     white-space: nowrap;
 }
@@ -1210,6 +1216,10 @@
     /* Use Container Query units to force a square that fits the smallest dimension */
     width: 80cqmin;
     height: 80cqmin;
+    
+    /* CHANGED: Allow image to overflow the logical token bounds (for Scale > 1.0) */
+    overflow: visible;
+    
     max-width: none;
     max-height: none;
     z-index: 1;
@@ -1226,6 +1236,110 @@
     text-shadow: 0 2px 4px rgba(0,0,0,0.8);
     pointer-events: none;
     z-index: 20;
+}
+
+/* Floating Zoom HUD */
+.visage-zoom-controls {
+    position: absolute;
+    bottom: var(--filroden-space-m);
+    inset-inline-end: var(--filroden-space-m);
+    display: flex;
+    gap: var(--filroden-space-xs);
+    background: rgba(0, 0, 0, 0.5);
+    padding: var(--filroden-space-xs);
+    border-radius: var(--filroden-radius-small);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 20;
+    opacity: 0; /* Hidden by default, shown on hover */
+    transition: opacity 0.2s ease;
+}
+
+.visage-live-preview-stage:hover .visage-zoom-controls {
+    opacity: 1;
+}
+
+.visage-zoom-controls button {
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--visage-color-text-main-solid);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.visage-zoom-controls button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--visage-color-accent);
+}
+
+/* Interaction Hint Overlay */
+.visage-stage-hint {
+    position: absolute;
+    top: var(--filroden-space-m);
+    inset-inline-start: var(--filroden-space-m);
+    color: var(--visage-color-text-muted);
+    font-size: var(--filroden-font-size-xs);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Show hint on hover */
+.visage-live-preview-stage:hover .visage-stage-hint {
+    opacity: 0.8;
+}
+
+/* Ensure content can be transformed */
+.visage-preview-content.stage-mode {
+    /* ... existing styles ... */
+    transform-origin: center center;
+    transition: transform 0.1s linear; /* Fast transition for smooth zooming */
+    cursor: grab;
+}
+
+.visage-preview-content.stage-mode:active {
+    cursor: grabbing;
+}
+
+/* Grid Overlay - Now attached to the CONTENT so it Pans/Zooms */
+.visage-preview-content.stage-mode::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    
+    /* Default: Hidden */
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    
+    /* Grid Pattern: Uses CSS variables set by JS to match Token Dimensions */
+    --grid-w: var(--visage-dim-w, 1);
+    --grid-h: var(--visage-dim-h, 1);
+    
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.5) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.5) 2px, transparent 2px);
+    
+    /* Calculate cell size based on token dimensions */
+    background-size: calc(100% / var(--grid-w)) calc(100% / var(--grid-h));
+    
+    /* Ensure border aligns with the edges */
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-sizing: border-box;
+
+    z-index: 100; /* overlay on top of image */
+    pointer-events: none;
+}
+
+/* Visibility Toggle */
+.visage-live-preview-stage.show-grid .visage-preview-content.stage-mode::after {
+    opacity: 0.7;
 }
 
 /* Metadata Grid (Bottom of Left Panel) */
