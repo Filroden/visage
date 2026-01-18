@@ -93,13 +93,6 @@
     "VISAGE.Config.List.Width": "Width",
     "VISAGE.Config.List.Height": "Height",
 
-    "VISAGE.Mirror.Horizontal.Unchanged": "Horizontal: No Change",
-    "VISAGE.Mirror.Horizontal.Standard": "Horizontal: Standard",
-    "VISAGE.Mirror.Horizontal.Mirrored": "Horizontal: Flipped",
-    "VISAGE.Mirror.Vertical.Unchanged": "Vertical: No Change",
-    "VISAGE.Mirror.Vertical.Standard": "Vertical: Standard",
-    "VISAGE.Mirror.Vertical.Mirrored": "Vertical: Flipped",
-
     "VISAGE.Disposition.Friendly": "Friendly",
     "VISAGE.Disposition.Neutral": "Neutral",
     "VISAGE.Disposition.Hostile": "Hostile",
@@ -162,5 +155,20 @@
     "VISAGE.Actions.Promote": "Promote to Global",
     "VISAGE.Actions.CopyToSelection": "Copy to Selection",
     "VISAGE.Actions.Delete": "Delete",
-    "VISAGE.Suffix.Copy": " (Copy)"
+    "VISAGE.Suffix.Copy": " (Copy)",
+
+    "VISAGE.Disposition.Label": "Disposition",
+
+    "VISAGE.Editor.Tabs.Appearance": "Appearance",
+    "VISAGE.Editor.Tabs.Ring": "Dynamic Ring",
+    "VISAGE.Editor.Tabs.Effects": "Effects",
+
+    "VISAGE.Mirror.Label.Horizontal": "Horizontal",
+    "VISAGE.Mirror.Label.Vertical": "Vertical",
+    "VISAGE.Mirror.Option.NoChange": "No Change",
+    "VISAGE.Mirror.Option.Standard": "Standard",
+    "VISAGE.Mirror.Option.Flipped": "Flipped",
+
+    "VISAGE.GlobalEditor.NameOverride": "Name",
+    "VISAGE.GlobalEditor.TokenImage": "Image"
 }

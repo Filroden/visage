@@ -104,31 +104,31 @@
                     
                     {{!-- LEFT: METADATA --}}
                     <div class="card-zone-left">
-                        {{!-- LOCK SLOT --}}
+                         {{!-- LOCK SLOT --}}
                         <div class="metadata-slot {{#unless this.meta.slots.lock.active}}inactive{{/unless}}"
                              data-tooltip="{{localize 'VISAGE.RotationLock.Label'}}">
-                            <img src="modules/visage/icons/lock_reset.svg" class="visage-icon-nav"/>
+                             <img src="modules/visage/icons/lock_reset.svg" class="visage-icon-nav"/>
                             <span class="slot-value">{{this.meta.slots.lock.val}}</span>
                         </div>
 
                         {{!-- SCALE SLOT --}}
                         <div class="metadata-slot {{#unless this.meta.slots.scale.active}}inactive{{/unless}}" 
                              data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Scale'}}">
-                             <i class="fas fa-ruler-combined"></i>
-                            <span class="slot-value">{{this.meta.slots.scale.val}}</span>
+                             <img src="modules/visage/icons/square_foot.svg" class="visage-icon-nav"/>
+                             <span class="slot-value">{{this.meta.slots.scale.val}}</span>
                         </div>
 
                         {{!-- DIMENSIONS SLOT --}}
                         <div class="metadata-slot {{#unless this.meta.slots.dim.active}}inactive{{/unless}}"
                              data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Dimensions'}}">
-                            <i class="fas fa-vector-square"></i>
+                            <img src="modules/visage/icons/aspect_ratio.svg" class="visage-icon-nav"/>
                             <span class="slot-value">{{this.meta.slots.dim.val}}</span>
                         </div>
 
                         {{!-- HORIZONTAL FLIP SLOT --}}
                         <div class="metadata-slot flip-h-slot {{#unless this.meta.slots.flipH.active}}inactive{{/unless}}"
                               data-tooltip="{{localize 'VISAGE.Mirror.Horizontal.Label'}}">
-                            <img src="{{this.meta.slots.flipH.src}}" class="visage-icon-nav {{this.meta.slots.flipH.cls}}"/>
+                             <img src="{{this.meta.slots.flipH.src}}" class="visage-icon-nav {{this.meta.slots.flipH.cls}}"/>
                             <span class="slot-value">{{this.meta.slots.flipH.val}}</span>
                         </div>
 
@@ -136,13 +136,13 @@
                         <div class="metadata-slot flip-v-slot {{#unless this.meta.slots.flipV.active}}inactive{{/unless}}"
                              data-tooltip="{{localize 'VISAGE.Mirror.Vertical.Label'}}">
                              <img src="{{this.meta.slots.flipV.src}}" class="visage-icon-nav {{this.meta.slots.flipV.cls}}"/>
-                            <span class="slot-value">{{this.meta.slots.flipV.val}}</span>
+                             <span class="slot-value">{{this.meta.slots.flipV.val}}</span>
                         </div>
 
                         {{!-- WILDCARD SLOT --}}
                         <div class="metadata-slot wildcard-slot {{#unless this.meta.slots.wildcard.active}}inactive{{/unless}}"
-                            data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Wildcard'}}">
-                            <i class="fas fa-random"></i>
+                             data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Wildcard'}}">
+                            <img src="modules/visage/icons/shuffle.svg" class="visage-icon-nav"/>
                              <span class="slot-value">{{this.meta.slots.wildcard.val}}</span>
                         </div>
 

@@ -24,6 +24,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.tokenId = options.tokenId || null;
         this.isDirty = false;
         
+        // State tracking for Tabs
+        this._activeTab = "appearance";
+        
         // Dynamic Icon: Domino Mask for Global, Face Mask for Local
         this.options.window.icon = !this.isLocal ? "visage-icon-domino" : "visage-icon-mask";
     }
@@ -49,6 +52,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             minimizable: true,
             contentClasses: ["standard-form"]
         },
+        // NOTE: "tabs" config is not supported in ApplicationV2, handled manually in _onRender
         position: { width: 960, height: "auto" },
         actions: {
             save: VisageEditor.prototype._onSave,
@@ -306,41 +310,74 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const meta = context.meta;
 
-        // 5. Update UI Slots (Badges)
-        const updateSlot = (cls, data) => {
-            const slot = el.querySelector(`.card-zone-left .${cls}`);
+        // 5. Update UI Slots (Badges)       
+       
+        // Helper to find meta-item by icon class
+        const findItem = (iconClass) => {
+            const icon = el.querySelector(`.metadata-grid i.${iconClass}`) || el.querySelector(`.metadata-grid img[src*="${iconClass}"]`);
+            return icon ? icon.closest('.meta-item') : null;
+        };
+
+        // 1. Scale
+        const scaleItem = findItem('scale'); 
+        if (scaleItem && meta.slots.scale) {
+            scaleItem.querySelector('.meta-value').textContent = meta.slots.scale.val;
+            if(meta.slots.scale.active) scaleItem.classList.remove('inactive'); else scaleItem.classList.add('inactive');
+        }
+
+        // 2. Dimensions
+        const dimItem = findItem('dimensions');
+        if (dimItem && meta.slots.dim) {
+            dimItem.querySelector('.meta-value').textContent = meta.slots.dim.val;
+            if(meta.slots.dim.active) dimItem.classList.remove('inactive'); else dimItem.classList.add('inactive');
+        }
+
+        // 3. Lock
+        const lockItem = findItem('lock'); 
+        if (lockItem && meta.slots.lock) {
+            lockItem.querySelector('.meta-value').textContent = meta.slots.lock.val;
+            if(meta.slots.lock.active) lockItem.classList.remove('inactive'); else lockItem.classList.add('inactive');
+        }
+
+        // 4. Wildcard
+        const wildItem = findItem('wildcard');
+        if (wildItem && meta.slots.wildcard) {
+            wildItem.querySelector('.meta-value').textContent = meta.slots.wildcard.val;
+            if(meta.slots.wildcard.active) wildItem.classList.remove('inactive'); else wildItem.classList.add('inactive');
+        }
+
+        // 5. Disposition
+        const dispItem = el.querySelector('.disposition-item');
+        if (dispItem && meta.slots.disposition) {
+            const valSpan = dispItem.querySelector('.visage-disposition-text');
+            if (valSpan) {
+                valSpan.textContent = meta.slots.disposition.val;
+                valSpan.className = `visage-disposition-text ${meta.slots.disposition.class}`;
+            }
+        }
+
+        // 6. Mirroring (Split Logic)
+        const updateMirrorSlot = (type, slotData) => {
+            const slot = el.querySelector(`.mirror-sub-slot.${type}`);
             if (!slot) return;
             
-            // Handle simple icon-only slots (like Lock) vs value slots
-            const valSpan = slot.querySelector(".slot-value");
-            if (valSpan && data.val !== undefined) valSpan.textContent = data.val;
+            const img = slot.querySelector('img');
             
-            if (data.active) slot.classList.remove("inactive");
-            else slot.classList.add("inactive");
+            // Toggle Active State (Opacity)
+            if (slotData.active) slot.classList.remove('inactive');
+            else slot.classList.add('inactive');
 
-            const img = slot.querySelector("img");
-            if (img && data.src) {
-                img.src = data.src;
-                img.classList.remove("visage-rotate-0", "visage-rotate-90", "visage-rotate-180", "visage-rotate-270");
-                if (data.cls) img.classList.add(data.cls);
+            // Update Rotation Class
+            if (img) {
+                // Remove old rotation classes
+                img.classList.remove('visage-rotate-0', 'visage-rotate-90', 'visage-rotate-180', 'visage-rotate-270');
+                // Add new one
+                img.classList.add(slotData.cls);
             }
         };
 
-        updateSlot("scale-slot", meta.slots.scale);
-        updateSlot("dim-slot", meta.slots.dim);
-        updateSlot("flip-h-slot", meta.slots.flipH);
-        updateSlot("flip-v-slot", meta.slots.flipV);
-        updateSlot("wildcard-slot", meta.slots.wildcard);
-        updateSlot("lock-slot", meta.slots.lock);
-
-        // Update Disposition Chip
-        const dispSlot = el.querySelector(".card-zone-left .disposition-slot .visage-disposition-chip");
-        if (dispSlot) {
-            dispSlot.textContent = meta.slots.disposition.val;
-            dispSlot.className = `visage-disposition-chip ${meta.slots.disposition.class}`;
-            if (mockData.changes.disposition === undefined) dispSlot.classList.add("inactive");
-            else dispSlot.classList.remove("inactive");
-        }
+        if (meta.slots.flipH) updateMirrorSlot('horizontal', meta.slots.flipH);
+        if (meta.slots.flipV) updateMirrorSlot('vertical', meta.slots.flipV);
 
         // Update Name Label
         const nameEl = el.querySelector(".token-name-label");
@@ -371,9 +408,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // Update Opacity Visual (DOM Manipulation for Partial Inner Div)
-        // The partial has a container <div> inside the wrapper that holds opacity.
-        // It is the first child of the .visage-preview-content
+        // Update Opacity Visual
         const previewContainer = el.querySelector(".visage-preview-content > div");
         if (previewContainer) {
             previewContainer.style.opacity = isAlphaActive ? rawAlpha : 1.0;
@@ -443,7 +478,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onToggleField(event, target) {
         const fieldName = target.dataset.target;
         const group = target.closest('.form-group');
-        const inputs = group.querySelectorAll(`[name="${fieldName}"]`); // Match all inputs (radio/checkbox/text/range)
+        const inputs = group.querySelectorAll(`[name="${fieldName}"]`); 
         inputs.forEach(input => input.disabled = !target.checked);
         
         const button = group.querySelector('button.file-picker-button');
@@ -467,6 +502,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.element.addEventListener("change", () => this._markDirty());
         this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
+        
         this.element.addEventListener("change", () => {
             this._markDirty();
             this._updatePreview();
@@ -475,7 +511,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         let debounceTimer;
         this.element.addEventListener("input", (event) => {
             this._markDirty();
-            // Debounce for text, color, AND numbers
             if (event.target.matches("input[type='text'], input[type='number'], color-picker")) {
                  clearTimeout(debounceTimer);
                  debounceTimer = setTimeout(() => {
@@ -483,8 +518,42 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                  }, 500); 
             }
         });
+
+        // --- NEW: TAB HANDLING ---
+        const tabs = this.element.querySelectorAll(".visage-tabs .item");
+        tabs.forEach(t => {
+            t.addEventListener("click", (e) => {
+                const target = e.currentTarget.dataset.tab;
+                this._activateTab(target);
+            });
+        });
+        
+        // Restore active tab if set (persists across re-renders)
+        if (this._activeTab) this._activateTab(this._activeTab);
         
         this._updatePreview();
+    }
+
+    /**
+     * Manually switches the active tab by toggling CSS classes.
+     * @param {string} tabName - The data-tab value to activate.
+     */
+    _activateTab(tabName) {
+        this._activeTab = tabName;
+        
+        // Update Nav Items
+        const navItems = this.element.querySelectorAll(".visage-tabs .item");
+        navItems.forEach(n => {
+            if (n.dataset.tab === tabName) n.classList.add("active");
+            else n.classList.remove("active");
+        });
+
+        // Update Content Areas
+        const contentItems = this.element.querySelectorAll(".visage-tab-content .tab");
+        contentItems.forEach(c => {
+            if (c.dataset.tab === tabName) c.classList.add("active");
+            else c.classList.remove("active");
+        });
     }
 
     _bindTagInput() {
