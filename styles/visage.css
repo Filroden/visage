@@ -292,6 +292,7 @@
     filter: invert(100%); 
 }
 
+
 /* ==========================================================================
    3. Application: Universal Shell
    ========================================================================== */
@@ -833,6 +834,18 @@
     margin-inline-end: 0.5rem;
 }
 
+.visage-icon-nav {
+    transform: scaleX(var(--filroden-dir-flip));
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Global Rotation Classes for Directional Icons */
+.visage-rotate-0   { transform: rotate(0deg); }   /* Points Up */
+.visage-rotate-90  { transform: rotate(90deg); }  /* Points Right */
+.visage-rotate-180 { transform: rotate(180deg); } /* Points Down */
+.visage-rotate-270 { transform: rotate(270deg); } /* Points Left */
+
 /* Specific Mappings */
 .visage-icon.play        { -webkit-mask-image: url('../icons/play_arrow.svg'); mask-image: url('../icons/play_arrow.svg'); }
 .visage-icon.edit        { -webkit-mask-image: url('../icons/edit_square.svg'); mask-image: url('../icons/edit_square.svg'); }
@@ -849,6 +862,14 @@
 .visage-icon.sync        { -webkit-mask-image: url('../icons/sync_alt.svg'); mask-image: url('../icons/sync_alt.svg'); }
 .visage-icon.domino      { -webkit-mask-image: url('../icons/domino_mask.svg'); mask-image: url('../icons/domino_mask.svg'); }
 .visage-icon.visage      { -webkit-mask-image: url('../icons/switch_account.svg'); mask-image: url('../icons/switch_account.svg'); }
+.visage-icon.scale       { -webkit-mask-image: url('../icons/square_foot.svg'); mask-image: url('../icons/square_foot.svg'); }
+.visage-icon.dimensions  { -webkit-mask-image: url('../icons/aspect_ratio.svg'); mask-image: url('../icons/aspect_ratio.svg'); }
+.visage-icon.wildcard    { -webkit-mask-image: url('../icons/shuffle.svg'); mask-image: url('../icons/shuffle.svg'); }
+.visage-icon.lock        { -webkit-mask-image: url('../icons/lock_reset.svg'); mask-image: url('../icons/lock_reset.svg'); }
+.visage-icon.image-search { -webkit-mask-image: url('../icons/image_search.svg'); mask-image: url('../icons/image_search.svg'); }
+.visage-icon.undo        { -webkit-mask-image: url('../icons/undo.svg'); mask-image: url('../icons/undo.svg'); }
+.visage-icon.save-update { -webkit-mask-image: url('../icons/save.svg'); mask-image: url('../icons/save.svg'); }
+.visage-icon.wand-stars  { -webkit-mask-image: url('../icons/wand_stars.svg'); mask-image: url('../icons/wand_stars.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-mask,
@@ -867,6 +888,11 @@
 #token-hud .control-icon:hover .visage-icon-mask,
 #token-hud .control-icon:hover .visage-icon-domino {
     opacity: 1;
+}
+
+.visage-icon.large {
+    width: 3rem;
+    height: 3rem;
 }
 
 
@@ -1228,7 +1254,7 @@
     height: 1.2em;
     font-size: 1em;
     text-align: center;
-    color: var(--visage-color-accent);
+    color: var(--visage-color-text-main-solid);
 }
 
 .meta-label {
@@ -1258,6 +1284,45 @@
 .visage-disposition-text.neutral  { color: #ffff00; }
 .visage-disposition-text.hostile  { color: #ff0000; }
 .visage-disposition-text.secret   { color: #ff00ff; }
+
+.meta-item.mirror-split {
+    display: grid;
+    grid-template-columns: 1.2em 1fr 1fr;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    padding: 0;
+    background: transparent;
+}
+
+.mirror-sub-slot.horizontal {
+    grid-column: 1 / 3;
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    width: 100%;
+}
+
+.mirror-sub-slot.vertical {
+    grid-column: 3 / 4;
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    justify-content: start;
+    width: 100%;
+}
+
+.mirror-sub-slot.inactive {
+    opacity: 0.4;
+    color: var(--filroden-color-text-muted);
+}
+
+.mirror-sub-slot img {
+    width: 1.2em;
+    height: 1.2em;
+    margin-inline-end: var(--filroden-space-xs);
+    transform-origin: center;
+    transition: transform 0.2s ease; 
+}
 
 /* C. Right Panel (Inspector) */
 .visage-inspector-panel {
@@ -1760,10 +1825,6 @@
 }
 
 /* Mirroring Icons */
-.visage-rotate-0   { transform: rotate(0deg); }   /* Points Up */
-.visage-rotate-90  { transform: rotate(90deg); }  /* Points Right */
-.visage-rotate-180 { transform: rotate(180deg); } /* Points Down */
-.visage-rotate-270 { transform: rotate(270deg); } /* Points Left */
 .metadata-slot img.visage-icon-nav {
     width: 1rem;
     height: 1rem;

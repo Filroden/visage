@@ -74,28 +74,28 @@
                 
                 {{!-- Row 1: Scale --}}
                 <div class="meta-item {{#unless preview.slots.scale.active}}inactive{{/unless}}">
-                    <i class="fas fa-ruler-combined"></i> 
+                    <i class="visage-icon scale"></i>
                     <span class="meta-label">{{localize 'VISAGE.Directory.Tooltip.Scale'}}:</span>
                     <span class="meta-value">{{preview.slots.scale.val}}</span>
                 </div>
 
                 {{!-- Row 1: Dimensions --}}
                 <div class="meta-item {{#unless preview.slots.dim.active}}inactive{{/unless}}">
-                    <i class="fas fa-vector-square"></i> 
+                    <i class="visage-icon dimensions"></i>
                     <span class="meta-label">{{localize 'VISAGE.Config.List.Width'}}/{{localize 'VISAGE.Config.List.Height'}}:</span>
                     <span class="meta-value">{{preview.slots.dim.val}}</span>
                 </div>
                 
                 {{!-- Row 2: Rotation Lock --}}
                 <div class="meta-item {{#unless preview.slots.lock.active}}inactive{{/unless}}">
-                    <img src="modules/visage/icons/lock_reset.svg" class="visage-icon-nav"/> 
+                    <i class="visage-icon lock"></i>
                     <span class="meta-label">{{localize 'VISAGE.RotationLock.Label'}}:</span>
                     <span class="meta-value">{{preview.slots.lock.val}}</span>
                 </div>
 
                 {{!-- Row 2: Wildcard --}}
                 <div class="meta-item {{#unless preview.slots.wildcard.active}}inactive{{/unless}}">
-                    <i class="fas fa-random"></i> 
+                    <i class="visage-icon wildcard"></i>
                     <span class="meta-label">{{localize 'VISAGE.Wildcard.Label'}}:</span>
                     <span class="meta-value">{{preview.slots.wildcard.val}}</span>
                 </div>
@@ -107,17 +107,23 @@
                      <span class="visage-disposition-text {{preview.slots.disposition.class}}">{{preview.slots.disposition.val}}</span>
                 </div>
 
-                {{!-- Row 3: Mirroring --}}
-                <div class="meta-item">
-                    {{#if (or preview.flipX preview.flipY)}}
-                        <i class="fas fa-arrows-alt-h"></i> 
-                        <span class="meta-label">{{localize 'VISAGE.GlobalEditor.Mirroring'}}:</span>
-                        <span class="meta-value">On</span>
-                    {{else}}
-                        <i class="fas fa-arrows-alt-h" style="opacity:0.5"></i> 
-                        <span class="meta-label">{{localize 'VISAGE.GlobalEditor.Mirroring'}}:</span>
-                        <span class="meta-value" style="opacity:0.5">Off</span>
-                    {{/if}}
+                {{!-- Row 3: Mirroring (Split H/V) --}}
+                <div class="meta-item mirror-split">
+                    
+                    {{!-- Horizontal --}}
+                    <div class="mirror-sub-slot horizontal {{#unless preview.slots.flipH.active}}inactive{{/unless}}" 
+                         title="{{localize 'VISAGE.Mirror.Horizontal.Label'}}">
+                        <img src="{{preview.slots.flipH.src}}" class="visage-icon-nav {{preview.slots.flipH.cls}}"/>
+                        <span class="meta-value">{{localize "VISAGE.Mirror.Badge.H"}}</span>
+                    </div>
+
+                    {{!-- Vertical --}}
+                    <div class="mirror-sub-slot vertical {{#unless preview.slots.flipV.active}}inactive{{/unless}}" 
+                         title="{{localize 'VISAGE.Mirror.Vertical.Label'}}">
+                        <img src="{{preview.slots.flipV.src}}" class="visage-icon-nav {{preview.slots.flipV.cls}}"/>
+                        <span class="meta-value">{{localize "VISAGE.Mirror.Badge.V"}}</span>
+                    </div>
+
                 </div>
             </div>
 
@@ -155,7 +161,7 @@
                             <label>{{localize "VISAGE.GlobalEditor.TokenImage"}}</label>
                             <div class="visage-form-fields">
                                 <input type="text" name="img" value="{{this.img.value}}" {{disabled (not img.active)}} placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}">
-                                <button type="button" class="file-picker-button" data-action="openFilePicker" {{disabled (not img.active)}}><i class="fas fa-file-import"></i></button>
+                                <button type="button" class="file-picker-button" data-action="openFilePicker" {{disabled (not img.active)}}><i class="visage-icon image-search"></i></button>
                             </div>
                         </div>
 
@@ -304,7 +310,7 @@
                 {{!-- TAB 3: EFFECTS (Empty for v3.0 preparation) --}}
                 <div class="tab" data-tab="effects" data-group="primary">
                     <div class="empty-placeholder">
-                        <i class="fas fa-magic" style="font-size: 3rem; opacity: 0.2; margin-bottom: 1rem;"></i>
+                        <i class="visage-icon wand-stars large" style="opacity: 0.2; margin-bottom: 1rem;"></i>
                         <p style="opacity: 0.5;">Effects configuration coming in v3.0</p>
                     </div>
                 </div>
@@ -318,12 +324,12 @@
     <footer class="visage-editor-footer">
         {{#if isLocal}}
         <button type="button" class="visage-reset-btn" data-action="resetSettings" data-tooltip="{{localize 'VISAGE.GlobalEditor.ResetTooltip'}}">
-            <i class="fas fa-undo"></i> {{localize "VISAGE.GlobalEditor.Reset"}}
+            <i class="visage-icon undo"></i> {{localize "VISAGE.GlobalEditor.Reset"}}
         </button>
         {{/if}}
 
         <button type="submit" class="visage-save {{#if isDirty}}dirty{{/if}}" data-action="save">
-            <i class="fas fa-save"></i> 
+            <i class="visage-icon save-update"></i> 
             {{#if isLocal}}
                 {{localize "VISAGE.GlobalEditor.Save.Local"}}
             {{else}}

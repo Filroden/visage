@@ -310,32 +310,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const meta = context.meta;
 
-        // 5. Update UI Slots (Badges)
-        const updateSlot = (cls, data) => {
-            const slot = el.querySelector(`.metadata-grid .${cls}`);
-            // Note: Updated selector to look inside metadata-grid, but using querySelector on element finds deeper anyway
-            // However, your HBS uses specific classes on meta-items like 'meta-item disposition-item', 
-            // the generated IDs/Classes in HBS need to match this logic.
-            // Since we refactored HBS to use 'meta-item' and removed explicit classes like 'scale-slot' in some cases,
-            // we need to be careful. 
-            // Actually, in the last HBS step, I removed specific classes like 'scale-slot' from the div wrapper.
-            // To make this work robustly with the new HBS, we should probably re-add the identifying classes 
-            // OR target them by order (fragile).
-            // Let's assume you will update HBS to include identifying classes if this logic breaks, 
-            // OR I can try to find them by icon content which is safer given the recent HBS changes.
-            
-            // FIX: Re-targeting based on the icons which are constant.
-            // Scale = fa-ruler-combined
-            // Dim = fa-vector-square
-            // Lock = lock_reset.svg
-            // Wildcard = fa-random
-            // FlipH/V = removed from metadata grid in your last HBS update? 
-            // Wait, looking at your last HBS, FlipH/FlipV are merged into "Mirroring: On/Off"
-            // So we need to update this logic significantly.
-        };
-        
-        // --- RE-IMPLEMENTING UI UPDATES FOR NEW HBS STRUCTURE ---
-        
+        // 5. Update UI Slots (Badges)       
+       
         // Helper to find meta-item by icon class
         const findItem = (iconClass) => {
             const icon = el.querySelector(`.metadata-grid i.${iconClass}`) || el.querySelector(`.metadata-grid img[src*="${iconClass}"]`);
@@ -343,29 +319,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
 
         // 1. Scale
-        const scaleItem = findItem('fa-ruler-combined');
+        const scaleItem = findItem('scale'); 
         if (scaleItem && meta.slots.scale) {
             scaleItem.querySelector('.meta-value').textContent = meta.slots.scale.val;
             if(meta.slots.scale.active) scaleItem.classList.remove('inactive'); else scaleItem.classList.add('inactive');
         }
 
         // 2. Dimensions
-        const dimItem = findItem('fa-vector-square');
+        const dimItem = findItem('dimensions');
         if (dimItem && meta.slots.dim) {
             dimItem.querySelector('.meta-value').textContent = meta.slots.dim.val;
             if(meta.slots.dim.active) dimItem.classList.remove('inactive'); else dimItem.classList.add('inactive');
         }
 
         // 3. Lock
-        // Look for img src containing lock_reset
-        const lockItem = el.querySelector('.metadata-grid img[src*="lock_reset.svg"]')?.closest('.meta-item');
+        const lockItem = findItem('lock'); 
         if (lockItem && meta.slots.lock) {
             lockItem.querySelector('.meta-value').textContent = meta.slots.lock.val;
             if(meta.slots.lock.active) lockItem.classList.remove('inactive'); else lockItem.classList.add('inactive');
         }
 
         // 4. Wildcard
-        const wildItem = findItem('fa-random');
+        const wildItem = findItem('wildcard');
         if (wildItem && meta.slots.wildcard) {
             wildItem.querySelector('.meta-value').textContent = meta.slots.wildcard.val;
             if(meta.slots.wildcard.active) wildItem.classList.remove('inactive'); else wildItem.classList.add('inactive');
@@ -381,20 +356,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // 6. Mirroring (Merged Logic)
-        // Find item with arrows-alt-h
-        const mirrorItem = findItem('fa-arrows-alt-h');
-        if (mirrorItem) {
-            const isMirrored = context.isFlippedX || context.isFlippedY;
-            const valSpan = mirrorItem.querySelector('.meta-value');
-            const icon = mirrorItem.querySelector('i');
+        // 6. Mirroring (Split Logic)
+        const updateMirrorSlot = (type, slotData) => {
+            const slot = el.querySelector(`.mirror-sub-slot.${type}`);
+            if (!slot) return;
             
-            if (valSpan) {
-                valSpan.textContent = isMirrored ? "On" : "Off";
-                valSpan.style.opacity = isMirrored ? "1" : "0.5";
+            const img = slot.querySelector('img');
+            
+            // Toggle Active State (Opacity)
+            if (slotData.active) slot.classList.remove('inactive');
+            else slot.classList.add('inactive');
+
+            // Update Rotation Class
+            if (img) {
+                // Remove old rotation classes
+                img.classList.remove('visage-rotate-0', 'visage-rotate-90', 'visage-rotate-180', 'visage-rotate-270');
+                // Add new one
+                img.classList.add(slotData.cls);
             }
-            if (icon) icon.style.opacity = isMirrored ? "1" : "0.5";
-        }
+        };
+
+        if (meta.slots.flipH) updateMirrorSlot('horizontal', meta.slots.flipH);
+        if (meta.slots.flipV) updateMirrorSlot('vertical', meta.slots.flipV);
 
         // Update Name Label
         const nameEl = el.querySelector(".token-name-label");
