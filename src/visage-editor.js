@@ -432,7 +432,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // 12. Update Main Visual (Image/Video)
-        const transform = `scale(${context.isFlippedX ? -1 : 1}, ${context.isFlippedY ? -1 : 1})`;
+        // A. Determine Scale Magnitude
+        let visualScale = rawScale; 
+        if (meta.hasRing && formData.ringSubjectTexture) {
+             visualScale = parseFloat(formData.ringSubjectScale) || 1.0;
+        }
+
+        // Cache the visual scale for the Zoom logic
+        this._currentVisualScale = visualScale;
+
+        // B. Combine Magnitude with Direction (Mirroring)
+        const scaleX = visualScale * (context.isFlippedX ? -1 : 1);
+        const scaleY = visualScale * (context.isFlippedY ? -1 : 1);
+        const transform = `scale(${scaleX}, ${scaleY})`;
+
         const vidEl = el.querySelector(".visage-preview-video");
         const imgEl = el.querySelector(".visage-preview-img");
         const iconEl = el.querySelector(".fallback-icon");
@@ -448,7 +461,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (vidEl) {
                 vidEl.src = resolvedPath;
                 vidEl.style.display = "block";
-                vidEl.style.transform = transform;
+                vidEl.style.transform = transform; // Apply Scaled Transform
             }
             if (imgEl) imgEl.style.display = "none";
             if (iconEl) iconEl.style.display = "none";
@@ -457,7 +470,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (imgEl) {
                 imgEl.src = resolvedPath;
                 imgEl.style.display = "block";
-                imgEl.style.transform = transform;
+                imgEl.style.transform = transform; // Apply Scaled Transform
             }
             if (iconEl) iconEl.style.display = "none";
         }
@@ -659,7 +672,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onResetZoom() {
-        this._viewState.scale = 1.0;
+        // Default to 1.0
+        let targetScale = 1.0;
+
+        // Smart Reset: If the visual content is larger than the stage (Scale > 1.0),
+        // zoom out so the whole image fits.
+        if (this._currentVisualScale && this._currentVisualScale > 1.0) {
+            targetScale = 1.0 / this._currentVisualScale;
+        }
+
+        this._viewState.scale = targetScale;
         this._viewState.x = 0;
         this._viewState.y = 0;
         this._applyStageTransform();

@@ -1216,6 +1216,10 @@
     /* Use Container Query units to force a square that fits the smallest dimension */
     width: 80cqmin;
     height: 80cqmin;
+    
+    /* CHANGED: Allow image to overflow the logical token bounds (for Scale > 1.0) */
+    overflow: visible;
+    
     max-width: none;
     max-height: none;
     z-index: 1;
@@ -1335,7 +1339,7 @@
 
 /* Visibility Toggle */
 .visage-live-preview-stage.show-grid .visage-preview-content.stage-mode::after {
-    opacity: 0.6;
+    opacity: 0.7;
 }
 
 /* Metadata Grid (Bottom of Left Panel) */
