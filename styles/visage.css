@@ -292,6 +292,26 @@
     filter: invert(100%); 
 }
 
+/* --- Effect Layers --- */
+.visage-effect-layer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    max-width: none; /* Allow effects to exceed token bounds */
+    max-height: none;
+    pointer-events: none;
+    transform-origin: center center;
+    /* Size logic: Sequencer effects usually target the grid size. 
+       In our preview, 100% = Token Width. 
+       Most effects are 100% size, so this works well. */
+    width: 100%; 
+    height: auto;
+    will-change: transform;
+}
+
+.visage-effect-layer.below { z-index: 0; }
+.visage-effect-layer.above { z-index: 10; }
+
 
 /* ==========================================================================
    3. Application: Universal Shell
@@ -795,7 +815,6 @@
     -webkit-mask-position: center;
     mask-position: center;
     margin: 0;
-    margin-inline-end: var(--filroden-space-xs);
 }
 
 .visage-sidebar .search-bar .visage-icon.search {
@@ -875,6 +894,11 @@
 .visage-icon.center-focus  { -webkit-mask-image: url('../icons/center_focus_strong.svg'); mask-image: url('../icons/center_focus_strong.svg'); }
 .visage-icon.grid-on       { -webkit-mask-image: url('../icons/grid_3x3.svg'); mask-image: url('../icons/grid_3x3.svg'); }
 .visage-icon.grid-off      { -webkit-mask-image: url('../icons/grid_3x3_off.svg'); mask-image: url('../icons/grid_3x3_off.svg'); }
+.visage-icon.back        { -webkit-mask-image: url('../icons/arrow_back.svg'); mask-image: url('../icons/arrow_back.svg'); }
+.visage-icon.visual      { -webkit-mask-image: url('../icons/style.svg'); mask-image: url('../icons/style.svg'); }
+.visage-icon.audio       { -webkit-mask-image: url('../icons/music_note.svg'); mask-image: url('../icons/music_note.svg'); }
+.visage-icon.visible     { -webkit-mask-image: url('../icons/visibility.svg'); mask-image: url('../icons/visibility.svg'); }
+.visage-icon.visage-hidden      { -webkit-mask-image: url('../icons/visibility_off.svg'); mask-image: url('../icons/visibility_off.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-mask,
@@ -911,7 +935,7 @@
     min-width: 65rem !important;
     max-width: 95vw;
     min-height: 45rem;
-    height: auto;
+    height: 52rem;
     display: flex;
     flex-direction: column;
 }
@@ -1213,16 +1237,47 @@
 
 /* Used for the token preview content wrapper */
 .visage-preview-content.stage-mode {
-    /* Use Container Query units to force a square that fits the smallest dimension */
     width: 80cqmin;
     height: 80cqmin;
-    
-    /* CHANGED: Allow image to overflow the logical token bounds (for Scale > 1.0) */
-    overflow: visible;
-    
-    max-width: none;
-    max-height: none;
+    display: block;    
+    position: relative;
     z-index: 1;
+    transform-origin: center center;
+    overflow: visible;    
+    cursor: grab;
+    isolation: isolate;
+}
+
+.visage-token-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2; /* Middle Layer */
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.visage-preview-content img.visage-preview-img,
+.visage-preview-content video.visage-preview-video,
+.visage-preview-content .fallback-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Ensure effects don't get clipped by the token container */
+.visage-preview-content.stage-mode .visage-effect-layer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center center;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+    will-change: transform;
 }
 
 .stage-overlay-name {
@@ -1548,15 +1603,166 @@
     box-shadow: 0 0 8px var(--visage-color-accent-hover);
 }
 
-/* Placeholder for v3 Effects Tab */
-.empty-placeholder {
+/* --- 6.6 EFFECTS TAB STYLES --- */
+.effects-tab-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Hide the slide-out content */
+}
+
+/* Only apply flex when the tab is active */
+.effects-tab-container.active {
+    display: flex;
+}
+
+.visage-view {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    padding: var(--filroden-space-l);
+    overflow-y: auto;
+    background: var(--visage-color-bg-darkest);
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* State: Default (List visible, Inspector hidden to right) */
+.view-list { transform: translateX(0); z-index: 1; }
+.view-inspector { transform: translateX(100%); z-index: 2; }
+
+/* State: Editing (List hidden to left, Inspector visible) */
+.effects-tab-container.editing .view-list { transform: translateX(-30%); opacity: 0; }
+.effects-tab-container.editing .view-inspector { transform: translateX(0); }
+
+
+/* --- VIEW 1: EFFECT STACK --- */
+.effects-actions {
+    display: flex;
+    gap: var(--filroden-space-s);
+    margin-bottom: var(--filroden-space-m);
+    flex: 0 0 auto;
+}
+
+.effects-actions button {
+    flex: 1;
+    display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%;
+    font-size: var(--filroden-font-size-xs);
+}
+
+.effect-stack-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xs);
+}
+
+.effect-card {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    background: var(--visage-color-bg-medium-solid);
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-small);
+    padding: var(--filroden-space-xs);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.effect-card:hover {
+    border-color: var(--visage-color-accent);
+    background: var(--visage-color-bg-light);
+}
+
+.effect-icon {
+    width: 2rem;
+    height: 2rem;
+    background: rgba(0,0,0,0.3);
+    border-radius: var(--filroden-radius-small);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--visage-color-accent);
+}
+
+.effect-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.effect-name {
+    font-weight: bold;
+    font-size: var(--filroden-font-size-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.effect-meta {
+    font-size: 0.65rem;
     color: var(--visage-color-text-muted);
-    text-align: center;
+}
+
+.effect-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+}
+
+.effect-btn {
+    width: 2rem;
+    height: 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--visage-color-text-muted);
+    padding: 0;
+}
+.effect-btn:hover { color: var(--visage-color-text-main-solid); }
+.effect-btn.delete:hover { color: var(--filroden-color-danger); }
+
+
+/* --- VIEW 2: INSPECTOR --- */
+.inspector-header {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-m);
+    padding-bottom: var(--filroden-space-m);
+    border-bottom: 1px solid var(--visage-color-border);
+    margin-bottom: var(--filroden-space-m);
+}
+
+.back-btn {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    flex: 0 0 auto;
+}
+
+.inspector-title {
+    margin: 0;
+    font-size: var(--filroden-font-size-m);
+    color: var(--visage-color-accent);
+}
+
+/* Rotation Group (Input + Random Checkbox) */
+.rotation-group .visage-form-fields {
+    display: grid;
+    grid-template-columns: 1fr max-content;
+    gap: var(--filroden-space-s);
+}
+
+.rotation-random-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--visage-color-text-muted);
+    cursor: pointer;
 }
 
 

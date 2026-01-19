@@ -1,5 +1,6 @@
 {
     "VISAGE.GlobalEditor.Hint": "Configure the appearance and behaviour of this visage.",
     "VISAGE.RingConfig.RingColor": "Ring Colour",
-    "VISAGE.RingConfig.BackgroundColor": "Background Colour"
+    "VISAGE.RingConfig.BackgroundColor": "Background Colour",
+    "VISAGE.Random": "Randomise"
 }

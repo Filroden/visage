@@ -193,4 +193,7 @@ export class VisageUtilities {
             element.classList.add("visage-theme-global");
         }
     }
+
+    /* Check availability of the Sequencer module to enable effects  */
+    static get hasSequencer() { return game.modules.get("sequencer")?.active; }
 }

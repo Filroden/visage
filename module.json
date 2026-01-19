@@ -7,10 +7,17 @@
         "minimum": "13",
         "verified": "13.351"
     },
+    "relationships": {
+        "recommends": [
+            {
+                "id": "sequencer",
+                "type": "module",
+                "title": "Sequencer"
+            }
+        ]
+    },
     "authors": [
-        {
-        "name": "Ken Dearman"
-        }
+        { "name": "Ken Dearman" }
     ],
     "esmodules": [
         "main.js"
