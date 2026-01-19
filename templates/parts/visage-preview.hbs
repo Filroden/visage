@@ -20,16 +20,20 @@
     {{/if}}
 
     {{!-- 3. MAIN TOKEN IMAGE --}}
-    {{!-- Changed from inline style to class for robust absolute positioning --}}
     <div class="visage-token-layer" style="opacity: {{alpha}};">
-        {{#if isVideo}}
-        <video class="visage-preview-video" src="{{resolvedPath}}" autoplay loop muted 
-               style="transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"></video>
-        {{else}}
-        <img class="visage-preview-img" src="{{resolvedPath}}" 
-             style="transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});">
+        
+        {{!-- Fix: Only render media tags if we have a path --}}
+        {{#if resolvedPath}}
+            {{#if isVideo}}
+            <video class="visage-preview-video" src="{{resolvedPath}}" autoplay loop muted 
+                   style="transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"></video>
+            {{else}}
+            <img class="visage-preview-img" src="{{resolvedPath}}" 
+                 style="transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});">
+            {{/if}}
         {{/if}}
         
+        {{!-- Fallback Icon --}}
         <div class="visage-icon-mask fallback-icon" style="{{#if resolvedPath}}display:none;{{/if}}"></div>
     </div>
 
