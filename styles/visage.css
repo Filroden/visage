@@ -66,6 +66,17 @@
    2. SHARED STYLES
    ========================================================================== */
 
+/* AppV1 sheet headers */
+a.header-button.visage-config {
+    display: inline-flex;
+}
+
+/* Actor sidebar context menu */
+li.context-item .visage-icon-mask {
+    width: 12px;
+    height: 12px;
+}
+
 /* --- Tooltips --- */
 #tooltip.visage-tooltip {
     border: 1px solid var(--filroden-color-text-accent);
