@@ -1,38 +1,47 @@
-{{!-- modules/visage/templates/parts/visage-preview.hbs --}}
-{{!-- 
-    Expected Context:
-    - wrapperClass: CSS class for outer container (default: visage-preview-content)
-    - hasCheckerboard: Boolean to enable the checkerboard background
-    - alpha: Opacity value (0.0 - 1.0)
-    - hasInvisibility: Boolean for invisible effect
-    ... (standard visual props)
---}}
-<div class="{{#if wrapperClass}}{{wrapperClass}}{{else}}visage-preview-content{{/if}} {{#if hasCheckerboard}}visage-checkerboard-bg{{/if}} {{#if hasInvisibility}}invisible{{/if}}">
+<div class="visage-preview-content {{wrapperClass}}">
     
-    {{!-- INNER CONTAINER: Handles Opacity & Centering --}}
-    {{!-- We isolate opacity here so it doesn't affect the checkerboard background --}}
-    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; opacity: {{#if alpha}}{{alpha}}{{else}}1{{/if}};">
+    {{!-- 1. BACKGROUND EFFECTS --}}
+    {{#each effectsBelow}}
+        {{#if this.resolvedPath}}
+            {{#if this.isVideo}}
+            <video class="visage-effect-layer below" src="{{this.resolvedPath}}" autoplay loop muted style="{{this.style}}"></video>
+            {{else}}
+            <img class="visage-effect-layer below" src="{{this.resolvedPath}}" style="{{this.style}}">
+            {{/if}}
+        {{/if}}
+    {{/each}}
 
-        {{!-- LAYER 1: RING --}}
-        <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}" 
-             style="display: {{#if hasRing}}block{{else}}none{{/if}}; --ring-color: {{ringColor}}; --ring-bkg: {{ringBkg}};">
-             <div class="ring-band outer"></div>
-             <div class="ring-band inner"></div>
-        </div>
-
-        {{!-- LAYER 2: MEDIA --}}
-        <video class="visage-preview-video {{#if hasRing}}circular{{/if}}" 
-               src="{{#if isVideo}}{{resolvedPath}}{{/if}}" 
-               autoplay loop muted playsinline
-               style="display: {{#if isVideo}}block{{else}}none{{/if}}; transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"></video>
-
-        <img class="visage-preview-img {{#if hasRing}}circular{{/if}}" 
-             src="{{#unless isVideo}}{{resolvedPath}}{{/unless}}" 
-             alt="{{name}}"
-             style="display: {{#if (and resolvedPath (not isVideo))}}block{{else}}none{{/if}}; transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"/>
-
-        <i class="visage-icon-mask fallback-icon" 
-           style="display: {{#if resolvedPath}}none{{else}}block{{/if}};"></i>
-           
+    {{!-- 2. DYNAMIC RING (Background) --}}
+    {{#if hasRing}}
+    <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}">
+        <div class="ring-band outer"></div>
+        <div class="ring-band inner"></div>
     </div>
+    {{/if}}
+
+    {{!-- 3. MAIN TOKEN IMAGE --}}
+    {{!-- Changed from inline style to class for robust absolute positioning --}}
+    <div class="visage-token-layer" style="opacity: {{alpha}};">
+        {{#if isVideo}}
+        <video class="visage-preview-video" src="{{resolvedPath}}" autoplay loop muted 
+               style="transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});"></video>
+        {{else}}
+        <img class="visage-preview-img" src="{{resolvedPath}}" 
+             style="transform: scale({{#if forceFlipX}}-1{{else}}1{{/if}}, {{#if forceFlipY}}-1{{else}}1{{/if}});">
+        {{/if}}
+        
+        <div class="visage-icon-mask fallback-icon" style="{{#if resolvedPath}}display:none;{{/if}}"></div>
+    </div>
+
+    {{!-- 4. FOREGROUND EFFECTS --}}
+    {{#each effectsAbove}}
+        {{#if this.resolvedPath}}
+            {{#if this.isVideo}}
+            <video class="visage-effect-layer above" src="{{this.resolvedPath}}" autoplay loop muted style="{{this.style}}"></video>
+            {{else}}
+            <img class="visage-effect-layer above" src="{{this.resolvedPath}}" style="{{this.style}}">
+            {{/if}}
+        {{/if}}
+    {{/each}}
+    
 </div>

@@ -39,6 +39,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             lastX: 0,
             lastY: 0
         };
+
+        // Effects State Management
+        this._effects = null;       // Populated in _prepareContext
+        this._activeEffectId = null; // The ID of the effect currently being edited in the Inspector
+        
+        // Audio Preview State (Tracks playing Howl/Sound instances)
+        this._audioPreviews = new Map(); 
     }
 
     /**
@@ -62,17 +69,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             minimizable: true,
             contentClasses: ["standard-form"]
         },
-        // NOTE: "tabs" config is not supported in ApplicationV2, handled manually in _onRender
         position: { width: 960, height: "auto" },
         actions: {
+            // Core Actions
             save: VisageEditor.prototype._onSave,
             toggleField: VisageEditor.prototype._onToggleField,
             openFilePicker: VisageEditor.prototype._onOpenFilePicker,
             resetSettings: VisageEditor.prototype._onResetSettings,
+            
+            // Stage Controls
             zoomIn: VisageEditor.prototype._onZoomIn,
             zoomOut: VisageEditor.prototype._onZoomOut,
             resetZoom: VisageEditor.prototype._onResetZoom,
-            toggleGrid: VisageEditor.prototype._onToggleGrid
+            toggleGrid: VisageEditor.prototype._onToggleGrid,
+            
+            // Effects Actions
+            addVisual: VisageEditor.prototype._onAddVisual,
+            addAudio: VisageEditor.prototype._onAddAudio,
+            editEffect: VisageEditor.prototype._onEditEffect,
+            closeEffectInspector: VisageEditor.prototype._onCloseEffectInspector,
+            deleteEffect: VisageEditor.prototype._onDeleteEffect,
+            toggleEffect: VisageEditor.prototype._onToggleEffect,
+            openSequencerDatabase: VisageEditor.prototype._onOpenSequencerDatabase
         }
     };
 
@@ -133,6 +151,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // B. Extract Raw Data
         const c = data.changes || {};
+        
+        // Initialize Local Effects State (Once)
+        if (this._effects === null) {
+            this._effects = c.effects ? foundry.utils.deepClone(c.effects) : [];
+        }
+
         const rawImg = c.texture?.src || "";
         const resolvedImg = await VisageUtilities.resolvePath(rawImg);
 
@@ -171,6 +195,40 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         let lockVal = "";
         if (c.lockRotation === true) lockVal = "true";
         if (c.lockRotation === false) lockVal = "false";
+
+        // Prepare Active Effect Data for Inspector
+        let activeEffectData = {};
+        if (this._activeEffectId) {
+            const effect = this._effects.find(e => e.id === this._activeEffectId);
+            if (effect) {
+                activeEffectData = {
+                    id: effect.id,
+                    label: effect.label,
+                    path: effect.path,
+                    scale: Math.round((effect.scale ?? 1.0) * 100),
+                    opacity: effect.opacity ?? 1.0,
+                    rotation: effect.rotation ?? 0,
+                    rotationRandom: effect.rotationRandom ?? false,
+                    zOrder: effect.zOrder ?? "above",
+                    blendMode: effect.blendMode || "normal",
+                    type: effect.type
+                };
+            }
+        }
+
+        // Process Effects Stack for List View
+        const effectsStack = this._effects.map(e => {
+            return {
+                ...e,
+                icon: e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
+                metaLabel: e.type === "audio" 
+                    ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%` 
+                    : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`
+            };
+        });
+
+        // Dependency Check
+        const hasSequencer = VisageUtilities.hasSequencer;
 
         return {
             ...context, 
@@ -214,6 +272,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 active: ringActive,
                 ...ringContext
             },
+            
+            // EFFECTS DATA
+            hasSequencer: hasSequencer,
+            effects: effectsStack,
+            inspector: activeEffectData,
 
             preview: {
                 ...context.meta, 
@@ -234,7 +297,49 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
         const el = this.element;
 
-        // Helper to extract values only if their "active" checkbox is checked
+        // 1. Sync Active Effect Data from Form to Memory
+        if (this._activeEffectId && this._effects) {
+            const effectIndex = this._effects.findIndex(e => e.id === this._activeEffectId);
+            if (effectIndex > -1) {
+                const e = this._effects[effectIndex];
+                
+                // Common Props
+                if (formData.effectPath !== undefined) e.path = formData.effectPath;
+                if (formData.effectLabel !== undefined) e.label = formData.effectLabel || "New Visual";
+                
+                // Visual Props
+                if (e.type === "visual") {
+                    if (formData.effectScale !== undefined) e.scale = (parseFloat(formData.effectScale) || 100) / 100;
+                    if (formData.effectOpacity !== undefined) e.opacity = parseFloat(formData.effectOpacity) || 1.0;
+                    if (formData.effectRotation !== undefined) e.rotation = parseFloat(formData.effectRotation) || 0;
+                    if (formData.effectRotationRandom !== undefined) e.rotationRandom = formData.effectRotationRandom || false;
+                    if (formData.effectZIndex !== undefined) e.zOrder = formData.effectZIndex;
+                    if (formData.effectBlendMode !== undefined) e.blendMode = formData.effectBlendMode;
+                }
+                
+                // Audio Props
+                if (e.type === "audio") {
+                     if (formData.effectVolume !== undefined) e.opacity = parseFloat(formData.effectVolume) || 0.8;
+                }
+
+                // Live DOM Update for List Item
+                const card = el.querySelector(`.effect-card[data-id="${e.id}"]`);
+                if (card) {
+                    const nameEl = card.querySelector(".effect-name");
+                    if (nameEl) nameEl.textContent = e.label;
+                    
+                    const metaEl = card.querySelector(".effect-meta");
+                    if (metaEl) {
+                        const metaLabel = e.type === "audio" 
+                            ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%` 
+                            : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`;
+                        metaEl.textContent = metaLabel;
+                    }
+                }
+            }
+        }
+
+        // Helper
         const getVal = (key, type = String) => {
             const isActive = formData[`${key}_active`];
             if (!isActive) return undefined;
@@ -244,7 +349,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             return (typeof raw === "string") ? raw.trim() : raw;
         };
 
-        // 1. Extract & Calculate Values
+        // 2. Extract & Calculate Token Values
         const isScaleActive = formData.scale_active;
         const isFlipXActive = formData.isFlippedX !== "";
         const isFlipYActive = formData.isFlippedY !== "";
@@ -260,18 +365,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const lockVal = formData.lockRotation;
         const rawLock = (lockVal === "true");
 
-        // NEW: Extract Dimensions for Grid (Default to 1 if inactive/unset)
+        // Extract Dimensions
         const width = getVal("width", Number) || 1;
         const height = getVal("height", Number) || 1;
 
-        // 2. Pass Dimensions to CSS for the Grid Overlay
+        // 3. Grid Dimensions
         const content = el.querySelector('.visage-preview-content.stage-mode');
         if (content) {
             content.style.setProperty('--visage-dim-w', width);
             content.style.setProperty('--visage-dim-h', height);
         }
 
-        // 3. Build Texture Object (Baked fallback for preview rendering)
+        // 4. Build Texture
         let texture = {};
         if (imgSrc) {
             texture.src = imgSrc;
@@ -282,7 +387,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
         if (Object.keys(texture).length === 0) texture = undefined;
 
-        // 4. Build Ring Data
+        // 5. Build Ring
         let ring = null;
         if (formData["ring.enabled"]) {
             let effectsMask = 0;
@@ -297,78 +402,142 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
 
-        // 5. Construct Mock Data (Including Atomic Intents)
+        // 6. Prepare Visual Effects (Uses renamed resolver)
+        const activeVisuals = (this._effects || []).filter(e => !e.disabled && e.type === "visual" && e.path);
+        const effectsBelow = activeVisuals.filter(e => e.zOrder === "below").map(e => this._prepareEffectStyle(e));
+        const effectsAbove = activeVisuals.filter(e => e.zOrder === "above").map(e => this._prepareEffectStyle(e));
+
+        // 7. Mock Data
         const mockData = {
             changes: {
                 name: getVal("nameOverride"),
                 texture: texture, 
-                
-                // ATOMIC INTENTS
                 scale: isScaleActive ? rawScale : null,
                 mirrorX: isFlipXActive ? flipX : null,
                 mirrorY: isFlipYActive ? flipY : null,
-                
                 alpha: isAlphaActive ? rawAlpha : null,
                 lockRotation: (lockVal !== "") ? rawLock : null,
-                
                 width: getVal("width", Number),
                 height: getVal("height", Number),
                 disposition: getVal("disposition", Number),
-                ring: ring
+                ring: ring,
+                effects: this._effects
             },
             tags: (formData.tags || "").split(",").map(t => t.trim()).filter(t => t)
         };
 
-        // 6. Resolve Image Paths
+        // 8. Resolve Image Paths
         const ringEnabled = formData["ring.enabled"];
         const subjectTexture = formData.ringSubjectTexture;
         const mainImage = mockData.changes.texture?.src || "";
         const rawPath = (ringEnabled && subjectTexture) ? subjectTexture : mainImage;
+        
+        // Note: VisageUtilities.resolvePath is for wildcards and S3 buckets (Main Token Image)
         const resolved = await VisageUtilities.resolvePath(rawPath);
         const resolvedPath = resolved || rawPath;
 
-        // 7. Generate Presentation Context
+        // 9. Context
         const context = VisageData.toPresentation(mockData, {
             isWildcard: rawPath.includes('*')
         });
 
         const meta = context.meta;
 
-        // 8. Update UI Slots (Badges)
+        // 10. RE-RENDER PREVIEW
+        const previewData = {
+            resolvedPath: resolved || rawPath,
+            name: mockData.changes.name,
+            hasCheckerboard: true,
+            alpha: rawAlpha, 
+            isVideo: context.isVideo,
+            hasRing: meta.hasRing,
+            hasInvisibility: meta.hasInvisibility,
+            hasPulse: meta.hasPulse,
+            hasGradient: meta.hasGradient,
+            hasWave: meta.hasWave,
+            ringColor: meta.ringColor,
+            ringBkg: meta.ringBkg,
+            forceFlipX: context.isFlippedX,
+            forceFlipY: context.isFlippedY,
+            wrapperClass: "visage-preview-content stage-mode",
+            
+            effectsBelow: effectsBelow,
+            effectsAbove: effectsAbove
+        };
+        
+        const html = await foundry.applications.handlebars.renderTemplate("modules/visage/templates/parts/visage-preview.hbs", previewData);
+        
+        const stage = el.querySelector(".visage-live-preview-stage");
+        if (stage) {
+            const controls = stage.querySelector(".visage-zoom-controls");
+            const hint = stage.querySelector(".visage-stage-hint");
+            const overlay = stage.querySelector(".stage-overlay-name");
+            
+            stage.innerHTML = html;
+            
+            if (controls) stage.appendChild(controls);
+            if (hint) stage.appendChild(hint);
+            if (overlay) stage.appendChild(overlay);
+
+            let visualScale = rawScale; 
+            if (meta.hasRing && formData.ringSubjectTexture) {
+                 visualScale = parseFloat(formData.ringSubjectScale) || 1.0;
+            }
+            this._currentVisualScale = visualScale; 
+
+            const scaleX = visualScale * (context.isFlippedX ? -1 : 1);
+            const scaleY = visualScale * (context.isFlippedY ? -1 : 1);
+            const transform = `scale(${scaleX}, ${scaleY})`;
+
+            const newImg = stage.querySelector(".visage-preview-img");
+            const newVid = stage.querySelector(".visage-preview-video");
+            
+            if (newImg) newImg.style.transform = transform;
+            if (newVid) newVid.style.transform = transform;
+
+            this._applyStageTransform();
+            this._bindDynamicListeners();
+            
+            const newContent = stage.querySelector('.visage-preview-content.stage-mode');
+            if (newContent) {
+                newContent.style.setProperty('--visage-dim-w', width);
+                newContent.style.setProperty('--visage-dim-h', height);
+            }
+        }
+
+        // 11. Sync Audio Previews (Robust)
+        this._syncAudioPreviews();
+
+        // 12. Update UI Slots (Badges)
         const findItem = (iconClass) => {
             const icon = el.querySelector(`.metadata-grid i.${iconClass}`) || el.querySelector(`.metadata-grid img[src*="${iconClass}"]`);
             return icon ? icon.closest('.meta-item') : null;
         };
 
-        // Scale
         const scaleItem = findItem('scale'); 
         if (scaleItem && meta.slots.scale) {
             scaleItem.querySelector('.meta-value').textContent = meta.slots.scale.val;
             if(meta.slots.scale.active) scaleItem.classList.remove('inactive'); else scaleItem.classList.add('inactive');
         }
 
-        // Dimensions
         const dimItem = findItem('dimensions');
         if (dimItem && meta.slots.dim) {
             dimItem.querySelector('.meta-value').textContent = meta.slots.dim.val;
             if(meta.slots.dim.active) dimItem.classList.remove('inactive'); else dimItem.classList.add('inactive');
         }
 
-        // Lock
         const lockItem = findItem('lock'); 
         if (lockItem && meta.slots.lock) {
             lockItem.querySelector('.meta-value').textContent = meta.slots.lock.val;
             if(meta.slots.lock.active) lockItem.classList.remove('inactive'); else lockItem.classList.add('inactive');
         }
 
-        // Wildcard
         const wildItem = findItem('wildcard');
         if (wildItem && meta.slots.wildcard) {
             wildItem.querySelector('.meta-value').textContent = meta.slots.wildcard.val;
             if(meta.slots.wildcard.active) wildItem.classList.remove('inactive'); else wildItem.classList.add('inactive');
         }
 
-        // Disposition
         const dispItem = el.querySelector('.disposition-item');
         if (dispItem && meta.slots.disposition) {
             const valSpan = dispItem.querySelector('.visage-disposition-text');
@@ -378,7 +547,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // Mirroring (Split Logic)
         const updateMirrorSlot = (type, slotData) => {
             const slot = el.querySelector(`.mirror-sub-slot.${type}`);
             if (!slot) return;
@@ -396,7 +564,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (meta.slots.flipH) updateMirrorSlot('horizontal', meta.slots.flipH);
         if (meta.slots.flipV) updateMirrorSlot('vertical', meta.slots.flipV);
 
-        // 9. Update Name Label
         const nameEl = el.querySelector(".token-name-label");
         if (nameEl) {
             nameEl.textContent = mockData.changes.name || "";
@@ -404,78 +571,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             nameEl.style.opacity = formData.nameOverride_active ? "1" : "0.5";
         }
 
-        // 10. Update Dynamic Ring Visuals
-        const ringEl = el.querySelector(".visage-ring-preview");
-        if (ringEl) {
-            ringEl.style.display = meta.hasRing ? "block" : "none";
-            if (meta.hasRing) {
-                ringEl.style.setProperty("--ring-color", meta.ringColor);
-                ringEl.style.setProperty("--ring-bkg", meta.ringBkg);
-                const toggle = (cls, active) => {
-                    if (active) ringEl.classList.add(cls); else ringEl.classList.remove(cls);
-                };
-                toggle("pulse", meta.hasPulse);
-                toggle("gradient", meta.hasGradient);
-                toggle("wave", meta.hasWave);
-                const previewContent = el.querySelector(".visage-preview-content");
-                if (previewContent) {
-                     if (meta.hasInvisibility) previewContent.classList.add("invisible");
-                     else previewContent.classList.remove("invisible");
-                }
-            }
-        }
-
-        // 11. Update Opacity Visual
-        const previewContainer = el.querySelector(".visage-preview-content > div");
-        if (previewContainer) {
-            previewContainer.style.opacity = isAlphaActive ? rawAlpha : 1.0;
-        }
-
-        // 12. Update Main Visual (Image/Video)
-        // A. Determine Scale Magnitude
-        let visualScale = rawScale; 
-        if (meta.hasRing && formData.ringSubjectTexture) {
-             visualScale = parseFloat(formData.ringSubjectScale) || 1.0;
-        }
-
-        // Cache the visual scale for the Zoom logic
-        this._currentVisualScale = visualScale;
-
-        // B. Combine Magnitude with Direction (Mirroring)
-        const scaleX = visualScale * (context.isFlippedX ? -1 : 1);
-        const scaleY = visualScale * (context.isFlippedY ? -1 : 1);
-        const transform = `scale(${scaleX}, ${scaleY})`;
-
-        const vidEl = el.querySelector(".visage-preview-video");
-        const imgEl = el.querySelector(".visage-preview-img");
-        const iconEl = el.querySelector(".fallback-icon");
-
-        if (!resolvedPath) {
-            if (vidEl) vidEl.style.display = "none";
-            if (imgEl) imgEl.style.display = "none";
-            if (iconEl) {
-                iconEl.style.display = "block";
-                iconEl.className = "visage-icon-mask fallback-icon";
-            }
-        } else if (context.isVideo) {
-            if (vidEl) {
-                vidEl.src = resolvedPath;
-                vidEl.style.display = "block";
-                vidEl.style.transform = transform; // Apply Scaled Transform
-            }
-            if (imgEl) imgEl.style.display = "none";
-            if (iconEl) iconEl.style.display = "none";
-        } else {
-            if (vidEl) vidEl.style.display = "none";
-            if (imgEl) {
-                imgEl.src = resolvedPath;
-                imgEl.style.display = "block";
-                imgEl.style.transform = transform; // Apply Scaled Transform
-            }
-            if (iconEl) iconEl.style.display = "none";
-        }
-
-        // 13. Update Title & Tags
         const titleEl = el.querySelector(".card-title");
         if (titleEl) titleEl.textContent = formData.label || game.i18n.localize("VISAGE.GlobalEditor.TitleNew");
         
@@ -491,8 +586,191 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * UNIFIED PATH RESOLVER
+     * Handles both Sequencer Database Keys (recursive) and File Paths.
+     */
+    _resolveEffectPath(rawPath) {
+        if (!rawPath) return null;
+
+        // 1. Check if it's a Sequencer Database Key (no slash)
+        const isDbKey = VisageUtilities.hasSequencer && !rawPath.includes("/");
+
+        if (isDbKey) {
+            // Recursive lookup for deep folders
+            const entry = this._resolveSequencerRecursively(rawPath);
+
+            if (entry) {
+                let file;
+                // Handle Array (Randomized)
+                if (Array.isArray(entry)) {
+                     file = entry[Math.floor(Math.random() * entry.length)];
+                } 
+                // Handle Object
+                else {
+                    file = entry.file;
+                    if (Array.isArray(file)) {
+                        file = file[Math.floor(Math.random() * file.length)];
+                    }
+                }
+
+                // Handle Object structure inside file (Range/Geometry)
+                if (file && typeof file === "object" && file.file) {
+                    file = file.file;
+                }
+                
+                if (typeof file === "string") return file;
+            }
+            // If failed to resolve DB key, return null to avoid 404s
+            return null;
+        }
+
+        // 2. Return raw path if it's a normal file path
+        return rawPath;
+    }
+
+    _resolveSequencerRecursively(path, depth = 0) {
+        if (depth > 10) return null;
+
+        let entry = Sequencer.Database.getEntry(path);
+        if (entry) {
+            if (Array.isArray(entry) || entry.file) return entry;
+        }
+
+        try {
+            const children = Sequencer.Database.getEntriesUnder(path);
+            if (children && children.length > 0) {
+                const randomKey = children[Math.floor(Math.random() * children.length)];
+                return this._resolveSequencerRecursively(randomKey, depth + 1);
+            }
+        } catch(e) { /* Ignore */ }
+
+        return null;
+    }
+
+    /**
+     * Helper to calculate CSS styles for visuals using the unified resolver
+     */
+    _prepareEffectStyle(effect) {
+        // Use the new renamed resolver
+        const resolvedPath = this._resolveEffectPath(effect.path);
+        let isVideo = false;
+
+        if (resolvedPath) {
+            const ext = resolvedPath.split('.').pop().toLowerCase();
+            isVideo = ["webm", "mp4", "m4v"].includes(ext);
+        }
+
+        return {
+            ...effect,
+            resolvedPath: resolvedPath,
+            isVideo: isVideo,
+            style: `
+                transform: translate(-50%, -50%) scale(${effect.scale}) rotate(${effect.rotation}deg);
+                opacity: ${effect.opacity};
+                mix-blend-mode: ${effect.blendMode || 'normal'};
+                filter: ${effect.tint ? `drop-shadow(0 0 0 ${effect.tint})` : 'none'};
+            `
+        };
+    }
+
+    /* -------------------------------------------- */
+    /* Audio Preview Logic (Revised)                */
+    /* -------------------------------------------- */
+
+    _syncAudioPreviews() {
+        const activeAudioEffects = (this._effects || []).filter(e => !e.disabled && e.type === "audio" && e.path);
+        const activeIds = new Set(activeAudioEffects.map(e => e.id));
+
+        // 1. Clean up removed/disabled sounds
+        for (const [id, sound] of this._audioPreviews) {
+            if (!activeIds.has(id)) {
+                if (sound instanceof Promise) {
+                    // It's loading. The 'then' block will handle stopping it via the activeIds check.
+                } else if (sound && typeof sound.stop === "function") {
+                    sound.stop();
+                }
+                this._audioPreviews.delete(id);
+            }
+        }
+
+        // 2. Update or Create active sounds
+        activeAudioEffects.forEach(e => {
+            const vol = e.opacity ?? 0.8;
+            
+            // A. Update Existing Playing Sound
+            if (this._audioPreviews.has(e.id)) {
+                const sound = this._audioPreviews.get(e.id);
+                
+                // Skip if it's still a Promise (loading)
+                if (sound instanceof Promise) return;
+
+                // Update Volume
+                if (sound.volume !== vol) {
+                    sound.volume = vol;
+                }
+                
+                // If path changed, stop and restart
+                if (sound._visageSrc !== e.path) {
+                    sound.stop();
+                    this._audioPreviews.delete(e.id);
+                    // Fall through to Creation block
+                } else {
+                    return; // Everything is fine
+                }
+            }
+
+            // B. Create New Sound
+            if (!this._audioPreviews.has(e.id)) {
+                const resolvedPath = this._resolveEffectPath(e.path);
+                
+                if (!resolvedPath) return; 
+
+                // Store Promise immediately to prevent duplicate play calls
+                const playPromise = foundry.audio.AudioHelper.play({
+                    src: resolvedPath,
+                    volume: vol,
+                    loop: true
+                }, false).then(sound => {
+                    // Race Condition Check
+                    const currentEffect = (this._effects || []).find(fx => fx.id === e.id);
+                    const isStillActive = currentEffect && !currentEffect.disabled;
+
+                    if (!isStillActive || !sound) {
+                        if (sound) sound.stop();
+                        this._audioPreviews.delete(e.id);
+                        return;
+                    }
+
+                    // Success
+                    sound._visageSrc = e.path;
+                    this._audioPreviews.set(e.id, sound);
+                    return sound;
+                });
+
+                this._audioPreviews.set(e.id, playPromise);
+            }
+        });
+    }
+
+    async close(options) {
+        // Force stop all sounds
+        for (const [id, sound] of this._audioPreviews) {
+            if (sound && typeof sound.stop === "function") sound.stop();
+        }
+        this._audioPreviews.clear();
+        return super.close(options);
+    }
+
+    /* -------------------------------------------- */
+    /* UI Interactions                             */
+    /* -------------------------------------------- */
+
     _onOpenFilePicker(event, target) {
-        const input = target.previousElementSibling;
+        const input = target.previousElementSibling?.tagName === "BUTTON" 
+            ? target.parentElement.querySelector("input") 
+            : target.previousElementSibling;
+            
         const fp = new foundry.applications.apps.FilePicker({
             type: "imagevideo",
             current: input.value,
@@ -518,6 +796,99 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._updatePreview(); 
     }
 
+    /* -------------------------------------------- */
+    /* Effects List Management                     */
+    /* -------------------------------------------- */
+
+    async _onAddVisual(event, target) {
+        const newEffect = {
+            id: foundry.utils.randomID(16),
+            type: "visual",
+            label: "New Visual",
+            path: "",
+            scale: 1.0,
+            opacity: 1.0,
+            rotation: 0,
+            rotationRandom: false,
+            zOrder: "above",
+            disabled: false
+        };
+        
+        this._effects.push(newEffect);
+        this._activeEffectId = newEffect.id;
+        this._markDirty();
+        
+        await this.render(); 
+    }
+
+    async _onAddAudio(event, target) {
+        const newEffect = {
+            id: foundry.utils.randomID(16),
+            type: "audio",
+            label: "New Audio",
+            path: "",
+            opacity: 0.8,
+            disabled: false
+        };
+        
+        this._effects.push(newEffect);
+        this._activeEffectId = newEffect.id;
+        this._markDirty();
+        
+        await this.render();
+    }
+
+    _onEditEffect(event, target) {
+        const card = target.closest('.effect-card');
+        this._activeEffectId = card.dataset.id;
+        this.render();
+    }
+
+    _onCloseEffectInspector(event, target) {
+        const container = this.element.querySelector('.effects-tab-container');
+        if(container) container.classList.remove('editing');
+        this._activeEffectId = null;
+    }
+
+    _onDeleteEffect(event, target) {
+        const card = target.closest('.effect-card');
+        const id = card.dataset.id;
+        
+        this._effects = this._effects.filter(e => e.id !== id);
+        if (this._activeEffectId === id) this._activeEffectId = null;
+        
+        // Stop audio if it was an audio effect
+        if (this._audioPreviews.has(id)) {
+            const sound = this._audioPreviews.get(id);
+            if (sound && typeof sound.stop === "function") sound.stop();
+            this._audioPreviews.delete(id);
+        }
+
+        this._markDirty();
+        this.render();
+    }
+
+    _onToggleEffect(event, target) {
+        const card = target.closest('.effect-card');
+        const id = card.dataset.id;
+        const effect = this._effects.find(e => e.id === id);
+        
+        if (effect) {
+            effect.disabled = !effect.disabled;
+            this._markDirty();
+            this.render(); 
+        }
+    }
+
+    _onOpenSequencerDatabase(event, target) {
+        if (VisageUtilities.hasSequencer) {
+            new Sequencer.DatabaseViewer().render(true);
+            ui.notifications.info(game.i18n.localize("VISAGE.Editor.Effects.DatabaseInstructions"));
+        } else {
+            ui.notifications.warn(game.i18n.localize("VISAGE.Editor.Effects.DependencyTitle"));
+        }
+    }
+
     _markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
@@ -541,15 +912,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         let debounceTimer;
         this.element.addEventListener("input", (event) => {
             this._markDirty();
-            if (event.target.matches("input[type='text'], input[type='number'], color-picker")) {
+            if (event.target.matches("input[type='text'], input[type='number'], color-picker, range-picker")) {
                  clearTimeout(debounceTimer);
                  debounceTimer = setTimeout(() => {
                      this._updatePreview();
-                 }, 500); 
+                 }, 200); 
             }
         });
 
-        // --- TAB HANDLING ---
         const tabs = this.element.querySelectorAll(".visage-tabs .item");
         tabs.forEach(t => {
             t.addEventListener("click", (e) => {
@@ -558,19 +928,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         });
         
-        // Restore active tab if set (persists across re-renders)
         if (this._activeTab) this._activateTab(this._activeTab);
+
+        if (this._activeEffectId) {
+            const container = this.element.querySelector('.effects-tab-container');
+            if (container) container.classList.add('editing');
+        }
         
         this._updatePreview();
 
-        // Bind Stage Interactions
-        this._bindStageInteractions();
+        this._bindStaticListeners();
+        this._bindDynamicListeners();
         
-        // Apply current transform (persists across re-renders)
         this._applyStageTransform();
-        this._updatePreview();
 
-        // Restore Grid State if it was active
         if (this._showGrid) {
             const stage = this.element.querySelector('.visage-live-preview-stage');
             const btn = this.element.querySelector('[data-action="toggleGrid"] i');
@@ -592,66 +963,67 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const icon = target.querySelector('i');
 
         if (stage) stage.classList.toggle('show-grid', this._showGrid);
-        
         if (icon) {
             if (this._showGrid) {
-                // Grid is ON -> Show "Off" icon
                 icon.classList.remove('grid-on');
                 icon.classList.add('grid-off');
             } else {
-                // Grid is OFF -> Show "On" icon
                 icon.classList.remove('grid-off');
                 icon.classList.add('grid-on');
             }
         }
     }
 
-    _bindStageInteractions() {
+    _bindStaticListeners() {
         const stage = this.element.querySelector('.visage-live-preview-stage');
-        const content = this.element.querySelector('.visage-preview-content.stage-mode');
-        if (!stage || !content) return;
+        if (!stage) return;
 
-        // 1. Mouse Wheel Zoom
         stage.addEventListener('wheel', (e) => {
             e.preventDefault();
-            const delta = e.deltaY > 0 ? 0.9 : 1.1;
-            this._viewState.scale = Math.min(Math.max(this._viewState.scale * delta, 0.1), 5.0);
+            const direction = Math.sign(e.deltaY);
+            const step = 0.1;
+            let newScale = this._viewState.scale - (direction * step);
+            this._viewState.scale = Math.min(Math.max(newScale, 0.1), 5.0);
             this._applyStageTransform();
-        });
+        }, { passive: false });
+    }
 
-        // 2. Drag to Pan
-        content.addEventListener('mousedown', (e) => {
-            // Only left or middle mouse
+    _bindDynamicListeners() {
+        const content = this.element.querySelector('.visage-preview-content.stage-mode');
+        if (!content) return;
+
+        content.onmousedown = (e) => { 
             if (e.button !== 0 && e.button !== 1) return;
-            e.preventDefault(); // Prevent native drag
+            e.preventDefault(); 
             this._viewState.isDragging = true;
             this._viewState.lastX = e.clientX;
             this._viewState.lastY = e.clientY;
             content.style.cursor = 'grabbing';
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!this._viewState.isDragging) return;
-            const dx = e.clientX - this._viewState.lastX;
-            const dy = e.clientY - this._viewState.lastY;
-            
-            this._viewState.x += dx;
-            this._viewState.y += dy;
-            this._viewState.lastX = e.clientX;
-            this._viewState.lastY = e.clientY;
-            
-            this._applyStageTransform();
-        });
-
-        const stopDrag = () => {
-            if (this._viewState.isDragging) {
-                this._viewState.isDragging = false;
-                if (content) content.style.cursor = 'grab';
-            }
         };
 
-        window.addEventListener('mouseup', stopDrag);
-        // We don't bind mouseleave generally because dragging often goes outside the window
+        if (!this._dragBound) {
+            window.addEventListener('mousemove', (e) => {
+                if (!this._viewState.isDragging) return;
+                const dx = e.clientX - this._viewState.lastX;
+                const dy = e.clientY - this._viewState.lastY;
+                
+                this._viewState.x += dx;
+                this._viewState.y += dy;
+                this._viewState.lastX = e.clientX;
+                this._viewState.lastY = e.clientY;
+                
+                this._applyStageTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (this._viewState.isDragging) {
+                    this._viewState.isDragging = false;
+                    const c = this.element.querySelector('.visage-preview-content.stage-mode');
+                    if (c) c.style.cursor = 'grab';
+                }
+            });
+            this._dragBound = true;
+        }
     }
 
     _applyStageTransform() {
@@ -672,40 +1044,35 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onResetZoom() {
-        // Default to 1.0
         let targetScale = 1.0;
-
-        // Smart Reset: If the visual content is larger than the stage (Scale > 1.0),
-        // zoom out so the whole image fits.
         if (this._currentVisualScale && this._currentVisualScale > 1.0) {
             targetScale = 1.0 / this._currentVisualScale;
         }
-
         this._viewState.scale = targetScale;
         this._viewState.x = 0;
         this._viewState.y = 0;
         this._applyStageTransform();
     }
 
-    /**
-     * Manually switches the active tab by toggling CSS classes.
-     * @param {string} tabName - The data-tab value to activate.
-     */
+    // ... [Rest of class methods unchanged] ...
+    
     _activateTab(tabName) {
         this._activeTab = tabName;
-        
-        // Update Nav Items
         const navItems = this.element.querySelectorAll(".visage-tabs .item");
         navItems.forEach(n => {
             if (n.dataset.tab === tabName) n.classList.add("active");
             else n.classList.remove("active");
         });
-
-        // Update Content Areas
         const contentItems = this.element.querySelectorAll(".visage-tab-content .tab");
         contentItems.forEach(c => {
             if (c.dataset.tab === tabName) c.classList.add("active");
             else c.classList.remove("active");
+            
+            if (tabName === "effects" && c.dataset.tab === "effects") {
+                 c.querySelector(".effects-tab-container")?.classList.add("active");
+            } else if (c.dataset.tab === "effects") {
+                 c.querySelector(".effects-tab-container")?.classList.remove("active");
+            }
         });
     }
 
@@ -787,35 +1154,33 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const selects = this.element.querySelectorAll('select');
         selects.forEach(s => s.value = "");
         
-        // Reset Opacity
         const alphaInput = this.element.querySelector('input[name="alpha"]');
         if (alphaInput) alphaInput.value = 100;
         
         const lockInput = this.element.querySelector('input[name="lockRotation"]');
         if (lockInput) lockInput.checked = false;
 
+        this._effects = [];
+        this._activeEffectId = null;
+
         this._markDirty();
         this._updatePreview();
         ui.notifications.info(game.i18n.localize("VISAGE.Notifications.SettingsReset"));
     }
 
-    /**
-     * Handles form submission.
-     */
     async _onSave(event, target) {
         event.preventDefault();
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
 
         const getVal = (key, type = String) => {
             const isActive = formData[`${key}_active`];
-            if (!isActive) return null; // If inactive, saving null enables inheritance
+            if (!isActive) return null; 
             const raw = formData[key];
             if (type === Number) return parseFloat(raw);
             if (type === Boolean) return !!raw;
             return (typeof raw === "string") ? raw.trim() : raw;
         };
 
-        // 1. Prepare Texture (Source Only)
         let texture = {};
         const imgSrc = getVal("img");
         if (imgSrc) {
@@ -823,7 +1188,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
         if (Object.keys(texture).length === 0) texture = undefined;
 
-        // 2. Prepare Atomic Values
         const isScaleActive = formData.scale_active;
         const isFlipXActive = formData.isFlippedX !== "";
         const isFlipYActive = formData.isFlippedY !== "";
@@ -840,7 +1204,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const lockVal = formData.lockRotation;
         const rawLock = (lockVal === "true");
 
-        // 3. Prepare Metadata
         const label = formData.label ? formData.label.trim() : game.i18n.localize("VISAGE.GlobalEditor.DefaultLabel");
         let cleanCategory = "";
         if (formData.category) {
@@ -850,7 +1213,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             );
         }
 
-        // 4. Construct Payload
         const payload = {
             id: this.visageId || foundry.utils.randomID(16),
             label: label,
@@ -859,23 +1221,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             
             changes: {
                 name: getVal("nameOverride"),
-                // Atomic Properties: if inactive, save as null to allow inheritance
                 scale: isScaleActive ? rawScale : null,
                 mirrorX: isFlipXActive ? flipX : null,
                 mirrorY: isFlipYActive ? flipY : null,
-
                 alpha: isAlphaActive ? rawAlpha : null,
                 lockRotation: (lockVal !== "") ? rawLock : null,
-                
                 texture: texture,
                 width: getVal("width", Number),
                 height: getVal("height", Number),
                 disposition: getVal("disposition", Number),
-                ring: null 
+                ring: null,
+                effects: this._effects
             }
         };
 
-        // 5. Add Ring Configuration
         if (formData["ring.enabled"]) {
             let effectsMask = 0;
             for (const [k, v] of Object.entries(formData)) {
@@ -900,7 +1259,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             payload.changes.ring = { enabled: false };
         }
 
-        // 6. Save via Data Controller
         try {
             await VisageData.save(payload, this.actor);
             if (this.visageId) ui.notifications.info(game.i18n.format("VISAGE.Notifications.Updated", { name: payload.label }));

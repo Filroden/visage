@@ -279,6 +279,20 @@ export class VisageData {
             ? game.i18n.localize("VISAGE.RotationLock.Locked") 
             : game.i18n.localize("VISAGE.RotationLock.Unlocked");
 
+        // I. Process Effects Stack
+        const rawEffects = c.effects || [];
+        const effectsStack = rawEffects.map(e => {
+            return {
+                ...e,
+                // Determine Icon based on type
+                icon: e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
+                // Readable Meta-data
+                metaLabel: e.type === "audio" 
+                    ? `Volume: ${Math.round(e.opacity * 100)}%` 
+                    : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round(e.scale * 100)}%`
+            };
+        });
+
         const ringCtx = this.prepareRingContext(c.ring);
 
         return {
@@ -296,6 +310,8 @@ export class VisageData {
 
             alpha: alpha,
             lockRotation: lockRotation,
+
+            effects: effectsStack,
             
             meta: {
                 hasRing: ringCtx.enabled,
