@@ -1,10 +1,3 @@
-/**
- * @file Defines the VisageSelector application (The "HUD").
- * A transient, pop-up UI that allows users to quickly swap token appearances ("Identities")
- * or manage active global effects ("Mask Layers") directly from the canvas.
- * @module visage
- */
-
 import { Visage } from "./visage.js";
 import { VisageGallery } from "./visage-gallery.js"; 
 import { VisageComposer } from "./visage-composer.js";
@@ -13,18 +6,8 @@ import { VisageUtilities } from "./visage-utilities.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-/**
- * The HUD application spawned by clicking the Visage button in the Token HUD.
- * Designed to be lightweight, context-aware, and transient (closes on blur).
- */
 export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     
-    /**
-     * @param {Object} options - Application options.
-     * @param {string} options.actorId - The ID of the actor owning the token.
-     * @param {string} options.tokenId - The ID of the specific token being modified.
-     * @param {string} options.sceneId - The ID of the scene containing the token.
-     */
     constructor(options = {}) {
         super(options);
         this.actorId = options.actorId;
@@ -32,6 +15,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         this.sceneId = options.sceneId;
     }
 
+    // ... [DEFAULT_OPTIONS and PARTS unchanged] ...
     static DEFAULT_OPTIONS = {
         tag: "div",
         id: "visage-selector",
@@ -53,11 +37,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
-    /**
-     * Action: Clear All Effects.
-     * Removes all "Mask" layers from the stack, leaving only the base Identity.
-     * This essentially "Strips Disguises" while keeping the current face.
-     */
     async _onRevertGlobal(event, target) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token) return;
@@ -66,64 +45,65 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentFormKey = token.document.getFlag(ns, "identity") || "default";
         const currentStack = token.document.getFlag(ns, "activeStack") || [];
 
-        // Filter stack: Keep ONLY the layer that matches the current Identity.
-        // This removes all other cosmetic layers (e.g. Invisibility, Rage)
         const newStack = currentStack.filter(layer => layer.id === currentFormKey);
-
         await VisageComposer.compose(token, newStack);
     }
 
-    /**
-     * Prepares data for rendering the HUD.
-     */
     async _prepareContext(options) {
         const token = canvas.tokens.get(this.tokenId);
-        if (!token || !token.actor) return { forms: [] };
+        if (!token || !token.actor) return { identities: [], overlays: [] };
         
         const actor = token.actor; 
         const ns = Visage.DATA_NAMESPACE;
         const currentFormKey = token.document.getFlag(ns, "identity") || "default";
 
-        // --- 1. Prepare Local Identities (The Grid) ---
+        // 1. Prepare Default
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
         const defaultForm = VisageData.toPresentation(defaultRaw, {
             isActive: currentFormKey === "default",
         });
         defaultForm.key = "default";
+        defaultForm.resolvedPath = await Visage.resolvePath(defaultForm.path);
 
-        // Filter: Grid only shows items with mode="identity"
-        // (If a local item is an "overlay", it appears in the stack list when active, but not the swap grid)
-        const localVisages = VisageData.getLocal(actor).filter(v => !v.deleted && v.mode !== "overlay");
+        // 2. Fetch LOCAL items ONLY
+        const localItems = VisageData.getLocal(actor).filter(v => !v.deleted);
         
-        const alternateForms = localVisages.map(data => {
-            const rawPath = VisageData.getRepresentativeImage(data.changes);
-            const form = VisageData.toPresentation(data, {
-                isActive: data.id === currentFormKey,
+        // 3. Process & Split
+        const identities = [defaultForm];
+        const overlays = [];
+
+        for (const item of localItems) {
+            const rawPath = VisageData.getRepresentativeImage(item.changes);
+            const form = VisageData.toPresentation(item, {
+                isActive: item.id === currentFormKey,
                 isWildcard: (rawPath || "").includes('*') 
             });
-            form.key = data.id;
-            return form;
-        });
-
-        alternateForms.sort((a, b) => a.label.localeCompare(b.label));
-        const orderedForms = [defaultForm, ...alternateForms];
-
-        for (const form of orderedForms) {
+            form.key = item.id;
             form.resolvedPath = await Visage.resolvePath(form.path);
+
+            if (item.mode === "identity") {
+                identities.push(form);
+            } else {
+                overlays.push(form);
+            }
         }
 
-        // --- 2. Prepare Active Stack (The List) ---
+        // Sort
+        identities.sort((a, b) => {
+            if (a.key === "default") return -1;
+            if (b.key === "default") return 1;
+            return a.label.localeCompare(b.label);
+        });
+        overlays.sort((a, b) => a.label.localeCompare(b.label));
+
+        // 4. Active Stack
         const flags = token.document.flags[Visage.MODULE_ID] || {};
         const activeStack = flags.activeStack || flags.stack || [];
-        
-        // Hide base identity from stack list
         const visibleStack = activeStack.filter(layer => layer.id !== currentFormKey);
 
         const stackDisplay = visibleStack.map(layer => {
             const img = layer.changes.img || layer.changes.texture?.src || "icons/svg/aura.svg";
-            // Determine theme class based on source property stamped by VisageData.toLayer
             const themeClass = (layer.source === "local") ? "visage-theme-local" : "visage-theme-global";
-            
             return {
                 id: layer.id,
                 label: layer.label,
@@ -133,27 +113,31 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         }).reverse();
 
         return { 
-            forms: orderedForms,
-            activeStack: stackDisplay, 
-            hasGlobalOverride: stackDisplay.length > 0 
+            identities: identities,
+            overlays: overlays,
+            activeStack: stackDisplay
         };
     }
     
-    /**
-     * Handles clicking a Visage Tile to swap appearance.
-     * Performs an "Identity Swap" (replaces base layer) while preserving masks.
-     */
+    // ... [Actions & Listeners Unchanged] ...
     async _onSelectVisage(event, target) {
         const formKey = target.dataset.formKey;
         if (formKey) {
             if (formKey === "default") {
-                // Default: Remove the custom Identity layer, falling back to prototype token.
                 const token = canvas.tokens.get(this.tokenId);
                 const currentIdentity = token.document.getFlag(Visage.MODULE_ID, "identity");
                 if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
             } else {
-                // Apply new Identity, switchIdentity: true ensures masks stay put.
-                await Visage.apply(this.tokenId, formKey, { switchIdentity: true });
+                // Determine if this is an overlay or identity click
+                // We rely on Visage.apply logic, but force swap if it came from Identity section?
+                // Actually Visage.apply handles it via data.mode.
+                // However, for the HUD, clicking an item usually implies "Activate this".
+                // Visage.apply's default behavior respects mode, so simply calling it works.
+                
+                // One edge case: If I click an "Identity" tile, I want to switch identity.
+                // If I click an "Overlay" tile, I want to add it.
+                // Visage.apply handles this automatically based on the item's mode.
+                await Visage.apply(this.tokenId, formKey);
             }
             this.close();
         }
@@ -161,7 +145,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onOpenConfig(event, target) {
         const appId = `visage-gallery-${this.actorId}-${this.tokenId}`;
-        // Bring to top if already open, else spawn new Gallery instance
         if (Visage.apps[appId]) {
             Visage.apps[appId].bringToTop();
         } else {
@@ -199,22 +182,14 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.close(options);
     }
 
-    /**
-     * Binds listeners to detect "Click Away" events.
-     * Ensures the HUD behaves like a transient menu (closes when focus is lost).
-     * @private
-     */
     _bindDismissListeners() {
         this._onDocPointerDown = (ev) => {
             const root = this.element;
             if (!root) return;
-            // Ignore clicks inside the HUD itself
             if (root.contains(ev.target)) return;
-            // Ignore clicks on the toggle button (prevent immediate reopen)
             const hudBtn = document.querySelector('.visage-button');
             if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
             
-            // Ignore clicks on other Visage windows (Editor/Gallery) to allow multitasking
             const dirApp = ev.target.closest('.visage-gallery');
             const editorApp = ev.target.closest('.visage-editor');
             if (dirApp || editorApp) return;
@@ -223,7 +198,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         };
         document.addEventListener('pointerdown', this._onDocPointerDown, true);
         
-        // Auto-refresh HUD if the token changes while open (e.g. GM applies effect)
         this._onTokenUpdate = (document, change, options, userId) => {
             if (document.id === this.tokenId) {
                 this.render();

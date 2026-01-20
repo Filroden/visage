@@ -4,7 +4,6 @@
 
     "VISAGE.Selector.Title": "Visage Selector",
     "VISAGE.Selector.Configure": "Open Gallery",
-    "VISAGE.Selector.ActiveEffects": "Active Layers",
     "VISAGE.Selector.ClearAll": "Remove All Layers",
     "VISAGE.Selector.Active": "Active Visage",
     "VISAGE.Selector.Default": "Default Visage",
@@ -138,7 +137,6 @@
     "VISAGE.Errors.ImportInvalidFormat": "Invalid format: Root must be an array.",
     "VISAGE.Actions.Export": "Export",
     "VISAGE.Actions.Import": "Import",
-    "VISAGE.Gallery.Action.CopyToLocal": "Copy Layer to Selection's Local Library",
     "VISAGE.RotationLock.Label": "Rotation Lock",
     "VISAGE.RotationLock.Hint": "Prevents the token from rotating with its movement.",
     "VISAGE.RotationLock.Locked": "Locked",
@@ -151,7 +149,6 @@
     "VISAGE.Directory.Tooltip.MoreActions": "More Actions",
     "VISAGE.Actions.Duplicate": "Duplicate",
     "VISAGE.Actions.MakeDefault": "Make Default",
-    "VISAGE.Actions.Promote": "Promote to Global",
     "VISAGE.Actions.CopyToSelection": "Copy to Selection",
     "VISAGE.Actions.Delete": "Delete",
     "VISAGE.Suffix.Copy": " (Copy)",
@@ -197,5 +194,25 @@
     "VISAGE.BlendMode.Multiply": "Multiply (Darken)",
     "VISAGE.BlendMode.Overlay": "Overlay",
     "VISAGE.BlendMode.Lighten": "Lighten",
-    "VISAGE.BlendMode.Darken": "Darken"
+    "VISAGE.BlendMode.Darken": "Darken",
+
+    "VISAGE.Directory.Tooltip.ModeIdentity": "Mode: Identity (Click to switch to Overlay)",
+    "VISAGE.Directory.Tooltip.ModeOverlay": "Mode: Overlay (Click to switch to Identity)",
+
+    "VISAGE.Actions.ApplyIdentity": "Apply as Identity",
+    "VISAGE.Actions.ApplyOverlay": "Apply as Overlay",
+    "VISAGE.Actions.ApplyAsIdentity": "Apply as Identity",
+    "VISAGE.Actions.ApplyAsOverlay": "Apply as Overlay",
+    "VISAGE.Actions.Promote": "Promote to Global Library",
+    "VISAGE.Gallery.Action.CopyToLocal": "Copy to Local Library",
+    "VISAGE.Selector.ActiveEffects": "Active Effects",
+
+    "VISAGE.GlobalEditor.Mode": "Mode",
+    "VISAGE.Mode.Identity": "Identity",
+    "VISAGE.Mode.Overlay": "Overlay",
+    "VISAGE.Mode.IdentityHint": "This item replaces the token's base appearance (e.g., Polymorph, Disguise).",
+    "VISAGE.Mode.OverlayHint": "This item adds effects on top of the token (e.g., Fire, Spirit Guardians).",
+
+    "VISAGE.Dialog.DeleteActive.Title": "Active Visage Warning",
+    "VISAGE.Warnings.DeleteActive": "This Visage is currently active. Deleting it will remove it from the token. Continue?"
 }

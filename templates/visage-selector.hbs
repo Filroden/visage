@@ -1,6 +1,6 @@
 <div class="window-content">
     <div class="visage-selector-header">
-        <i class="visage-icon visage"></i>
+        <i class="visage-icon domino"></i>
         <h3 class="visage-title">{{localize "VISAGE.Selector.Title"}}</h3>
         <button type="button" class="visage-config-button" data-tooltip="{{localize 'VISAGE.Selector.Configure'}}" data-action="openConfig">
             <img src="modules/visage/icons/settings.svg" alt="Settings"/>
@@ -13,7 +13,6 @@
         <div class="stack-header">{{localize "VISAGE.Selector.ActiveEffects"}}</div>
         <ul>
             {{#each activeStack}}
-            {{!-- Apply dynamic theme class here --}}
             <li class="stack-item {{this.themeClass}}">
                 <span class="effect-label" data-tooltip="{{this.label}}">
                     <i class="fas fa-layer-group"></i> {{this.label}}
@@ -34,96 +33,125 @@
     {{/if}}
 
     <div class="visage-selector-grid-wrapper visage-scrollable">
-        <div class="visage-selector">
-            {{#each forms}}
-            <div class="visage-tile {{#if this.isActive}}active{{/if}}" 
-                 data-action="selectVisage" 
-                 data-form-key="{{this.key}}"
-                 tabindex="0" 
-                 role="button" 
-                 aria-label="{{this.label}}" 
-                 aria-pressed="{{this.isActive}}">
-
-                <div class="visage-image-wrapper">
-                    {{> "modules/visage/templates/parts/visage-preview.hbs" 
-                        wrapperClass="visage-hud-content"
-                        hasCheckerboard=true 
-                        alpha=this.alpha
-                        resolvedPath=this.resolvedPath 
-                        name=this.label
-                        isVideo=this.isVideo                                    
-                        hasRing=this.meta.hasRing 
-                        hasInvisibility=this.meta.hasInvisibility
-                        hasPulse=this.meta.hasPulse
-                        hasGradient=this.meta.hasGradient
-                        hasWave=this.meta.hasWave
-                        ringColor=this.meta.ringColor
-                        ringBkg=this.meta.ringBkg
-                        forceFlipX=this.isFlippedX
-                        forceFlipY=this.isFlippedY
-                    }}
-                </div>
-
-                <span class="visage-tile-name" data-tooltip="{{this.label}}">{{this.label}}</span>
-                
-                {{#if this.isActive}}
-                <div class="visage-chip" data-tooltip="{{localize 'VISAGE.Selector.Active'}}">
-                     <img src="modules/visage/icons/check_circle.svg" alt="{{localize 'VISAGE.Selector.Active'}}"/>
-                </div>
-                {{/if}}
-                
-                {{#if this.isDefault}}
-                <div class="visage-default-indicator" data-tooltip="{{localize 'VISAGE.Selector.Default'}}">
-                     <img src="modules/visage/icons/stars.svg" alt="{{localize 'VISAGE.Selector.Default'}}"/>
-                </div>
-                {{/if}}
-                
-                {{#if this.meta.hasEffects}}
-                <div class="visage-effects-indicator" 
-                     data-tooltip="{{this.meta.effectsTooltip}}" 
-                     data-tooltip-class="visage-tooltip">
-                    <img src="modules/visage/icons/wand_stars.svg" alt="Effects"/>
-                </div>
-                {{/if}}
-
-                {{#if this.meta.slots.lock.active}}
-                <div class="visage-lock-indicator" data-tooltip="{{localize 'VISAGE.RotationLock.Label'}}">
-                    <img src="modules/visage/icons/lock_reset.svg" alt="{{localize 'VISAGE.RotationLock.Label'}}"/>
-                </div>
-                {{/if}}
-
-                {{#if this.meta.showFlipBadge}}
-                <div class="visage-flip-indicator" data-tooltip="{{localize 'VISAGE.Selector.Flipped'}}">
-                    <img src="modules/visage/icons/flip.svg" alt="{{localize 'VISAGE.Selector.Flipped'}}"/>
-                </div>
-                {{/if}}
-
-                {{#if this.meta.showDataChip}}
-                <div class="visage-data-chip">
-                    {{#if this.meta.slots.dim.active}}
-                    <span class="visage-size-value" style="font-weight: bold;">{{this.meta.slots.dim.val}}</span>
-                    {{/if}}
-                    
-                    {{#if this.meta.slots.scale.active}}
-                    <span class="visage-scale-value">{{this.meta.slots.scale.val}}</span>
-                    {{/if}}
-                </div>
-                {{/if}}
-
-                {{#if this.isWildcard}}
-                <div class="visage-wildcard-indicator" data-tooltip="{{localize 'VISAGE.Selector.Wildcard'}}">
-                     <img src="modules/visage/icons/shuffle.svg" alt="{{localize 'VISAGE.Selector.WildcardAlt'}}"/>
-                </div>
-                {{/if}}
-
-                {{#if this.meta.showDispositionChip}}
-                <div class="visage-disposition-chip {{this.meta.slots.disposition.class}}" data-tooltip="{{this.meta.slots.disposition.val}}">
-                     <span>{{this.meta.slots.disposition.val}}</span>
-                </div>
-                {{/if}}
-
+        
+        {{!-- SECTION 1: IDENTITIES (Gold) --}}
+        {{#if identities.length}}
+        <div class="visage-section identity-section">
+            <h4 class="visage-section-header">
+                {{localize "VISAGE.Actions.ApplyIdentity"}}
+            </h4>
+            <div class="visage-selector">
+                {{#each identities}}
+                    {{> "modules/visage/templates/parts/visage-tile.hbs" this}}
+                {{/each}}
             </div>
-            {{/each}}
         </div>
+        {{/if}}
+
+        {{!-- SECTION 2: OVERLAYS (Blue) --}}
+        {{#if overlays.length}}
+        <div class="visage-section overlay-section">
+            <h4 class="visage-section-header">
+                {{localize "VISAGE.Actions.ApplyOverlay"}}
+            </h4>
+            <div class="visage-selector">
+                {{#each overlays}}
+                    {{> "modules/visage/templates/parts/visage-tile.hbs" this}}
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
+
     </div>
 </div>
+
+{{!-- INLINE PARTIAL FOR TILE (To avoid duplication) --}}
+{{#*inline "modules/visage/templates/parts/visage-tile.hbs"}}
+<div class="visage-tile {{#if this.isActive}}active{{/if}}" 
+        data-action="selectVisage" 
+        data-form-key="{{this.key}}"
+        tabindex="0" 
+        role="button" 
+        aria-label="{{this.label}}" 
+        aria-pressed="{{this.isActive}}">
+
+    <div class="visage-image-wrapper">
+        {{> "modules/visage/templates/parts/visage-preview.hbs" 
+            wrapperClass="visage-hud-content"
+            hasCheckerboard=true 
+            alpha=this.alpha
+            resolvedPath=this.resolvedPath 
+            name=this.label
+            isVideo=this.isVideo                                    
+            hasRing=this.meta.hasRing 
+            hasInvisibility=this.meta.hasInvisibility
+            hasPulse=this.meta.hasPulse
+            hasGradient=this.meta.hasGradient
+            hasWave=this.meta.hasWave
+            ringColor=this.meta.ringColor
+            ringBkg=this.meta.ringBkg
+            forceFlipX=this.isFlippedX
+            forceFlipY=this.isFlippedY
+        }}
+    </div>
+
+    <span class="visage-tile-name" data-tooltip="{{this.label}}">{{this.label}}</span>
+    
+    {{#if this.isActive}}
+    <div class="visage-chip" data-tooltip="{{localize 'VISAGE.Selector.Active'}}">
+            <img src="modules/visage/icons/check_circle.svg" alt="{{localize 'VISAGE.Selector.Active'}}"/>
+    </div>
+    {{/if}}
+    
+    {{#if this.isDefault}}
+    <div class="visage-default-indicator" data-tooltip="{{localize 'VISAGE.Selector.Default'}}">
+            <img src="modules/visage/icons/stars.svg" alt="{{localize 'VISAGE.Selector.Default'}}"/>
+    </div>
+    {{/if}}
+    
+    {{#if this.meta.hasEffects}}
+    <div class="visage-effects-indicator" 
+            data-tooltip="{{this.meta.effectsTooltip}}" 
+            data-tooltip-class="visage-tooltip">
+        <img src="modules/visage/icons/wand_stars.svg" alt="Effects"/>
+    </div>
+    {{/if}}
+
+    {{#if this.meta.slots.lock.active}}
+    <div class="visage-lock-indicator" data-tooltip="{{localize 'VISAGE.RotationLock.Label'}}">
+        <img src="modules/visage/icons/lock_reset.svg" alt="{{localize 'VISAGE.RotationLock.Label'}}"/>
+    </div>
+    {{/if}}
+
+    {{#if this.meta.showFlipBadge}}
+    <div class="visage-flip-indicator" data-tooltip="{{localize 'VISAGE.Selector.Flipped'}}">
+        <img src="modules/visage/icons/flip.svg" alt="{{localize 'VISAGE.Selector.Flipped'}}"/>
+    </div>
+    {{/if}}
+
+    {{#if this.meta.showDataChip}}
+    <div class="visage-data-chip">
+        {{#if this.meta.slots.dim.active}}
+        <span class="visage-size-value" style="font-weight: bold;">{{this.meta.slots.dim.val}}</span>
+        {{/if}}
+        
+        {{#if this.meta.slots.scale.active}}
+        <span class="visage-scale-value">{{this.meta.slots.scale.val}}</span>
+        {{/if}}
+    </div>
+    {{/if}}
+
+    {{#if this.isWildcard}}
+    <div class="visage-wildcard-indicator" data-tooltip="{{localize 'VISAGE.Selector.Wildcard'}}">
+            <img src="modules/visage/icons/shuffle.svg" alt="{{localize 'VISAGE.Selector.WildcardAlt'}}"/>
+    </div>
+    {{/if}}
+
+    {{#if this.meta.showDispositionChip}}
+    <div class="visage-disposition-chip {{this.meta.slots.disposition.class}}" data-tooltip="{{this.meta.slots.disposition.val}}">
+            <span>{{this.meta.slots.disposition.val}}</span>
+    </div>
+    {{/if}}
+
+</div>
+{{/inline}}

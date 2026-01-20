@@ -97,6 +97,7 @@ Hooks.once("init", () => {
 
         // 1. Register Handlebars helpers (Use global Handlebars)
         Handlebars.registerHelper("visageNeq", (a, b) => a !== b);
+        Handlebars.registerHelper("visageEq", (a, b) => a === b);
         Handlebars.registerHelper("visageSelected", (condition) => condition ? "selected" : "");
         Handlebars.registerHelper("visageJson", (context) => JSON.stringify(context));
 
@@ -106,7 +107,8 @@ Hooks.once("init", () => {
             "modules/visage/templates/visage-selector.hbs",
             "modules/visage/templates/visage-editor.hbs",
             "modules/visage/templates/visage-gallery.hbs",
-            "modules/visage/templates/parts/visage-preview.hbs"
+            "modules/visage/templates/parts/visage-preview.hbs",
+            "modules/visage/templates/parts/visage-card.hbs"
         ]);
 
         registerSettings();
@@ -117,7 +119,7 @@ Hooks.once("init", () => {
         const addSidebarOption = (options) => {
             options.push({
                 name: "VISAGE.Title",
-                icon: '<i class="visage-icon-mask"></i>',
+                icon: '<i class="visage-icon-domino"></i>',
                 condition: (li) => {
                     const documentId = getActorIdFromElement(li);
                     if (!documentId) return false;
@@ -145,7 +147,7 @@ Hooks.once("init", () => {
             buttons.unshift({
                 label: "VISAGE.Title",
                 class: "visage-config",
-                icon: "visage-icon-mask",
+                icon: "visage-icon-domino",
                 onclick: () => openVisageConfig(sheet.actor)
             });
         });
@@ -158,7 +160,7 @@ Hooks.once("init", () => {
             if (!actor || !actor.isOwner) return;
             controls.push({
                 label: "VISAGE.Title",
-                icon: "visage-icon-mask",
+                icon: "visage-icon-domino",
                 action: "visageConfigure",
                 onClick: () => openVisageConfig(actor),
                 order: 0
