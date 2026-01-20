@@ -79,6 +79,7 @@ li.context-item .visage-icon-mask {
 
 /* --- Tooltips --- */
 #tooltip.visage-tooltip {
+    max-width: 300px !important;
     border: 1px solid var(--filroden-color-text-accent);
     border-radius: var(--filroden-radius-small);
     padding: var(--filroden-space-s);
@@ -91,6 +92,43 @@ li.context-item .visage-icon-mask {
     text-align: start;
     z-index: var(--z-index-tooltip, 9999);
     margin-top: var(--filroden-space-m);
+}
+
+:root:lang(ar) #tooltip.visage-tooltip,
+:root:lang(he) #tooltip.visage-tooltip,
+:root:lang(fa) #tooltip.visage-tooltip,
+:root:lang(ur) #tooltip.visage-tooltip {
+    direction: rtl;
+    text-align: right;
+}
+
+.visage-tooltip-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xs);
+}
+
+.visage-tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    font-size: var(--filroden-font-size-xs);
+    padding: var(--filroden-space-xxs) var(--filroden-space-xs);
+}
+
+.visage-tooltip-row i {
+    width: 1rem;
+    text-align: center;
+    color: var(--visage-color-accent);
+}
+
+.visage-tooltip-row .label {
+    flex: 1;
+    font-weight: var(--filroden-font-weight-bold);
+}
+
+.visage-tooltip-row .meta {
+    opacity: 0.7;
 }
 
 /* --- Inputs and Selects --- */
@@ -259,8 +297,7 @@ li.context-item .visage-icon-mask {
     background-position: center;
 }
 
-/* Lock Indicator Badge (HUD) - Left Flank Position */
-.visage .visage-lock-indicator {
+/* .visage .visage-lock-indicator {
     position: absolute;
     top: 50%;
     inset-inline-start: -8px; 
@@ -281,7 +318,7 @@ li.context-item .visage-icon-mask {
     height: var(--filroden-space-m);
     border: none;
     filter: invert(100%);
-}
+} */
 
 /* Ghost Lock Watermark (Preview Cards) - Top Right Overlay */
 .visage-watermark-lock {
@@ -408,7 +445,9 @@ li.context-item .visage-icon-mask {
 .visage .visage-chip,
 .visage .visage-default-indicator,
 .visage .visage-wildcard-indicator,
-.visage .visage-flip-indicator {
+.visage .visage-flip-indicator,
+.visage .visage-lock-indicator,
+.visage .visage-effects-indicator {
     position: absolute;
     width: var(--filroden-font-size-l);
     height: var(--filroden-font-size-l);
@@ -416,14 +455,16 @@ li.context-item .visage-icon-mask {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--filroden-shadow-card);
     z-index: 10;
 }
 
 .visage .visage-chip img,
 .visage .visage-default-indicator img,
 .visage .visage-wildcard-indicator img,
-.visage .visage-flip-indicator img {
+.visage .visage-flip-indicator img,
+.visage .visage-lock-indicator img,
+.visage .visage-effects-indicator img {
     width: var(--filroden-space-m);
     height: var(--filroden-space-m);
     font-size: var(--filroden-font-size-xs);
@@ -431,7 +472,9 @@ li.context-item .visage-icon-mask {
 }
 
 .visage .visage-chip img,
-.visage .visage-default-indicator img {
+.visage .visage-default-indicator img,
+.visage .visage-effects-indicator img,
+.visage .visage-lock-indicator img {
     filter: invert(100%);
 }
 
@@ -466,6 +509,21 @@ li.context-item .visage-icon-mask {
 
 .visage .visage-flip-indicator img {
     transform: scaleX(var(--filroden-dir-flip));
+}
+
+.visage .visage-effects-indicator {
+    top: 33%;
+    inset-inline-start: -8px;
+    transform: translateY(-50%);    
+    background-color: #90f8ff; 
+
+}
+
+.visage .visage-lock-indicator {
+    top: 66%;
+    inset-inline-start: -8px; 
+    transform: translateY(-50%);
+    background-color: var(--filroden-color-text-muted-solid);
 }
 
 .visage .visage-data-chip {
@@ -567,6 +625,7 @@ li.context-item .visage-icon-mask {
     margin-bottom: var(--filroden-space-m);
     border-bottom: 1px solid var(--visage-color-border);
     padding-bottom: var(--filroden-space-xs);
+    gap: var(--filroden-space-s);
 }
 
 .visage .visage-selector-header .visage-title {
@@ -1057,7 +1116,7 @@ li.context-item .visage-icon-mask {
 
 .visage .mirroring-grid label {
     margin: 0;
-    text-align: right;
+    text-align: end;
     color: var(--visage-color-text-muted);
 }
 
@@ -2186,6 +2245,34 @@ li.context-item .visage-icon-mask {
     -webkit-user-drag: none;
     pointer-events: none;
     user-select: none;
+}
+
+.visage-card .card-zone-center .visage-card-effect-indicator {
+    pointer-events: auto;
+    cursor: help;
+}
+
+.visage-card-effect-indicator {
+    position: absolute;
+    top: var(--filroden-space-s);
+    inset-inline-start: var(--filroden-space-s);
+    width: 2rem;
+    height: 2rem;
+    background: rgba(0, 0, 0, 0.75);
+    border: var(--filroden-border-main);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    backdrop-filter: blur(4px);
+    box-shadow: var(--filroden-shadow-popout);
+}
+
+.visage-card-effect-indicator img {
+    width: 1.5rem;
+    height: 1.5rem;
+    opacity: 0.9;
 }
 
 .visage-preview-content {

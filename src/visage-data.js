@@ -23,8 +23,6 @@ export class VisageData {
         });
     }
 
-    // ... [prepareRingContext, getRepresentativeImage, toLayer, getDefaultAsVisage, toPresentation UNCHANGED] ...
-    
     static prepareRingContext(ringData) {
         const data = ringData || {};
         const currentEffects = data.effects || 0;
@@ -201,15 +199,38 @@ export class VisageData {
             : game.i18n.localize("VISAGE.RotationLock.Unlocked");
 
         const rawEffects = c.effects || [];
-        const effectsStack = rawEffects.map(e => {
-            return {
-                ...e,
-                icon: e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
-                metaLabel: e.type === "audio" 
-                    ? `Volume: ${Math.round(e.opacity * 100)}%` 
-                    : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round(e.scale * 100)}%`
-            };
-        });
+        const activeEffects = rawEffects.filter(e => !e.disabled);
+        const hasEffects = activeEffects.length > 0;
+        
+        let effectsTooltip = "";
+        if (hasEffects) {
+            const listItems = activeEffects.map(e => {
+                const icon = e.type === "audio" ? "visage-icon audio" : "visage-icon visual";
+                let meta = "";
+
+                if (e.type === "audio") {
+                    // Audio: Show Volume
+                    const volLabel = game.i18n.localize("VISAGE.Editor.Effects.Volume");
+                    meta = `${volLabel}: ${Math.round((e.opacity ?? 0.8) * 100)}%`;
+                } else {
+                    // Visual: Show Z-Order (Above/Below)
+                    // We use the short keys if available, or fallback to the full ones
+                    const zLabel = e.zOrder === "below" 
+                        ? game.i18n.localize("VISAGE.Editor.Effects.Below") 
+                        : game.i18n.localize("VISAGE.Editor.Effects.Above");
+                    meta = zLabel;
+                }
+                
+                return `
+                <div class='visage-tooltip-row'>
+                    <i class='${icon}'></i> 
+                    <span class='label'>${e.label || "Effect"}</span>
+                    <span class='meta'>${meta}</span>
+                </div>`;
+            }).join("");
+            
+            effectsTooltip = `<div class='visage-tooltip-content'>${listItems}</div>`;
+        }
 
         const ringCtx = this.prepareRingContext(c.ring);
 
@@ -226,7 +247,6 @@ export class VisageData {
             forceFlipY: isFlippedY,
             alpha: alpha,
             lockRotation: lockRotation,
-            effects: effectsStack,
             mode: data.mode, 
             
             meta: {
@@ -237,10 +257,15 @@ export class VisageData {
                 hasInvisibility: ringCtx.hasInvisibility,
                 ringColor: ringCtx.colors.ring,
                 ringBkg: ringCtx.colors.background,
+                
                 showDataChip: isScaleActive || isDimActive,
                 showFlipBadge: hActive || vActive,
                 showDispositionChip: dispClass !== "none",
                 tokenName: c.name || null,
+                
+                hasEffects: hasEffects,
+                effectsTooltip: effectsTooltip,
+
                 slots: {
                     scale: { active: isScaleActive, val: scaleLabel },
                     dim: { active: isDimActive, val: sizeLabel },
@@ -254,7 +279,7 @@ export class VisageData {
             }
         };
     }
-
+   
     static _getRawGlobal() { return game.settings.get(this.MODULE_ID, this.SETTING_KEY); }
     static get globals() {
         const raw = this._getRawGlobal();
@@ -293,14 +318,6 @@ export class VisageData {
         return results.sort((a, b) => a.label.localeCompare(b.label));
     }
 
-    /* -------------------------------------------- */
-    /* DATA OPERATIONS                              */
-    /* -------------------------------------------- */
-
-    /**
-     * Promotes a Local Visage to the Global Mask Library.
-     * FORCE: mode = "overlay" (Mask)
-     */
     static async promote(actor, visageId) {
         const localVisages = this.getLocal(actor);
         const source = localVisages.find(v => v.id === visageId);
@@ -310,7 +327,7 @@ export class VisageData {
             label: source.label,
             category: source.category,
             tags: source.tags ? [...source.tags] : [],
-            mode: "overlay", // FORCE MASK BEHAVIOR
+            mode: "overlay", 
             changes: foundry.utils.deepClone(source.changes)
         };
 
@@ -318,8 +335,6 @@ export class VisageData {
         ui.notifications.info(game.i18n.format("VISAGE.Notifications.Promoted", { name: payload.label }));
     }
 
-    // ... [commitToDefault, delete, restore, destroy, internal storage UNCHANGED] ...
-    
     static async commitToDefault(tokenOrId, visageId) {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token || !token.actor) return ui.notifications.warn("Visage | No actor found.");
