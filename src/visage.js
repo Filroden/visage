@@ -1,9 +1,4 @@
-/**
- * @file Contains the core logic for the Visage module.
- * Acts as the primary API entry point.
- * @module visage
- */
-
+/* visage.js */
 import { VisageComposer } from "./visage-composer.js";
 import { VisageData } from "./visage-data.js"; 
 import { VisageUtilities } from "./visage-utilities.js";
@@ -12,14 +7,13 @@ import { VisageSequencer } from "./visage-sequencer.js";
 export class Visage {
     static MODULE_ID = "visage";
     static DATA_NAMESPACE = "visage";
-    
-    // Track Sequencer State
     static sequencerReady = false;
 
     static log(message, force = false) { VisageUtilities.log(message, force); }
     static async resolvePath(path) { return VisageUtilities.resolvePath(path); }
 
     static initialize() {
+        // ... [Initialization logic unchanged] ...
         this.log("Initializing Visage API (v2)");
         game.modules.get(this.MODULE_ID).api = {
             apply: this.apply.bind(this),
@@ -30,95 +24,78 @@ export class Visage {
             resolvePath: VisageUtilities.resolvePath.bind(VisageUtilities)
         };
 
-        // --- COORDINATED RESTORATION SYSTEM ---
-        
-        // 1. Listen for Sequencer to finish building its Database
         Hooks.once("sequencer.ready", () => {
             Visage.sequencerReady = true;
-            // If canvas is already waiting, trigger restore now
-            if (canvas.ready) {
-                Visage._restoreAll();
-            }
+            if (canvas.ready) Visage._restoreAll();
         });
 
-        // 2. Listen for Canvas Load
         Hooks.on("canvasReady", () => {
-            // Only restore if Sequencer is already done. 
-            // If not, we wait for the 'sequencer.ready' hook above to fire.
-            if (Visage.sequencerReady) {
-                setTimeout(() => Visage._restoreAll(), 100);
-            }
+            if (Visage.sequencerReady) setTimeout(() => Visage._restoreAll(), 100);
         });
 
-        // 3. New Tokens (Drop/Spawn)
         Hooks.on("createToken", (tokenDoc) => {
             if (tokenDoc.object && Visage.sequencerReady) {
                 setTimeout(() => VisageSequencer.restore(tokenDoc.object), 250);
             }
         });
 
-        // 4. Cleanup
         Hooks.on("deleteToken", (tokenDoc) => {
-            if (tokenDoc.object) {
-                VisageSequencer.revert(tokenDoc.object);
-            }
+            if (tokenDoc.object) VisageSequencer.revert(tokenDoc.object);
         });
+    }
+
+    static _restoreAll() {
+        if (!Visage.sequencerReady && !game.modules.get("sequencer")?.active) return;
+        canvas.tokens.placeables.forEach(token => VisageSequencer.restore(token));
     }
 
     /**
-     * Helper to trigger restoration on all tokens in the current scene.
+     * Unified Application Logic.
+     * Determines whether to swap identity or stack mask based on data.mode.
      */
-    static _restoreAll() {
-        // Double-check Sequencer hasn't crashed or unloaded
-        if (!Visage.sequencerReady && !game.modules.get("sequencer")?.active) return;
-
-        canvas.tokens.placeables.forEach(token => {
-            VisageSequencer.restore(token);
-        });
-    }
-
-    /* -------------------------------------------- */
-    /* CORE LOGIC METHODS                          */
-    /* -------------------------------------------- */
-
-    static async apply(tokenOrId, maskId, options = { clearStack: false, switchIdentity: false }) {
+    static async apply(tokenOrId, maskId, options = {}) {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
 
+        // 1. Locate Data & Determine Source
         let data = VisageData.getLocal(token.actor).find(v => v.id === maskId);
-        if (!data) data = VisageData.getGlobal(maskId);
+        let source = "local";
+        
+        if (!data) {
+            data = VisageData.getGlobal(maskId);
+            source = "global";
+        }
         
         if (!data) {
             console.warn(`Visage | Mask ID '${maskId}' not found.`);
             return false;
         }
 
-        let layer;
-        if (VisageData.toLayer) {
-            layer = await VisageData.toLayer(data);
-        } else {
-            layer = {
-                id: data.id,
-                label: data.label || "Unknown",
-                changes: foundry.utils.deepClone(data.changes || {})
-            };
-            if (layer.changes.img) {
-                layer.changes.texture = { src: await this.resolvePath(layer.changes.img) };
-            }
-        }
+        // 2. Determine Mode & Options
+        // Fallback: If no mode, use legacy logic (Local=Identity, Global=Overlay)
+        const mode = data.mode || (source === "local" ? "identity" : "overlay");
+        
+        // Force options based on mode, but allow explicit override if passed
+        const switchIdentity = options.switchIdentity ?? (mode === "identity");
+        const clearStack = options.clearStack ?? false;
 
+        // 3. Prepare Layer
+        // We pass 'source' so VisageData can stamp it onto the layer for UI coloring
+        const layer = await VisageData.toLayer(data, source);
+
+        // 4. Update the Stack
         const ns = this.DATA_NAMESPACE;
         let stack = foundry.utils.deepClone(token.document.getFlag(ns, "activeStack") || []);
         const updateFlags = {};
 
-        if (options.clearStack || options.switchIdentity) {
-            if (options.clearStack) await VisageSequencer.revert(token);
+        if (clearStack || switchIdentity) {
+            if (clearStack) await VisageSequencer.revert(token);
         }
 
-        if (options.clearStack) {
+        if (clearStack) {
             stack = [];
             updateFlags[`flags.${ns}.identity`] = layer.id;
-        } else if (options.switchIdentity) {
+        } else if (switchIdentity) {
             const currentIdentity = token.document.getFlag(ns, "identity");
             if (currentIdentity) {
                 stack = stack.filter(l => l.id !== currentIdentity);
@@ -126,12 +103,13 @@ export class Visage {
             updateFlags[`flags.${ns}.identity`] = layer.id;
         }
 
+        // Remove existing instance of this specific layer (no duplicates in stack)
         stack = stack.filter(l => l.id !== layer.id);
         
-        if (options.switchIdentity) {
-            stack.unshift(layer);
+        if (switchIdentity) {
+            stack.unshift(layer); // Identity at bottom
         } else {
-            stack.push(layer);
+            stack.push(layer); // Overlay at top
         }
         
         updateFlags[`flags.${ns}.activeStack`] = stack;
@@ -139,7 +117,7 @@ export class Visage {
         await token.document.update(updateFlags);
         await VisageComposer.compose(token);
 
-        const isBase = options.switchIdentity || options.clearStack;
+        const isBase = switchIdentity || clearStack;
         await VisageSequencer.apply(token, layer, isBase);
 
         return true;
@@ -178,30 +156,22 @@ export class Visage {
         return true;
     }
 
+    // ... [revert, isActive, getAvailable, handleTokenUpdate unchanged] ...
     static async revert(tokenOrId) {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
-
         const ns = this.DATA_NAMESPACE;
-        
-        await token.document.update({
-            [`flags.${ns}.-=activeStack`]: null,
-            [`flags.${ns}.-=identity`]: null
-        });
-        
+        await token.document.update({ [`flags.${ns}.-=activeStack`]: null, [`flags.${ns}.-=identity`]: null });
         await VisageComposer.revertToDefault(token.document);
         await VisageSequencer.revert(token);
-
         return true;
     }
-
     static isActive(tokenOrId, maskId) {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
         const stack = token.document.getFlag(this.DATA_NAMESPACE, "activeStack") || [];
         return stack.some(l => l.id === maskId);
     }
-
     static getAvailable(tokenOrId) {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         const actor = token?.actor;
@@ -210,26 +180,20 @@ export class Visage {
         const global = VisageData.globals.map(v => ({ ...v, type: "global" }));
         return [...local, ...global];
     }
-
     static async handleTokenUpdate(tokenDocument, change, options, userId) {
         if (options.visageUpdate) return;
         if (game.user.id !== userId) return;
         if (!tokenDocument.object) return;
-
         const relevantKeys = ["name", "displayName", "disposition", "width", "height", "texture", "ring"];
         const flatChange = foundry.utils.flattenObject(change);
         if ("hidden" in flatChange) return;
-        
         const isRelevant = Object.keys(flatChange).some(key => relevantKeys.some(rk => key === rk || key.startsWith(rk + ".")));
         if (!isRelevant) return;
-
         const flags = tokenDocument.flags[this.MODULE_ID] || {};
         const stack = flags.activeStack || flags.stack || [];
-
         if (stack.length > 0) {
             let base = flags.originalState;
             if (!base) base = VisageUtilities.extractVisualState(tokenDocument);
-            
             const expandedChange = foundry.utils.expandObject(change);
             const dirtyBase = foundry.utils.mergeObject(base, expandedChange, { insertKeys: true, inplace: false });
             const cleanBase = VisageUtilities.extractVisualState(dirtyBase);

@@ -9,11 +9,12 @@
 
     {{!-- Global Stack List --}}
     {{#if activeStack.length}}
-    <div class="visage-stack-list visage-theme-global">
+    <div class="visage-stack-list">
         <div class="stack-header">{{localize "VISAGE.Selector.ActiveEffects"}}</div>
         <ul>
             {{#each activeStack}}
-            <li class="stack-item">
+            {{!-- Apply dynamic theme class here --}}
+            <li class="stack-item {{this.themeClass}}">
                 <span class="effect-label" data-tooltip="{{this.label}}">
                     <i class="fas fa-layer-group"></i> {{this.label}}
                 </span>
@@ -35,7 +36,6 @@
     <div class="visage-selector-grid-wrapper visage-scrollable">
         <div class="visage-selector">
             {{#each forms}}
-
             <div class="visage-tile {{#if this.isActive}}active{{/if}}" 
                  data-action="selectVisage" 
                  data-form-key="{{this.key}}"
@@ -45,7 +45,6 @@
                  aria-pressed="{{this.isActive}}">
 
                 <div class="visage-image-wrapper">
-                    {{!-- EXPLICIT PARTIAL MAPPING (Required for new Data Model) --}}
                     {{> "modules/visage/templates/parts/visage-preview.hbs" 
                         wrapperClass="visage-hud-content"
                         hasCheckerboard=true 

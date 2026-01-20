@@ -75,10 +75,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /**
      * Prepares data for rendering the HUD.
-     * * COMPLEXITY: This method must combine two distinct data sources:
-     * 1. "Local Identities": The static list of faces this actor can assume.
-     * 2. "Active Stack": The dynamic list of global effects currently applied.
-     * @override
      */
     async _prepareContext(options) {
         const token = canvas.tokens.get(this.tokenId);
@@ -88,56 +84,53 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const ns = Visage.DATA_NAMESPACE;
         const currentFormKey = token.document.getFlag(ns, "identity") || "default";
 
-        // --- 1. Prepare "Default" Visage Entry ---
-        // Represents the token's original, unmodified appearance (fallback).
+        // --- 1. Prepare Local Identities (The Grid) ---
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
         const defaultForm = VisageData.toPresentation(defaultRaw, {
             isActive: currentFormKey === "default",
         });
         defaultForm.key = "default";
 
-        // --- 2. Process Alternate Visages (Local Identity Options) ---
-        const localVisages = VisageData.getLocal(actor).filter(v => !v.deleted);
+        // Filter: Grid only shows items with mode="identity"
+        // (If a local item is an "overlay", it appears in the stack list when active, but not the swap grid)
+        const localVisages = VisageData.getLocal(actor).filter(v => !v.deleted && v.mode !== "overlay");
+        
         const alternateForms = localVisages.map(data => {
-            // Helper handles both v1 (img) and v2 (texture.src) paths
             const rawPath = VisageData.getRepresentativeImage(data.changes);
-            
             const form = VisageData.toPresentation(data, {
                 isActive: data.id === currentFormKey,
-                // Wildcard detection for the UI badge
                 isWildcard: (rawPath || "").includes('*') 
             });
             form.key = data.id;
             return form;
         });
 
-        // --- 3. Sorting & Merging ---
         alternateForms.sort((a, b) => a.label.localeCompare(b.label));
         const orderedForms = [defaultForm, ...alternateForms];
 
-        // --- 4. Resolve Image Paths (Async) ---
-        // Resolves wildcards so the HUD shows a real preview image, not a generic icon.
         for (const form of orderedForms) {
             form.resolvedPath = await Visage.resolvePath(form.path);
         }
 
-        // --- 5. Prepare Active Stack Display ---
-        // Shows active Global Masks currently layered on the token.
+        // --- 2. Prepare Active Stack (The List) ---
         const flags = token.document.flags[Visage.MODULE_ID] || {};
         const activeStack = flags.activeStack || flags.stack || [];
         
-        // Visual Filter: Hide the base Identity Layer from the "Effects" list
-        // so the user only sees "added" effects (like "Invisibility").
+        // Hide base identity from stack list
         const visibleStack = activeStack.filter(layer => layer.id !== currentFormKey);
 
         const stackDisplay = visibleStack.map(layer => {
             const img = layer.changes.img || layer.changes.texture?.src || "icons/svg/aura.svg";
+            // Determine theme class based on source property stamped by VisageData.toLayer
+            const themeClass = (layer.source === "local") ? "visage-theme-local" : "visage-theme-global";
+            
             return {
                 id: layer.id,
                 label: layer.label,
-                icon: img
+                icon: img,
+                themeClass: themeClass
             };
-        }).reverse(); // Show top-most layer first
+        }).reverse();
 
         return { 
             forms: orderedForms,

@@ -1,24 +1,15 @@
+/* visage-gallery.js */
 import { Visage } from "./visage.js";
 import { VisageData } from "./visage-data.js"; 
 import { VisageEditor } from "./visage-editor.js";
 import { VisageUtilities } from "./visage-utilities.js";
-import { cleanVisageData } from "./visage-migration.js"; // <--- ADDED THIS IMPORT
+import { cleanVisageData } from "./visage-migration.js"; 
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-/**
- * The main browser application for Visage.
- * It adapts its behavior, theme, and available actions based on whether it is
- * targeting a specific Actor ("Local Mode") or the World Settings ("Global Mode").
- */
 export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
+    // ... [Previous Methods Unchanged] ...
     
-    /**
-     * @param {Object} options - Application options.
-     * @param {string} [options.actorId] - If provided, opens in "Local Mode" for this actor.
-     * @param {string} [options.tokenId] - Context token for applying changes immediately.
-     * @param {string} [options.sceneId] - Scene context.
-     */
     constructor(options = {}) {
         super(options);
         
@@ -26,11 +17,10 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         this.tokenId = options.tokenId || null;
         this.sceneId = options.sceneId || null;
         
-        // Theme Adaptation: Different icons/styles help users distinguish modes instantly.
         if (!this.isLocal) {
-            this.options.window.icon = "visage-icon-domino"; // Global
+            this.options.window.icon = "visage-icon-domino"; 
         } else {
-            this.options.window.icon = "visage-icon-mask";   // Local
+            this.options.window.icon = "visage-icon-mask";   
         }
         
         this.filters = {
@@ -40,9 +30,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             showBin: false
         };
         
-        // --- Reactive Updates ---
-        // We bind listeners here to ensure the UI stays in sync with data changes.
-        
         this._onDataChanged = () => this.render();
         
         this._onActorUpdate = (doc) => {
@@ -51,10 +38,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this._onTokenUpdate = (doc, changes, options, userId) => {
             if (this.tokenId && doc.id === this.tokenId) {
-                // RACE CONDITION FIX: 
-                // When a token reverts to default, the data update on the server happens instantly,
-                // but the client-side document might lag by a few frames. 
-                // A small delay ensures the Gallery reads the *new* default state, not the old cached one.
                 setTimeout(() => {
                     if (this.rendered) this.render();
                 }, 100); 
@@ -69,10 +52,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    /**
-     * Returns true if the gallery is managing a specific Actor's identities.
-     * Returns false if managing the World's mask library.
-     */
     get isLocal() { return !!this.actorId; }
 
     get actor() {
@@ -136,17 +115,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         return game.i18n.localize("VISAGE.Directory.Title.Global");
     }
 
-    /**
-     * Prepares the data for the Handlebars template.
-     * * ARCHITECTURE NOTE:
-     * This method acts as a data unification layer. It fetches data from either
-     * Actor Flags (Local) or World Settings (Global), normalizes them into a standard
-     * structure, applies client-side filtering (Search/Tags/Categories), and
-     * generates the presentation data (Icons/Badges) for the UI cards.
-     * @override
-     */
     async _prepareContext(options) {
-        // 1. Fetch Raw Data Source
         let rawItems = [];
         if (this.isLocal) {
             if (!this.actor) return { items: [] };
@@ -155,25 +124,19 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             rawItems = this.filters.showBin ? VisageData.bin : VisageData.globals;
         }
 
-        // 2. Initial Filter (Recycle Bin Logic)
         let source = rawItems;
         if (this.isLocal) {
             source = rawItems.filter(v => this.filters.showBin ? v.deleted : !v.deleted);
         }
         
-        // 3. Synthesize "Default Visage" (Local Mode Only)
-        // The actor's base appearance (Prototype Token) isn't stored in the flags,
-        // so we must generate a "Virtual Visage" representing it so it appears in the grid.
         if (this.isLocal && !this.filters.showBin && this.actor) {
              let defaultRaw;
              
-             // Prefer current token state if available (for unlinked token edits)
              if (this.tokenId) {
                  const token = canvas.tokens.get(this.tokenId);
                  if (token) defaultRaw = VisageData.getDefaultAsVisage(token.document);
              } 
              
-             // Fallback to Prototype Token
              if (!defaultRaw) {
                 const proto = this.actor.prototypeToken;
                 defaultRaw = { 
@@ -200,7 +163,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
              if (defaultRaw) source.unshift(defaultRaw);
         }
 
-        // 4. Aggregate Filters (Tags & Categories)
         const categories = new Set();
         const tagCounts = {}; 
         source.forEach(v => {
@@ -212,7 +174,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const activeTags = Array.from(this.filters.tags).sort().map(t => ({ label: t, active: true }));
         
-        // Calculate "Popular Tags" for suggestions
         const popularTags = Object.entries(tagCounts)
             .sort((a, b) => b[1] - a[1]) 
             .slice(0, 10)
@@ -225,32 +186,27 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             active: this.filters.category === c
         }));
 
-        // 5. Apply Client-Side Filtering
         let items = source.filter(entry => {
             if (this.filters.category && entry.category !== this.filters.category) return false;
             
             if (this.filters.search) {
                 const term = this.filters.search.toLowerCase();
-                // Search matches Name OR Tags
                 if (!(entry.label.toLowerCase().includes(term) || (entry.tags && entry.tags.some(t => t.toLowerCase().includes(term))))) return false;
             }
             
             if (this.filters.tags.size > 0) {
                 const entryTags = entry.tags || [];
-                // AND logic: Entry must contain ALL selected tags
                 if (!Array.from(this.filters.tags).every(t => entryTags.includes(t))) return false;
             }
             return true;
         });
 
-        // Sort: Default first, then Alphabetical
         items.sort((a, b) => {
             if (a.id === "default") return -1;
             if (b.id === "default") return 1;
             return a.label.localeCompare(b.label);
         });
 
-        // 6. Generate UI Context (Badges, Resolved Images)
         const preparedItems = await Promise.all(items.map(async (entry) => {
             const rawPath = VisageData.getRepresentativeImage(entry.changes);
             const resolvedPath = await Visage.resolvePath(rawPath);
@@ -309,10 +265,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             this._dataListener = Hooks.on("visageDataChanged", () => this.render());
         }
 
-        // Global Click Listener to close popout menus
         if (!this._clickListener) {
             this._clickListener = (event) => {
-                // If click is NOT inside a toggle button or a menu, close all menus
                 if (!event.target.closest('[data-action="toggleMenu"]') && !event.target.closest('.visage-popover-menu')) {
                     this.element.querySelectorAll('.visage-popover-menu.active').forEach(menu => {
                         menu.classList.remove('active');
@@ -322,7 +276,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             this.element.addEventListener('click', this._clickListener);
         }
 
-        // Search Debounce
         const searchInput = this.element.querySelector(".search-bar input");
         if (searchInput) {
             searchInput.addEventListener("input", (e) => {
@@ -330,7 +283,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (this._searchDebounce) clearTimeout(this._searchDebounce);
                 this._searchDebounce = setTimeout(() => {
                     this.render();
-                    // Restore Focus Trick
                     setTimeout(() => {
                         const input = this.element.querySelector(".search-bar input");
                         if(input) {
@@ -344,8 +296,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         }
 
-        // Drag & Drop Handling
-        // Only allow dragging generic Masks (Global), not specific Identities (Local)
         if (!this.isLocal) {
             const cards = this.element.querySelectorAll(".visage-card");
             cards.forEach(card => {
@@ -358,24 +308,14 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    /**
-     * Action: Toggle Card Menu (Kebab).
-     */
     _onToggleMenu(event, target) {
-        // Close all other menus first
         this.element.querySelectorAll('.visage-popover-menu.active').forEach(menu => {
             if (menu !== target.nextElementSibling) menu.classList.remove('active');
         });
-        
-        // Toggle this menu
         const menu = target.nextElementSibling;
         if (menu) menu.classList.toggle('active');
     }
 
-    /**
-     * Action: Duplicate.
-     * Creates a copy of the selected item with "(Copy)" appended to the name.
-     */
     async _onDuplicate(event, target) {
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
@@ -394,18 +334,14 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             label: `${source.label}${copySuffix}`,
             category: source.category,
             tags: source.tags ? [...source.tags] : [],
-            changes: foundry.utils.deepClone(source.changes)
+            changes: foundry.utils.deepClone(source.changes),
+            mode: source.mode 
         };
 
         await VisageData.save(copy, this.isLocal ? this.actor : null);
-        
-        // Hide menu
         target.closest('.visage-popover-menu').classList.remove('active');
     }
 
-    /**
-     * Action: Export Individual.
-     */
     async _onExportIndividual(event, target) {
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
@@ -419,7 +355,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         if (!source) return;
 
-        // Wrap in array for consistency with bulk import logic
         const data = [source];
         const safeName = source.label.replace(/[^a-z0-9]/gi, '_');
         const filename = `Visage_${safeName}.json`;
@@ -428,9 +363,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         target.closest('.visage-popover-menu').classList.remove('active');
     }
 
-    /**
-     * Action: Promote to Library (Local -> Global).
-     */
     async _onPromote(event, target) {
         const visageId = target.dataset.visageId;
         if (!visageId || !this.isLocal) return;
@@ -440,34 +372,28 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /**
      * Action: Copy to Visage (Global -> Local).
-     * Copies the selected Mask from the Library to the Actors of all selected tokens.
+     * FORCE: mode = "identity" (Visage)
      */
     async _onCopyToLocal(event, target) {
-        if (this.isLocal) return; // Only valid in Global Library
+        if (this.isLocal) return; 
 
-        // 1. Get Global Data
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
         const globalMask = VisageData.getGlobal(id);
         if (!globalMask) return;
 
-        // 2. Identify Targets
-        // Matches "Apply" logic: owned tokens on canvas.
         const tokens = canvas.tokens.controlled.filter(t => t.document.isOwner);
         if (tokens.length === 0) return ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
 
-        // 3. Deduplicate Actors
-        // If we select 3 Goblins (same actor), we only want to copy the visage once to the "Goblin" actor.
         const targetActors = new Set(tokens.map(t => t.actor).filter(a => a));
 
-        // 4. Copy Operation
         let count = 0;
         for (const actor of targetActors) {
-            // Construct payload without ID (to force generation of a new Local ID)
             const payload = {
                 label: globalMask.label,
                 category: globalMask.category,
                 tags: globalMask.tags ? [...globalMask.tags] : [],
+                mode: "identity", // FORCE IDENTITY MODE
                 changes: foundry.utils.deepClone(globalMask.changes)
             };
 
@@ -481,10 +407,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         }));
     }
 
-    /**
-     * Action: Swap Default.
-     * Replaces the token's base prototype with the selected Visage data.
-     */
     async _onSwapDefault(event, target) {
         if (!this.isLocal || !this.tokenId) return;
         const visageId = target.dataset.visageId;
@@ -507,23 +429,15 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    /**
-     * Action: Export Visages/Masks.
-     * Dumps the current context (Active Local or Active Global) to a JSON file.
-     * Excludes deleted items.
-     */
     async _onExport(event, target) {
         let data;
         let filename;
 
         if (this.isLocal) {
-            // Local Export: Filter to only active items (exclude 'deleted')
             data = VisageData.getLocal(this.actor).filter(v => !v.deleted);
-            // Sanitize filename to prevent OS issues
             const safeName = this.actor.name.replace(/[^a-z0-9]/gi, '_');
             filename = `Visage_Local_${safeName}.json`;
         } else {
-            // Global Export: Globals getter already filters out deleted items
             data = VisageData.globals;
             filename = "Visage_Global_Library.json";
         }
@@ -536,12 +450,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         ui.notifications.info(game.i18n.format("VISAGE.Notifications.Exported", { count: data.length }));
     }
 
-    /**
-     * Action: Import Visages/Masks.
-     * Reads a JSON file, sanitizes data, and imports non-duplicate items.
-     */
     async _onImport(event, target) {
-        // Create hidden file input
         const input = document.createElement("input");
         input.type = "file";
         input.accept = ".json";
@@ -559,24 +468,18 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                     let imported = 0;
                     let skipped = 0;
 
-                    // Fetch existing items to check for duplicates (UUID collision)
                     const currentItems = this.isLocal ? VisageData.getLocal(this.actor) : VisageData.globals;
                     const currentIds = new Set(currentItems.map(i => i.id));
 
                     for (const entry of json) {
-                        // 1. Sanitize & Migrate (using v2.2 schema cleaner)
                         const cleanEntry = cleanVisageData(entry);
-                        
-                        // 2. Basic Validation
                         if (!cleanEntry.id || !cleanEntry.changes) continue;
 
-                        // 3. Duplicate Check: If UUID exists, SKIP.
                         if (currentIds.has(cleanEntry.id)) {
                             skipped++;
                             continue;
                         }
 
-                        // 4. Save (Context Aware)
                         await VisageData.save(cleanEntry, this.isLocal ? this.actor : null);
                         imported++;
                     }
@@ -677,19 +580,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
-    /**
-     * Action: Apply Visage/Mask.
-     * Handles the logic for activating a visage on a token.
-     * - Local Mode: Swaps identity (switchIdentity: true).
-     * - Global Mode: Stacks as a mask (clearStack: false).
-     */
     async _onApply(event, target) {
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
         const name = card.querySelector(".card-title")?.innerText || "Visage";
 
         if (this.isLocal) {
-            // Local Mode: Identity Swap Logic
             if (this.tokenId) {
                 if (id === "default") {
                     const token = canvas.tokens.get(this.tokenId);
@@ -704,7 +600,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
             }
         } else {
-            // Global Mode: Mask Stacking Logic
             const tokens = canvas.tokens.controlled.filter(t => t.document.isOwner);
             if (tokens.length === 0) return ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
             
