@@ -279,8 +279,8 @@ li.context-item .visage-icon-mask {
     mask-image: url('../icons/domino_mask.svg');
 }
 .visage-icon-action.visage {
-    -webkit-mask-image: url('../icons/switch_account.svg');
-    mask-image: url('../icons/switch_account.svg');
+    -webkit-mask-image: url('../icons/domino_mask.svg');
+    mask-image: url('../icons/domino_mask.svg');
 }
 
 /* --- Opacity & Lock Additions --- */
@@ -952,7 +952,6 @@ li.context-item .visage-icon-mask {
     background-color: currentColor;
     -webkit-mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
     mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
-    margin-inline-end: 0.5rem;
 }
 
 .visage-icon-mask, 
@@ -961,8 +960,8 @@ li.context-item .visage-icon-mask {
     width: var(--filroden-font-size-l);
     height: var(--filroden-font-size-l);
     background-color: currentColor;
-    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / 100% 100%;
-    mask: url('../icons/switch_account.svg') no-repeat center / 100% 100%;
+    -webkit-mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
+    mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
     margin-inline-end: 0.5rem;
 }
 
@@ -993,7 +992,7 @@ li.context-item .visage-icon-mask {
 .visage-icon.close       { -webkit-mask-image: url('../icons/close.svg'); mask-image: url('../icons/close.svg'); }
 .visage-icon.sync        { -webkit-mask-image: url('../icons/sync_alt.svg'); mask-image: url('../icons/sync_alt.svg'); }
 .visage-icon.domino      { -webkit-mask-image: url('../icons/domino_mask.svg'); mask-image: url('../icons/domino_mask.svg'); }
-.visage-icon.visage      { -webkit-mask-image: url('../icons/switch_account.svg'); mask-image: url('../icons/switch_account.svg'); }
+.visage-icon.visage      { -webkit-mask-image: url('../icons/domino_mask.svg'); mask-image: url('../icons/domino_mask.svg'); }
 .visage-icon.scale       { -webkit-mask-image: url('../icons/square_foot.svg'); mask-image: url('../icons/square_foot.svg'); }
 .visage-icon.dimensions  { -webkit-mask-image: url('../icons/aspect_ratio.svg'); mask-image: url('../icons/aspect_ratio.svg'); }
 .visage-icon.wildcard    { -webkit-mask-image: url('../icons/shuffle.svg'); mask-image: url('../icons/shuffle.svg'); }

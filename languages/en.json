@@ -211,5 +211,8 @@
     "VISAGE.Mode.Identity": "Identity",
     "VISAGE.Mode.Overlay": "Overlay",
     "VISAGE.Mode.IdentityHint": "This item replaces the token's base appearance (e.g., Polymorph, Disguise).",
-    "VISAGE.Mode.OverlayHint": "This item adds effects on top of the token (e.g., Fire, Spirit Guardians)."
+    "VISAGE.Mode.OverlayHint": "This item adds effects on top of the token (e.g., Fire, Spirit Guardians).",
+
+    "VISAGE.Dialog.DeleteActive.Title": "Active Visage Warning",
+    "VISAGE.Warnings.DeleteActive": "This Visage is currently active. Deleting it will remove it from the token. Continue?"
 }

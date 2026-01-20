@@ -16,7 +16,7 @@
                 {{!-- Identity Option --}}
                 <input type="radio" name="mode" id="mode-identity-{{appId}}" value="identity" {{checked (visageEq mode "identity")}}>
                 <label for="mode-identity-{{appId}}" data-tooltip="VISAGE.Mode.IdentityHint">
-                    <i class="visage-icon visage"></i> {{localize "VISAGE.Mode.Identity"}}
+                    <i class="visage-icon domino"></i> {{localize "VISAGE.Mode.Identity"}}
                 </label>
 
                 {{!-- Overlay Option --}}
@@ -143,7 +143,7 @@
 
                 {{!-- Row 3: Disposition --}}
                 <div class="meta-item disposition-item">
-                     <i class="visage-icon visage"></i>
+                     <i class="visage-icon domino"></i>
                      <span class="meta-label">{{localize "VISAGE.Disposition.Label"}}:</span>
                      <span class="visage-disposition-text {{preview.slots.disposition.class}}">{{preview.slots.disposition.val}}</span>
                 </div>

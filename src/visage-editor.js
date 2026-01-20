@@ -29,9 +29,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // --- Internal state to hold form data between re-renders ---
         this._preservedData = null;
-        
-        // Dynamic Icon: Domino Mask for Global, Face Mask for Local
-        this.options.window.icon = !this.isLocal ? "visage-icon-domino" : "visage-icon-mask";
 
         // Viewport State for Stage
         this._viewState = {
@@ -67,7 +64,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         classes: ["visage", "visage-editor", "visage-dark-theme"],
         window: {
             title: "VISAGE.GlobalEditor.TitleNew.Global",
-            icon: "visage-icon-mask", 
+            icon: "visage-icon-domino", 
             resizable: true,
             minimizable: true,
             contentClasses: ["standard-form"]

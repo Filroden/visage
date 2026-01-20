@@ -92,7 +92,7 @@
                             data-mode="{{this.mode}}"
                             data-tooltip="{{#if (visageEq this.mode 'identity')}}{{localize 'VISAGE.Directory.Tooltip.ModeIdentity'}}{{else}}{{localize 'VISAGE.Directory.Tooltip.ModeOverlay'}}{{/if}}">
                         {{#if (visageEq this.mode 'identity')}}
-                            <i class="visage-icon visage"></i> {{!-- Identity Icon --}}
+                            <i class="visage-icon domino"></i> {{!-- Identity Icon --}}
                         {{else}}
                             <i class="visage-icon domino"></i> {{!-- Overlay Icon --}}
                         {{/if}}
@@ -112,7 +112,7 @@
                                 </button>
                             {{else}}
                                 <button data-action="applyAlternate" data-mode="identity">
-                                    <i class="visage-icon visage"></i> {{localize "VISAGE.Actions.ApplyAsIdentity"}}
+                                    <i class="visage-icon domino"></i> {{localize "VISAGE.Actions.ApplyAsIdentity"}}
                                 </button>
                             {{/if}}
                             <hr>
@@ -131,7 +131,7 @@
                             
                             {{!-- Global-Specific Actions --}}
                             {{#unless @root.isLocal}}
-                                <button data-action="copyToLocal"><i class="visage-icon visage"></i> {{localize "VISAGE.Gallery.Action.CopyToLocal"}}</button>
+                                <button data-action="copyToLocal"><i class="visage-icon domino"></i> {{localize "VISAGE.Gallery.Action.CopyToLocal"}}</button>
                             {{/unless}}
                             
                             <hr>

@@ -15,13 +15,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         this.actorId = options.actorId || null;
         this.tokenId = options.tokenId || null;
         this.sceneId = options.sceneId || null;
-        
-        if (!this.isLocal) {
-            this.options.window.icon = "visage-icon-domino"; 
-        } else {
-            this.options.window.icon = "visage-icon-mask";   
-        }
-        
+       
         this.filters = {
             search: "",
             category: null,
@@ -73,7 +67,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         classes: ["visage", "visage-gallery", "visage-dark-theme"],
         window: {
             title: "VISAGE.Directory.Title.Global", 
-            icon: "visage-icon-mask",
+            icon: "visage-icon-domino",
             resizable: true,
         },
         position: { width: 1250, height: 700 },
@@ -536,8 +530,31 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onDelete(event, target) {
         const card = target.closest(".visage-card");
         if (!card) return;
+        const id = card.dataset.id;
         
-        await VisageData.delete(card.dataset.id, this.actor);
+        // --- NEW: Safety Check ---
+        if (this.isLocal && this.tokenId) {
+            const isIdentity = Visage.isActive(this.tokenId, id); // You defined this in visage.js
+            // Or verify stack manually if isActive only checks stack:
+            const token = canvas.tokens.get(this.tokenId);
+            const currentIdentity = token?.document.getFlag(Visage.MODULE_ID, "identity");
+            const inStack = token?.document.getFlag(Visage.MODULE_ID, "activeStack")?.some(i => i.id === id);
+
+            if (currentIdentity === id || inStack) {
+                const confirm = await foundry.applications.api.DialogV2.confirm({
+                   window: { title: game.i18n.localize("VISAGE.Dialog.DeleteActive.Title") },
+                    content: `<p>${game.i18n.localize("VISAGE.Warnings.DeleteActive")}</p>`,
+                    modal: true
+                });
+                if (!confirm) return;
+                
+                // Force remove it from the token first
+                await Visage.remove(this.tokenId, id);
+            }
+        }
+        // -------------------------
+        
+        await VisageData.delete(id, this.actor);
         if (this.isLocal) this.render();
     }
 
