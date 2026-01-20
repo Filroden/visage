@@ -1,3 +1,4 @@
+/* visage-sequencer.js */
 import { VisageUtilities } from "./visage-utilities.js";
 
 /**
@@ -18,11 +19,13 @@ export class VisageSequencer {
 
         const tag = isBaseLayer ? "visage-base" : `visage-mask-${layer.id}`;
 
+        // Cleanup
         await this.remove(token, layer.id, isBaseLayer);
 
         const visuals = effects.filter(e => e.type === "visual" && !e.disabled);
         const audios = effects.filter(e => e.type === "audio" && !e.disabled);
 
+        // A. VISUALS (Sequencer)
         if (visuals.length > 0) {
             try {
                 const sequence = new Sequence();
@@ -30,7 +33,7 @@ export class VisageSequencer {
                 
                 for (const effect of visuals) {
                     const path = this._resolveEffectPath(effect.path);
-                    if (!path) continue;
+                    if (!path || typeof path !== "string") continue;
 
                     sequence.effect()
                         .file(path)
@@ -39,7 +42,16 @@ export class VisageSequencer {
                         .opacity(effect.opacity ?? 1.0)
                         .rotate(effect.rotation ?? 0)
                         .belowTokens(effect.zOrder === "below")
-                        .persist()
+                        
+                        // CRITICAL FIX FOR PERSISTENCE CRASH:
+                        // We do NOT use .persist() anymore. 
+                        // Instead, we use infinite duration so Visage controls the lifecycle via restore().
+                        // This prevents Sequencer from trying to auto-load bad data on refresh.
+                        .duration(31536000000) // 1 Year ~ Infinity
+                        
+                        // Explicitly set volume to 0 for visuals to prevent null volume crashes
+                        .volume(0) 
+                        
                         .name(tag)
                         .origin(layer.id);
                     
@@ -51,6 +63,7 @@ export class VisageSequencer {
             }
         }
 
+        // B. AUDIO (AudioHelper)
         if (audios.length > 0) {
             this._playAudioEffects(token, audios, tag).catch(err => {
                 console.warn("Visage | Audio Playback Error:", err);
@@ -58,24 +71,17 @@ export class VisageSequencer {
         }
     }
 
-    /**
-     * FULL RESTORE
-     */
     static async restore(token) {
         if (!VisageUtilities.hasSequencer) return;
 
-        // SAFETY: Do not attempt restore if Database is not loaded.
-        // This prevents wiping the token if Sequencer is lagging.
         try {
-            // Check for DB entries (V2/V3 compatibility)
+            // Check Database sanity
             const db = Sequencer.Database.entries;
             const size = db ? (db.size || Object.keys(db).length) : 0;
-            if (!db || size === 0) {
-                // Console warning removed to reduce noise; silent fail is safer here as retry logic handles it
-                return;
-            }
+            if (!db || size === 0) return;
         } catch(e) { return; }
 
+        // Clean slate
         await this.revert(token);
 
         const stack = token.document.getFlag("visage", "activeStack") || [];
@@ -131,6 +137,7 @@ export class VisageSequencer {
 
         if (VisageUtilities.hasSequencer) {
             try {
+                // endEffects works on non-persisted effects too if they are named
                 await Sequencer.EffectManager.endEffects({ object: token, name: tag });
             } catch(e) { /* Ignore */ }
         }
@@ -148,10 +155,20 @@ export class VisageSequencer {
     static async revert(token) {
         if (!VisageUtilities.hasSequencer) return;
 
+        // Force cleanup of any "Zombie" flags if they exist
         if (token.document.flags.sequencer) {
             await token.document.unsetFlag("sequencer", "effects");
         }
 
+        // Kill active non-persisted visuals
+        await Sequencer.EffectManager.endEffects({ object: token, name: "visage-base" });
+        const effects = Sequencer.EffectManager.getEffects({ object: token });
+        const targets = effects.filter(e => e.data.name && e.data.name.startsWith("visage-mask-"));
+        for (const effect of targets) {
+            await Sequencer.EffectManager.endEffects({ object: token, name: effect.data.name });
+        }
+
+        // Kill Audio
         for (const [key, sounds] of this._activeSounds) {
             if (key.startsWith(`${token.id}-`)) {
                 sounds.forEach(sound => sound.stop());
@@ -162,6 +179,7 @@ export class VisageSequencer {
 
     static _resolveEffectPath(rawPath) {
         if (!rawPath) return null;
+        
         const isDbKey = !rawPath.includes("/"); 
 
         if (isDbKey) {

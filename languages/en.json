@@ -4,8 +4,8 @@
 
     "VISAGE.Selector.Title": "Visage Selector",
     "VISAGE.Selector.Configure": "Open Gallery",
-    "VISAGE.Selector.ActiveEffects": "Active Masks",
-    "VISAGE.Selector.ClearAll": "Remove All Masks",
+    "VISAGE.Selector.ActiveEffects": "Active Layers",
+    "VISAGE.Selector.ClearAll": "Remove All Layers",
     "VISAGE.Selector.Active": "Active Visage",
     "VISAGE.Selector.Default": "Default Visage",
     "VISAGE.Selector.Flipped": "Flipped Image",
@@ -17,7 +17,7 @@
     "VISAGE.Notifications.Deleted": "Deleted Visage: {name}",
     "VISAGE.Notifications.Restored": "Restored Visage: {name}",
     "VISAGE.Notifications.Destroyed": "Permanently Destroyed: {name}",
-    "VISAGE.Notifications.Applied": "Applied Mask: {label}",
+    "VISAGE.Notifications.Applied": "Applied Layer: {label}",
     "VISAGE.Notifications.Saved": "Changes saved successfully.",
     "VISAGE.Notifications.SaveFailed": "Failed to save Visage data.",
     "VISAGE.Notifications.NoTokens": "No tokens selected to apply mask to.",
@@ -25,16 +25,16 @@
 
     "VISAGE.Warnings.GhostEdit": "Token Configuration: A Visage or Mask is currently active on this token. Changes made here will modify the default Token, not the Visage or Mask.",
 
-    "VISAGE.Directory.Title.Global": "Mask Library",
-    "VISAGE.Directory.Title.Local": "Visage Gallery: {actor}",
+    "VISAGE.Directory.Title.Global": "Visage's Global Library",
+    "VISAGE.Directory.Title.Local": "Visage's Local Library: {actor}",
     
     "VISAGE.Directory.Mode.Library": "Library",
     "VISAGE.Directory.Mode.Gallery": "Gallery",
     "VISAGE.Directory.Mode.Bin": "Recycle Bin",
     "VISAGE.Directory.SearchPlaceholder": "Search by name or tag...",
     
-    "VISAGE.Directory.CreateNew.Global": "Create New Mask",
-    "VISAGE.Directory.CreateNew.Local": "Create New Visage",
+    "VISAGE.Directory.CreateNew.Global": "Create New Global Layer",
+    "VISAGE.Directory.CreateNew.Local": "Create New Local Layer",
 
     "VISAGE.Directory.Categories": "Categories",
     "VISAGE.Directory.AllVisages": "All Entries",
@@ -43,28 +43,28 @@
     "VISAGE.Directory.NoTags": "No Tags",
     "VISAGE.Directory.EmptyLibrary": "No entries found. Create one to get started.",
     "VISAGE.Directory.EmptyBin": "Recycle Bin is empty.",
-    "VISAGE.Directory.Empty.Global": "No Masks found. Create one to get started.",
-    "VISAGE.Directory.Empty.Local": "No Custom Visages found for this actor.",
+    "VISAGE.Directory.Empty.Global": "No Global Layers found. Create one to get started.",
+    "VISAGE.Directory.Empty.Local": "No Local Layers found for this actor.",
 
     "VISAGE.Directory.Tooltip.Scale": "Scale",
     "VISAGE.Directory.Tooltip.Dimensions": "Dimensions (Grid Units)",
     "VISAGE.Directory.Tooltip.Orientation": "Orientation / Mirroring",
     "VISAGE.Directory.Tooltip.Wildcard": "Wildcard Image",
     "VISAGE.Directory.Tooltip.Activate": "Activate Visage",
-    "VISAGE.Directory.Tooltip.Apply": "Apply Mask to Selection",
+    "VISAGE.Directory.Tooltip.Apply": "Apply Layer",
     "VISAGE.Directory.Tooltip.Edit": "Edit Entry",
     "VISAGE.Directory.Tooltip.Delete": "Move to Bin",
     "VISAGE.Directory.Tooltip.Restore": "Restore from Bin",
     "VISAGE.Directory.Tooltip.Destroy": "Permanently Delete",
 
-    "VISAGE.GlobalEditor.TitleNew.Global": "Create New Mask",
-    "VISAGE.GlobalEditor.TitleNew.Local": "Create New Visage",
+    "VISAGE.GlobalEditor.TitleNew.Global": "Create New Global Layer",
+    "VISAGE.GlobalEditor.TitleNew.Local": "Create New Local Layer",
     
-    "VISAGE.GlobalEditor.TitleEdit": "Edit Mask: {name}",
-    "VISAGE.GlobalEditor.Title.Local": "Edit Visage: {name}",
+    "VISAGE.GlobalEditor.TitleEdit": "Edit Global Layer: {name}",
+    "VISAGE.GlobalEditor.Title.Local": "Edit Local Layer: {name}",
     
-    "VISAGE.GlobalEditor.Save.Global": "Save Mask",
-    "VISAGE.GlobalEditor.Save.Local": "Update Visage",
+    "VISAGE.GlobalEditor.Save.Global": "Save Global Layer",
+    "VISAGE.GlobalEditor.Save.Local": "Save Local Layer",
     
     "VISAGE.GlobalEditor.Hint": "Configure the appearance and behavior of this visage.",
     "VISAGE.GlobalEditor.DefaultLabel": "New Visage",
@@ -122,8 +122,8 @@
 
     "VISAGE.Settings.ManualMigration.Name": "Migrate Data ",
     "VISAGE.Settings.ManualMigration.Hint": "Manually trigger the data migration script. Use this if you have imported old Actors or if your Visages or Masks are not displaying correctly.",
-    "VISAGE.Gallery.Action.Promote": "Promote to global Mask",
-    "VISAGE.Notifications.Promoted": "Promoted '{name}' to global Mask Library.",
+    "VISAGE.Gallery.Action.Promote": "Promote to Global",
+    "VISAGE.Notifications.Promoted": "Promoted '{name}' to Global Library.",
 
     "VISAGE.Mirror.Badge.H": "Horizontal",
     "VISAGE.Mirror.Badge.V": "Vertical",
@@ -138,7 +138,7 @@
     "VISAGE.Errors.ImportInvalidFormat": "Invalid format: Root must be an array.",
     "VISAGE.Actions.Export": "Export",
     "VISAGE.Actions.Import": "Import",
-    "VISAGE.Gallery.Action.CopyToLocal": "Copy Mask to Visage Gallery of selection",
+    "VISAGE.Gallery.Action.CopyToLocal": "Copy Layer to Selection's Local Library",
     "VISAGE.RotationLock.Label": "Rotation Lock",
     "VISAGE.RotationLock.Hint": "Prevents the token from rotating with its movement.",
     "VISAGE.RotationLock.Locked": "Locked",
