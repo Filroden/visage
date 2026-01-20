@@ -77,18 +77,44 @@ export class VisageData {
             changes: foundry.utils.deepClone(data.changes || {})
         };
 
-        if (layer.changes.texture?.src) {
+        // 1. Recursive Clean Function
+        // This removes any keys where the value is null, preventing "overwrite with nothing"
+        const clean = (obj) => {
+            for (const key in obj) {
+                if (obj[key] === null) {
+                    delete obj[key];
+                } else if (typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+                    clean(obj[key]);
+                    // If an object becomes empty after cleaning children (e.g. texture: {}), delete it too
+                    if (Object.keys(obj[key]).length === 0) delete obj[key];
+                }
+            }
+        };
+
+        // 2. Clean the changes
+        clean(layer.changes);
+
+        // 3. Resolve Paths (Only if texture still exists after cleaning)
+        if (layer.changes?.texture?.src) {
             const resolved = await VisageUtilities.resolvePath(layer.changes.texture.src);
             layer.changes.texture.src = resolved || layer.changes.texture.src;
         }
 
-        if (layer.changes.ring) {
-            layer.changes.ring = {
-                enabled: layer.changes.ring.enabled === true,
-                colors: layer.changes.ring.colors,
-                effects: layer.changes.ring.effects,
-                subject: layer.changes.ring.subject
-            };
+        // 4. Handle Ring (Ensure structure if enabled)
+        if (layer.changes?.ring) {
+            // If the ring was disabled and "cleaned", it might be gone or empty.
+            // If it exists, we format it.
+            if (layer.changes.ring.enabled === true) {
+                layer.changes.ring = {
+                    enabled: true,
+                    colors: layer.changes.ring.colors,
+                    effects: layer.changes.ring.effects,
+                    subject: layer.changes.ring.subject
+                };
+            } else {
+                 // Explicitly ensure disabled rings don't accidentally merge weird data
+                 layer.changes.ring = { enabled: false };
+            }
         }
 
         return layer;
@@ -327,7 +353,7 @@ export class VisageData {
             label: source.label,
             category: source.category,
             tags: source.tags ? [...source.tags] : [],
-            mode: "overlay", 
+            mode: source.mode, 
             changes: foundry.utils.deepClone(source.changes)
         };
 

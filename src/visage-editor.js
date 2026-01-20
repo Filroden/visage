@@ -26,6 +26,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         
         // State tracking for Tabs
         this._activeTab = "appearance";
+
+        // --- Internal state to hold form data between re-renders ---
+        this._preservedData = null;
         
         // Dynamic Icon: Domino Mask for Global, Face Mask for Local
         this.options.window.icon = !this.isLocal ? "visage-icon-domino" : "visage-icon-mask";
@@ -113,6 +116,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
+     * Override render to SNAPSHOT the form state before wiping the DOM.
+     */
+    async render(options) {
+        // If the app is already open, grab what the user has typed so far
+        if (this.rendered) {
+            this._preservedData = this._prepareSaveData();
+        }
+        return super.render(options);
+    }
+
+    /**
      * Prepares the Handlebars context.
      */
     async _prepareContext(options) {
@@ -148,6 +162,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
             this._currentLabel = "";
         }
+
+        if (this._preservedData) {
+            // We use deep merge to overlay the snapshot onto the source data
+            data = foundry.utils.mergeObject(data, this._preservedData, { inplace: false });
+        }
+
+        // --- Determine Mode Default ---
+        let currentMode = data.mode;
+        if (!currentMode) {
+            currentMode = this.isLocal ? "identity" : "overlay";
+        }
+        // -----------------------------------
 
         // B. Extract Raw Data
         const c = data.changes || {};
@@ -234,10 +260,23 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             ...context, 
             isEdit: !!this.visageId,
             isLocal: this.isLocal,
+            isDirty: this.isDirty,
             categories: Array.from(categorySet).sort(),
             allTags: Array.from(tagSet).sort(),
             tagsString: (data.tags || []).join(","), 
             
+            // --- NEW: Pass Mode and AppID for Header ---
+            mode: currentMode,
+            appId: this.id,
+            // -------------------------------------------
+
+            // Tab State (Required for template classes)
+            tabs: {
+                appearance: { active: this._activeTab === "appearance", cssClass: this._activeTab === "appearance" ? "active" : "" },
+                ring: { active: this._activeTab === "ring", cssClass: this._activeTab === "ring" ? "active" : "" },
+                effects: { active: this._activeTab === "effects", cssClass: this._activeTab === "effects" ? "active" : "" }
+            },
+
             img: prep(rawImg, ""),
             
             // ATOMIC PROPERTIES
@@ -260,7 +299,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             },
             lockRotation: {
                 value: lockVal,
-                active: true // Always active as a select
+                active: true 
             },
 
             width: prep(c.width, 1),
@@ -285,7 +324,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 flipX: context.isFlippedX,
                 flipY: context.isFlippedY,
                 tagList: data.tags || [],
-                alpha: (c.alpha !== undefined && c.alpha !== null) ? c.alpha : 1.0 // for initial render
+                alpha: (c.alpha !== undefined && c.alpha !== null) ? c.alpha : 1.0 
             }
         };
     }
@@ -1168,70 +1207,76 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         ui.notifications.info(game.i18n.localize("VISAGE.Notifications.SettingsReset"));
     }
 
-    async _onSave(event, target) {
-        event.preventDefault();
-        const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
+    /**
+     * Helper to safely extract form data without requiring a <form> tag.
+     * This fixes the layout breakage and ensures Radio Buttons (Mode) are captured correctly.
+     */
+    _getFormData() {
+        const data = {};
+        const inputs = this.element.querySelectorAll("input, select, textarea");
+        
+        for (const input of inputs) {
+            if (!input.name) continue;
+            
+            // Handle Checkboxes
+            if (input.type === "checkbox") {
+                data[input.name] = input.checked;
+                continue;
+            }
+            
+            // Handle Radio Buttons (Only capture the checked one)
+            if (input.type === "radio") {
+                if (input.checked) data[input.name] = input.value;
+                continue;
+            }
+            
+            // Handle Text/Number/Select
+            data[input.name] = input.value;
+        }
+        
+        return foundry.utils.expandObject(data);
+    }
 
+    /**
+     * NEW HELPER: Extracts the current form state into a valid Visage payload.
+     * Used for both Saving (Database) and Snapshotting (Re-render).
+     */
+    _prepareSaveData() {
+        const formData = this._getFormData();
+        
+        // Helper to safely parse numbers
         const getVal = (key, type = String) => {
-            const isActive = formData[`${key}_active`];
-            if (!isActive) return null; 
-            const raw = formData[key];
-            if (type === Number) return parseFloat(raw);
-            if (type === Boolean) return !!raw;
-            return (typeof raw === "string") ? raw.trim() : raw;
+            const val = foundry.utils.getProperty(formData, key);
+            if (val === "" || val === null || val === undefined) return null;
+            return type(val);
         };
 
-        let texture = {};
-        const imgSrc = getVal("img");
-        if (imgSrc) {
-            texture.src = imgSrc;
-        }
-        if (Object.keys(texture).length === 0) texture = undefined;
-
-        const isScaleActive = formData.scale_active;
-        const isFlipXActive = formData.isFlippedX !== "";
-        const isFlipYActive = formData.isFlippedY !== "";
-
-        const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
-        const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
-        const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
-
-        const isAlphaActive = formData.alpha_active;
-        const rawAlpha = isAlphaActive 
-            ? (Math.min(Math.max(parseFloat(formData.alpha), 0), 100) / 100) 
-            : 1.0;
-        
-        const lockVal = formData.lockRotation;
-        const rawLock = (lockVal === "true");
-
-        const label = formData.label ? formData.label.trim() : game.i18n.localize("VISAGE.GlobalEditor.DefaultLabel");
-        let cleanCategory = "";
-        if (formData.category) {
-            cleanCategory = formData.category.trim().replace(
-                /\w\S*/g,
-                (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-            );
-        }
-
         const payload = {
-            id: this.visageId || foundry.utils.randomID(16),
-            label: label,
-            category: cleanCategory,
-            tags: formData.tags.split(",").map(t => t.trim()).filter(t => t),
-            
+            id: this.visageId, 
+            label: formData.label,
+            category: formData.category,
+            // Parse tags string from hidden input, as this._tags was undefined
+            tags: formData.tags ? formData.tags.split(",").filter(t => t.trim()) : [],
+            mode: formData.mode,
             changes: {
-                name: getVal("nameOverride"),
-                scale: isScaleActive ? rawScale : null,
-                mirrorX: isFlipXActive ? flipX : null,
-                mirrorY: isFlipYActive ? flipY : null,
-                alpha: isAlphaActive ? rawAlpha : null,
-                lockRotation: (lockVal !== "") ? rawLock : null,
-                texture: texture,
-                width: getVal("width", Number),
-                height: getVal("height", Number),
-                disposition: getVal("disposition", Number),
+                name: formData.nameOverride_active ? formData.nameOverride : null,
+                texture: {
+                    src: formData.img_active ? formData.img : null,
+                    scaleX: null, 
+                    scaleY: null 
+                },
+                scale: formData.scale_active ? getVal("scale", Number) / 100 : null,
+                mirrorX: formData.isFlippedX === "" ? null : (formData.isFlippedX === "true"),
+                mirrorY: formData.isFlippedY === "" ? null : (formData.isFlippedY === "true"),
+                alpha: formData.alpha_active ? getVal("alpha", Number) / 100 : null,
+                rotation: null, 
+                tint: null,
+                width: formData.width_active ? getVal("width", Number) : null,
+                height: formData.height_active ? getVal("height", Number) : null,
+                lockRotation: formData.lockRotation === "" ? null : (formData.lockRotation === "true"),
+                disposition: formData.disposition_active ? getVal("disposition", Number) : null,
                 ring: null,
-                effects: this._effects
+                effects: this._effects // Use the memory state for effects
             }
         };
 
@@ -1259,8 +1304,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             payload.changes.ring = { enabled: false };
         }
 
+        return payload;
+    }
+
+    async _onSave(event, target) {
+        event.preventDefault();
+        
+        // Use the new helper to get data
+        const payload = this._prepareSaveData();
+
+        // Validation (Only needed for actual save)
+        if (!payload.label) {
+            return ui.notifications.warn("Visage | Label is required.");
+        }
+
         try {
-            await VisageData.save(payload, this.actor);
+            await VisageData.save(payload, this.isLocal ? this.actor : null);
             if (this.visageId) ui.notifications.info(game.i18n.format("VISAGE.Notifications.Updated", { name: payload.label }));
             else ui.notifications.info(game.i18n.format("VISAGE.Notifications.Created", { name: payload.label }));
             this.close();

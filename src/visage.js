@@ -98,7 +98,13 @@ export class Visage {
         } else if (switchIdentity) {
             const currentIdentity = token.document.getFlag(ns, "identity");
             if (currentIdentity) {
+                // Remove from stack data
                 stack = stack.filter(l => l.id !== currentIdentity);
+                
+                // Stop the old identity's effects ---
+                // We pass 'true' for isBase because we are removing the Identity
+                await VisageSequencer.remove(token, currentIdentity, true);
+                // --------------------------------------------
             }
             updateFlags[`flags.${ns}.identity`] = layer.id;
         }

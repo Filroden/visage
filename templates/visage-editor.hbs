@@ -8,6 +8,24 @@
             <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
             <input type="text" name="label" value="{{label}}" placeholder="{{localize 'VISAGE.GlobalEditor.DefaultLabel'}}" required>
         </div>
+
+        {{!-- NEW: Mode Group --}}
+        <div class="header-form-group mode-group">
+            <label>{{localize "VISAGE.GlobalEditor.Mode"}}</label>
+            <div class="visage-mode-toggle">
+                {{!-- Identity Option --}}
+                <input type="radio" name="mode" id="mode-identity-{{appId}}" value="identity" {{checked (visageEq mode "identity")}}>
+                <label for="mode-identity-{{appId}}" data-tooltip="VISAGE.Mode.IdentityHint">
+                    <i class="visage-icon visage"></i> {{localize "VISAGE.Mode.Identity"}}
+                </label>
+
+                {{!-- Overlay Option --}}
+                <input type="radio" name="mode" id="mode-overlay-{{appId}}" value="overlay" {{checked (visageEq mode "overlay")}}>
+                <label for="mode-overlay-{{appId}}" data-tooltip="VISAGE.Mode.OverlayHint">
+                    <i class="visage-icon domino"></i> {{localize "VISAGE.Mode.Overlay"}}
+                </label>
+            </div>
+        </div>
         
         {{!-- Category Group --}}
         <div class="header-form-group category-group">

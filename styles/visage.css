@@ -653,6 +653,48 @@ li.context-item .visage-icon-mask {
     opacity: 1;
 }
 
+/* SECTION HEADERS (Sticky) */
+.visage-section {
+    margin-bottom: var(--filroden-space-l);
+}
+
+.visage-section-header {
+    position: sticky;
+    top: 0;
+    z-index: 200; /* Above tiles */
+    background: var(--visage-color-bg-darkest);
+    padding: var(--filroden-space-xs) var(--filroden-space-s);
+    margin: 0 0 var(--filroden-space-s) 0;
+    border-radius: var(--filroden-radius-small);
+    border-bottom: 2px solid var(--visage-color-accent);
+    color: var(--visage-color-accent);
+    font-size: var(--filroden-font-size-s);
+    font-weight: var(--filroden-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    box-shadow: var(--filroden-shadow-popout);
+}
+
+.visage-section-header i {
+    font-size: 1.1em;
+}
+
+/* SECTION THEME OVERRIDES */
+/* Identity Section = Gold Theme */
+.visage-section.identity-section {
+    --visage-color-accent: var(--filroden-color-text-accent); 
+    --visage-color-accent-hover: var(--filroden-color-text-accent-hover);
+}
+
+/* Overlay Section = Blue Theme */
+.visage-section.overlay-section {
+    --visage-color-accent: var(--filroden-color2-text-accent);
+    --visage-color-accent-hover: var(--filroden-color2-text-accent-hover);
+}
+
 .visage .visage-stack-list {
     display: flex;
     flex-direction: column;
@@ -758,6 +800,7 @@ li.context-item .visage-icon-mask {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: max(24px, 1.5rem) var(--filroden-space-l); 
     width: 100%;
+    margin-top: var(--filroden-space-l);
 }
 
 .visage .visage-tile {
@@ -1037,7 +1080,7 @@ li.context-item .visage-icon-mask {
 }
 
 .visage.visage-editor label {
-    color: var(--visage-color-text-muted-solid) !important;
+    color: var(--visage-color-text-muted-solid);
     font-weight: var(--filroden-font-weight-bold);
     font-size: var(--filroden-font-size-xs);
     text-transform: uppercase;
@@ -1241,6 +1284,46 @@ li.context-item .visage-icon-mask {
 .header-form-group.tags-group {
     flex: 1.5;
     min-width: 15rem;
+}
+
+/* Mode Toggle */
+.visage-mode-toggle {
+    display: flex;
+    background: var(--visage-color-bg-darkest);
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-small);
+    padding: 2px;
+    gap: 2px;
+}
+
+.visage-mode-toggle input[type="radio"] {
+    display: none;
+}
+
+.visage-mode-toggle label {
+    flex: 1;
+    text-align: center;
+    padding: var(--filroden-space-xs) var(--filroden-space-s);
+    cursor: pointer;
+    border-radius: var(--filroden-radius-small);
+    font-size: var(--filroden-font-size-xs);
+    color: var(--visage-color-text-muted);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--filroden-space-s);
+}
+
+.visage-mode-toggle label:hover {
+    background: var(--visage-color-bg-hover);
+    color: var(--visage-color-text-main);
+}
+
+.visage-mode-toggle input[type="radio"]:checked + label {
+    background: var(--visage-color-accent);
+    color: var(--visage-color-bg-darkest);
+    font-weight: bold;
 }
 
 /* Input Overrides for Header */
@@ -1895,11 +1978,24 @@ li.context-item .visage-icon-mask {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    display: block; 
+    padding: var(--filroden-space-l);
+}
+
+.visage-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--filroden-space-m);
     align-content: start;
-    padding: var(--filroden-space-l);
+}
+
+/* Apply themes to cards within sections */
+.visage-section.identity-section .visage-card {
+    --visage-color-accent: var(--filroden-color-text-accent);
+}
+
+.visage-section.overlay-section .visage-card {
+    --visage-color-accent: var(--filroden-color2-text-accent);
 }
 
 .visage-mode-switcher {
