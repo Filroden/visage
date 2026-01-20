@@ -72,7 +72,7 @@ a.header-button.visage-config {
 }
 
 /* Actor sidebar context menu */
-li.context-item .visage-icon-mask {
+li.context-item .visage-icon-domino {
     width: 12px;
     height: 12px;
 }
@@ -954,7 +954,6 @@ li.context-item .visage-icon-mask {
     mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
 }
 
-.visage-icon-mask, 
 .visage-header-icon {
     display: inline-block;
     width: var(--filroden-font-size-l);
@@ -992,7 +991,6 @@ li.context-item .visage-icon-mask {
 .visage-icon.close       { -webkit-mask-image: url('../icons/close.svg'); mask-image: url('../icons/close.svg'); }
 .visage-icon.sync        { -webkit-mask-image: url('../icons/sync_alt.svg'); mask-image: url('../icons/sync_alt.svg'); }
 .visage-icon.domino      { -webkit-mask-image: url('../icons/domino_mask.svg'); mask-image: url('../icons/domino_mask.svg'); }
-.visage-icon.visage      { -webkit-mask-image: url('../icons/domino_mask.svg'); mask-image: url('../icons/domino_mask.svg'); }
 .visage-icon.scale       { -webkit-mask-image: url('../icons/square_foot.svg'); mask-image: url('../icons/square_foot.svg'); }
 .visage-icon.dimensions  { -webkit-mask-image: url('../icons/aspect_ratio.svg'); mask-image: url('../icons/aspect_ratio.svg'); }
 .visage-icon.wildcard    { -webkit-mask-image: url('../icons/shuffle.svg'); mask-image: url('../icons/shuffle.svg'); }
@@ -1013,7 +1011,6 @@ li.context-item .visage-icon-mask {
 .visage-icon.visage-hidden      { -webkit-mask-image: url('../icons/visibility_off.svg'); mask-image: url('../icons/visibility_off.svg'); }
 
 #token-hud .control-icon .visage-icon,
-#token-hud .control-icon .visage-icon-mask,
 #token-hud .control-icon .visage-icon-domino {
     display: block; 
     margin: auto;
@@ -1026,7 +1023,6 @@ li.context-item .visage-icon-mask {
 }
 
 #token-hud .control-icon:hover .visage-icon,
-#token-hud .control-icon:hover .visage-icon-mask,
 #token-hud .control-icon:hover .visage-icon-domino {
     opacity: 1;
 }
