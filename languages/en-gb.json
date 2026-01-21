@@ -1,6 +1,11 @@
 {
+    "_comment_EDITOR": "--- VISAGE EDITOR (WORKSTATION) ---",
     "VISAGE.GlobalEditor.Hint": "Configure the appearance and behaviour of this visage.",
+
+    "_comment_PROPERTIES": "--- TOKEN PROPERTIES ---",
+    "VISAGE.Random": "Randomise",
+
+    "_comment_RING": "--- DYNAMIC RING ---",
     "VISAGE.RingConfig.RingColor": "Ring Colour",
-    "VISAGE.RingConfig.BackgroundColor": "Background Colour",
-    "VISAGE.Random": "Randomise"
+    "VISAGE.RingConfig.BackgroundColor": "Background Colour"
 }
