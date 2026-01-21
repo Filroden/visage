@@ -1,7 +1,7 @@
 {
     "id": "visage",
     "title": "Visage",
-    "description": "The ultimate token management tool. Instantly switch appearance, scale, orientation, and Dynamic Ring configuration using a dedicated HUD. Features a non-destructive 'Stack System' to layer global 'Masks' over local 'Visages', perfect for polymorphing, disguises, and status effects without permanently overwriting your original token data.",
+    "description": "The complete solution for token appearances. Instantly layer 'Identities' (Wild Shape, Disguises, Costumes, Poses, etc.) and 'Overlays' (Status Effects, Spells, Illusions, etc) without overwriting your original token settings. Features a dedicated HUD, a global library (for the GM) and local libraries (for players), Dynamic Token Ring support, and integrated Sequencer effects for visual and audio layers.",
     "version": "3.0.0",
     "compatibility": {
         "minimum": "13",
