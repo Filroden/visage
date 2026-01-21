@@ -1669,6 +1669,7 @@ li.context-item .visage-icon-domino {
     display: flex;
     background: var(--visage-color-bg-medium-solid);
     border-bottom: 1px solid var(--visage-color-border);
+    align-items: flex-end;
 }
 
 .visage-tabs .item {
@@ -1682,6 +1683,7 @@ li.context-item .visage-icon-domino {
     transition: all 0.2s;
     font-weight: bold;
     text-transform: uppercase;
+    line-height: 1.5;
 }
 
 .visage-tabs .item:hover {
