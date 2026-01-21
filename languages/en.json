@@ -118,7 +118,7 @@
     "VISAGE.Mirror.Option.Standard": "Standard",
     "VISAGE.Mirror.Option.Flipped": "Flipped",
 
-    "VISAGE.Rotation.Label": "Rotation (Degrees)",
+    "VISAGE.Rotation.Label": "Rotation (°)",
     "VISAGE.RotationLock.Label": "Rotation Lock",
     "VISAGE.RotationLock.Hint": "Prevents the token from rotating with its movement.",
     "VISAGE.RotationLock.Locked": "Locked",

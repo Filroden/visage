@@ -983,6 +983,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.play        { -webkit-mask-image: url('../icons/play_arrow.svg'); mask-image: url('../icons/play_arrow.svg'); }
 .visage-icon.edit        { -webkit-mask-image: url('../icons/edit_square.svg'); mask-image: url('../icons/edit_square.svg'); }
 .visage-icon.delete      { -webkit-mask-image: url('../icons/delete.svg'); mask-image: url('../icons/delete.svg'); }
+.visage-icon.restore     { -webkit-mask-image: url('../icons/restore_from_trash.svg'); mask-image: url('../icons/restore_from_trash.svg'); }
 .visage-icon.save        { -webkit-mask-image: url('../icons/file_save.svg'); mask-image: url('../icons/file_save.svg'); }
 .visage-icon.open        { -webkit-mask-image: url('../icons/file_open.svg'); mask-image: url('../icons/file_open.svg'); }
 .visage-icon.copy        { -webkit-mask-image: url('../icons/content_copy.svg'); mask-image: url('../icons/content_copy.svg'); }
@@ -1012,6 +1013,10 @@ li.context-item .visage-icon-domino {
 .visage-icon.audio       { -webkit-mask-image: url('../icons/music_note.svg'); mask-image: url('../icons/music_note.svg'); }
 .visage-icon.visible     { -webkit-mask-image: url('../icons/visibility.svg'); mask-image: url('../icons/visibility.svg'); }
 .visage-icon.visage-hidden      { -webkit-mask-image: url('../icons/visibility_off.svg'); mask-image: url('../icons/visibility_off.svg'); }
+.visage-icon.stacks     { -webkit-mask-image: url('../icons/stacks.svg'); mask-image: url('../icons/stacks.svg'); }
+.visage-icon.extension-off { -webkit-mask-image: url('../icons/extension_off.svg'); mask-image: url('../icons/extension_off.svg'); }
+.visage-icon.warning       { -webkit-mask-image: url('../icons/warning.svg'); mask-image: url('../icons/warning.svg'); }
+.visage-icon.info          { -webkit-mask-image: url('../icons/info.svg'); mask-image: url('../icons/info.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -1925,6 +1930,13 @@ li.context-item .visage-icon-domino {
     cursor: pointer;
 }
 
+/* Audio hint */
+.visage.visage-editor .hint:has(.visage-icon.info) {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+    margin-top: var(--filroden-space-l)
+}
 
 /* ==========================================================================
    7. APPLICATION: VISAGE GALLERY (Unified)

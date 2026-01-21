@@ -182,7 +182,7 @@
                 <a class="item" data-tab="effects">
                     {{localize "VISAGE.Editor.Tabs.Effects"}}
                     {{#unless hasSequencer}}
-                    <i class="fas fa-exclamation-triangle" style="font-size: 0.7em; color: var(--filroden-color-warning); margin-left: 4px;" title="{{localize 'VISAGE.Editor.Effects.DependencyTitle'}}"></i>
+                    <i class="visage-icon warning" style="font-size: 0.7em; color: var(--filroden-color-warning); margin-left: 4px;" title="{{localize 'VISAGE.Editor.Effects.DependencyTitle'}}"></i>
                     {{/unless}}
                 </a>
             </nav>
@@ -509,8 +509,8 @@
                                         </div>
                                     </div>
                                     
-                                    <p class="hint" style="margin-top: 1rem;">
-                                        <i class="fas fa-info-circle"></i> {{localize "VISAGE.Editor.Effects.AudioHint"}}
+                                    <p class="hint">
+                                        <i class="visage-icon info"></i> {{localize "VISAGE.Editor.Effects.AudioHint"}}
                                     </p>
 
                                 {{/if}}
@@ -521,7 +521,7 @@
                     {{else}}
                         {{!-- MISSING DEPENDENCY STATE --}}
                         <div class="empty-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: var(--visage-color-text-muted); padding: 2rem;">
-                            <i class="fas fa-cubes" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <i class="visage-icon extension-off" style="width: 5rem;height: 5rem; margin-bottom: 1rem; opacity: 0.5;"></i>
                             <h3 style="margin-bottom: 0.5rem; color: var(--visage-color-text-main);">{{localize "VISAGE.Editor.Effects.DependencyTitle"}}</h3>
                             <p style="max-width: 300px; line-height: 1.5;">{{localize "VISAGE.Editor.Effects.DependencyHint"}}</p>
                         </div>
