@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "ワールド内のトークンを浄化",
     "VISAGE.Settings.CleanseAll.Hint": "ワールド内のすべてのトークンから Visage データを除去します。注意して使用してください！",
     "VISAGE.Settings.ManualMigration.Name": "データを移行",
-    "VISAGE.Settings.ManualMigration.Hint": "データ移行スクリプトを手動で実行します。古いアクターをインポートした場合や、Visage が正しく表示されない場合に使用してください。"
+    "VISAGE.Settings.ManualMigration.Hint": "データ移行スクリプトを手動で実行します。古いアクターをインポートした場合や、Visage が正しく表示されない場合に使用してください。",
+    "VISAGE.Selector.RemoveEffect": "エフェクトを削除",
+    "VISAGE.Actions.Toggle": "切替",
+    "VISAGE.Editor.Effects.AddVisual": "視覚効果を追加",
+    "VISAGE.Editor.Effects.AddAudio": "音声効果を追加",
+    "VISAGE.Editor.Effects.Empty": "エフェクトがありません。",
+    "VISAGE.Editor.Effects.SettingsTitle": "エフェクト設定",
+    "VISAGE.Editor.Effects.NamePlaceholder": "エフェクト名",
+    "VISAGE.Editor.Effects.PathPlaceholder": "例: jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | ラベルが必要です。",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | デフォルト外見の変更に失敗しました。"
 }

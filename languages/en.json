@@ -225,5 +225,17 @@
     "VISAGE.Settings.CleanseAll.Name": "Cleanse World Tokens",
     "VISAGE.Settings.CleanseAll.Hint": "Removes all Visage data from every token in the world. Use with caution!",
     "VISAGE.Settings.ManualMigration.Name": "Migrate Data ",
-    "VISAGE.Settings.ManualMigration.Hint": "Manually trigger the data migration script. Use this if you have imported old Actors or if your Visages or Masks are not displaying correctly."
+    "VISAGE.Settings.ManualMigration.Hint": "Manually trigger the data migration script. Use this if you have imported old Actors or if your Visages or Masks are not displaying correctly.",
+
+    "_comment_ADDITIONAL_KEYS": "--- ADDITIONAL KEYS ---",
+    "VISAGE.Selector.RemoveEffect": "Remove Effect",
+    "VISAGE.Actions.Toggle": "Toggle",
+    "VISAGE.Editor.Effects.AddVisual": "Add Visual",
+    "VISAGE.Editor.Effects.AddAudio": "Add Audio",
+    "VISAGE.Editor.Effects.Empty": "No effects added.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Effect Settings",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Effect Name",
+    "VISAGE.Editor.Effects.PathPlaceholder": "e.g. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Label is required.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Failed to swap default appearance."
 }

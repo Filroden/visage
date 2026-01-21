@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "\u200Fتنظيف رموز العالم",
     "VISAGE.Settings.CleanseAll.Hint": "\u200Fيزيل جميع بيانات \u2068Visage\u2069 من كل رمز في العالم. استخدمه بحذر!",
     "VISAGE.Settings.ManualMigration.Name": "\u200Fنقل البيانات",
-    "VISAGE.Settings.ManualMigration.Hint": "\u200Fتشغيل سكربت نقل البيانات يدوياً. استخدم هذا إذا قمت باستيراد ممثلين قدامى أو إذا لم تظهر الـ \u2068Visages\u2069 بشكل صحيح."
+    "VISAGE.Settings.ManualMigration.Hint": "\u200Fتشغيل سكربت نقل البيانات يدوياً. استخدم هذا إذا قمت باستيراد ممثلين قدامى أو إذا لم تظهر الـ \u2068Visages\u2069 بشكل صحيح.",
+    "VISAGE.Selector.RemoveEffect": "\u200Fإزالة التأثير",
+    "VISAGE.Actions.Toggle": "\u200Fتبديل",
+    "VISAGE.Editor.Effects.AddVisual": "\u200Fإضافة مرئي",
+    "VISAGE.Editor.Effects.AddAudio": "\u200Fإضافة صوتي",
+    "VISAGE.Editor.Effects.Empty": "\u200Fلم تتم إضافة تأثيرات.",
+    "VISAGE.Editor.Effects.SettingsTitle": "\u200Fإعدادات التأثير",
+    "VISAGE.Editor.Effects.NamePlaceholder": "\u200Fاسم التأثير",
+    "VISAGE.Editor.Effects.PathPlaceholder": "\u200Fمثل: \u2068jb2a.fire_bolt.red\u2069",
+    "VISAGE.Notifications.LabelRequired": "\u200F\u2068Visage\u2069 | التسمية مطلوبة.",
+    "VISAGE.Notifications.DefaultSwapFailed": "\u200F\u2068Visage\u2069 | فشل تبديل المظهر الافتراضي."
 }

@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Puhdista Maailman Pelinappulat",
     "VISAGE.Settings.CleanseAll.Hint": "Poistaa kaikki Visage-tiedot jokaisesta maailman pelinappulasta. Käytä varoen!",
     "VISAGE.Settings.ManualMigration.Name": "Siirrä Tiedot",
-    "VISAGE.Settings.ManualMigration.Hint": "Käynnistää manuaalisesti tietojen siirtoskriptin. Käytä tätä, jos olet tuonut vanhoja Näyttelijöitä tai jos Visagesi eivät näy oikein."
+    "VISAGE.Settings.ManualMigration.Hint": "Käynnistää manuaalisesti tietojen siirtoskriptin. Käytä tätä, jos olet tuonut vanhoja Näyttelijöitä tai jos Visagesi eivät näy oikein.",
+    "VISAGE.Selector.RemoveEffect": "Poista Tehoste",
+    "VISAGE.Actions.Toggle": "Vaihda",
+    "VISAGE.Editor.Effects.AddVisual": "Lisää Visuaalinen",
+    "VISAGE.Editor.Effects.AddAudio": "Lisää Ääni",
+    "VISAGE.Editor.Effects.Empty": "Ei lisättyjä tehosteita.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Tehosteen Asetukset",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Tehosteen Nimi",
+    "VISAGE.Editor.Effects.PathPlaceholder": "esim. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Etiketti vaaditaan.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Oletusulkoasun vaihto epäonnistui."
 }

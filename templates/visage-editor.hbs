@@ -364,10 +364,10 @@
                             
                             <div class="effects-actions">
                                 <button type="button" data-action="addVisual">
-                                    <i class="visage-icon visual"></i> Add Visual
+                                    <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Effects.AddVisual"}}
                                 </button>
                                 <button type="button" data-action="addAudio">
-                                    <i class="visage-icon audio"></i> Add Audio
+                                    <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Effects.AddAudio"}}
                                 </button>
                             </div>
 
@@ -389,7 +389,7 @@
                                             <i class="visage-icon visible"></i>
                                             {{/if}}
                                         </button>
-                                        <button type="button" class="effect-btn delete" data-action="deleteEffect" title="{{localize 'VISAGE.Delete'}}">
+                                        <button type="button" class="effect-btn delete" data-action="deleteEffect" title="{{localize 'VISAGE.Actions.Delete'}}">
                                             <i class="visage-icon delete"></i>
                                         </button>
                                     </div>
@@ -398,7 +398,7 @@
                                 
                                 {{#unless effects.length}}
                                 <div class="empty-placeholder" style="padding: 1rem; font-size: 0.8em;">
-                                    No effects added.
+                                    {{localize "VISAGE.Editor.Effects.Empty"}}
                                 </div>
                                 {{/unless}}
                             </div>
@@ -412,7 +412,7 @@
                                 <button type="button" class="back-btn" data-action="closeEffectInspector">
                                     <i class="visage-icon back"></i>
                                 </button>
-                                <h4 class="inspector-title">Effect Settings</h4>
+                                <h4 class="inspector-title">{{localize "VISAGE.Editor.Effects.SettingsTitle"}}</h4>
                             </header>
 
                             <fieldset class="visage-fieldset inspector-fieldset">
@@ -421,7 +421,7 @@
                             <div class="form-group">
                                 <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
                                 <div class="visage-form-fields">
-                                    <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="Effect Name">
+                                    <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="{{localize 'VISAGE.Editor.Effects.PathPlaceholder'}}">
                                 </div>
                             </div>
 

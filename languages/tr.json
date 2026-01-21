@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Dünya Jetonlarını Temizle",
     "VISAGE.Settings.CleanseAll.Hint": "Dünyadaki her jetondan tüm Visage verilerini kaldırır. Dikkatli kullanın!",
     "VISAGE.Settings.ManualMigration.Name": "Verileri Taşı",
-    "VISAGE.Settings.ManualMigration.Hint": "Veri taşıma komut dosyasını manuel olarak tetikleyin. Eski Aktörleri içe aktardıysanız veya Visage'larınız doğru görüntülenmiyorsa bunu kullanın."
+    "VISAGE.Settings.ManualMigration.Hint": "Veri taşıma komut dosyasını manuel olarak tetikleyin. Eski Aktörleri içe aktardıysanız veya Visage'larınız doğru görüntülenmiyorsa bunu kullanın.",
+    "VISAGE.Selector.RemoveEffect": "Efekti Kaldır",
+    "VISAGE.Actions.Toggle": "Değiştir",
+    "VISAGE.Editor.Effects.AddVisual": "Görsel Ekle",
+    "VISAGE.Editor.Effects.AddAudio": "Ses Ekle",
+    "VISAGE.Editor.Effects.Empty": "Efekt eklenmedi.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Efekt Ayarları",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Efekt İsmi",
+    "VISAGE.Editor.Effects.PathPlaceholder": "örn. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Etiket gereklidir.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Varsayılan görünüm değiştirilemedi."
 }

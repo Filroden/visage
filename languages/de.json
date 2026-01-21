@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Welt-Tokens bereinigen",
     "VISAGE.Settings.CleanseAll.Hint": "Entfernt alle Visage-Daten von jedem Token in der Welt. Mit Vorsicht verwenden!",
     "VISAGE.Settings.ManualMigration.Name": "Daten migrieren",
-    "VISAGE.Settings.ManualMigration.Hint": "Löst das Datenmigrationsskript manuell aus. Verwende dies, wenn du alte Akteure importiert hast oder deine Visages nicht korrekt angezeigt werden."
+    "VISAGE.Settings.ManualMigration.Hint": "Löst das Datenmigrationsskript manuell aus. Verwende dies, wenn du alte Akteure importiert hast oder deine Visages nicht korrekt angezeigt werden.",
+    "VISAGE.Selector.RemoveEffect": "Effekt entfernen",
+    "VISAGE.Actions.Toggle": "Umschalten",
+    "VISAGE.Editor.Effects.AddVisual": "Visuell dazu",
+    "VISAGE.Editor.Effects.AddAudio": "Audio dazu",
+    "VISAGE.Editor.Effects.Empty": "Keine Effekte hinzugefügt.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Effekt-Einstellungen",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Effekt-Name",
+    "VISAGE.Editor.Effects.PathPlaceholder": "z.B. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Bezeichnung erforderlich.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Standard-Aussehen konnte nicht getauscht werden."
 }

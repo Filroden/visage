@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Reinig Wereld Tokens",
     "VISAGE.Settings.CleanseAll.Hint": "Verwijdert alle Visage data van elke token in de wereld. Gebruik met voorzichtigheid!",
     "VISAGE.Settings.ManualMigration.Name": "Data Migreren",
-    "VISAGE.Settings.ManualMigration.Hint": "Start handmatig het datamigratie script. Gebruik dit als je oude Acteurs hebt geïmporteerd of als je Visages niet correct worden weergegeven."
+    "VISAGE.Settings.ManualMigration.Hint": "Start handmatig het datamigratie script. Gebruik dit als je oude Acteurs hebt geïmporteerd of als je Visages niet correct worden weergegeven.",
+    "VISAGE.Selector.RemoveEffect": "Elimină Efect",
+    "VISAGE.Actions.Toggle": "Comută",
+    "VISAGE.Editor.Effects.AddVisual": "Adaugă Vizual",
+    "VISAGE.Editor.Effects.AddAudio": "Adaugă Audio",
+    "VISAGE.Editor.Effects.Empty": "Niciun efect adăugat.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Setări Efect",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Nume Efect",
+    "VISAGE.Editor.Effects.PathPlaceholder": "ex. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Eticheta este obligatorie.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nu s-a putut schimba aspectul implicit."
 }

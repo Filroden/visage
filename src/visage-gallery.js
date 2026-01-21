@@ -492,7 +492,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             await VisageData.commitToDefault(this.tokenId, visageId);
         } catch (err) {
             console.error(err);
-            ui.notifications.error("Visage | Failed to swap default.");
+            ui.notifications.error(game.i18n.localize("VISAGE.Notifications.DefaultSwapFailed"));
         }
     }
 

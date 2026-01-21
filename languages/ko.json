@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "월드 토큰 정화",
     "VISAGE.Settings.CleanseAll.Hint": "월드의 모든 토큰에서 모든 Visage 데이터를 제거합니다. 주의해서 사용하세요!",
     "VISAGE.Settings.ManualMigration.Name": "데이터 마이그레이션",
-    "VISAGE.Settings.ManualMigration.Hint": "데이터 마이그레이션 스크립트를 수동으로 트리거합니다. 오래된 액터를 가져왔거나 Visage가 올바르게 표시되지 않는 경우 사용하세요."
+    "VISAGE.Settings.ManualMigration.Hint": "데이터 마이그레이션 스크립트를 수동으로 트리거합니다. 오래된 액터를 가져왔거나 Visage가 올바르게 표시되지 않는 경우 사용하세요.",
+    "VISAGE.Selector.RemoveEffect": "효과 제거",
+    "VISAGE.Actions.Toggle": "전환",
+    "VISAGE.Editor.Effects.AddVisual": "시각 효과 추가",
+    "VISAGE.Editor.Effects.AddAudio": "오디오 추가",
+    "VISAGE.Editor.Effects.Empty": "추가된 효과 없음.",
+    "VISAGE.Editor.Effects.SettingsTitle": "효과 설정",
+    "VISAGE.Editor.Effects.NamePlaceholder": "효과 이름",
+    "VISAGE.Editor.Effects.PathPlaceholder": "예: jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | 라벨이 필요합니다.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | 기본 외형 변경 실패."
 }

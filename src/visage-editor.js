@@ -1329,7 +1329,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Validation
         if (!payload.label) {
-            return ui.notifications.warn("Visage | Label is required.");
+            return ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.LabelRequired"));
         }
 
         try {

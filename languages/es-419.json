@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Limpiar Fichas del Mundo",
     "VISAGE.Settings.CleanseAll.Hint": "Elimina todos los datos de Visage de cada ficha en el mundo. ¡Úsalo con precaución!",
     "VISAGE.Settings.ManualMigration.Name": "Migrar Datos",
-    "VISAGE.Settings.ManualMigration.Hint": "Activa manualmente el script de migración de datos. Úsalo si has importado Actores antiguos o si tus Visages no se muestran correctamente."
+    "VISAGE.Settings.ManualMigration.Hint": "Activa manualmente el script de migración de datos. Úsalo si has importado Actores antiguos o si tus Visages no se muestran correctamente.",
+    "VISAGE.Selector.RemoveEffect": "Quitar Efecto",
+    "VISAGE.Actions.Toggle": "Alternar",
+    "VISAGE.Editor.Effects.AddVisual": "Agregar Visual",
+    "VISAGE.Editor.Effects.AddAudio": "Agregar Audio",
+    "VISAGE.Editor.Effects.Empty": "Sin efectos agregados.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Configuración de Efecto",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Nombre del Efecto",
+    "VISAGE.Editor.Effects.PathPlaceholder": "ej. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Se requiere etiqueta.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Fallo al cambiar apariencia predeterminada."
 }

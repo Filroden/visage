@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Limpar Tokens do Mundo",
     "VISAGE.Settings.CleanseAll.Hint": "Remove todos os dados do Visage de cada token no mundo. Use com cautela!",
     "VISAGE.Settings.ManualMigration.Name": "Migrar Dados",
-    "VISAGE.Settings.ManualMigration.Hint": "Aciona manualmente o script de migração de dados. Use isso se você importou Atores antigos ou se seus Visages não estiverem sendo exibidos corretamente."
+    "VISAGE.Settings.ManualMigration.Hint": "Aciona manualmente o script de migração de dados. Use isso se você importou Atores antigos ou se seus Visages não estiverem sendo exibidos corretamente.",
+    "VISAGE.Selector.RemoveEffect": "Remover Efeito",
+    "VISAGE.Actions.Toggle": "Alternar",
+    "VISAGE.Editor.Effects.AddVisual": "Adic. Visual",
+    "VISAGE.Editor.Effects.AddAudio": "Adic. Áudio",
+    "VISAGE.Editor.Effects.Empty": "Nenhum efeito adicionado.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Config. do Efeito",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Nome do Efeito",
+    "VISAGE.Editor.Effects.PathPlaceholder": "ex. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Rótulo é obrigatório.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Falha ao trocar aparência padrão."
 }

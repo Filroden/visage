@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Netejar Fitxes del Món",
     "VISAGE.Settings.CleanseAll.Hint": "Elimina totes les dades de Visage de cada fitxa al món. Fes-ho servir amb precaució!",
     "VISAGE.Settings.ManualMigration.Name": "Migrar Dades",
-    "VISAGE.Settings.ManualMigration.Hint": "Activa manualment l'script de migració de dades. Fes-ho servir si has importat Actors antics o si els teus Visages no es mostren correctament."
+    "VISAGE.Settings.ManualMigration.Hint": "Activa manualment l'script de migració de dades. Fes-ho servir si has importat Actors antics o si els teus Visages no es mostren correctament.",
+    "VISAGE.Selector.RemoveEffect": "Eliminar Efecte",
+    "VISAGE.Actions.Toggle": "Alternar",
+    "VISAGE.Editor.Effects.AddVisual": "Afegir Visual",
+    "VISAGE.Editor.Effects.AddAudio": "Afegir Àudio",
+    "VISAGE.Editor.Effects.Empty": "Cap efecte afegit.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Configuració d'Efecte",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Nom de l'Efecte",
+    "VISAGE.Editor.Effects.PathPlaceholder": "ex. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | L'etiqueta és obligatòria.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Ha fallat el canvi d'aparença predeterminada."
 }

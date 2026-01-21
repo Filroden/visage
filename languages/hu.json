@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Világ Bábuk Tisztítása",
     "VISAGE.Settings.CleanseAll.Hint": "Eltávolítja az összes Visage adatot minden báburól a világon. Használd óvatosan!",
     "VISAGE.Settings.ManualMigration.Name": "Adatok Migrálása",
-    "VISAGE.Settings.ManualMigration.Hint": "Manuálisan elindítja az adatmigrációs szkriptet. Használd ezt, ha régi Szereplőket importáltál, vagy ha a Visage-ok nem jelennek meg megfelelően."
+    "VISAGE.Settings.ManualMigration.Hint": "Manuálisan elindítja az adatmigrációs szkriptet. Használd ezt, ha régi Szereplőket importáltál, vagy ha a Visage-ok nem jelennek meg megfelelően.",
+    "VISAGE.Selector.RemoveEffect": "Hatás Eltávolítása",
+    "VISAGE.Actions.Toggle": "Váltás",
+    "VISAGE.Editor.Effects.AddVisual": "Vizuális Hozzáad.",
+    "VISAGE.Editor.Effects.AddAudio": "Hang Hozzáad.",
+    "VISAGE.Editor.Effects.Empty": "Nincsenek hozzáadott hatások.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Hatás Beállítások",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Hatás Neve",
+    "VISAGE.Editor.Effects.PathPlaceholder": "pl. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Címke megadása kötelező.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nem sikerült lecserélni az alapértelmezett megjelenést."
 }

@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "淨化世界指示物",
     "VISAGE.Settings.CleanseAll.Hint": "從世界中的每個指示物移除所有 Visage 資料。請謹慎使用！",
     "VISAGE.Settings.ManualMigration.Name": "遷移資料",
-    "VISAGE.Settings.ManualMigration.Hint": "手動觸發資料遷移指令碼。如果您匯入了舊的角色或 Visage 顯示不正確，請使用此功能。"
+    "VISAGE.Settings.ManualMigration.Hint": "手動觸發資料遷移指令碼。如果您匯入了舊的角色或 Visage 顯示不正確，請使用此功能。",
+    "VISAGE.Selector.RemoveEffect": "移除效果",
+    "VISAGE.Actions.Toggle": "切換",
+    "VISAGE.Editor.Effects.AddVisual": "新增視覺",
+    "VISAGE.Editor.Effects.AddAudio": "新增音訊",
+    "VISAGE.Editor.Effects.Empty": "未新增效果。",
+    "VISAGE.Editor.Effects.SettingsTitle": "效果設定",
+    "VISAGE.Editor.Effects.NamePlaceholder": "效果名稱",
+    "VISAGE.Editor.Effects.PathPlaceholder": "例如: jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | 需要標籤。",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | 無法切換預設外觀。"
 }

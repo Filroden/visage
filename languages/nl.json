@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Reinig Wereld Tokens",
     "VISAGE.Settings.CleanseAll.Hint": "Verwijdert alle Visage data van elke token in de wereld. Gebruik met voorzichtigheid!",
     "VISAGE.Settings.ManualMigration.Name": "Data Migreren",
-    "VISAGE.Settings.ManualMigration.Hint": "Start handmatig het datamigratie script. Gebruik dit als je oude Acteurs hebt geïmporteerd of als je Visages niet correct worden weergegeven."
+    "VISAGE.Settings.ManualMigration.Hint": "Start handmatig het datamigratie script. Gebruik dit als je oude Acteurs hebt geïmporteerd of als je Visages niet correct worden weergegeven.",
+    "VISAGE.Selector.RemoveEffect": "Verwijder Effect",
+    "VISAGE.Actions.Toggle": "Schakelen",
+    "VISAGE.Editor.Effects.AddVisual": "Voeg Visueel Toe",
+    "VISAGE.Editor.Effects.AddAudio": "Voeg Audio Toe",
+    "VISAGE.Editor.Effects.Empty": "Geen effecten toegevoegd.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Effect Instellingen",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Effect Naam",
+    "VISAGE.Editor.Effects.PathPlaceholder": "bijv. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Label is verplicht.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Kon standaard uiterlijk niet wisselen."
 }

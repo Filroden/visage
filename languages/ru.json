@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Очистить Токены Мира",
     "VISAGE.Settings.CleanseAll.Hint": "Удаляет все данные Visage с каждого токена в мире. Используйте с осторожностью!",
     "VISAGE.Settings.ManualMigration.Name": "Миграция Данных",
-    "VISAGE.Settings.ManualMigration.Hint": "Вручную запускает скрипт миграции данных. Используйте, если вы импортировали старых Актеров или если ваши Visage отображаются некорректно."
+    "VISAGE.Settings.ManualMigration.Hint": "Вручную запускает скрипт миграции данных. Используйте, если вы импортировали старых Актеров или если ваши Visage отображаются некорректно.",
+    "VISAGE.Selector.RemoveEffect": "Удалить Эффект",
+    "VISAGE.Actions.Toggle": "Переключить",
+    "VISAGE.Editor.Effects.AddVisual": "Доб. Визуальный",
+    "VISAGE.Editor.Effects.AddAudio": "Доб. Аудио",
+    "VISAGE.Editor.Effects.Empty": "Эффекты не добавлены.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Настройки Эффекта",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Имя Эффекта",
+    "VISAGE.Editor.Effects.PathPlaceholder": "напр. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Требуется метка.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Не удалось сменить стандартный вид."
 }

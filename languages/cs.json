@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Očistit Tokeny Světa",
     "VISAGE.Settings.CleanseAll.Hint": "Odstraní všechna data Visage z každého tokenu ve světě. Používejte opatrně!",
     "VISAGE.Settings.ManualMigration.Name": "Migrovat Data",
-    "VISAGE.Settings.ManualMigration.Hint": "Ručně spustí skript pro migraci dat. Použijte toto, pokud jste importovali staré Aktéry nebo se vaše Visage nezobrazují správně."
+    "VISAGE.Settings.ManualMigration.Hint": "Ručně spustí skript pro migraci dat. Použijte toto, pokud jste importovali staré Aktéry nebo se vaše Visage nezobrazují správně.",
+    "VISAGE.Selector.RemoveEffect": "Odstranit Efekt",
+    "VISAGE.Actions.Toggle": "Přepnout",
+    "VISAGE.Editor.Effects.AddVisual": "Přidat Vizuál",
+    "VISAGE.Editor.Effects.AddAudio": "Přidat Zvuk",
+    "VISAGE.Editor.Effects.Empty": "Žádné efekty nebyly přidány.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Nastavení Efektu",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Název Efektu",
+    "VISAGE.Editor.Effects.PathPlaceholder": "např. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Štítek je vyžadován.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nepodařilo se prohodit výchozí vzhled."
 }

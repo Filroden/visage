@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "\u200Fנקה טוקנים בעולם",
     "VISAGE.Settings.CleanseAll.Hint": "\u200Fמסיר את כל נתוני \u2068Visage\u2069 מכל טוקן בעולם. השתמש בזהירות!",
     "VISAGE.Settings.ManualMigration.Name": "\u200Fהגירת נתונים",
-    "VISAGE.Settings.ManualMigration.Hint": "\u200Fהפעל ידנית את סקריפט הגירת הנתונים. השתמש בזה אם ייבאת שחקנים ישנים או שה-\u2068Visages\u2069 שלך לא מוצגים כראוי."
+    "VISAGE.Settings.ManualMigration.Hint": "\u200Fהפעל ידנית את סקריפט הגירת הנתונים. השתמש בזה אם ייבאת שחקנים ישנים או שה-\u2068Visages\u2069 שלך לא מוצגים כראוי.",
+    "VISAGE.Selector.RemoveEffect": "\u200Fהסר אפקט",
+    "VISAGE.Actions.Toggle": "\u200Fהחלף מצב",
+    "VISAGE.Editor.Effects.AddVisual": "\u200Fהוסף ויזואלי",
+    "VISAGE.Editor.Effects.AddAudio": "\u200Fהוסף שמע",
+    "VISAGE.Editor.Effects.Empty": "\u200Fלא נוספו אפקטים.",
+    "VISAGE.Editor.Effects.SettingsTitle": "\u200Fהגדרות אפקט",
+    "VISAGE.Editor.Effects.NamePlaceholder": "\u200Fשם האפקט",
+    "VISAGE.Editor.Effects.PathPlaceholder": "\u200Fלדוגמה: \u2068jb2a.fire_bolt.red\u2069",
+    "VISAGE.Notifications.LabelRequired": "\u200F\u2068Visage\u2069 | נדרשת תווית.",
+    "VISAGE.Notifications.DefaultSwapFailed": "\u200F\u2068Visage\u2069 | החלפת מראה ברירת המחדל נכשלה."
 }

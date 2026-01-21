@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Pulisci Pedine Mondo",
     "VISAGE.Settings.CleanseAll.Hint": "Rimuove tutti i dati Visage da ogni pedina nel mondo. Usare con cautela!",
     "VISAGE.Settings.ManualMigration.Name": "Migra Dati",
-    "VISAGE.Settings.ManualMigration.Hint": "Attiva manualmente lo script di migrazione dati. Usa questo se hai importato Attori vecchi o se i tuoi Visage non vengono visualizzati correttamente."
+    "VISAGE.Settings.ManualMigration.Hint": "Attiva manualmente lo script di migrazione dati. Usa questo se hai importato Attori vecchi o se i tuoi Visage non vengono visualizzati correttamente.",
+    "VISAGE.Selector.RemoveEffect": "Rimuovi Effetto",
+    "VISAGE.Actions.Toggle": "Alterna",
+    "VISAGE.Editor.Effects.AddVisual": "Agg. Visivo",
+    "VISAGE.Editor.Effects.AddAudio": "Agg. Audio",
+    "VISAGE.Editor.Effects.Empty": "Nessun effetto aggiunto.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Impostazioni Effetto",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Nome Effetto",
+    "VISAGE.Editor.Effects.PathPlaceholder": "es. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | L'etichetta è obbligatoria.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Impossibile scambiare l'aspetto predefinito."
 }

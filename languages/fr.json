@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Nettoyer les Pions du Monde",
     "VISAGE.Settings.CleanseAll.Hint": "Supprime toutes les données Visage de chaque pion du monde. À utiliser avec précaution !",
     "VISAGE.Settings.ManualMigration.Name": "Migrer les Données",
-    "VISAGE.Settings.ManualMigration.Hint": "Lance manuellement le script de migration des données. Utilisez ceci si vous avez importé d'anciens Acteurs ou si vos Visages ne s'affichent pas correctement."
+    "VISAGE.Settings.ManualMigration.Hint": "Lance manuellement le script de migration des données. Utilisez ceci si vous avez importé d'anciens Acteurs ou si vos Visages ne s'affichent pas correctement.",
+    "VISAGE.Selector.RemoveEffect": "Retirer l'Effet",
+    "VISAGE.Actions.Toggle": "Basculer",
+    "VISAGE.Editor.Effects.AddVisual": "Ajouter Visuel",
+    "VISAGE.Editor.Effects.AddAudio": "Ajouter Audio",
+    "VISAGE.Editor.Effects.Empty": "Aucun effet ajouté.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Paramètres d'Effet",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Nom de l'Effet",
+    "VISAGE.Editor.Effects.PathPlaceholder": "ex. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Le libellé est requis.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Échec du changement d'apparence par défaut."
 }

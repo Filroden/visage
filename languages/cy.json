@@ -185,5 +185,15 @@
     "VISAGE.Settings.CleanseAll.Name": "Glanhau Tocynnau'r Byd",
     "VISAGE.Settings.CleanseAll.Hint": "Yn tynnu holl ddata Visage oddi ar bob tocyn yn y byd. Defnyddiwch yn ofalus!",
     "VISAGE.Settings.ManualMigration.Name": "Mudo Data",
-    "VISAGE.Settings.ManualMigration.Hint": "Yn sbarduno'r sgript mudo data â llaw. Defnyddiwch hyn os ydych wedi mewnforio hen Actorion neu os nad yw eich Visages yn arddangos yn gywir."
+    "VISAGE.Settings.ManualMigration.Hint": "Yn sbarduno'r sgript mudo data â llaw. Defnyddiwch hyn os ydych wedi mewnforio hen Actorion neu os nad yw eich Visages yn arddangos yn gywir.",
+    "VISAGE.Selector.RemoveEffect": "Tynnu Effaith",
+    "VISAGE.Actions.Toggle": "Toglo",
+    "VISAGE.Editor.Effects.AddVisual": "Ychwanegu Gweledol",
+    "VISAGE.Editor.Effects.AddAudio": "Ychwanegu Sain",
+    "VISAGE.Editor.Effects.Empty": "Dim effeithiau wedi'u hychwanegu.",
+    "VISAGE.Editor.Effects.SettingsTitle": "Gosodiadau Effaith",
+    "VISAGE.Editor.Effects.NamePlaceholder": "Enw Effaith",
+    "VISAGE.Editor.Effects.PathPlaceholder": "e.e. jb2a.fire_bolt.red",
+    "VISAGE.Notifications.LabelRequired": "Visage | Mae angen label.",
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Methwyd cyfnewid ymddangosiad diofyn."
 }
