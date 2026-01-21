@@ -5,32 +5,45 @@ import { VisageUtilities } from "./visage-utilities.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
- * The main editor application.
+ * The main editor application for creating and modifying Visages.
  * Handles the logic for toggling fields (Intent), live preview updates,
- * and constructing the final data payload for persistence.
+ * effect management (Visuals/Audio), and constructing the final data payload.
+ * * * **Architecture Note:**
+ * This application uses a "Snapshot" strategy (`_preservedData`) to persist unsaved 
+ * form input across re-renders (e.g., when adding an effect row re-renders the DOM).
  */
 export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     
     /**
      * @param {Object} options - Editor options.
      * @param {string} [options.visageId] - ID of the visage to edit. If null, creates new.
-     * @param {string} [options.actorId] - ID of the actor (for Local Visages).
-     * @param {string} [options.tokenId] - ID of the token (context for defaults).
+     * @param {string} [options.actorId] - ID of the actor (if editing a Local Visage).
+     * @param {string} [options.tokenId] - ID of the token (context for extracting defaults).
      */
     constructor(options = {}) {
         super(options);
+        
+        /** @type {string|null} The ID of the Visage being edited. Null implies creation mode. */
         this.visageId = options.visageId || null;
+        
+        /** @type {string|null} The Actor ID for local scoping. */
         this.actorId = options.actorId || null;
+        
+        /** @type {string|null} The Token ID for context. */
         this.tokenId = options.tokenId || null;
+        
+        /** @type {boolean} Tracks if unsaved changes exist. */
         this.isDirty = false;
         
-        // State tracking for Tabs
+        // State tracking for UI Tabs (Appearance, Ring, Effects)
         this._activeTab = "appearance";
 
-        // --- Internal state to hold form data between re-renders ---
+        // Internal state buffer to hold form data between re-renders
         this._preservedData = null;
 
-        // Viewport State for Stage
+        /** * Viewport State for the Live Preview Stage.
+         * Controls zoom and pan transformations.
+         */
         this._viewState = {
             scale: 1.0,
             x: 0,
@@ -40,20 +53,27 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             lastY: 0
         };
 
-        // Effects State Management
-        this._effects = null;       // Populated in _prepareContext
-        this._activeEffectId = null; // The ID of the effect currently being edited in the Inspector
+        /** @type {Array<Object>|null} Local memory buffer for effect data. Populated in _prepareContext. */
+        this._effects = null;       
+
+        /** @type {string|null} The ID of the effect currently being edited in the Inspector pane. */
+        this._activeEffectId = null;
         
-        // Audio Preview State (Tracks playing Howl/Sound instances)
+        /** * Audio Preview State.
+         * Maps Effect IDs to active Sound instances (or Promises thereof) to manage playback lifecycle.
+         * @type {Map<string, Sound|Promise>}
+         */
         this._audioPreviews = new Map(); 
     }
 
     /**
-     * Returns true if we are editing a Local Visage on a specific Actor.
-     * Returns false if we are editing a Global Mask in the World Library.
+     * @returns {boolean} True if editing a Local Visage (Actor-specific), False for Global (World).
      */
     get isLocal() { return !!this.actorId; }
 
+    /**
+     * @returns {Actor|null} The resolved Actor document, if applicable.
+     */
     get actor() {
         return VisageUtilities.resolveTarget(this.options).actor;
     }
@@ -71,19 +91,19 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         },
         position: { width: 960, height: "auto" },
         actions: {
-            // Core Actions
+            // Core Persistence
             save: VisageEditor.prototype._onSave,
             toggleField: VisageEditor.prototype._onToggleField,
             openFilePicker: VisageEditor.prototype._onOpenFilePicker,
             resetSettings: VisageEditor.prototype._onResetSettings,
             
-            // Stage Controls
+            // Stage / Viewport Controls
             zoomIn: VisageEditor.prototype._onZoomIn,
             zoomOut: VisageEditor.prototype._onZoomOut,
             resetZoom: VisageEditor.prototype._onResetZoom,
             toggleGrid: VisageEditor.prototype._onToggleGrid,
             
-            // Effects Actions
+            // Effects Management
             addVisual: VisageEditor.prototype._onAddVisual,
             addAudio: VisageEditor.prototype._onAddAudio,
             editEffect: VisageEditor.prototype._onEditEffect,
@@ -113,10 +133,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Override render to SNAPSHOT the form state before wiping the DOM.
+     * Override render to snapshot the form state before Foundry wipes the DOM.
+     * This ensures typed text isn't lost when we re-render to show a new effect row.
      */
     async render(options) {
-        // If the app is already open, grab what the user has typed so far
         if (this.rendered) {
             this._preservedData = this._prepareSaveData();
         }
@@ -124,14 +144,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Prepares the Handlebars context.
+     * Prepares the data context for the Handlebars template.
+     * Merges Source Data (Database) with Preserved Data (Unsaved Input) to create the UI state.
      */
     async _prepareContext(options) {
         let data;
         
         // A. Resolve Source Data
         if (this.visageId) {
-            // EDIT MODE
+            // EDIT MODE: Fetch existing data from World Settings or Actor Flags
             if (this.isLocal) {
                 const visages = VisageData.getLocal(this.actor);
                 data = visages.find(v => v.id === this.visageId);
@@ -142,14 +163,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
             this._currentLabel = data.label;
         } else {
-            // CREATE MODE
+            // CREATE MODE: Generate a fresh skeleton
             if (this.isLocal) {
+                // For Local, try to pre-fill with the token's current look
                 const token = canvas.tokens.get(this.tokenId) || this.actor.prototypeToken;
                 const tokenDoc = token.document || token; 
                 data = VisageData.getDefaultAsVisage(tokenDoc);
                 data.label = "New Visage"; 
                 data.id = null;
             } else {
+                // For Global, start blank
                 data = {
                     label: game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global"),
                     category: "",
@@ -160,22 +183,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._currentLabel = "";
         }
 
+        // Merge unsaved inputs on top of the source data
         if (this._preservedData) {
-            // We use deep merge to overlay the snapshot onto the source data
             data = foundry.utils.mergeObject(data, this._preservedData, { inplace: false });
         }
 
-        // --- Determine Mode Default ---
+        // Determine Mode Default (Local=Identity, Global=Overlay)
         let currentMode = data.mode;
         if (!currentMode) {
             currentMode = this.isLocal ? "identity" : "overlay";
         }
-        // -----------------------------------
 
         // B. Extract Raw Data
         const c = data.changes || {};
         
-        // Initialize Local Effects State (Once)
+        // Initialize Local Effects Memory (Once)
+        // We clone this array to detach it from the database until saved.
         if (this._effects === null) {
             this._effects = c.effects ? foundry.utils.deepClone(c.effects) : [];
         }
@@ -184,12 +207,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const resolvedImg = await VisageUtilities.resolvePath(rawImg);
 
         // C. Generate Preview Context
+        // Formats the data for the "Card" view used in the stage preview.
         const context = VisageData.toPresentation(data, {
             isWildcard: rawImg.includes('*'),
             isActive: false
         });
 
-        // D. Prepare Autocomplete Lists
+        // D. Prepare Autocomplete Lists (Categories/Tags)
         const allVisages = VisageData.globals; 
         const categorySet = new Set();
         const tagSet = new Set();
@@ -198,7 +222,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (v.tags && Array.isArray(v.tags)) v.tags.forEach(t => tagSet.add(t));
         });
 
-        // Helper: Format values for UI Inputs
+        // Helper: Format values for UI Inputs (value + active state)
         const prep = (val, def) => {
             const isDefined = val !== null && val !== undefined;
             const isNotEmpty = typeof val === "string" ? val !== "" : true;
@@ -211,15 +235,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const ringActive = !!(c.ring && c.ring.enabled);
         const ringContext = VisageData.prepareRingContext(c.ring); 
 
-        // PREPARE ALPHA: Convert 0-1 float to 0-100 integer for input
+        // Input Value conversions (0-1 -> 0-100)
         const alphaVal = (c.alpha !== undefined && c.alpha !== null) ? Math.round(c.alpha * 100) : 100;
         
-        // PREPARE LOCK: Convert boolean/null to string for <select>
         let lockVal = "";
         if (c.lockRotation === true) lockVal = "true";
         if (c.lockRotation === false) lockVal = "false";
 
-        // Prepare Active Effect Data for Inspector
+        // Prepare Active Effect Data for Inspector Pane
         let activeEffectData = {};
         if (this._activeEffectId) {
             const effect = this._effects.find(e => e.id === this._activeEffectId);
@@ -250,9 +273,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         });
 
-        // Dependency Check
-        const hasSequencer = VisageUtilities.hasSequencer;
-
         return {
             ...context, 
             isEdit: !!this.visageId,
@@ -262,12 +282,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             allTags: Array.from(tagSet).sort(),
             tagsString: (data.tags || []).join(","), 
             
-            // --- NEW: Pass Mode and AppID for Header ---
             mode: currentMode,
             appId: this.id,
-            // -------------------------------------------
 
-            // Tab State (Required for template classes)
+            // Tab State (Active class management)
             tabs: {
                 appearance: { active: this._activeTab === "appearance", cssClass: this._activeTab === "appearance" ? "active" : "" },
                 ring: { active: this._activeTab === "ring", cssClass: this._activeTab === "ring" ? "active" : "" },
@@ -289,28 +307,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 value: c.mirrorY, 
                 active: c.mirrorY !== undefined && c.mirrorY !== null 
             },
-
-            alpha: {
-                value: alphaVal,
-                active: (c.alpha !== undefined && c.alpha !== null)
-            },
-            lockRotation: {
-                value: lockVal,
-                active: true 
-            },
-
+            alpha: { value: alphaVal, active: (c.alpha !== undefined && c.alpha !== null) },
+            lockRotation: { value: lockVal, active: true },
             width: prep(c.width, 1),
             height: prep(c.height, 1),
             disposition: prep(c.disposition, 0),
             nameOverride: prep(c.name, ""),
 
-            ring: {
-                active: ringActive,
-                ...ringContext
-            },
+            ring: { active: ringActive, ...ringContext },
             
             // EFFECTS DATA
-            hasSequencer: hasSequencer,
+            hasSequencer: VisageUtilities.hasSequencer,
             effects: effectsStack,
             inspector: activeEffectData,
 
@@ -328,22 +335,29 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /**
      * Updates the Live Preview pane based on current form values.
+     * * **Process:**
+     * 1. Extracts current form data.
+     * 2. Syncs "Active Effect" changes back to the main effects array in memory.
+     * 3. Calculates a "Mock" Visage object representing the current state.
+     * 4. Renders the `visage-preview.hbs` template and injects it into the stage.
+     * 5. Applies CSS transforms (Zoom/Pan).
+     * 6. Updates metadata badges (Scale, Flip, Lock, etc.).
      */
     async _updatePreview() {
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
         const el = this.element;
 
         // 1. Sync Active Effect Data from Form to Memory
+        // This ensures that typing in the inspector updates the internal effect object immediately.
         if (this._activeEffectId && this._effects) {
             const effectIndex = this._effects.findIndex(e => e.id === this._activeEffectId);
             if (effectIndex > -1) {
                 const e = this._effects[effectIndex];
                 
-                // Common Props
+                // Map Form Fields to Effect Properties
                 if (formData.effectPath !== undefined) e.path = formData.effectPath;
                 if (formData.effectLabel !== undefined) e.label = formData.effectLabel || "New Visual";
                 
-                // Visual Props
                 if (e.type === "visual") {
                     if (formData.effectScale !== undefined) e.scale = (parseFloat(formData.effectScale) || 100) / 100;
                     if (formData.effectOpacity !== undefined) e.opacity = parseFloat(formData.effectOpacity) || 1.0;
@@ -353,12 +367,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     if (formData.effectBlendMode !== undefined) e.blendMode = formData.effectBlendMode;
                 }
                 
-                // Audio Props
                 if (e.type === "audio") {
                      if (formData.effectVolume !== undefined) e.opacity = parseFloat(formData.effectVolume) || 0.8;
                 }
 
-                // Live DOM Update for List Item
+                // Live DOM Update for Sidebar List Item (avoid full re-render)
                 const card = el.querySelector(`.effect-card[data-id="${e.id}"]`);
                 if (card) {
                     const nameEl = card.querySelector(".effect-name");
@@ -375,7 +388,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // Helper
+        // Helper for safely extracting values based on checkbox state
         const getVal = (key, type = String) => {
             const isActive = formData[`${key}_active`];
             if (!isActive) return undefined;
@@ -397,22 +410,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const isAlphaActive = formData.alpha_active;
         const rawAlpha = isAlphaActive ? (parseFloat(formData.alpha) / 100) : 1.0;
-        
         const lockVal = formData.lockRotation;
         const rawLock = (lockVal === "true");
 
-        // Extract Dimensions
         const width = getVal("width", Number) || 1;
         const height = getVal("height", Number) || 1;
 
-        // 3. Grid Dimensions
+        // 3. Update Grid Dimensions Variable
         const content = el.querySelector('.visage-preview-content.stage-mode');
         if (content) {
             content.style.setProperty('--visage-dim-w', width);
             content.style.setProperty('--visage-dim-h', height);
         }
 
-        // 4. Build Texture
+        // 4. Build Texture Object
         let texture = {};
         if (imgSrc) {
             texture.src = imgSrc;
@@ -423,7 +434,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
         if (Object.keys(texture).length === 0) texture = undefined;
 
-        // 5. Build Ring
+        // 5. Build Ring Object
         let ring = null;
         if (formData["ring.enabled"]) {
             let effectsMask = 0;
@@ -438,12 +449,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         }
 
-        // 6. Prepare Visual Effects (Uses renamed resolver)
+        // 6. Prepare Visual Effects (Styles & Paths)
         const activeVisuals = (this._effects || []).filter(e => !e.disabled && e.type === "visual" && e.path);
         const effectsBelow = activeVisuals.filter(e => e.zOrder === "below").map(e => this._prepareEffectStyle(e));
         const effectsAbove = activeVisuals.filter(e => e.zOrder === "above").map(e => this._prepareEffectStyle(e));
 
-        // 7. Mock Data
+        // 7. Construct Mock Data for Presentation
         const mockData = {
             changes: {
                 name: getVal("nameOverride"),
@@ -468,18 +479,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const mainImage = mockData.changes.texture?.src || "";
         const rawPath = (ringEnabled && subjectTexture) ? subjectTexture : mainImage;
         
-        // Note: VisageUtilities.resolvePath is for wildcards and S3 buckets (Main Token Image)
         const resolved = await VisageUtilities.resolvePath(rawPath);
         const resolvedPath = resolved || rawPath;
 
-        // 9. Context
+        // 9. Generate Presentation Context (Meta badges)
         const context = VisageData.toPresentation(mockData, {
             isWildcard: rawPath.includes('*')
         });
 
         const meta = context.meta;
 
-        // 10. RE-RENDER PREVIEW
+        // 10. RE-RENDER PREVIEW TEMPLATE
         const previewData = {
             resolvedPath: resolved || rawPath,
             name: mockData.changes.name,
@@ -505,6 +515,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         
         const stage = el.querySelector(".visage-live-preview-stage");
         if (stage) {
+            // Preserve UI controls while replacing content
             const controls = stage.querySelector(".visage-zoom-controls");
             const hint = stage.querySelector(".visage-stage-hint");
             const overlay = stage.querySelector(".stage-overlay-name");
@@ -515,6 +526,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (hint) stage.appendChild(hint);
             if (overlay) stage.appendChild(overlay);
 
+            // Calculate Stage Transform (Scale + Flip)
             let visualScale = rawScale; 
             if (meta.hasRing && formData.ringSubjectTexture) {
                  visualScale = parseFloat(formData.ringSubjectScale) || 1.0;
@@ -541,7 +553,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // 11. Sync Audio Previews (Robust)
+        // 11. Sync Audio Previews (Starts/Stops playback)
         this._syncAudioPreviews();
 
         // 12. Update UI Slots (Badges)
@@ -600,6 +612,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (meta.slots.flipH) updateMirrorSlot('horizontal', meta.slots.flipH);
         if (meta.slots.flipV) updateMirrorSlot('vertical', meta.slots.flipV);
 
+        // Update Labels
         const nameEl = el.querySelector(".token-name-label");
         if (nameEl) {
             nameEl.textContent = mockData.changes.name || "";
@@ -624,7 +637,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /**
      * UNIFIED PATH RESOLVER
-     * Handles both Sequencer Database Keys (recursive) and File Paths.
+     * Handles both Sequencer Database Keys (recursive) and standard File Paths.
+     * @param {string} rawPath - The input string (file path or DB key).
+     * @returns {string|null} The resolved file path.
      */
     _resolveEffectPath(rawPath) {
         if (!rawPath) return null;
@@ -650,7 +665,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     }
                 }
 
-                // Handle Object structure inside file (Range/Geometry)
+                // Handle Object structure inside file (Range/Geometry special cases)
                 if (file && typeof file === "object" && file.file) {
                     file = file.file;
                 }
@@ -665,6 +680,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return rawPath;
     }
 
+    /**
+     * Recursive helper for finding files within nested Sequencer Database folders.
+     */
     _resolveSequencerRecursively(path, depth = 0) {
         if (depth > 10) return null;
 
@@ -685,10 +703,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Helper to calculate CSS styles for visuals using the unified resolver
+     * Calculates CSS styles for rendering visual effects in the preview stage.
      */
     _prepareEffectStyle(effect) {
-        // Use the new renamed resolver
         const resolvedPath = this._resolveEffectPath(effect.path);
         let isVideo = false;
 
@@ -711,9 +728,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /* -------------------------------------------- */
-    /* Audio Preview Logic (Revised)                */
+    /* Audio Preview Logic                          */
     /* -------------------------------------------- */
 
+    /**
+     * Manages the lifecycle of audio previews.
+     * Ensures only currently active/enabled sounds are playing, handling restarts on change.
+     * Uses Promise tracking to prevent race conditions during rapid updates.
+     */
     _syncAudioPreviews() {
         const activeAudioEffects = (this._effects || []).filter(e => !e.disabled && e.type === "audio" && e.path);
         const activeIds = new Set(activeAudioEffects.map(e => e.id));
@@ -741,7 +763,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 // Skip if it's still a Promise (loading)
                 if (sound instanceof Promise) return;
 
-                // Update Volume
+                // Update Volume on the fly
                 if (sound.volume !== vol) {
                     sound.volume = vol;
                 }
@@ -768,7 +790,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     volume: vol,
                     loop: true
                 }, false).then(sound => {
-                    // Race Condition Check
+                    // Race Condition Check: Ensure it wasn't deleted while loading
                     const currentEffect = (this._effects || []).find(fx => fx.id === e.id);
                     const isStillActive = currentEffect && !currentEffect.disabled;
 
@@ -790,7 +812,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async close(options) {
-        // Force stop all sounds
+        // Force stop all sounds on close
         for (const [id, sound] of this._audioPreviews) {
             if (sound && typeof sound.stop === "function") sound.stop();
         }
@@ -853,7 +875,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;
         this._markDirty();
-        
         await this.render(); 
     }
 
@@ -870,7 +891,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;
         this._markDirty();
-        
         await this.render();
     }
 
@@ -940,11 +960,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
         
-        this.element.addEventListener("change", () => {
-            this._markDirty();
-            this._updatePreview();
-        });
-        
+        // Debounce text inputs to avoid rapid Preview re-renders
         let debounceTimer;
         this.element.addEventListener("input", (event) => {
             this._markDirty();
@@ -956,6 +972,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         });
 
+        // Tab Navigation
         const tabs = this.element.querySelectorAll(".visage-tabs .item");
         tabs.forEach(t => {
             t.addEventListener("click", (e) => {
@@ -972,12 +989,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
         
         this._updatePreview();
-
         this._bindStaticListeners();
         this._bindDynamicListeners();
-        
         this._applyStageTransform();
 
+        // Grid Toggle State Check
         if (this._showGrid) {
             const stage = this.element.querySelector('.visage-live-preview-stage');
             const btn = this.element.querySelector('[data-action="toggleGrid"] i');
@@ -1014,6 +1030,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const stage = this.element.querySelector('.visage-live-preview-stage');
         if (!stage) return;
 
+        // Zoom via Wheel
         stage.addEventListener('wheel', (e) => {
             e.preventDefault();
             const direction = Math.sign(e.deltaY);
@@ -1028,6 +1045,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const content = this.element.querySelector('.visage-preview-content.stage-mode');
         if (!content) return;
 
+        // Pan Drag Logic
         content.onmousedown = (e) => { 
             if (e.button !== 0 && e.button !== 1) return;
             e.preventDefault(); 
@@ -1080,6 +1098,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onResetZoom() {
+        // Calculate appropriate scale to fit image
         let targetScale = 1.0;
         if (this._currentVisualScale && this._currentVisualScale > 1.0) {
             targetScale = 1.0 / this._currentVisualScale;
@@ -1089,8 +1108,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._viewState.y = 0;
         this._applyStageTransform();
     }
-
-    // ... [Rest of class methods unchanged] ...
     
     _activateTab(tabName) {
         this._activeTab = tabName;
@@ -1206,7 +1223,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /**
      * Helper to safely extract form data without requiring a <form> tag.
-     * This fixes the layout breakage and ensures Radio Buttons (Mode) are captured correctly.
+     * Manual extraction fixes layout breakage issues and handles Radio Buttons/Checkboxes properly.
      */
     _getFormData() {
         const data = {};
@@ -1215,19 +1232,19 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         for (const input of inputs) {
             if (!input.name) continue;
             
-            // Handle Checkboxes
+            // Checkboxes
             if (input.type === "checkbox") {
                 data[input.name] = input.checked;
                 continue;
             }
             
-            // Handle Radio Buttons (Only capture the checked one)
+            // Radio Buttons (only checked)
             if (input.type === "radio") {
                 if (input.checked) data[input.name] = input.value;
                 continue;
             }
             
-            // Handle Text/Number/Select
+            // Text/Number/Select
             data[input.name] = input.value;
         }
         
@@ -1235,8 +1252,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * NEW HELPER: Extracts the current form state into a valid Visage payload.
+     * Extracts the current form state into a valid Visage payload.
      * Used for both Saving (Database) and Snapshotting (Re-render).
+     * @returns {Object} The complete visage data object.
      */
     _prepareSaveData() {
         const formData = this._getFormData();
@@ -1252,7 +1270,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             id: this.visageId, 
             label: formData.label,
             category: formData.category,
-            // Parse tags string from hidden input, as this._tags was undefined
             tags: formData.tags ? formData.tags.split(",").filter(t => t.trim()) : [],
             mode: formData.mode,
             changes: {
@@ -1277,6 +1294,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         };
 
+        // Construct Ring Data
         if (formData["ring.enabled"]) {
             let effectsMask = 0;
             for (const [k, v] of Object.entries(formData)) {
@@ -1307,10 +1325,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onSave(event, target) {
         event.preventDefault();
         
-        // Use the new helper to get data
         const payload = this._prepareSaveData();
 
-        // Validation (Only needed for actual save)
+        // Validation
         if (!payload.label) {
             return ui.notifications.warn("Visage | Label is required.");
         }

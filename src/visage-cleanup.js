@@ -1,4 +1,11 @@
-/* visage-cleanup.js */
+/**
+ * @file Utilities for scrubbing Visage data from the game world.
+ * Provides tools to revert tokens to their original states and remove module flags.
+ * Used for debugging, uninstallation prep, or emergency resets.
+ * @module visage
+ * @version 3.0.0
+ */
+
 import { Visage } from "./visage.js";
 
 /**
@@ -13,12 +20,15 @@ async function getRevertData(token) {
     if (!flags) return null;
 
     // 1. Prepare the "Wipe" command to remove the entire Visage flag namespace
+    // This ensures no residual data remains on the token after cleanup.
     const updates = {
         _id: token.id,
         [`flags.-=${ns}`]: null
     };
 
     // 2. Retrieve Original State Snapshot
+    // If a snapshot exists, we map its properties back to the root token data
+    // to visually revert the token to its pre-Visage appearance.
     const original = flags.originalState;
     
     if (original) {
@@ -32,7 +42,7 @@ async function getRevertData(token) {
         if (original.texture?.scaleX !== undefined) updates["texture.scaleX"] = original.texture.scaleX;
         if (original.texture?.scaleY !== undefined) updates["texture.scaleY"] = original.texture.scaleY;
         
-        // Restore Ring Data
+        // Restore Ring Data (V12+)
         if (original.ring) updates["ring"] = original.ring;
 
         // Restore other properties
@@ -46,13 +56,15 @@ async function getRevertData(token) {
 
 /**
  * Cleanses all tokens in the CURRENT SCENE.
- * Useful for fixing a specific map without nuking the whole world.
+ * Useful for fixing a specific map without affecting the rest of the world.
+ * @returns {Promise<void>}
  */
 export async function cleanseSceneTokens() {
     if (!canvas.scene) return;
     const tokenUpdates = [];
     let count = 0;
 
+    // Batch updates to minimize database transactions
     for (const token of canvas.scene.tokens) {
         if (token.flags?.[Visage.DATA_NAMESPACE]) {
             const revertUpdate = await getRevertData(token);
@@ -65,30 +77,37 @@ export async function cleanseSceneTokens() {
 
     if (tokenUpdates.length > 0) {
         await canvas.scene.updateEmbeddedDocuments("Token", tokenUpdates);
-        ui.notifications.info(`Visage | Cleansed ${count} tokens in the current scene.`);
+        ui.notifications.info(game.i18n.format("VISAGE.Notifications.CleanupScene", { count: count }));
     } else {
-        ui.notifications.info("Visage | No tokens needed cleansing.");
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.CleanupSceneEmpty"));
     }
 }
 
 /**
  * Cleanses ALL tokens and actors in the WORLD.
  * This is a "Nuclear Option" for removing Visage data from entities.
- * NOTE: This does NOT delete the Global Mask Library (World Settings).
+ * * **Scope:**
+ * 1. Iterates every Scene to clean placed Tokens and unlinked (synthetic) Actors.
+ * 2. Iterates the Actor Directory to clean linked (sidebar) Actors.
+ * * NOTE: This does NOT delete the Global Mask Library (World Settings), only the active effects/flags on entities.
+ * @returns {Promise<void>}
  */
 export async function cleanseAllTokens() {
   let count = 0;
   
-  ui.notifications.info("Visage | Starting Global Cleanup...");
+  ui.notifications.info(game.i18n.localize("VISAGE.Notifications.CleanupGlobalStart"));
 
   // 1. Iterate over every Scene (Handle Tokens & Unlinked Actors)
+  // We must handle unlinked actors inside the scene loop because they do not exist in game.actors.
   for (const scene of game.scenes) {
     const tokenUpdates = []; 
     const unlinkedPromises = [];
 
     for (const token of scene.tokens) {
         // A. Unlinked Actor Cleanup (Synthetic Actors)
-        // We ONLY touch the actor here if it is unlinked. Linked actors are handled in Step 2.
+        // We ONLY touch the actor here if it is unlinked. 
+        // Linked actors are effectively pointers to the Sidebar, so we handle them in Step 2 
+        // to avoid updating the same document multiple times.
         if (!token.actorLink && token.actor) {
             if (token.actor.flags?.[Visage.DATA_NAMESPACE]) {
                 const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
@@ -129,5 +148,5 @@ export async function cleanseAllTokens() {
       count += sidebarActorUpdates.length;
   }
 
-  ui.notifications.info(`Visage | Global Cleanup Complete. Reverted/Cleaned ${count} entities.`);
+  ui.notifications.info(game.i18n.format("VISAGE.Notifications.CleanupGlobalSuccess", { count: count }));
 }

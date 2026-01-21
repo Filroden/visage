@@ -15,7 +15,7 @@
             <i class="visage-icon search"></i>
             <input type="text" value="{{filters.search}}" placeholder="{{localize 'VISAGE.Directory.SearchPlaceholder'}}">
             {{#if filters.search}}
-            <a data-action="clearSearch"><i class="fas fa-times"></i></a>
+            <a data-action="clearSearch"><i class="visage-icon close"></i></a>
             {{/if}}
         </div>
 
@@ -64,7 +64,7 @@
             <div class="filter-pills">
                 {{#each activeTags}}
                 <button class="visage-pill active" data-action="toggleTag" data-tag="{{this.label}}">
-                    {{this.label}} <i class="fas fa-times"></i>
+                    {{this.label}} <i class="visage-icon close"></i>
                 </button>
                 {{/each}}
                 {{#if (and activeTags.length popularTags.length)}}
@@ -72,7 +72,7 @@
                 {{/if}}
                 {{#each popularTags}}
                 <button class="visage-pill suggestion" data-action="toggleTag" data-tag="{{this.label}}">
-                    <i class="fas fa-plus"></i> {{this.label}}
+                    <i class="visage-icon add"></i> {{this.label}}
                 </button>
                 {{/each}}
             </div>

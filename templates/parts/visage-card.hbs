@@ -42,7 +42,7 @@
             <div class="visage-card-effect-indicator" 
                  data-tooltip="{{this.meta.effectsTooltip}}" 
                  data-tooltip-class="visage-tooltip">
-                <img src="modules/visage/icons/wand_stars.svg" alt="Effects Active"/>
+                <i class="visage-icon wand-stars"></i>
             </div>
             {{/if}}
 
@@ -73,7 +73,9 @@
         <div class="card-zone-right">
             {{#if @root.isBin}}
                 <button class="icon-btn" data-action="restore" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Restore'}}"><i class="fas fa-trash-restore"></i></button>
-                <button class="icon-btn danger" data-action="destroy" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Destroy'}}"><i class="fas fa-times"></i></button>
+                <button class="icon-btn danger" data-action="destroy" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Destroy'}}">
+                    <i class="visage-icon kebab"></i>
+                </button>
             {{else}}
                 
                 {{!-- 1. MAIN APPLY (Play Icon) --}}
@@ -101,7 +103,7 @@
                     {{!-- 4. KEBAB MENU --}}
                     <div class="visage-popover-menu-container">
                         <button class="icon-btn" data-action="toggleMenu" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.MoreActions'}}">
-                            <i class="fas fa-ellipsis-v"></i>
+                            <i class="visage-icon kebab"></i>
                         </button>
 
                         <div class="visage-popover-menu">
