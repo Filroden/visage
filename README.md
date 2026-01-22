@@ -13,6 +13,8 @@
 
 **Visage** is the ultimate token appearance and visual effects manager for Foundry VTT. It allows players and GMs to instantly switch token art, layer visual effects, play attached sounds, and manage complex stacks of graphical overrides through a dedicated, unified HUD.
 
+**Why use Visage?** It solves the problem of rigid token settings. Instead of manually editing a token every time a character polymorphs, casts Invisibility, or gets Enlarged, you simply click a button. Visage creates a non-destructive "stack" of changes on top of your token—allowing you to layer a disguise over a wild shape, add a rage status effect on top of that, and then peel them away one by one to reveal the original character perfectly intact underneath. It turns complex, time-consuming administrative tasks into instant, immersive gameplay moments.
+
 ## Quick Start
 
 1. **Open the HUD:** Right-click your token on the canvas to open the Token HUD, then click the **Visage Icon** (Domino Mask) to open the Selector HUD.
