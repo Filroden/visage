@@ -60,9 +60,10 @@ Software and associated documentation files in this repository are covered by an
 
 ## Roadmap
 
-### Next planned release (v3.1.0)
+### Short term
 
-* **Add Public/Private flags to global Visages:** GMs can tag their globally stored Visages (both Identities and Overlays) as either Public or Private. Players can see public Visages inside the Global Library and apply them to their own tokens.
+* **Add Public/Private flags to global Visages:** GMs can tag their globally stored Visages (both Identities and Overlays) as either Public or Private. Players can see public Visages inside their token's Selector HUD and apply them to their own tokens.
+* **Light sources:** Allow the token's light source to be configured within Visages (identities and overlays).
 
 ### Long term (no promises!)
 

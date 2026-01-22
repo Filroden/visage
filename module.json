@@ -1,7 +1,7 @@
 {
     "id": "visage",
     "title": "Visage",
-    "description": "The complete solution for token appearances. Instantly layer 'Identities' (Wild Shape, Disguises, Costumes, Poses, etc.) and 'Overlays' (Status Effects, Spells, Illusions, etc) without overwriting your original token settings. Features a dedicated HUD, a global library (for the GM) and local libraries (for players), Dynamic Token Ring support, and integrated Sequencer effects for visual and audio layers.",
+    "description": "The complete solution for token appearances. Instantly switch 'Identities' (Wild Shape, Disguises, Costumes, Poses, etc.) and stack 'Overlays' (Status Effects, Spells, Illusions, etc) without overwriting your original token settings. Features a dedicated HUD, a global library (for the GM) and local libraries (for players), Dynamic Token Ring support, and integrated Sequencer effects for visual and audio layers.",
     "version": "3.0.0",
     "compatibility": {
         "minimum": "13",
