@@ -959,8 +959,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.element.addEventListener("change", (event) => {
             this._markDirty();
             
-            // Fix: Trigger preview update immediately for Select elements
-            if (event.target.matches("select")) {
+            // Trigger preview update immediately for Select/Filepicker elements
+            if (event.target.matches("select") || event.target.matches("input[type='text']")) {
                 this._updatePreview();
             }
         });
