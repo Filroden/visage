@@ -12,6 +12,11 @@
 
 **Visage** is the ultimate token appearance and visual effects manager for Foundry VTT. It allows players and GMs to instantly switch token art, layer visual effects, play attached sounds, and manage complex stacks of graphical overrides through a dedicated, unified HUD.
 
+<video src="https://raw.githubusercontent.com/Filroden/visage/main/images/v3/apply_visages.mp4" 
+       controls="controls" muted="muted" autoplay="autoplay" loop="loop" playsinline="playsinline" 
+       style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+</video>
+
 ## What's New in v3.0?
 
 Visage v3.0 introduces a **Unified Data Model** and a powerful **Effects Engine**.
