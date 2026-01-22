@@ -3,7 +3,7 @@
         <i class="visage-icon domino"></i>
         <h3 class="visage-title">{{localize "VISAGE.Selector.Title"}}</h3>
         <button type="button" class="visage-config-button" data-tooltip="{{localize 'VISAGE.Selector.Configure'}}" data-action="openConfig">
-            <img src="modules/visage/icons/settings.svg" alt="Settings"/>
+            <img src="modules/visage/icons/settings.svg" alt="{{localize 'VISAGE.Selector.Configure'}}"/>
         </button>
     </div>
 
@@ -15,13 +15,13 @@
             {{#each activeStack}}
             <li class="stack-item {{this.themeClass}}">
                 <span class="effect-label" data-tooltip="{{this.label}}">
-                    <i class="fas fa-layer-group"></i> {{this.label}}
+                    <i class="visage-icon stacks"></i> {{this.label}}
                 </span>
                 <button type="button" class="remove-layer-btn" 
                         data-action="removeLayer" 
                         data-layer-id="{{this.id}}"
-                        data-tooltip="Remove Effect">
-                    <i class="fas fa-times"></i>
+                        data-tooltip="{{localize 'VISAGE.Selector.RemoveEffect'}}">
+                    <i class="visage-icon close"></i>
                 </button>
             </li>
             {{/each}}
@@ -113,7 +113,7 @@
     <div class="visage-effects-indicator" 
             data-tooltip="{{this.meta.effectsTooltip}}" 
             data-tooltip-class="visage-tooltip">
-        <img src="modules/visage/icons/wand_stars.svg" alt="Effects"/>
+        <img src="modules/visage/icons/wand_stars.svg" alt="{{localize 'VISAGE.Editor.Tabs.Effects'}}"/>
     </div>
     {{/if}}
 

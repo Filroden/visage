@@ -1,3 +1,4 @@
+/* visage-selector.js */
 import { Visage } from "./visage.js";
 import { VisageGallery } from "./visage-gallery.js"; 
 import { VisageComposer } from "./visage-composer.js";
@@ -6,8 +7,19 @@ import { VisageUtilities } from "./visage-utilities.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+/**
+ * The transient "HUD" application for quick Visage selection.
+ * Designed to appear next to the token, allow a quick selection, and then disappear.
+ * Handles auto-dismissal when clicking outside the window.
+ */
 export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     
+    /**
+     * @param {Object} options - Application options.
+     * @param {string} options.actorId - The ID of the target actor.
+     * @param {string} options.tokenId - The ID of the target token.
+     * @param {string} [options.sceneId] - The ID of the scene (if unlinked).
+     */
     constructor(options = {}) {
         super(options);
         this.actorId = options.actorId;
@@ -15,7 +27,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         this.sceneId = options.sceneId;
     }
 
-    // ... [DEFAULT_OPTIONS and PARTS unchanged] ...
     static DEFAULT_OPTIONS = {
         tag: "div",
         id: "visage-selector",
@@ -37,6 +48,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
+    /**
+     * Removes all active effects *except* the base identity.
+     * Useful for quickly cleaning up a messy stack of overlays.
+     */
     async _onRevertGlobal(event, target) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token) return;
@@ -45,10 +60,15 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentFormKey = token.document.getFlag(ns, "identity") || "default";
         const currentStack = token.document.getFlag(ns, "activeStack") || [];
 
+        // Filter stack to keep only the active Identity layer
         const newStack = currentStack.filter(layer => layer.id === currentFormKey);
         await VisageComposer.compose(token, newStack);
     }
 
+    /**
+     * Prepares the data context for the HUD.
+     * Fetches only *Local* Visages (Actor-specific) and splits them into Identities vs Overlays.
+     */
     async _prepareContext(options) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token || !token.actor) return { identities: [], overlays: [] };
@@ -57,7 +77,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const ns = Visage.DATA_NAMESPACE;
         const currentFormKey = token.document.getFlag(ns, "identity") || "default";
 
-        // 1. Prepare Default
+        // 1. Prepare Default Identity (Base Token State)
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
         const defaultForm = VisageData.toPresentation(defaultRaw, {
             isActive: currentFormKey === "default",
@@ -66,9 +86,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         defaultForm.resolvedPath = await Visage.resolvePath(defaultForm.path);
 
         // 2. Fetch LOCAL items ONLY
+        // The HUD is strictly for Actor-specific options. Global masks are accessed via the full Gallery.
         const localItems = VisageData.getLocal(actor).filter(v => !v.deleted);
         
-        // 3. Process & Split
+        // 3. Process & Split by Mode
         const identities = [defaultForm];
         const overlays = [];
 
@@ -88,7 +109,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // Sort
+        // Sorting: Default first, then alphabetical
         identities.sort((a, b) => {
             if (a.key === "default") return -1;
             if (b.key === "default") return 1;
@@ -96,7 +117,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         });
         overlays.sort((a, b) => a.label.localeCompare(b.label));
 
-        // 4. Active Stack
+        // 4. Prepare Active Stack Display (Bottom Bar)
+        // Shows currently active overlays so they can be dismissed individually.
         const flags = token.document.flags[Visage.MODULE_ID] || {};
         const activeStack = flags.activeStack || flags.stack || [];
         const visibleStack = activeStack.filter(layer => layer.id !== currentFormKey);
@@ -119,7 +141,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
     
-    // ... [Actions & Listeners Unchanged] ...
+    /* -------------------------------------------- */
+    /* Event Listeners                             */
+    /* -------------------------------------------- */
+
     async _onSelectVisage(event, target) {
         const formKey = target.dataset.formKey;
         if (formKey) {
@@ -128,15 +153,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 const currentIdentity = token.document.getFlag(Visage.MODULE_ID, "identity");
                 if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
             } else {
-                // Determine if this is an overlay or identity click
-                // We rely on Visage.apply logic, but force swap if it came from Identity section?
-                // Actually Visage.apply handles it via data.mode.
-                // However, for the HUD, clicking an item usually implies "Activate this".
-                // Visage.apply's default behavior respects mode, so simply calling it works.
-                
-                // One edge case: If I click an "Identity" tile, I want to switch identity.
-                // If I click an "Overlay" tile, I want to add it.
-                // Visage.apply handles this automatically based on the item's mode.
+                // Visage.apply handles mode logic (Identity Swap vs Overlay Stack) automatically
                 await Visage.apply(this.tokenId, formKey);
             }
             this.close();
@@ -182,14 +199,24 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.close(options);
     }
 
+    /**
+     * Binds a global pointer listener to detect clicks outside the HUD.
+     * If the user clicks anywhere else on the screen (except the toggle button or another Visage window),
+     * this selector closes automatically.
+     */
     _bindDismissListeners() {
         this._onDocPointerDown = (ev) => {
             const root = this.element;
             if (!root) return;
+            
+            // Ignore clicks inside the HUD itself
             if (root.contains(ev.target)) return;
+            
+            // Ignore clicks on the HUD button that spawned this (prevents immediate re-opening)
             const hudBtn = document.querySelector('.visage-button');
             if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
             
+            // Ignore clicks on other Visage windows (Gallery/Editor)
             const dirApp = ev.target.closest('.visage-gallery');
             const editorApp = ev.target.closest('.visage-editor');
             if (dirApp || editorApp) return;
@@ -198,6 +225,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         };
         document.addEventListener('pointerdown', this._onDocPointerDown, true);
         
+        // Auto-refresh the HUD if the token updates while it is open
         this._onTokenUpdate = (document, change, options, userId) => {
             if (document.id === this.tokenId) {
                 this.render();

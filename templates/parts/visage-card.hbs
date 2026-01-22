@@ -17,11 +17,11 @@
                 <img src="modules/visage/icons/aspect_ratio.svg" class="visage-icon-nav"/>
                 <span class="slot-value">{{this.meta.slots.dim.val}}</span>
             </div>
-            <div class="metadata-slot {{#unless this.meta.slots.flipH.active}}inactive{{/unless}}" data-tooltip="{{localize 'VISAGE.Mirror.Horizontal.Label'}}">
+            <div class="metadata-slot {{#unless this.meta.slots.flipH.active}}inactive{{/unless}}" data-tooltip="{{localize 'VISAGE.Mirror.Label.Horizontal'}}">
                 <img src="{{this.meta.slots.flipH.src}}" class="visage-icon-nav {{this.meta.slots.flipH.cls}}"/>
                 <span class="slot-value">{{this.meta.slots.flipH.val}}</span>
             </div>
-            <div class="metadata-slot {{#unless this.meta.slots.flipV.active}}inactive{{/unless}}" data-tooltip="{{localize 'VISAGE.Mirror.Vertical.Label'}}">
+            <div class="metadata-slot {{#unless this.meta.slots.flipV.active}}inactive{{/unless}}" data-tooltip="{{localize 'VISAGE.Mirror.Label.Vertical'}}">
                 <img src="{{this.meta.slots.flipV.src}}" class="visage-icon-nav {{this.meta.slots.flipV.cls}}"/>
                 <span class="slot-value">{{this.meta.slots.flipV.val}}</span>
             </div>
@@ -42,7 +42,7 @@
             <div class="visage-card-effect-indicator" 
                  data-tooltip="{{this.meta.effectsTooltip}}" 
                  data-tooltip-class="visage-tooltip">
-                <img src="modules/visage/icons/wand_stars.svg" alt="Effects Active"/>
+                <i class="visage-icon wand-stars"></i>
             </div>
             {{/if}}
 
@@ -72,8 +72,10 @@
         {{!-- RIGHT: ACTIONS --}}
         <div class="card-zone-right">
             {{#if @root.isBin}}
-                <button class="icon-btn" data-action="restore" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Restore'}}"><i class="fas fa-trash-restore"></i></button>
-                <button class="icon-btn danger" data-action="destroy" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Destroy'}}"><i class="fas fa-times"></i></button>
+                <button class="icon-btn" data-action="restore" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Restore'}}"><i class="visage-icon restore"></i></button>
+                <button class="icon-btn danger" data-action="destroy" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Destroy'}}">
+                    <i class="visage-icon close"></i>
+                </button>
             {{else}}
                 
                 {{!-- 1. MAIN APPLY (Play Icon) --}}
@@ -101,7 +103,7 @@
                     {{!-- 4. KEBAB MENU --}}
                     <div class="visage-popover-menu-container">
                         <button class="icon-btn" data-action="toggleMenu" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.MoreActions'}}">
-                            <i class="fas fa-ellipsis-v"></i>
+                            <i class="visage-icon kebab"></i>
                         </button>
 
                         <div class="visage-popover-menu">

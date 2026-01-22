@@ -1,9 +1,10 @@
 /**
  * Main stylesheet for the Visage module.
- * * TABLE OF CONTENTS
+ *
+ * TABLE OF CONTENTS
  * -----------------
  * 1. Variables & Theme Overrides
- * 2. Shared Styles
+ * 2. Shared Styles (Inputs, Buttons, Tooltips)
  * 3. Application: Universal Shell
  * 4. Application: Visage Selector (HUD)
  * 5. Icons
@@ -32,6 +33,8 @@
     scrollbar-width: auto !important;
     scrollbar-color: auto !important;
 }
+
+/* --- Scrollbars --- */
 
 .visage .visage-scrollable::-webkit-scrollbar {
     width: 8px !important;
@@ -78,6 +81,7 @@ li.context-item .visage-icon-domino {
 }
 
 /* --- Tooltips --- */
+
 #tooltip.visage-tooltip {
     max-width: 300px !important;
     border: 1px solid var(--filroden-color-text-accent);
@@ -132,6 +136,7 @@ li.context-item .visage-icon-domino {
 }
 
 /* --- Inputs and Selects --- */
+
 .visage input[type="text"],
 .visage input[type="number"],
 .visage select {
@@ -158,6 +163,7 @@ li.context-item .visage-icon-domino {
 }
 
 /* --- Buttons --- */
+
 .visage button {
     background: var(--visage-color-bg-light-solid);
     border: 1px solid var(--visage-color-border);
@@ -173,6 +179,7 @@ li.context-item .visage-icon-domino {
 }
 
 /* --- Accessibility Interactions --- */
+
 .visage *:focus-visible,
 .visage button:focus {
     outline: 2px solid var(--visage-color-accent);
@@ -191,6 +198,7 @@ li.context-item .visage-icon-domino {
 }
 
 /* --- Checkboxes --- */
+
 .visage-checkbox {
     appearance: auto;
     accent-color: var(--visage-color-accent);
@@ -209,7 +217,8 @@ li.context-item .visage-icon-domino {
     content: none;
 }
 
-/* --- Layout --- */
+/* --- Layout Utils --- */
+
 .visage .visage-form-fields {
     display: flex;
     flex-direction: row;
@@ -230,7 +239,8 @@ li.context-item .visage-icon-domino {
     opacity: 1;
 }
 
-/* --- Combobox  --- */
+/* --- Combobox Overrides --- */
+
 .visage input:-webkit-autofill,
 .visage input:-webkit-autofill:hover, 
 .visage input:-webkit-autofill:focus, 
@@ -254,26 +264,22 @@ li.context-item .visage-icon-domino {
     filter: invert(1); 
 }
 
-/* SVG Icon styling to match Font Awesome */
+/* --- SVG Icon Masks --- */
+
 .visage-icon-action {
     display: inline-block;
     width: 1.25rem;
     height: 1.25rem;
     background-color: currentColor;
-    
-    /* Standard Mask Properties */
     -webkit-mask-size: contain;
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
     mask-position: center;
-    
-    /* Reset margins if reusing styles */
     margin: 0;
 }
 
-/* Specific Icon Definitions */
 .visage-icon-action.domino {
     -webkit-mask-image: url('../icons/domino_mask.svg');
     mask-image: url('../icons/domino_mask.svg');
@@ -283,8 +289,8 @@ li.context-item .visage-icon-domino {
     mask-image: url('../icons/domino_mask.svg');
 }
 
-/* --- Opacity & Lock Additions --- */
-/* Chequerboard Background for Opacity Previews */
+/* --- Opacity & Lock Indicators --- */
+
 .visage-checkerboard-bg {
     background-color: var(--visage-color-bg-darkest);
     background-image: conic-gradient(
@@ -296,29 +302,6 @@ li.context-item .visage-icon-domino {
     background-size: 20px 20px;
     background-position: center;
 }
-
-/* .visage .visage-lock-indicator {
-    position: absolute;
-    top: 50%;
-    inset-inline-start: -8px; 
-    transform: translateY(-50%);
-    width: var(--filroden-font-size-l);
-    height: var(--filroden-font-size-l);
-    border-radius: 50%;
-    background-color: var(--filroden-color-text-muted-solid);
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.visage .visage-lock-indicator img {
-    width: var(--filroden-space-m);
-    height: var(--filroden-space-m);
-    border: none;
-    filter: invert(100%);
-} */
 
 /* Ghost Lock Watermark (Preview Cards) - Top Right Overlay */
 .visage-watermark-lock {
@@ -341,6 +324,7 @@ li.context-item .visage-icon-domino {
 }
 
 /* --- Effect Layers --- */
+
 .visage-effect-layer {
     position: absolute;
     top: 50%;
@@ -350,8 +334,7 @@ li.context-item .visage-icon-domino {
     pointer-events: none;
     transform-origin: center center;
     /* Size logic: Sequencer effects usually target the grid size. 
-       In our preview, 100% = Token Width. 
-       Most effects are 100% size, so this works well. */
+       In our preview, 100% = Token Width. */
     width: 100%; 
     height: auto;
     will-change: transform;
@@ -362,7 +345,7 @@ li.context-item .visage-icon-domino {
 
 
 /* ==========================================================================
-   3. Application: Universal Shell
+   3. APPLICATION: UNIVERSAL SHELL
    ========================================================================== */
 
 .application.visage,
@@ -392,6 +375,7 @@ li.context-item .visage-icon-domino {
 }
 
 /* --- Application Headers --- */
+
 .visage .window-header {
     background: var(--visage-color-header) !important;
     border: none !important;
@@ -418,6 +402,8 @@ li.context-item .visage-icon-domino {
     margin-inline-end: 0;
 }
 
+/* --- Fieldsets --- */
+
 .visage .visage-fieldset {
     border: 1px solid var(--visage-color-border);
     border-radius: var(--filroden-radius-medium);
@@ -441,6 +427,8 @@ li.context-item .visage-icon-domino {
     gap: var(--filroden-space-s) var(--filroden-space-m);
     align-items: center;
 }
+
+/* --- Badges & Indicators --- */
 
 .visage .visage-chip,
 .visage .visage-default-indicator,
@@ -526,6 +514,8 @@ li.context-item .visage-icon-domino {
     background-color: var(--filroden-color-text-muted-solid);
 }
 
+/* --- Data Chips --- */
+
 .visage .visage-data-chip {
     position: absolute;
     top: -8px;
@@ -564,6 +554,8 @@ li.context-item .visage-icon-domino {
     border-inline-start: 1px solid var(--visage-color-text-muted);
 }
 
+/* --- Disposition Chips --- */
+
 .visage .visage-disposition-chip {
     width: 100%;
     text-align: center;
@@ -596,6 +588,7 @@ li.context-item .visage-icon-domino {
     transform: scaleX(var(--filroden-dir-flip));
 }
 
+
 /* ==========================================================================
    4. APPLICATION: VISAGE SELECTOR (HUD)
    ========================================================================== */
@@ -603,7 +596,7 @@ li.context-item .visage-icon-domino {
 .visage.visage-selector-app {
     position: fixed; 
     display: block;
-    width: 14rem !important; 
+    width: 14rem !important; /* Hardcoded to match JS calculation */
     max-height: 460px; 
 }
 
@@ -653,7 +646,8 @@ li.context-item .visage-icon-domino {
     opacity: 1;
 }
 
-/* SECTION HEADERS (Sticky) */
+/* --- Section Headers (Sticky) --- */
+
 .visage-section {
     margin-bottom: var(--filroden-space-l);
 }
@@ -682,7 +676,8 @@ li.context-item .visage-icon-domino {
     font-size: 1.1em;
 }
 
-/* SECTION THEME OVERRIDES */
+/* --- Section Theme Overrides --- */
+
 /* Identity Section = Gold Theme */
 .visage-section.identity-section {
     --visage-color-accent: var(--filroden-color-text-accent); 
@@ -694,6 +689,8 @@ li.context-item .visage-icon-domino {
     --visage-color-accent: var(--filroden-color2-text-accent);
     --visage-color-accent-hover: var(--filroden-color2-text-accent-hover);
 }
+
+/* --- Stack List --- */
 
 .visage .visage-stack-list {
     display: flex;
@@ -785,6 +782,8 @@ li.context-item .visage-icon-domino {
     color: var(--filroden-color-danger);
     background: inherit;
 }
+
+/* --- Grid Display --- */
 
 .visage .visage-selector-grid-wrapper {
     overflow-y: auto;
@@ -906,8 +905,9 @@ li.context-item .visage-icon-domino {
 .visage .visage-disposition-chip.hostile  { border-color: #ff0000; }
 .visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
 
+
 /* ==========================================================================
-   5. Icons
+   5. ICONS
    ========================================================================== */
 
 .visage-icon {
@@ -943,8 +943,9 @@ li.context-item .visage-icon-domino {
     margin: 0;
 }
 
-/* Header Icon Aliases */
+/* --- Header Icon Aliases --- */
 /* These map the legacy class names used in JS to the new SVG system */
+
 .visage-icon-domino {
     display: inline-block;
     width: var(--filroden-font-size-l);
@@ -970,16 +971,19 @@ li.context-item .visage-icon-domino {
     vertical-align: middle;
 }
 
-/* Global Rotation Classes for Directional Icons */
+/* --- Global Rotation Classes --- */
+
 .visage-rotate-0   { transform: rotate(0deg); }   /* Points Up */
 .visage-rotate-90  { transform: rotate(90deg); }  /* Points Right */
 .visage-rotate-180 { transform: rotate(180deg); } /* Points Down */
 .visage-rotate-270 { transform: rotate(270deg); } /* Points Left */
 
-/* Specific Mappings */
+/* --- Specific Mappings --- */
+
 .visage-icon.play        { -webkit-mask-image: url('../icons/play_arrow.svg'); mask-image: url('../icons/play_arrow.svg'); }
 .visage-icon.edit        { -webkit-mask-image: url('../icons/edit_square.svg'); mask-image: url('../icons/edit_square.svg'); }
 .visage-icon.delete      { -webkit-mask-image: url('../icons/delete.svg'); mask-image: url('../icons/delete.svg'); }
+.visage-icon.restore     { -webkit-mask-image: url('../icons/restore_from_trash.svg'); mask-image: url('../icons/restore_from_trash.svg'); }
 .visage-icon.save        { -webkit-mask-image: url('../icons/file_save.svg'); mask-image: url('../icons/file_save.svg'); }
 .visage-icon.open        { -webkit-mask-image: url('../icons/file_open.svg'); mask-image: url('../icons/file_open.svg'); }
 .visage-icon.copy        { -webkit-mask-image: url('../icons/content_copy.svg'); mask-image: url('../icons/content_copy.svg'); }
@@ -1009,6 +1013,10 @@ li.context-item .visage-icon-domino {
 .visage-icon.audio       { -webkit-mask-image: url('../icons/music_note.svg'); mask-image: url('../icons/music_note.svg'); }
 .visage-icon.visible     { -webkit-mask-image: url('../icons/visibility.svg'); mask-image: url('../icons/visibility.svg'); }
 .visage-icon.visage-hidden      { -webkit-mask-image: url('../icons/visibility_off.svg'); mask-image: url('../icons/visibility_off.svg'); }
+.visage-icon.stacks     { -webkit-mask-image: url('../icons/stacks.svg'); mask-image: url('../icons/stacks.svg'); }
+.visage-icon.extension-off { -webkit-mask-image: url('../icons/extension_off.svg'); mask-image: url('../icons/extension_off.svg'); }
+.visage-icon.warning       { -webkit-mask-image: url('../icons/warning.svg'); mask-image: url('../icons/warning.svg'); }
+.visage-icon.info          { -webkit-mask-image: url('../icons/info.svg'); mask-image: url('../icons/info.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -1037,7 +1045,7 @@ li.context-item .visage-icon-domino {
    6. APPLICATION: VISAGE EDITOR (Unified Workstation)
    ========================================================================== */
 
-/* --- 6.1 Base Window & Typography--- */
+/* --- Base Window & Typography --- */
 
 .visage.visage-editor {
     min-width: 65rem !important;
@@ -1092,7 +1100,7 @@ li.context-item .visage-icon-domino {
     font-size: var(--filroden-font-size-xs);
 }
 
-/* --- 6.2 Form Elements & States --- */
+/* --- Form Elements & States --- */
 
 .visage.visage-editor input:disabled,
 .visage.visage-editor select:disabled,
@@ -1117,7 +1125,8 @@ li.context-item .visage-icon-domino {
     color: var(--visage-color-text-main-solid) !important;
 }
 
-/* Checkbox + Input Group Styling */
+/* --- Checkboxes & Input Groups --- */
+
 .visage .checkbox-input-group {
     display: grid;
     grid-template-columns: 1.5rem 1fr;
@@ -1175,7 +1184,8 @@ li.context-item .visage-icon-domino {
     gap: var(--filroden-space-xs);
 }
 
-/* --- 6.3 Tag Pills --- */
+/* --- Tag Pills --- */
+
 .visage-tag-container {
     display: flex;
     flex-wrap: wrap;
@@ -1238,7 +1248,7 @@ li.context-item .visage-icon-domino {
     color: var(--visage-color-bg-hover-solid);
 }
 
-/* --- 6.4 WORKSTATION LAYOUT --- */
+/* --- Workstation Layout --- */
 
 .visage-workstation {
     flex: 1;
@@ -1248,7 +1258,8 @@ li.context-item .visage-icon-domino {
     height: 100%;
 }
 
-/* A. Global Header */
+/* --- Global Header --- */
+
 .visage-editor-header {
     background: var(--visage-color-bg-medium-solid);
     border-bottom: 1px solid var(--visage-color-border);
@@ -1260,7 +1271,6 @@ li.context-item .visage-icon-domino {
     gap: var(--filroden-space-l);
 }
 
-/* Header Form Groups */
 .header-form-group {
     display: flex;
     flex-direction: column;
@@ -1281,7 +1291,8 @@ li.context-item .visage-icon-domino {
     min-width: 15rem;
 }
 
-/* Mode Toggle */
+/* --- Mode Toggle --- */
+
 .visage-mode-toggle {
     display: flex;
     background: var(--visage-color-bg-darkest);
@@ -1321,7 +1332,8 @@ li.context-item .visage-icon-domino {
     font-weight: bold;
 }
 
-/* Input Overrides for Header */
+/* --- Input Overrides for Header --- */
+
 .visage-editor-header input {
     width: 100%;
     background: var(--visage-color-bg-darkest);
@@ -1333,7 +1345,8 @@ li.context-item .visage-icon-domino {
     background: var(--visage-color-bg-medium-solid);
 }
 
-/* B. Left Panel (Stage) */
+/* --- Left Panel (Stage) --- */
+
 .visage-stage-panel {
     flex: 1;
     display: flex;
@@ -1344,7 +1357,6 @@ li.context-item .visage-icon-domino {
     min-width: 0; /* Flexbox text overflow fix */
 }
 
-/* Merged Live Preview Styles */
 .visage-live-preview-stage {
     flex: 1;
     position: relative;
@@ -1441,7 +1453,8 @@ li.context-item .visage-icon-domino {
     z-index: 20;
 }
 
-/* Floating Zoom HUD */
+/* --- Floating Zoom HUD --- */
+
 .visage-zoom-controls {
     position: absolute;
     bottom: var(--filroden-space-m);
@@ -1501,7 +1514,6 @@ li.context-item .visage-icon-domino {
 
 /* Ensure content can be transformed */
 .visage-preview-content.stage-mode {
-    /* ... existing styles ... */
     transform-origin: center center;
     transition: transform 0.1s linear; /* Fast transition for smooth zooming */
     cursor: grab;
@@ -1641,7 +1653,8 @@ li.context-item .visage-icon-domino {
     transition: transform 0.2s ease; 
 }
 
-/* C. Right Panel (Inspector) */
+/* --- Right Panel (Inspector) --- */
+
 .visage-inspector-panel {
     flex: 0 0 24rem; /* Fixed width for controls */
     display: flex;
@@ -1656,6 +1669,7 @@ li.context-item .visage-icon-domino {
     display: flex;
     background: var(--visage-color-bg-medium-solid);
     border-bottom: 1px solid var(--visage-color-border);
+    align-items: flex-end;
 }
 
 .visage-tabs .item {
@@ -1669,6 +1683,7 @@ li.context-item .visage-icon-domino {
     transition: all 0.2s;
     font-weight: bold;
     text-transform: uppercase;
+    line-height: 1.5;
 }
 
 .visage-tabs .item:hover {
@@ -1706,7 +1721,8 @@ li.context-item .visage-icon-domino {
     display: none; /* Tabs serve as legends */
 }
 
-/* --- 6.5 Footer --- */
+/* --- Footer --- */
+
 .visage-editor-footer {
     flex: 0 0 auto;
     padding: var(--filroden-space-m);
@@ -1751,7 +1767,8 @@ li.context-item .visage-icon-domino {
     box-shadow: 0 0 8px var(--visage-color-accent-hover);
 }
 
-/* --- 6.6 EFFECTS TAB STYLES --- */
+/* --- Effects Tab Styles --- */
+
 .effects-tab-container {
     position: relative;
     width: 100%;
@@ -1786,7 +1803,8 @@ li.context-item .visage-icon-domino {
 .effects-tab-container.editing .view-inspector { transform: translateX(0); }
 
 
-/* --- VIEW 1: EFFECT STACK --- */
+/* --- View 1: Effect Stack --- */
+
 .effects-actions {
     display: flex;
     gap: var(--filroden-space-s);
@@ -1874,7 +1892,8 @@ li.context-item .visage-icon-domino {
 .effect-btn.delete:hover { color: var(--filroden-color-danger); }
 
 
-/* --- VIEW 2: INSPECTOR --- */
+/* --- View 2: Inspector --- */
+
 .inspector-header {
     display: flex;
     align-items: center;
@@ -1913,6 +1932,13 @@ li.context-item .visage-icon-domino {
     cursor: pointer;
 }
 
+/* Audio hint */
+.visage.visage-editor .hint:has(.visage-icon.info) {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+    margin-top: var(--filroden-space-l)
+}
 
 /* ==========================================================================
    7. APPLICATION: VISAGE GALLERY (Unified)
@@ -2099,6 +2125,8 @@ li.context-item .visage-icon-domino {
     border-top: 1px solid var(--visage-color-border);
 }
 
+/* --- Filter Bar --- */
+
 .visage-filter-bar {
     flex: 0 0 auto;
     display: flex;
@@ -2218,7 +2246,7 @@ li.context-item .visage-icon-domino {
     background-color: var(--filroden-color-danger);
 }
 
-/* --- VISAGE CARD & SHARED VISUALS --- */
+/* --- Visage Card & Shared Visuals --- */
 
 .visage-card {
     background: var(--visage-color-bg-light);
@@ -2742,14 +2770,15 @@ button.visage-tool-icon {
     padding: 0;
 }
 
+
 /* ==========================================================================
-   10. UNIFIED THEME DEFINITIONS (The Engine)
+   10. THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
-/* 1. UNIVERSAL DEFAULTS (The Foundation)
-   Applied to the root .visage class.
-   These act as the "Gold" fallback if no specific theme class is present.
-*/
+/* --- 1. Universal Defaults --- */
+/* The Foundation. Applied to the root .visage class.
+   Acts as the "Gold" fallback if no specific theme class is present. */
+
 .visage {
     /* Backgrounds */
     --visage-color-bg-darkest: var(--filroden-color-bg-darkest);
@@ -2779,7 +2808,8 @@ button.visage-tool-icon {
     --visage-color-border: var(--filroden-color-text-accent);
 }
 
-/* 2. THEME A: GOLD (Local / Visage) */
+/* --- 2. Theme A: Gold (Local / Visage) --- */
+
 .visage-theme-local {
     /* Backgrounds */
     --visage-color-bg-darkest: var(--filroden-color-bg-darkest);
@@ -2809,7 +2839,8 @@ button.visage-tool-icon {
     --visage-color-border: var(--filroden-color-text-accent);
 }
 
-/* 3. THEME B: BLUE (Global / Mask) */
+/* --- 3. Theme B: Blue (Global / Mask) --- */
+
 .visage-theme-global {
     /* Backgrounds (Shifted Hue) */
     --visage-color-bg-darkest: var(--filroden-color2-bg-darkest);

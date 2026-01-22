@@ -2,6 +2,7 @@
  * @file Main entry point for the Visage module.
  * Initializes the API, registers settings, and manages hooks for UI integration.
  * @module visage
+ * @version 3.0.0
  */
 
 import { Visage } from "./src/visage.js";
@@ -30,8 +31,9 @@ const NEEDS_MIGRATION_VERSION = "3.0.0";
 
 /**
  * Opens the Visage Configuration window (Gallery) for a specific actor or token.
- * Handles duplicate window checks to bring existing windows to focus.
- * @param {Actor} actor - The target actor document.
+ * Handles duplicate window checks to bring existing windows to focus rather than
+ * opening multiple instances for the same entity.
+ * * @param {Actor} actor - The target actor document.
  * @param {TokenDocument|null} [token=null] - The specific token document, if applicable.
  */
 function openVisageConfig(actor, token = null) {
@@ -40,7 +42,8 @@ function openVisageConfig(actor, token = null) {
         let tokenId = token?.id || null;
         let sceneId = token?.parent?.id || null;
 
-        // If no token provided but actor is a synthetic token actor, extract context.
+        // If no specific token is provided but the actor is synthetic (unlinked), 
+        // we must extract the token context from the actor itself.
         if (!tokenId && actor.isToken) {
             tokenId = actor.token.id;
             sceneId = actor.token.parent.id;
@@ -68,9 +71,9 @@ function openVisageConfig(actor, token = null) {
 
 /**
  * Helper to extract the Actor ID from a DOM element (directory entry).
- * Supports both jQuery and native DOM elements.
- * @param {jQuery|HTMLElement} li - The list item element.
- * @returns {string|undefined} The Actor ID.
+ * Supports both jQuery objects and native DOM elements.
+ * * @param {jQuery|HTMLElement} li - The list item element from the sidebar.
+ * @returns {string|undefined} The Actor ID, or undefined if not found.
  */
 function getActorIdFromElement(li) {
     const element = (li instanceof jQuery) ? li[0] : li;
@@ -81,12 +84,16 @@ function getActorIdFromElement(li) {
 /* Initialization Hooks                        */
 /* -------------------------------------------- */
 
+/**
+ * Initialization hook.
+ * Sets up the API, registers Handlebars helpers, loads templates, and injects UI controls.
+ */
 Hooks.once("init", () => {
     try {
         Visage.initialize();
         VisageData.registerSettings();
 
-        // Expose API classes to the global scope and module API for third-party integration/debugging.
+        // Expose API classes to the global scope and module API for third-party integration.
         window.VisageData = VisageData;
         window.VisageEditor = VisageEditor;
         window.VisageGallery = VisageGallery;
@@ -95,14 +102,13 @@ Hooks.once("init", () => {
         game.modules.get("visage").api.Editor = VisageEditor;
         game.modules.get("visage").api.Gallery = VisageGallery;
 
-        // 1. Register Handlebars helpers (Use global Handlebars)
+        // Register Handlebars helpers for logic and data formatting in templates
         Handlebars.registerHelper("visageNeq", (a, b) => a !== b);
         Handlebars.registerHelper("visageEq", (a, b) => a === b);
         Handlebars.registerHelper("visageSelected", (condition) => condition ? "selected" : "");
         Handlebars.registerHelper("visageJson", (context) => JSON.stringify(context));
 
-        // 2. Load Templates (use V13 namespaced loader)
-        // This fixes the deprecation warning without breaking the helpers
+        // Preload interface templates
         foundry.applications.handlebars.loadTemplates([
             "modules/visage/templates/visage-selector.hbs",
             "modules/visage/templates/visage-editor.hbs",
@@ -115,6 +121,8 @@ Hooks.once("init", () => {
 
         /**
          * Inject "Visage" option into the Actor Directory context menu.
+         * Checks if the user is the owner of the actor before showing the option.
+         * @param {Array} options - The context menu options array.
          */
         const addSidebarOption = (options) => {
             options.push({
@@ -134,13 +142,17 @@ Hooks.once("init", () => {
             });
         };
 
+        // Hook into both standard and enriched directory context menus
         Hooks.on("getActorContextOptions", (html, options) => addSidebarOption(options));
         Hooks.on("getActorDirectoryEntryContext", (html, options) => {
+            // Prevent duplicate entries if other modules trigger this hook multiple times
             if (!options.some(o => o.name === "VISAGE.Title")) addSidebarOption(options);
         });
 
         /**
          * Inject Header Button into Legacy Actor Sheets (ApplicationV1).
+         * @param {Object} sheet - The ActorSheet application.
+         * @param {Array} buttons - The existing header buttons.
          */
         Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
             if (!sheet.actor.isOwner) return;
@@ -154,6 +166,9 @@ Hooks.once("init", () => {
 
         /**
          * Inject Control Button into ApplicationV2 Actor Sheets.
+         * Handles both `getHeaderControls` and `getActorSheetV2HeaderControls` for compatibility.
+         * @param {Object} app - The ApplicationV2 instance.
+         * @param {Array} controls - The controls array.
          */
         const addAppV2Control = (app, controls) => {
             const actor = app.document;
@@ -167,7 +182,7 @@ Hooks.once("init", () => {
             });
         };
 
-        // Capture tooltip events for Visage-specific elements to enforce custom styling classes.
+        // Enforce custom styling classes on tooltips generated by Visage elements
         document.addEventListener("pointerover", (event) => {
             const target = event.target.closest('[data-tooltip]');
             if (target && target.closest('.visage')) {
@@ -189,13 +204,18 @@ Hooks.once("init", () => {
 /* Scene Controls                              */
 /* -------------------------------------------- */
 
+/**
+ * Adds the Visage Gallery tool to the Scene Controls (Token Layer).
+ * This allows GMs to access the global Visage directory.
+ */
 Hooks.on("getSceneControlButtons", (controls) => {
     if (!game.user.isGM) return;
 
+    // Locate the Token Layer controls.
+    // Handles system-specific control structures (arrays vs objects).
     let tokenLayer = null;
     if (Array.isArray(controls)) tokenLayer = controls.find(c => c.name === "token");
     else {
-        // Fallback for systems that might use object-based controls
         for (const key in controls) {
             const layer = controls[key];
             if (layer.name === "token" || layer.name === "tokens") {
@@ -227,6 +247,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
 
 /**
  * Registers global and world-scope settings for the module.
+ * Includes debugging tools, cleanup utilities, and migration triggers.
  */
 function registerSettings() {
     game.settings.register(Visage.MODULE_ID, "cleanseScene", {
@@ -240,6 +261,7 @@ function registerSettings() {
         onChange: (value) => {
             if (value) {
                 cleanseSceneTokens();
+                // Reset toggle immediately after execution
                 game.settings.set(Visage.MODULE_ID, "cleanseScene", false);
             }
         },
@@ -261,7 +283,7 @@ function registerSettings() {
         },
     });
 
-    // Hidden setting to track data versioning for migrations
+    // Hidden setting to track data versioning for auto-migrations
     game.settings.register(Visage.MODULE_ID, "worldVersion", {
         name: "World Data Version",
         scope: "world",
@@ -281,10 +303,7 @@ function registerSettings() {
         default: false,
         onChange: (value) => {
             if (value) {
-                // Run the full migration suite
                 migrateWorldData();
-                
-                // Reset the switch automatically
                 game.settings.set(Visage.MODULE_ID, "manualMigration", false);
             }
         }
@@ -295,6 +314,10 @@ function registerSettings() {
 /* Ready & Runtime Hooks                       */
 /* -------------------------------------------- */
 
+/**
+ * Ready hook.
+ * Performs environment checks, garbage collection, and data migration if necessary.
+ */
 Hooks.once("ready", async () => {
     if (!game.user.isGM) return;
 
@@ -305,6 +328,7 @@ Hooks.once("ready", async () => {
         const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
         const currentVersion = game.modules.get(Visage.MODULE_ID).version;
 
+        // Check if a migration is required based on the version difference
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {
             // Trigger data migration if the previous version is older than the schema change
             if (foundry.utils.isNewerVersion(NEEDS_MIGRATION_VERSION, lastVersion)) {
@@ -327,6 +351,7 @@ Visage.apps = {};
 /**
  * Tracks rendered Visage applications in the `Visage.apps` registry.
  * This allows singletons to be enforced by ID (e.g., prevent opening the same editor twice).
+ * @param {Application} app - The application instance being rendered.
  */
 Hooks.on("renderApplication", (app) => {
     if (app instanceof VisageSelector || 
@@ -339,7 +364,8 @@ Hooks.on("renderApplication", (app) => {
 });
 
 /**
- * Removes closed Visage applications from the registry.
+ * Removes closed Visage applications from the registry to allow re-opening.
+ * @param {Application} app - The application instance being closed.
  */
 Hooks.on("closeApplication", (app) => {
     if (app instanceof VisageSelector || 
@@ -354,11 +380,15 @@ Hooks.on("closeApplication", (app) => {
 /**
  * Handles Drag-and-Drop of Visage data onto the Canvas.
  * Supports applying a global visage to a specific token via drag.
+ * * Uses dynamic imports to avoid circular dependencies during initial load.
+ * * @param {Canvas} canvas - The canvas instance.
+ * @param {Object} data - The dropped data object.
  */
 Hooks.on("dropCanvasData", async (canvas, data) => {
     if (data.type !== "Visage" || !data.id) return;
     
-    // Dynamic import to prevent circular dependencies during load time
+    // Dynamic import required here because VisageData relies on initialization
+    // occurring before it can be fully utilized in this context.
     const { VisageData } = await import("./src/visage-data.js");
     const { Visage } = await import("./src/visage.js");
     
@@ -366,7 +396,7 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
     const visageData = VisageData.getGlobal(data.id); 
     if (!visageData) return;
 
-    // Find the token under the cursor
+    // Calculate intersection to find the token under the cursor
     const target = canvas.tokens.placeables.find(t => {
         return t.visible && 
                data.x >= t.x && data.x < t.x + t.w &&

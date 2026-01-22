@@ -12,22 +12,28 @@ import { VisageData } from "./visage-data.js";
  * Main Migration Routine.
  * Scans the entire world (Actors, Scene Tokens, and World Settings) for legacy Visage data.
  * If found, it upgrades the data structure and forcefully deletes obsolete keys.
+ * @returns {Promise<void>}
  */
 export async function migrateWorldData() {
     const ns = Visage.DATA_NAMESPACE;
     
     // Step 1: Run Legacy v2.2 Migrations (Cleanup old image paths, baked scales)
+    // Ensures data is clean before adding new v3 properties.
     await _migrateV2(ns);
 
     // Step 2: Run v3.0 Migration (Add 'mode' field for Identity vs Overlay)
+    // This is the critical step for the v3.0 "Unified Model" update.
     await _migrateV3(ns);
 }
 
 /**
  * Executes the v3.0 Schema Migration.
  * Ensures all Visages and Masks have a 'mode' property.
- * - Local Visages -> Default to 'identity'
- * - Global Masks -> Default to 'overlay'
+ * * **Logic:**
+ * - Local Visages (Actors) -> Default to 'identity' (preserves classic Visage behavior).
+ * - Global Masks (Settings) -> Default to 'overlay' (preserves classic Mask behavior).
+ * @param {string} ns - The data namespace.
+ * @private
  */
 async function _migrateV3(ns) {
     ui.notifications.info("Visage: Verifying Data Schema (v3.0)...");
@@ -86,7 +92,10 @@ async function _migrateV3(ns) {
 
 /**
  * Legacy v2.2 Migration Logic.
- * kept for compatibility with older worlds upgrading directly to v3.
+ * Kept for compatibility with older worlds upgrading directly to v3.
+ * Handles moving data from `visages` (v1) to `alternateVisages` (v2) and cleaning image paths.
+ * @param {string} ns - The data namespace.
+ * @private
  */
 async function _migrateV2(ns) {
     const legacyKey = Visage.LEGACY_FLAG_KEY || "visages"; 
@@ -95,6 +104,8 @@ async function _migrateV2(ns) {
     console.groupCollapsed("Visage | Legacy Cleanups (v2.2)");
 
     // 1. Find "Synthetic Actors" (Unlinked Tokens)
+    // We must scan the canvas/scenes because unlinked tokens have their own actor data 
+    // that is NOT present in game.actors.
     const worldTokenMap = new Map(); 
     for (const scene of game.scenes) {
         for (const token of scene.tokens) {
@@ -125,7 +136,7 @@ async function _migrateV2(ns) {
         if (targetContainer) {
             for (const [id, entry] of Object.entries(targetContainer)) {
                 const cleaned = cleanVisageData(entry);
-                // Simple diff check (stringified)
+                // Simple diff check (stringified) to avoid unnecessary database writes
                 if (JSON.stringify(cleaned) !== JSON.stringify(entry)) {
                     updates[`flags.${ns}.${newKey}.${id}`] = cleaned;
                     hasUpdates = true;
@@ -144,10 +155,11 @@ async function _migrateV2(ns) {
 
 /**
  * Universal Cleaner: Migrates a Visage entry to v3 standards.
- * - Converts 'img' -> 'texture.src'
- * - Decouples baked 'texture.scaleX' -> atomic 'scale', 'mirrorX'
- * - Ensures 'mode' exists (defaults to 'identity' if missing during object cleaning)
- * @param {Object} entry - The visage data object.
+ * * **Transformations:**
+ * 1. Converts legacy `img` property to `texture.src`.
+ * 2. Decouples "Baked Scale" (e.g. `texture.scaleX: -1.5`) into atomic properties (`scale: 1.5`, `mirrorX: true`).
+ * 3. Ensures `mode` exists (defaults to 'identity' if missing during object cleaning).
+ * @param {Object} entry - The visage data object to clean.
  * @returns {Object} The clean, migrated entry.
  */
 export function cleanVisageData(entry) {
@@ -168,6 +180,8 @@ export function cleanVisageData(entry) {
     }
 
     // 3. Migrate Baked Scale (Legacy v2.0/v2.1)
+    // We separate the magnitude (scale) from the orientation (mirror/flip)
+    // so they can be layered independently by the Composer.
     const tx = c.texture;
     if (tx && (tx.scaleX !== undefined || tx.scaleY !== undefined)) {
         
@@ -188,10 +202,11 @@ export function cleanVisageData(entry) {
         if (c.mirrorY === undefined && scaleY < 0) c.mirrorY = true;
 
         // C. Clean Texture Object (Remove baked scale)
+        // We delete these so they don't override the atomic properties during composition.
         delete tx.scaleX;
         delete tx.scaleY;
         
-        // Remove texture object if empty
+        // Remove texture object if empty to keep DB clean
         if (Object.keys(tx).length === 0) delete c.texture;
     }
 

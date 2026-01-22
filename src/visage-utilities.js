@@ -5,14 +5,20 @@
  */
 
 export class VisageUtilities {
+    /**
+     * The module ID used for scoping settings and flags.
+     * @type {string}
+     */
     static MODULE_ID = "visage";
 
     /**
      * Centralized logging helper.
+     * respect's the developer mode module if present to suppress noise.
      * @param {string} message - The message to log.
      * @param {boolean} [force=false] - If true, logs even if debug mode is off.
      */
     static log(message, force = false) {
+        // Integrate with _dev-mode module if available for standard debug toggling
         const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(this.MODULE_ID);
         if (shouldLog) console.log(`${this.MODULE_ID} | ${message}`);
     }
@@ -28,15 +34,15 @@ export class VisageUtilities {
     static async resolvePath(path) {
         if (!path) return path;
         
-        // Optimization: If no wildcard, return as is.
+        // Optimization: If no wildcard characters, return the path as is without filesystem lookup.
         if (!path.includes('*') && !path.includes('?')) return path;
 
         // Decode URL components (e.g. %20 -> space) before processing
-        // This ensures 'tokens/my%20images/*.png' becomes 'tokens/my images/*.png' for the browser
+        // This ensures 'tokens/my%20images/*.png' becomes 'tokens/my images/*.png' for the browser file picker
         try {
             path = decodeURIComponent(path);
         } catch (e) {
-            // Ignore decode errors, use raw path
+            // Ignore decode errors, rely on raw path if decoding fails
         }
 
         try {
@@ -45,10 +51,9 @@ export class VisageUtilities {
             let directory = "";
             let pattern = "";
 
-            // Safely resolve the FilePicker class for V12/V13 compatibility
-            const FilePickerClass = foundry.applications?.apps?.FilePicker || FilePicker;
+            const FilePickerClass = foundry.applications?.apps?.FilePicker;
 
-            // Handle S3 Bucket parsing
+            // Handle S3 Bucket parsing logic
             if (/\.s3\./i.test(path)) {
                 source = "s3";
                 const { bucket, keyPrefix } = FilePickerClass.parseS3URL(path);
@@ -60,7 +65,7 @@ export class VisageUtilities {
                 pattern   = lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
             }
             else {
-                // Non-S3 paths
+                // Non-S3 paths (Data/Public)
                 if (path.startsWith("icons/")) source = "public";
 
                 const lastSlash = path.lastIndexOf('/');
@@ -68,15 +73,15 @@ export class VisageUtilities {
                 pattern   = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
             }
 
-            // Convert wildcard pattern to RegExp
-            // Escapes regex chars except * and ? which are converted to .* and .
+            // Convert wildcard pattern to a strict RegExp
+            // We escape standard regex chars (like . or +) but convert * to .* and ? to .
             const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
             const regex = new RegExp(`^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
 
-            // ROBUST BROWSE CALL
+            // Perform the browse call to get file list
             const content = await FilePickerClass.browse(source, directory, browseOptions);
 
-            // Filter files to those matching the wildcard
+            // Filter files returned by the server against our wildcard pattern
             const matches = content.files.filter(file => {
                 const rawName = file.split("/").pop();
                 let name;
@@ -89,10 +94,11 @@ export class VisageUtilities {
             });
 
             if (matches.length) {
+                // Return a random selection from the matched files
                 const choice = matches[Math.floor(Math.random() * matches.length)];
                 return choice;
             } else {
-                // ENABLED DEBUG LOG: Helps identify why resolution failed
+                // Warn specifically if the pattern was valid but no files matched it
                 console.warn(`Visage | Wildcard Resolution Failed: No files matched pattern '${pattern}' in directory '${directory}' (Source: ${source})`);
             }
         }
@@ -105,22 +111,27 @@ export class VisageUtilities {
 
     /**
      * Captures the current visual properties of a token document or a plain data object.
-     * STRICT V2 MODE: Expects modern data structure (texture.src, texture.scaleX).
-     * Used for creating snapshots (the "Original State") before applying masks.
+     * * STRICT V3 MODE: This method ensures we are extracting the standardized V3 schema
+     * (e.g. nested texture objects) regardless of whether the input is a Document or raw data.
+     * * Used for creating snapshots (the "Original State") before applying masks so we can revert later.
      * @param {TokenDocument|Object} data - The token document or data object to inspect.
      * @returns {Object} A standardized visual state object (v2 Schema).
      */
     static extractVisualState(data) {
         if (!data) return {};
         
-        // Helper: Prefer raw source data (if Document) to avoid temporary flags/mods
-        // e.g. Foundry changes document.alpha when hidden; we want the true user setting from _source.
+        // Helper: Prefer raw source data (if Document) to avoid temporary flags/mods.
+        // For example, Foundry modifies `document.alpha` automatically when hidden; 
+        // we want the true user setting from `_source` to avoid capturing temporary states.
         const source = data._source || data;
         
-        // Fallback helper for nested properties which might not be in _source if not updated
+        // Fallback helper for nested properties which might not be in _source if they haven't been updated yet
         const get = (key) => foundry.utils.getProperty(source, key) ?? foundry.utils.getProperty(data, key);
 
+        // Safely extract Ring data (Foundry V12+ Dynamic Token Rings)
         const ringData = source.ring?.toObject?.() ?? source.ring ?? {};
+        
+        // Standardize texture properties
         const textureSrc = get("texture.src");
         const scaleX = get("texture.scaleX") ?? 1.0;
         const scaleY = get("texture.scaleY") ?? 1.0;
@@ -147,6 +158,10 @@ export class VisageUtilities {
     /**
      * Helper to resolve the Target Actor and Token from a set of IDs.
      * Supports resolving from Canvas (Linked), Scene (Unlinked/Synthetic), or Actor directory.
+     * * Priority order:
+     * 1. Specific Token on Canvas (active scene)
+     * 2. Specific Token on a Scene (inactive scene)
+     * 3. Actor Document (Sidebar)
      * @param {Object} ids - { actorId, tokenId, sceneId }
      * @returns {Object} { actor, token } - The resolved documents (or null).
      */
@@ -185,6 +200,7 @@ export class VisageUtilities {
         }
 
         // 2. Theme Classes
+        // Ensure we don't have conflicting classes before adding the new one
         element.classList.remove("visage-theme-local", "visage-theme-global");
         
         if (isLocal) {
@@ -194,6 +210,10 @@ export class VisageUtilities {
         }
     }
 
-    /* Check availability of the Sequencer module to enable effects  */
+    /**
+     * Helper property to check availability of the Sequencer module.
+     * Sequencer is required for advanced visual effects (holograms, glitches, etc).
+     * @returns {boolean} True if Sequencer is active.
+     */
     static get hasSequencer() { return game.modules.get("sequencer")?.active; }
 }

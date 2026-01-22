@@ -1,8 +1,9 @@
 /**
  * @file Handles "Ghost Edit" protection for the Token Configuration window.
- * * PURPOSE: When a token has a Visage applied, its visual data (img, scale, etc.) is modified.
- * If a user opens the Token Config, they normally see the *modified* data. If they save,
- * they accidentally overwrite the token's "true" default state with the temporary Visage data.
+ * * **Purpose:**
+ * When a token has a Visage applied, its visual data (img, scale, etc.) is temporarily overridden.
+ * If a user opens the Token Config, they normally see this *modified* data. Saving the form would 
+ * accidentally overwrite the token's "true" default state with the temporary Visage data.
  * * This module intercepts the Token Config render, retrieves the "Original State" snapshot
  * from the flags, and silently populates the form fields with the *original* data.
  * This ensures that edits made by the user are applied to the base token, not the active mask.
@@ -13,6 +14,8 @@ import { Visage } from "./visage.js";
 
 /**
  * Intercepts the Token Config application render to inject original state data.
+ * This function locates the HTML form and programmatically sets input values to match
+ * the clean "Original State" stored in the token's flags.
  * @param {TokenConfig} app - The Token Configuration application instance.
  * @param {jQuery} html - The jQuery object representing the rendered window.
  * @param {Object} data - The data object used to render the template.
@@ -21,7 +24,7 @@ export function handleGhostEdit(app, html, data) {
     const doc = app.document;
     
     // 1. Safety Checks
-    // Only proceed if this token is actually under Visage control
+    // Only proceed if this token is actually under Visage control and has a snapshot.
     if (!doc || !doc.flags?.[Visage.MODULE_ID]) return;
     
     const originalState = doc.flags[Visage.MODULE_ID].originalState;
@@ -50,7 +53,7 @@ export function handleGhostEdit(app, html, data) {
     }
 
     if (!form) {
-        // Silent fail is acceptable here if the UI is non-standard
+        // Silent fail is acceptable here if the UI is non-standard or cannot be resolved.
         return;
     }
 
@@ -60,6 +63,7 @@ export function handleGhostEdit(app, html, data) {
 
     /**
      * Helper to set an input's value and trigger change events so Foundry detects the update.
+     * Handles standard inputs as well as custom Foundry V12+ elements.
      * @param {string} name - The `name` attribute of the input.
      * @param {any} value - The value to set.
      */
@@ -67,8 +71,9 @@ export function handleGhostEdit(app, html, data) {
         const input = form.querySelector(`[name="${name}"]`);
         if (!input) return;
 
-        // --- SPECIAL CASE: Multi-Checkbox (v12 Ring Effects) ---
-        // Foundry's <multi-checkbox> custom element expects an array of keys, but data might be a bitmask number.
+        // --- SPECIAL CASE: Multi-Checkbox (V12 Ring Effects) ---
+        // Foundry's <multi-checkbox> custom element expects an array of keys.
+        // However, the stored data might be a bitmask number (integer).
         if (input.tagName === "MULTI-CHECKBOX") {
             let arrayValue = value;
             
@@ -85,7 +90,7 @@ export function handleGhostEdit(app, html, data) {
                 arrayValue = [value];
             }
 
-            // Only update if different to avoid infinite loops
+            // Only update if different to avoid infinite loops/reactivity issues
             if (JSON.stringify(input.value) !== JSON.stringify(arrayValue)) {
                 input.value = arrayValue;
                 input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -142,7 +147,7 @@ export function handleGhostEdit(app, html, data) {
 
     // A. Standard Restore Loop
     for (const [key, value] of Object.entries(flatData)) {
-        // Skip internal flags and ID to prevent corruption
+        // Skip internal flags and ID to prevent corruption or overwriting system data
         if (key.startsWith("flags") || key === "_id") continue;
         setInput(key, value);
     }
@@ -150,7 +155,7 @@ export function handleGhostEdit(app, html, data) {
     // B. SPECIAL HANDLING: Mirror & Scale
     // Token Config uses virtual inputs 'mirrorX', 'mirrorY', and 'scale' 
     // which don't strictly exist in the data model (they are derived from texture.scaleX/Y).
-    // We must manually derive and set these.
+    // We must manually derive and set these to ensure the UI controls match the data.
     const tex = originalState.texture || {};
     const scaleX = tex.scaleX ?? 1;
     const scaleY = tex.scaleY ?? 1;
@@ -158,7 +163,7 @@ export function handleGhostEdit(app, html, data) {
     // 1. Derive UI Values
     const isMirrorX = scaleX < 0;
     const isMirrorY = scaleY < 0;
-    const absScale = Math.abs(scaleX); // Assuming uniform scaling for the slider
+    const absScale = Math.abs(scaleX); // Assuming uniform scaling for the main slider
 
     // 2. Inject into UI
     setInput("mirrorX", isMirrorX);

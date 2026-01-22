@@ -182,13 +182,13 @@
                 <a class="item" data-tab="effects">
                     {{localize "VISAGE.Editor.Tabs.Effects"}}
                     {{#unless hasSequencer}}
-                    <i class="fas fa-exclamation-triangle" style="font-size: 0.7em; color: var(--filroden-color-warning); margin-left: 4px;" title="{{localize 'VISAGE.Editor.Effects.DependencyTitle'}}"></i>
+                    <i class="visage-icon warning" style="font-size: 0.7em; color: var(--filroden-color-warning); margin-left: 4px;" title="{{localize 'VISAGE.Editor.Effects.DependencyTitle'}}"></i>
                     {{/unless}}
                 </a>
             </nav>
 
             {{!-- TAB CONTENT CONTAINER --}}
-            <section class="visage-tab-content">
+            <section class="visage-tab-content visage-scrollable">
                 
                 {{!-- TAB 1: APPEARANCE --}}
                 <div class="tab active" data-tab="appearance" data-group="primary">
@@ -364,10 +364,10 @@
                             
                             <div class="effects-actions">
                                 <button type="button" data-action="addVisual">
-                                    <i class="visage-icon visual"></i> Add Visual
+                                    <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Effects.AddVisual"}}
                                 </button>
                                 <button type="button" data-action="addAudio">
-                                    <i class="visage-icon audio"></i> Add Audio
+                                    <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Effects.AddAudio"}}
                                 </button>
                             </div>
 
@@ -389,7 +389,7 @@
                                             <i class="visage-icon visible"></i>
                                             {{/if}}
                                         </button>
-                                        <button type="button" class="effect-btn delete" data-action="deleteEffect" title="{{localize 'VISAGE.Delete'}}">
+                                        <button type="button" class="effect-btn delete" data-action="deleteEffect" title="{{localize 'VISAGE.Actions.Delete'}}">
                                             <i class="visage-icon delete"></i>
                                         </button>
                                     </div>
@@ -398,7 +398,7 @@
                                 
                                 {{#unless effects.length}}
                                 <div class="empty-placeholder" style="padding: 1rem; font-size: 0.8em;">
-                                    No effects added.
+                                    {{localize "VISAGE.Editor.Effects.Empty"}}
                                 </div>
                                 {{/unless}}
                             </div>
@@ -406,13 +406,13 @@
                         </div>
 
                         {{!-- VIEW 2: THE INSPECTOR --}}
-                        <div class="visage-view view-inspector">
+                        <div class="visage-view view-inspector visage-scrollable">
                             
                             <header class="inspector-header">
                                 <button type="button" class="back-btn" data-action="closeEffectInspector">
                                     <i class="visage-icon back"></i>
                                 </button>
-                                <h4 class="inspector-title">Effect Settings</h4>
+                                <h4 class="inspector-title">{{localize "VISAGE.Editor.Effects.SettingsTitle"}}</h4>
                             </header>
 
                             <fieldset class="visage-fieldset inspector-fieldset">
@@ -421,7 +421,7 @@
                             <div class="form-group">
                                 <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
                                 <div class="visage-form-fields">
-                                    <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="Effect Name">
+                                    <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="{{localize 'VISAGE.Editor.Effects.PathPlaceholder'}}">
                                 </div>
                             </div>
 
@@ -509,8 +509,8 @@
                                         </div>
                                     </div>
                                     
-                                    <p class="hint" style="margin-top: 1rem;">
-                                        <i class="fas fa-info-circle"></i> {{localize "VISAGE.Editor.Effects.AudioHint"}}
+                                    <p class="hint">
+                                        <i class="visage-icon info"></i> {{localize "VISAGE.Editor.Effects.AudioHint"}}
                                     </p>
 
                                 {{/if}}
@@ -521,7 +521,7 @@
                     {{else}}
                         {{!-- MISSING DEPENDENCY STATE --}}
                         <div class="empty-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: var(--visage-color-text-muted); padding: 2rem;">
-                            <i class="fas fa-cubes" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <i class="visage-icon extension-off" style="width: 5rem;height: 5rem; margin-bottom: 1rem; opacity: 0.5;"></i>
                             <h3 style="margin-bottom: 0.5rem; color: var(--visage-color-text-main);">{{localize "VISAGE.Editor.Effects.DependencyTitle"}}</h3>
                             <p style="max-width: 300px; line-height: 1.5;">{{localize "VISAGE.Editor.Effects.DependencyHint"}}</p>
                         </div>
