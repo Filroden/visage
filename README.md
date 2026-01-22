@@ -22,6 +22,8 @@
 3. **Configure:** In the Editor's header, give it a Label (e.g., "Wolf Form"), select the mode (Identity) and, on the Appearance tab, click the checkbox next to image and use the filepicker to find a good image of a wolf. Make any other changes you want. Then click "Save Local Layer".
 4. **Apply:** Click the **Play** button on the card. Your token is now a Wolf! From now on, you can quickly choose which Visage to apply from the Selector HUD.
 
+![Applying Visages (Identities and Overlays)](images/v3/apply_visages.gif?raw=true)
+
 <video src="https://raw.githubusercontent.com/Filroden/visage/main/images/v3/apply_visages.mp4" 
        controls="controls" muted="muted" autoplay="autoplay" loop="loop" playsinline="playsinline" 
        style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
