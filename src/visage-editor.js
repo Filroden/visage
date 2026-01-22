@@ -956,7 +956,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onRender(context, options) {
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
-        this.element.addEventListener("change", () => this._markDirty());
+        this.element.addEventListener("change", (event) => {
+            this._markDirty();
+            
+            // Fix: Trigger preview update immediately for Select elements
+            if (event.target.matches("select")) {
+                this._updatePreview();
+            }
+        });
+        
         this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
         
