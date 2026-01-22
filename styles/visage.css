@@ -678,14 +678,14 @@ li.context-item .visage-icon-domino {
 
 /* --- Section Theme Overrides --- */
 
-/* Identity Section = Gold Theme */
-.visage-section.identity-section {
+/* Local Section = Gold Theme */
+.visage-section.local-section {
     --visage-color-accent: var(--filroden-color-text-accent); 
     --visage-color-accent-hover: var(--filroden-color-text-accent-hover);
 }
 
-/* Overlay Section = Blue Theme */
-.visage-section.overlay-section {
+/* Global Section = Blue Theme */
+.visage-section.global-section {
     --visage-color-accent: var(--filroden-color2-text-accent);
     --visage-color-accent-hover: var(--filroden-color2-text-accent-hover);
 }
@@ -2011,13 +2011,13 @@ li.context-item .visage-icon-domino {
 }
 
 /* Apply themes to cards within sections */
-.visage-section.identity-section .visage-card {
+/* .visage-section.identity-section .visage-card {
     --visage-color-accent: var(--filroden-color-text-accent);
 }
 
 .visage-section.overlay-section .visage-card {
     --visage-color-accent: var(--filroden-color2-text-accent);
-}
+} */
 
 .visage-mode-switcher {
     display: flex;
