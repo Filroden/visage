@@ -1,12 +1,6 @@
 import { VisageUtilities } from "./visage-utilities.js";
 
 /**
- * The internal schema version for data migration purposes.
- * @constant {number}
- */
-const SCHEMA_VERSION = 2;
-
-/**
  * The primary data controller class for Visage.
  * Responsible for CRUD operations on both Global (World Settings) and Local (Actor Flags) data.
  * Handles data normalization, presentation formatting, and state extraction.
@@ -573,7 +567,6 @@ export class VisageData {
         
         const entry = {
             id: id,
-            schema: SCHEMA_VERSION,
             label: data.label || "New Mask",
             category: data.category || "",
             tags: data.tags || [],
