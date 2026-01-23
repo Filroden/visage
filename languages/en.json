@@ -20,11 +20,10 @@
     "VISAGE.Selector.Wildcard": "Wildcard Token",
     "VISAGE.Selector.WildcardAlt": "Random Image",
 
-    "_comment_GALLERY": "--- GALLERY & LIBRARY WINDOW ---",
+    "_comment_LIBRARY": "--- LIBRARY WINDOW ---",
     "VISAGE.Directory.Title.Global": "Visage's Global Library",
     "VISAGE.Directory.Title.Local": "Visage's Local Library: {actor}",
     "VISAGE.Directory.Mode.Library": "Library",
-    "VISAGE.Directory.Mode.Gallery": "Gallery",
     "VISAGE.Directory.Mode.Bin": "Recycle Bin",
     "VISAGE.Directory.SearchPlaceholder": "Search by name or tag...",
     
