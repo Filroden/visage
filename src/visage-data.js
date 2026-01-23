@@ -1,21 +1,23 @@
-/* visage-data.js */
 import { VisageUtilities } from "./visage-utilities.js";
 
-const SCHEMA_VERSION = 1;
-
 /**
- * The primary data controller class.
- * Handles CRUD operations for Visages (Local) and Masks (Global),
- * as well as transforming raw data into usable "Layers" or "Presentation Contexts".
+ * The primary data controller class for Visage.
+ * Responsible for CRUD operations on both Global (World Settings) and Local (Actor Flags) data.
+ * Handles data normalization, presentation formatting, and state extraction.
  */
 export class VisageData {
     static MODULE_ID = "visage";
     static DATA_NAMESPACE = "visage";
+    
+    /** Flag key for storing local visages on an Actor. */
     static ALTERNATE_FLAG_KEY = "alternateVisages";
+    
+    /** Setting key for storing global visages in world settings. */
     static SETTING_KEY = "globalVisages";
 
     /**
-     * Registers the world-level game setting used to store the Global Mask Library.
+     * Registers the module settings required for data storage.
+     * Sets up the global dictionary object and change listeners.
      */
     static registerSettings() {
         game.settings.register(this.MODULE_ID, this.SETTING_KEY, {
@@ -28,21 +30,17 @@ export class VisageData {
         });
     }
 
-    /* -------------------------------------------- */
-    /* DATA HELPERS                                */
-    /* -------------------------------------------- */
-
     /**
-     * Prepares the Dynamic Token Ring configuration for UI display.
-     * Decodes the bitmask effects into boolean flags.
-     * @param {Object} ringData - The raw ring data object.
-     * @returns {Object} A context object ready for Handlebars.
+     * Prepares data for the Ring Configuration UI.
+     * Parses bitmask effects into readable boolean flags and UI-ready objects.
+     * @param {Object} ringData - The raw ring data from the document.
+     * @returns {Object} Context object for the Handlebars template.
      */
     static prepareRingContext(ringData) {
         const data = ringData || {};
         const currentEffects = data.effects || 0;
         
-        // Define available effects and their bitmask values
+        // Define available ring effects (Foundry Core Standard)
         const availableEffects = [
             { value: 2, label: "VISAGE.RingConfig.Effects.Pulse", key: "RING_PULSE" },
             { value: 4, label: "VISAGE.RingConfig.Effects.Gradient", key: "RING_GRADIENT" },
@@ -50,6 +48,7 @@ export class VisageData {
             { value: 16, label: "VISAGE.RingConfig.Effects.Invisibility", key: "INVISIBILITY" }
         ];
 
+        // Decode bitmask
         const flags = {
             hasPulse: (currentEffects & 2) !== 0,
             hasGradient: (currentEffects & 4) !== 0,
@@ -77,10 +76,10 @@ export class VisageData {
     }
 
     /**
-     * Extracts the primary image path for a Visage/Mask.
-     * Prioritizes Dynamic Ring subjects over standard Token Textures.
-     * @param {Object} changes - The changes object from a Visage.
-     * @returns {string} The resolved image path or empty string.
+     * Determines the most representative image path for a Visage.
+     * Prioritizes Dynamic Token Ring subjects over standard texture files.
+     * @param {Object} changes - The changes object containing visual data.
+     * @returns {string} The resolved file path.
      */
     static getRepresentativeImage(changes) {
         if (!changes) return "";
@@ -91,79 +90,97 @@ export class VisageData {
         return changes.texture?.src || "";
     }
 
-    /* -------------------------------------------- */
-    /* FACTORY METHODS                             */
-    /* -------------------------------------------- */
-
     /**
-     * Converts a stored data entry into a runtime "Layer" for the VisageComposer.
-     * Handles path resolution and ensures the structure matches the composer's expectations.
-     * @param {Object} data - The stored visage data.
-     * @returns {Promise<Object>} The compiled layer object.
+     * Converts a stored data object into a runtime 'Layer' object.
+     * * Cleans empty keys to prevent overwriting existing data with nulls.
+     * * Resolves wildcard paths into concrete file paths.
+     * * Normalizes Token Ring data structures.
+     * @param {Object} data - The stored Visage data.
+     * @param {string} [source="unknown"] - The source type ('local' or 'global').
+     * @returns {Promise<Object|null>} The sanitized runtime Layer object.
      */
-    static async toLayer(data) {
+    static async toLayer(data, source = "unknown") {
         if (!data) return null;
 
         const layer = {
             id: data.id,
             label: data.label || "Unknown",
+            // Inherit mode if present, otherwise infer from source (Local=Identity, Global=Overlay)
+            mode: data.mode || (source === "local" ? "identity" : "overlay"),
+            source: source,
             changes: foundry.utils.deepClone(data.changes || {})
         };
 
-        // Ensure texture paths are fully resolved (e.g. wildcard selection happens here)
-        if (layer.changes.texture?.src) {
+        // 1. Recursive Clean Function
+        // Used to remove null values and empty objects from the diff.
+        // This ensures that applying this layer doesn't unintentionally unset other properties.
+        const clean = (obj) => {
+            for (const key in obj) {
+                if (obj[key] === null) {
+                    delete obj[key];
+                } else if (typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+                    clean(obj[key]);
+                    // If an object (like 'texture') becomes empty after cleaning children, remove it entirely
+                    if (Object.keys(obj[key]).length === 0) delete obj[key];
+                }
+            }
+        };
+
+        // 2. Clean the changes object
+        clean(layer.changes);
+
+        // 3. Resolve Wildcard Paths
+        // This must happen after cleaning to ensure we actually have a texture to resolve.
+        if (layer.changes?.texture?.src) {
             const resolved = await VisageUtilities.resolvePath(layer.changes.texture.src);
             layer.changes.texture.src = resolved || layer.changes.texture.src;
         }
 
-        // Normalize Ring Data structure
-        if (layer.changes.ring) {
-            layer.changes.ring = {
-                enabled: layer.changes.ring.enabled === true,
-                colors: layer.changes.ring.colors,
-                effects: layer.changes.ring.effects,
-                subject: layer.changes.ring.subject
-            };
+        // 4. Handle Ring Data Structure
+        if (layer.changes?.ring) {
+            if (layer.changes.ring.enabled === true) {
+                // Ensure complete structure for enabled rings
+                layer.changes.ring = {
+                    enabled: true,
+                    colors: layer.changes.ring.colors,
+                    effects: layer.changes.ring.effects,
+                    subject: layer.changes.ring.subject
+                };
+            } else {
+                 // Explicitly minimize disabled rings to avoid merging stale color data
+                 layer.changes.ring = { enabled: false };
+            }
         }
 
         return layer;
     }
 
     /**
-     * Creates a "Virtual Visage" representing the token's current Default state.
-     * This allows the "Default" appearance to be treated like any other card in the UI.
-     * @param {TokenDocument} tokenDoc - The source token document.
-     * @returns {Object} A Visage-like data object.
+     * Captures the default state of a Token as a virtual Visage object.
+     * This represents the "True Form" of the token before any Visage is applied.
+     * @param {TokenDocument} tokenDoc - The target token document.
+     * @returns {Object} A Visage data object representing the default state.
      */
     static getDefaultAsVisage(tokenDoc) {
         if (!tokenDoc) return null;
 
-        // 1. Try Snapshot (Highest Priority)
-        // If a Visage is active, 'originalState' holds the true default data.
+        // Retrieve the cached original state if one exists (Visage active), otherwise snapshot now.
         let sourceData = tokenDoc.flags?.[this.MODULE_ID]?.originalState;
-        
-        // 2. Fallback (If no Visage is active, the token IS the default)
-        // We use the current visual state of the token document itself.
-        // This ensures we capture any manual edits made to the specific token instance.
         if (!sourceData) {
             sourceData = VisageUtilities.extractVisualState(tokenDoc);
         }
 
         const src = sourceData.texture?.src || tokenDoc.texture.src;
-        
-        // Handle Legacy (Baked) vs Atomic Scale
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1.0; 
-        
         const width = sourceData.width ?? 1;
         const height = sourceData.height ?? 1;
         const disposition = sourceData.disposition ?? 0;
-        
         const ringData = sourceData.ring 
             ? (sourceData.ring.toObject ? sourceData.ring.toObject() : sourceData.ring) 
             : {};
-            
-        // Calculate mirroring from negative scale
+        
+        // Check for flipped state in scale
         const flipX = scaleX < 0;
         const flipY = scaleY < 0;
 
@@ -173,6 +190,7 @@ export class VisageData {
             category: "",
             tags: [],
             isDefault: true,
+            mode: "identity",
             changes: {
                 name: sourceData.name,
                 texture: {
@@ -189,11 +207,11 @@ export class VisageData {
     }
 
     /**
-     * Prepares data for UI rendering (Gallery cards, Editor preview, HUD tiles).
-     * Calculates badges, resolves icons, and handles the "Intent vs Default" logic.
-     * @param {Object} data - The raw visage data.
-     * @param {Object} options - Context options (isWildcard, isActive, etc.).
-     * @returns {Object} A context object enriched with `meta` properties for Handlebars.
+     * Formats raw Visage data into a rich object ready for Handlebars rendering.
+     * Generates metadata for UI badges (scales, flips, rings, effects).
+     * @param {Object} data - The raw Visage data.
+     * @param {Object} [options={}] - Formatting options (isActive, isWildcard, etc.).
+     * @returns {Object} The data formatted for the Gallery/Editor UI.
      */
     static toPresentation(data, options = {}) {
         const c = data.changes || {};
@@ -202,60 +220,48 @@ export class VisageData {
         const displayPath = this.getRepresentativeImage(c);
         const isVideo = options.isVideo ?? foundry.helpers.media.VideoHelper.hasVideoExtension(displayPath);
 
-        // --- 1. RESOLVE VALUES ---
+        // Normalize Scale Data
         const atomicScale = c.scale;
         const bakedScaleX = tx.scaleX ?? 1.0;
         const bakedScaleY = tx.scaleY ?? 1.0;
 
-        // Determine Flipped State (Priority: Atomic Mirror > Legacy Negative Scale)
+        // Determine Mirroring (Flip) state
         const isFlippedX = (c.mirrorX !== undefined && c.mirrorX !== null) ? c.mirrorX : (bakedScaleX < 0);
         const isFlippedY = (c.mirrorY !== undefined && c.mirrorY !== null) ? c.mirrorY : (bakedScaleY < 0);
 
-        // Alpha and Lock Rotation states
         const alpha = c.alpha ?? 1.0;
         const lockRotation = c.lockRotation ?? false;
 
-        // --- ICON LOGIC ---
-        const pathIcon = "modules/visage/icons/navigation.svg";
+        // --- Metadata Generation for UI Badges ---
 
-        // A. Horizontal Badge
+        // 1. Mirror Badges
+        const pathIcon = "modules/visage/icons/navigation.svg";
         const hActive = (c.mirrorX !== undefined && c.mirrorX !== null) || (bakedScaleX < 0);
         const hRot = isFlippedX ? "visage-rotate-270" : "visage-rotate-90";
         const hLabel = game.i18n.localize("VISAGE.Mirror.Badge.H");
 
-        // B. Vertical Badge
         const vActive = (c.mirrorY !== undefined && c.mirrorY !== null) || (bakedScaleY < 0);
         const vRot = isFlippedY ? "visage-rotate-180" : "visage-rotate-0";
         const vLabel = game.i18n.localize("VISAGE.Mirror.Badge.V");
 
-        // C. Scale Badge
-        // Active if: Explicit Intent (c.scale exists) OR Legacy Non-Default (baked != 1.0)
+        // 2. Scale Badge
         const isScaleIntent = (atomicScale !== undefined && atomicScale !== null);
         const isScaleNonDefault = Math.abs(bakedScaleX) !== 1.0;
         const isScaleActive = isScaleIntent || isScaleNonDefault;
         
-        const finalScale = (atomicScale !== undefined && atomicScale !== null) 
-            ? atomicScale 
-            : Math.abs(bakedScaleX);
+        const finalScale = (atomicScale !== undefined && atomicScale !== null) ? atomicScale : Math.abs(bakedScaleX);
         const displayScaleVal = Math.round(finalScale * 100);
         const scaleLabel = `${displayScaleVal}%`;
 
-        // D. Dimensions Logic
+        // 3. Dimensions Badge
         const w = c.width ?? 1;
         const h = c.height ?? 1;
-        
-        // Active if: Explicit Intent (Not Null) OR Non-Standard Size (Not 1x1)
         const isDimIntent = (c.width !== undefined && c.width !== null) || (c.height !== undefined && c.height !== null);
         const isDimNonStandard = (w !== 1) || (h !== 1);
         const isDimActive = isDimIntent || isDimNonStandard;
-        
         const sizeLabel = `${w}x${h}`;
 
-        // E. Wildcard Badge
-        const isWildcard = options.isWildcard ?? false;
-        const wildcardLabel = game.i18n.localize("VISAGE.Wildcard.Label"); 
-
-        // F. Disposition Chip
+        // 4. Disposition Badge
         let dispClass = "none";
         let dispLabel = game.i18n.localize("VISAGE.Disposition.NoChange");
         if (c.disposition !== null && c.disposition !== undefined) {
@@ -267,19 +273,41 @@ export class VisageData {
             }
         }
 
-        // G. Opacity Logic
-        // Only active if intent exists AND it's not 1.0
-        const isAlphaActive = (c.alpha !== undefined && c.alpha !== null) && c.alpha !== 1.0;
+        // 5. Effects / Sequencer Badge
+        const rawEffects = c.effects || [];
+        const activeEffects = rawEffects.filter(e => !e.disabled);
+        const hasEffects = activeEffects.length > 0;
         
-        // H. Lock Rotation Logic
-        // Active if explicit intent exists (true OR false).
-        const isLockActive = (c.lockRotation !== undefined && c.lockRotation !== null);
-        const isLocked = (c.lockRotation === true);
-        const lockLabel = isLocked 
-            ? game.i18n.localize("VISAGE.RotationLock.Locked") 
-            : game.i18n.localize("VISAGE.RotationLock.Unlocked");
+        let effectsTooltip = "";
+        if (hasEffects) {
+            const listItems = activeEffects.map(e => {
+                const icon = e.type === "audio" ? "visage-icon audio" : "visage-icon visual";
+                let meta = "";
 
+                if (e.type === "audio") {
+                    const volLabel = game.i18n.localize("VISAGE.Editor.Effects.Volume");
+                    meta = `${volLabel}: ${Math.round((e.opacity ?? 0.8) * 100)}%`;
+                } else {
+                    const zLabel = e.zOrder === "below" 
+                        ? game.i18n.localize("VISAGE.Editor.Effects.Below") 
+                        : game.i18n.localize("VISAGE.Editor.Effects.Above");
+                    meta = zLabel;
+                }
+                
+                return `
+                <div class='visage-tooltip-row'>
+                    <i class='${icon}'></i> 
+                    <span class='label'>${e.label || "Effect"}</span>
+                    <span class='meta'>${meta}</span>
+                </div>`;
+            }).join("");
+            
+            effectsTooltip = `<div class='visage-tooltip-content'>${listItems}</div>`;
+        }
+
+        // 6. Ring Context
         const ringCtx = this.prepareRingContext(c.ring);
+        const isWildcard = options.isWildcard ?? false;
 
         return {
             ...data,
@@ -288,14 +316,13 @@ export class VisageData {
             isWildcard: isWildcard,
             path: displayPath,
             scale: finalScale,
-            
             isFlippedX,
             isFlippedY,
             forceFlipX: isFlippedX,
             forceFlipY: isFlippedY,
-
             alpha: alpha,
             lockRotation: lockRotation,
+            mode: data.mode, 
             
             meta: {
                 hasRing: ringCtx.enabled,
@@ -311,55 +338,59 @@ export class VisageData {
                 showDispositionChip: dispClass !== "none",
                 tokenName: c.name || null,
                 
+                hasEffects: hasEffects,
+                effectsTooltip: effectsTooltip,
+
                 slots: {
                     scale: { active: isScaleActive, val: scaleLabel },
                     dim: { active: isDimActive, val: sizeLabel },
-                    alpha: { active: isAlphaActive, val: `${Math.round(alpha * 100)}%` },
-                    lock: { active: isLockActive, val: lockLabel },
+                    alpha: { active: (c.alpha !== undefined && c.alpha !== null) && c.alpha !== 1.0, val: `${Math.round(alpha * 100)}%` },
+                    lock: { active: (c.lockRotation !== undefined && c.lockRotation !== null), val: c.lockRotation ? game.i18n.localize("VISAGE.RotationLock.Locked") : game.i18n.localize("VISAGE.RotationLock.Unlocked") },
                     flipH: { active: hActive, src: pathIcon, cls: hRot, val: hLabel },
                     flipV: { active: vActive, src: pathIcon, cls: vRot, val: vLabel },
-                    wildcard: { active: isWildcard, val: wildcardLabel },
+                    wildcard: { active: isWildcard, val: game.i18n.localize("VISAGE.Wildcard.Label") },
                     disposition: { class: dispClass, val: dispLabel }
                 }
             }
         };
     }
-
-    static _getRawGlobal() {
-        return game.settings.get(this.MODULE_ID, this.SETTING_KEY);
-    }
+   
+    /**
+     * Retrieves the raw settings object for global visages.
+     * @private
+     */
+    static _getRawGlobal() { return game.settings.get(this.MODULE_ID, this.SETTING_KEY); }
 
     /**
-     * @returns {Array<Object>} List of all non-deleted Global Masks.
+     * @returns {Array} List of all active global visages, sorted by creation date.
      */
     static get globals() {
         const raw = this._getRawGlobal();
-        return Object.values(raw)
-            .filter(v => !v.deleted)
-            .map(v => foundry.utils.deepClone(v))
-            .sort((a, b) => b.created - a.created);
+        return Object.values(raw).filter(v => !v.deleted).map(v => foundry.utils.deepClone(v)).sort((a, b) => b.created - a.created);
     }
 
     /**
-     * @returns {Array<Object>} List of deleted Global Masks (Recycle Bin).
+     * @returns {Array} List of deleted global visages (Trash), sorted by deletion date.
      */
     static get bin() {
         const raw = this._getRawGlobal();
-        return Object.values(raw)
-            .filter(v => v.deleted)
-            .map(v => foundry.utils.deepClone(v))
-            .sort((a, b) => b.deletedAt - a.deletedAt);
+        return Object.values(raw).filter(v => v.deleted).map(v => foundry.utils.deepClone(v)).sort((a, b) => b.deletedAt - a.deletedAt);
     }
 
+    /**
+     * Retrieves a single global visage by ID.
+     * @param {string} id - The ID of the visage.
+     * @returns {Object|null} The visage data or null.
+     */
     static getGlobal(id) {
         const data = this._getRawGlobal()[id];
         return data ? foundry.utils.deepClone(data) : null;
     }
 
     /**
-     * Retrieves all Local Visages from a specific Actor.
-     * @param {Actor} actor - The target actor.
-     * @returns {Array<Object>} List of visages.
+     * Retrieves all local visages stored on a specific Actor.
+     * @param {Actor} actor - The actor document.
+     * @returns {Array} Sorted list of local visages.
      */
     static getLocal(actor) {
         if (!actor) return [];
@@ -369,7 +400,7 @@ export class VisageData {
 
         for (const [key, data] of Object.entries(sourceData)) {
             if (!data) continue;
-            // Ensure ID exists (fallback to key for migrated data)
+            // Handle legacy data structure where ID might not be in the body
             const id = (key.length === 16) ? key : (data.id || foundry.utils.randomID(16));
             if (data.changes) {
                 results.push({
@@ -377,6 +408,7 @@ export class VisageData {
                     label: data.label || data.name || "Unknown",
                     category: data.category || "",
                     tags: Array.isArray(data.tags) ? data.tags : [],
+                    mode: data.mode || "identity", 
                     changes: foundry.utils.deepClone(data.changes),
                     deleted: !!data.deleted
                 });
@@ -385,72 +417,65 @@ export class VisageData {
         return results.sort((a, b) => a.label.localeCompare(b.label));
     }
 
-    /* -------------------------------------------- */
-    /* DATA OPERATIONS                              */
-    /* -------------------------------------------- */
-
     /**
-     * Promotes a Local Visage to the Global Mask Library.
-     * Creates a deep copy of the data in the world settings so it is accessible to all tokens.
+     * Promotes a Local Visage (Actor-specific) to a Global Visage (World Setting).
      * @param {Actor} actor - The source actor.
      * @param {string} visageId - The ID of the local visage to promote.
      */
     static async promote(actor, visageId) {
         const localVisages = this.getLocal(actor);
         const source = localVisages.find(v => v.id === visageId);
-        
-        if (!source) {
-            ui.notifications.warn("Visage | Could not find source visage to promote.");
-            return;
-        }
+        if (!source) return ui.notifications.warn("Visage | Source not found.");
 
-        // Prepare Payload: Deep Clone and Strip ID
-        // (ID will be regenerated by _saveGlobal to avoid conflicts)
         const payload = {
             label: source.label,
             category: source.category,
             tags: source.tags ? [...source.tags] : [],
+            mode: source.mode, 
             changes: foundry.utils.deepClone(source.changes)
         };
 
         await this._saveGlobal(payload);
-        
         ui.notifications.info(game.i18n.format("VISAGE.Notifications.Promoted", { name: payload.label }));
     }
 
     /**
-     * Swaps the token's Default state with a specific Visage.
-     * Creates a backup of the previous default before overwriting.
+     * Commits a Visage to be the new "Default" appearance of a token/actor.
+     * * Creates a backup of the current default appearance as a Local Visage.
+     * * Updates the Token Prototype (if linked) or Token Document (if unlinked).
+     * * Refreshes the "Original State" flag to prevent Visage from trying to "restore" the old look.
+     * * Removes the active Visage effect since it is now the base reality.
      * @param {Token|string} tokenOrId - The target token.
-     * @param {string} visageId - The ID of the Visage to make default.
+     * @param {string} visageId - The ID of the Visage to commit.
      */
     static async commitToDefault(tokenOrId, visageId) {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
-        if (!token || !token.actor) return ui.notifications.warn("Visage | No actor found for commit.");
-
+        if (!token || !token.actor) return ui.notifications.warn("Visage | No actor found.");
+        
         const targetVisage = this.getLocal(token.actor).find(v => v.id === visageId);
         if (!targetVisage) return ui.notifications.warn("Visage | Target Visage not found.");
-
+        
         const currentDefault = this.getDefaultAsVisage(token.document);
         if (!currentDefault) return;
 
-        // 1. Create Backup of Current Default
+        // 1. Backup current default
         const backupData = {
             label: `${currentDefault.changes.name || token.name} (Backup)`,
             category: "Backup",
             tags: ["Backup", ...(currentDefault.tags || [])],
+            mode: "identity",
             changes: currentDefault.changes
         };
         await this._saveLocal(backupData, token.actor);
 
-        // 2. Prepare New Default Data (Merge)
+        // 2. Prepare new default data (Merge target on top of current default)
         const newDefaultData = foundry.utils.mergeObject(
             foundry.utils.deepClone(currentDefault.changes), 
             foundry.utils.deepClone(targetVisage.changes), 
             { inplace: false, insertKeys: true, overwrite: true }
         );
 
-        // 3. Construct Update Payload for Token Document
+        // 3. Construct update payload for the Document
         const updatePayload = {};
         if (newDefaultData.name) updatePayload.name = newDefaultData.name;
         if (newDefaultData.texture) {
@@ -468,92 +493,89 @@ export class VisageData {
             if (updatePayload[key] === undefined) delete updatePayload[key];
         }
 
-        // 4. Update Token (Linked or Unlinked)
+        // 4. Apply Updates
         const isLinked = token.document.isLinked;
-        if (isLinked) {
-            await token.actor.update({ prototypeToken: updatePayload });
-        } else {
-            await token.document.update(updatePayload);
-        }
+        if (isLinked) await token.actor.update({ prototypeToken: updatePayload });
+        else await token.document.update(updatePayload);
 
-        // 5. Update Snapshot Flag (to prevent immediate revert)
+        // 5. Update the "Original State" flag so Visage accepts this as the new normal
         const newOriginalState = VisageUtilities.extractVisualState({
             ...token.document.toObject(), 
             ...foundry.utils.expandObject(updatePayload) 
         });
 
-        await token.document.update({
-            [`flags.${this.DATA_NAMESPACE}.originalState`]: newOriginalState
-        });
+        await token.document.update({ [`flags.${this.DATA_NAMESPACE}.originalState`]: newOriginalState });
 
-        // 6. Cleanup active visage layers
+        // 6. Remove the active mask (since it is now the base)
         const VisageApi = game.modules.get(this.MODULE_ID).api;
-        if (VisageApi) {
-            await VisageApi.remove(token.id, visageId);
-        }
+        if (VisageApi) await VisageApi.remove(token.id, visageId);
         
         ui.notifications.info(game.i18n.format("VISAGE.Notifications.DefaultSwapped", { label: targetVisage.label }));
     }
 
+    /**
+     * Saves a Visage (creates or updates).
+     * @param {Object} payload - The data to save.
+     * @param {Actor|null} [actor=null] - The target actor (null implies Global).
+     */
     static async save(payload, actor = null) {
         if (actor) return this._saveLocal(payload, actor);
         return this._saveGlobal(payload);
     }
 
+    /**
+     * Soft-deletes a Visage.
+     * @param {string} id - The ID of the visage.
+     * @param {Actor|null} [actor=null] - The target actor (null implies Global).
+     */
     static async delete(id, actor = null) {
-        if (actor) {
-            return actor.update({
-                [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true
-            });
-        }
+        if (actor) return actor.update({ [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true });
         return this.updateGlobal(id, { deleted: true, deletedAt: Date.now() });
     }
 
+    /**
+     * Restores a soft-deleted Visage from the bin.
+     * @param {string} id - The ID of the visage.
+     * @param {Actor|null} [actor=null] - The target actor.
+     */
     static async restore(id, actor = null) {
-        if (actor) {
-            return actor.update({
-                [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false
-            });
-        }
+        if (actor) return actor.update({ [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false });
         return this.updateGlobal(id, { deleted: false, deletedAt: null });
     }
 
+    /**
+     * Permanently destroys a Visage record.
+     * @param {string} id - The ID of the visage.
+     * @param {Actor|null} [actor=null] - The target actor.
+     */
     static async destroy(id, actor = null) {
-        if (actor) {
-            return actor.update({
-                [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null
-            });
-        }
+        if (actor) return actor.update({ [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null });
         const all = this._getRawGlobal();
         if (all[id]) {
             delete all[id];
             await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
-            console.log(`Visage | Permanently destroyed Global Visage (${id})`);
         }
     }
 
-    /* -------------------------------------------- */
-    /* INTERNAL STORAGE HELPERS                    */
-    /* -------------------------------------------- */
+    // --- Internal Save/Update Helpers ---
 
     static async _saveGlobal(data) {
         const all = this._getRawGlobal();
         const id = data.id || foundry.utils.randomID(16);
         const timestamp = Date.now();
         const existing = all[id];
-        const changes = foundry.utils.deepClone(data.changes || {});
-
+        
         const entry = {
             id: id,
-            schema: SCHEMA_VERSION,
             label: data.label || "New Mask",
             category: data.category || "",
             tags: data.tags || [],
+            mode: data.mode || "overlay", 
             created: existing ? existing.created : timestamp,
             updated: timestamp,
             deleted: false,
             deletedAt: null,
-            changes: changes
+            changes: foundry.utils.deepClone(data.changes || {})
         };
 
         all[id] = entry;
@@ -572,14 +594,13 @@ export class VisageData {
 
     static async _saveLocal(data, actor) {
         const id = data.id || foundry.utils.randomID(16);
-        const changes = foundry.utils.deepClone(data.changes || {});
-
         const entry = {
             id: id,
             label: data.label,
             category: data.category,
             tags: data.tags,
-            changes: changes,
+            mode: data.mode || "identity", 
+            changes: foundry.utils.deepClone(data.changes || {}),
             updated: Date.now()
         };
 
@@ -590,8 +611,8 @@ export class VisageData {
     }
 
     /**
-     * Periodically cleans up deleted items from the Recycle Bin.
-     * Currently set to auto-delete items older than 30 days.
+     * Runs garbage collection on Global Visages.
+     * Removes items from the bin that have exceeded the retention period (30 days).
      */
     static async runGarbageCollection() {
         if (!game.user.isGM) return;
@@ -599,12 +620,14 @@ export class VisageData {
         const now = Date.now();
         const all = this._getRawGlobal();
         let dirty = false;
+        
         for (const [id, entry] of Object.entries(all)) {
             if (entry.deleted && entry.deletedAt && (now - entry.deletedAt) > RETENTION_MS) {
                 delete all[id];
                 dirty = true;
             }
         }
+        
         if (dirty) await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
     }
 }

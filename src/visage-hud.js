@@ -10,18 +10,18 @@ import { VisageSelector } from "./visage-selector.js";
 
 /**
  * Hook handler for `renderTokenHUD`.
- * Injects the Visage control button into the left column of the HUD.
+ * Injects the Visage control button into the left column of the HUD and binds the click listener.
  * @param {TokenHUD} app - The TokenHUD application instance.
  * @param {HTMLElement} html - The HTML element of the HUD.
  * @param {Object} data - The data context used to render the HUD.
  */
 export async function handleTokenHUD(app, html, data) {
     // 1. Prevention & Permissions
-    // Avoid duplicate buttons if the hook fires multiple times.
+    // Avoid duplicate buttons if the hook fires multiple times (which can happen during rapid updates).
     if (html.querySelector('.visage-button')) return;
 
     const token = app.object; 
-    // Only allow owners to see the Visage controls.
+    // Only allow owners to see the Visage controls to prevent players modifying tokens they don't own.
     if (!token?.actor?.isOwner) return; 
 
     const actor = token.actor;
@@ -32,11 +32,11 @@ export async function handleTokenHUD(app, html, data) {
     const title = game.i18n.localize("VISAGE.Title");
     const buttonHtml = `
         <div class="control-icon visage-button" title="${title}">
-            <img src="modules/visage/icons/switch_account.svg" alt="${title}" class="visage-icon">
+            <img src="modules/visage/icons/domino_mask.svg" alt="${title}" class="visage-icon">
         </div>
     `;
     
-    // Inject into the left column (usually contains combat/attribute controls)
+    // Inject into the left column (standard location for combat/attribute controls)
     const colLeft = html.querySelector(".col.left");
     if (!colLeft) return;
 
@@ -61,7 +61,8 @@ export async function handleTokenHUD(app, html, data) {
             const buttonRect = button.getBoundingClientRect();
             const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
             
-            // Hardcoded width matches CSS (14rem) to ensure alignment before rendering
+            // Hardcoded width matches CSS (14rem) to ensure alignment before rendering.
+            // This prevents the window from "jumping" after it loads.
             const selectorWidth = 14 * rootFontSize; 
             const gap = 16; 
             

@@ -1,9 +1,10 @@
 /**
  * Main stylesheet for the Visage module.
- * * TABLE OF CONTENTS
+ *
+ * TABLE OF CONTENTS
  * -----------------
  * 1. Variables & Theme Overrides
- * 2. Shared Styles
+ * 2. Shared Styles (Inputs, Buttons, Tooltips)
  * 3. Application: Universal Shell
  * 4. Application: Visage Selector (HUD)
  * 5. Icons
@@ -32,6 +33,8 @@
     scrollbar-width: auto !important;
     scrollbar-color: auto !important;
 }
+
+/* --- Scrollbars --- */
 
 .visage .visage-scrollable::-webkit-scrollbar {
     width: 8px !important;
@@ -66,8 +69,21 @@
    2. SHARED STYLES
    ========================================================================== */
 
+/* AppV1 sheet headers */
+a.header-button.visage-config {
+    display: inline-flex;
+}
+
+/* Actor sidebar context menu */
+li.context-item .visage-icon-domino {
+    width: 12px;
+    height: 12px;
+}
+
 /* --- Tooltips --- */
+
 #tooltip.visage-tooltip {
+    max-width: 300px !important;
     border: 1px solid var(--filroden-color-text-accent);
     border-radius: var(--filroden-radius-small);
     padding: var(--filroden-space-s);
@@ -82,7 +98,45 @@
     margin-top: var(--filroden-space-m);
 }
 
+:root:lang(ar) #tooltip.visage-tooltip,
+:root:lang(he) #tooltip.visage-tooltip,
+:root:lang(fa) #tooltip.visage-tooltip,
+:root:lang(ur) #tooltip.visage-tooltip {
+    direction: rtl;
+    text-align: right;
+}
+
+.visage-tooltip-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xs);
+}
+
+.visage-tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    font-size: var(--filroden-font-size-xs);
+    padding: var(--filroden-space-xxs) var(--filroden-space-xs);
+}
+
+.visage-tooltip-row i {
+    width: 1rem;
+    text-align: center;
+    color: var(--visage-color-accent);
+}
+
+.visage-tooltip-row .label {
+    flex: 1;
+    font-weight: var(--filroden-font-weight-bold);
+}
+
+.visage-tooltip-row .meta {
+    opacity: 0.7;
+}
+
 /* --- Inputs and Selects --- */
+
 .visage input[type="text"],
 .visage input[type="number"],
 .visage select {
@@ -109,6 +163,7 @@
 }
 
 /* --- Buttons --- */
+
 .visage button {
     background: var(--visage-color-bg-light-solid);
     border: 1px solid var(--visage-color-border);
@@ -124,6 +179,7 @@
 }
 
 /* --- Accessibility Interactions --- */
+
 .visage *:focus-visible,
 .visage button:focus {
     outline: 2px solid var(--visage-color-accent);
@@ -142,6 +198,7 @@
 }
 
 /* --- Checkboxes --- */
+
 .visage-checkbox {
     appearance: auto;
     accent-color: var(--visage-color-accent);
@@ -160,7 +217,8 @@
     content: none;
 }
 
-/* --- Layout --- */
+/* --- Layout Utils --- */
+
 .visage .visage-form-fields {
     display: flex;
     flex-direction: row;
@@ -173,7 +231,7 @@
 
 .visage-divider {
     border: none;
-    height: 4px;
+    height: 2px;
     width: 100%;
     background-color: var(--visage-color-accent);
     background-image: none;
@@ -181,7 +239,8 @@
     opacity: 1;
 }
 
-/* --- Combobox  --- */
+/* --- Combobox Overrides --- */
+
 .visage input:-webkit-autofill,
 .visage input:-webkit-autofill:hover, 
 .visage input:-webkit-autofill:focus, 
@@ -205,37 +264,33 @@
     filter: invert(1); 
 }
 
-/* SVG Icon styling to match Font Awesome */
+/* --- SVG Icon Masks --- */
+
 .visage-icon-action {
     display: inline-block;
     width: 1.25rem;
     height: 1.25rem;
     background-color: currentColor;
-    
-    /* Standard Mask Properties */
     -webkit-mask-size: contain;
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
     mask-position: center;
-    
-    /* Reset margins if reusing styles */
     margin: 0;
 }
 
-/* Specific Icon Definitions */
 .visage-icon-action.domino {
     -webkit-mask-image: url('../icons/domino_mask.svg');
     mask-image: url('../icons/domino_mask.svg');
 }
 .visage-icon-action.visage {
-    -webkit-mask-image: url('../icons/switch_account.svg');
-    mask-image: url('../icons/switch_account.svg');
+    -webkit-mask-image: url('../icons/domino_mask.svg');
+    mask-image: url('../icons/domino_mask.svg');
 }
 
-/* --- Opacity & Lock Additions --- */
-/* Chequerboard Background for Opacity Previews */
+/* --- Opacity & Lock Indicators --- */
+
 .visage-checkerboard-bg {
     background-color: var(--visage-color-bg-darkest);
     background-image: conic-gradient(
@@ -246,30 +301,6 @@
     );
     background-size: 20px 20px;
     background-position: center;
-}
-
-/* Lock Indicator Badge (HUD) - Left Flank Position */
-.visage .visage-lock-indicator {
-    position: absolute;
-    top: 50%;
-    inset-inline-start: -8px; 
-    transform: translateY(-50%);
-    width: var(--filroden-font-size-l);
-    height: var(--filroden-font-size-l);
-    border-radius: 50%;
-    background-color: var(--filroden-color-text-muted-solid);
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.visage .visage-lock-indicator img {
-    width: var(--filroden-space-m);
-    height: var(--filroden-space-m);
-    border: none;
-    filter: invert(100%);
 }
 
 /* Ghost Lock Watermark (Preview Cards) - Top Right Overlay */
@@ -292,8 +323,29 @@
     filter: invert(100%); 
 }
 
+/* --- Effect Layers --- */
+
+.visage-effect-layer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    max-width: none; /* Allow effects to exceed token bounds */
+    max-height: none;
+    pointer-events: none;
+    transform-origin: center center;
+    /* Size logic: Sequencer effects usually target the grid size. 
+       In our preview, 100% = Token Width. */
+    width: 100%; 
+    height: auto;
+    will-change: transform;
+}
+
+.visage-effect-layer.below { z-index: 0; }
+.visage-effect-layer.above { z-index: 10; }
+
+
 /* ==========================================================================
-   3. Application: Universal Shell
+   3. APPLICATION: UNIVERSAL SHELL
    ========================================================================== */
 
 .application.visage,
@@ -323,6 +375,7 @@
 }
 
 /* --- Application Headers --- */
+
 .visage .window-header {
     background: var(--visage-color-header) !important;
     border: none !important;
@@ -349,6 +402,8 @@
     margin-inline-end: 0;
 }
 
+/* --- Fieldsets --- */
+
 .visage .visage-fieldset {
     border: 1px solid var(--visage-color-border);
     border-radius: var(--filroden-radius-medium);
@@ -373,10 +428,14 @@
     align-items: center;
 }
 
+/* --- Badges & Indicators --- */
+
 .visage .visage-chip,
 .visage .visage-default-indicator,
 .visage .visage-wildcard-indicator,
-.visage .visage-flip-indicator {
+.visage .visage-flip-indicator,
+.visage .visage-lock-indicator,
+.visage .visage-effects-indicator {
     position: absolute;
     width: var(--filroden-font-size-l);
     height: var(--filroden-font-size-l);
@@ -384,14 +443,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--filroden-shadow-card);
     z-index: 10;
 }
 
 .visage .visage-chip img,
 .visage .visage-default-indicator img,
 .visage .visage-wildcard-indicator img,
-.visage .visage-flip-indicator img {
+.visage .visage-flip-indicator img,
+.visage .visage-lock-indicator img,
+.visage .visage-effects-indicator img {
     width: var(--filroden-space-m);
     height: var(--filroden-space-m);
     font-size: var(--filroden-font-size-xs);
@@ -399,7 +460,9 @@
 }
 
 .visage .visage-chip img,
-.visage .visage-default-indicator img {
+.visage .visage-default-indicator img,
+.visage .visage-effects-indicator img,
+.visage .visage-lock-indicator img {
     filter: invert(100%);
 }
 
@@ -435,6 +498,23 @@
 .visage .visage-flip-indicator img {
     transform: scaleX(var(--filroden-dir-flip));
 }
+
+.visage .visage-effects-indicator {
+    top: 33%;
+    inset-inline-start: -8px;
+    transform: translateY(-50%);    
+    background-color: #90f8ff; 
+
+}
+
+.visage .visage-lock-indicator {
+    top: 66%;
+    inset-inline-start: -8px; 
+    transform: translateY(-50%);
+    background-color: var(--filroden-color-text-muted-solid);
+}
+
+/* --- Data Chips --- */
 
 .visage .visage-data-chip {
     position: absolute;
@@ -474,6 +554,8 @@
     border-inline-start: 1px solid var(--visage-color-text-muted);
 }
 
+/* --- Disposition Chips --- */
+
 .visage .visage-disposition-chip {
     width: 100%;
     text-align: center;
@@ -506,6 +588,7 @@
     transform: scaleX(var(--filroden-dir-flip));
 }
 
+
 /* ==========================================================================
    4. APPLICATION: VISAGE SELECTOR (HUD)
    ========================================================================== */
@@ -513,7 +596,7 @@
 .visage.visage-selector-app {
     position: fixed; 
     display: block;
-    width: 14rem !important; 
+    width: 14rem !important; /* Hardcoded to match JS calculation */
     max-height: 460px; 
 }
 
@@ -535,6 +618,7 @@
     margin-bottom: var(--filroden-space-m);
     border-bottom: 1px solid var(--visage-color-border);
     padding-bottom: var(--filroden-space-xs);
+    gap: var(--filroden-space-s);
 }
 
 .visage .visage-selector-header .visage-title {
@@ -561,6 +645,52 @@
 .visage .visage-config-button:hover {
     opacity: 1;
 }
+
+/* --- Section Headers (Sticky) --- */
+
+.visage-section {
+    margin-bottom: var(--filroden-space-l);
+}
+
+.visage-section-header {
+    position: sticky;
+    top: 0;
+    z-index: 200; /* Above tiles */
+    background: var(--visage-color-bg-darkest);
+    padding: var(--filroden-space-xs) var(--filroden-space-s);
+    margin: 0 0 var(--filroden-space-s) 0;
+    border-radius: var(--filroden-radius-small);
+    border-bottom: 2px solid var(--visage-color-accent);
+    color: var(--visage-color-accent);
+    font-size: var(--filroden-font-size-s);
+    font-weight: var(--filroden-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    box-shadow: var(--filroden-shadow-popout);
+}
+
+.visage-section-header i {
+    font-size: 1.1em;
+}
+
+/* --- Section Theme Overrides --- */
+
+/* Local Section = Gold Theme */
+.visage-section.local-section {
+    --visage-color-accent: var(--filroden-color-text-accent); 
+    --visage-color-accent-hover: var(--filroden-color-text-accent-hover);
+}
+
+/* Global Section = Blue Theme */
+.visage-section.global-section {
+    --visage-color-accent: var(--filroden-color2-text-accent);
+    --visage-color-accent-hover: var(--filroden-color2-text-accent-hover);
+}
+
+/* --- Stack List --- */
 
 .visage .visage-stack-list {
     display: flex;
@@ -653,6 +783,8 @@
     background: inherit;
 }
 
+/* --- Grid Display --- */
+
 .visage .visage-selector-grid-wrapper {
     overflow-y: auto;
     overflow-x: hidden; 
@@ -667,6 +799,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: max(24px, 1.5rem) var(--filroden-space-l); 
     width: 100%;
+    margin-top: var(--filroden-space-l);
 }
 
 .visage .visage-tile {
@@ -772,8 +905,9 @@
 .visage .visage-disposition-chip.hostile  { border-color: #ff0000; }
 .visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
 
+
 /* ==========================================================================
-   5. Icons
+   5. ICONS
    ========================================================================== */
 
 .visage-icon {
@@ -794,7 +928,6 @@
     -webkit-mask-position: center;
     mask-position: center;
     margin: 0;
-    margin-inline-end: var(--filroden-space-xs);
 }
 
 .visage-sidebar .search-bar .visage-icon.search {
@@ -810,9 +943,19 @@
     margin: 0;
 }
 
-/* Header Icon Aliases */
+/* --- Header Icon Aliases --- */
 /* These map the legacy class names used in JS to the new SVG system */
+
 .visage-icon-domino {
+    display: inline-block;
+    width: var(--filroden-font-size-l);
+    height: var(--filroden-font-size-l);
+    background-color: currentColor;
+    -webkit-mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
+    mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
+}
+
+.visage-header-icon {
     display: inline-block;
     width: var(--filroden-font-size-l);
     height: var(--filroden-font-size-l);
@@ -822,21 +965,25 @@
     margin-inline-end: 0.5rem;
 }
 
-.visage-icon-mask, 
-.visage-header-icon {
+.visage-icon-nav {
+    transform: scaleX(var(--filroden-dir-flip));
     display: inline-block;
-    width: var(--filroden-font-size-l);
-    height: var(--filroden-font-size-l);
-    background-color: currentColor;
-    -webkit-mask: url('../icons/switch_account.svg') no-repeat center / 100% 100%;
-    mask: url('../icons/switch_account.svg') no-repeat center / 100% 100%;
-    margin-inline-end: 0.5rem;
+    vertical-align: middle;
 }
 
-/* Specific Mappings */
+/* --- Global Rotation Classes --- */
+
+.visage-rotate-0   { transform: rotate(0deg); }   /* Points Up */
+.visage-rotate-90  { transform: rotate(90deg); }  /* Points Right */
+.visage-rotate-180 { transform: rotate(180deg); } /* Points Down */
+.visage-rotate-270 { transform: rotate(270deg); } /* Points Left */
+
+/* --- Specific Mappings --- */
+
 .visage-icon.play        { -webkit-mask-image: url('../icons/play_arrow.svg'); mask-image: url('../icons/play_arrow.svg'); }
 .visage-icon.edit        { -webkit-mask-image: url('../icons/edit_square.svg'); mask-image: url('../icons/edit_square.svg'); }
 .visage-icon.delete      { -webkit-mask-image: url('../icons/delete.svg'); mask-image: url('../icons/delete.svg'); }
+.visage-icon.restore     { -webkit-mask-image: url('../icons/restore_from_trash.svg'); mask-image: url('../icons/restore_from_trash.svg'); }
 .visage-icon.save        { -webkit-mask-image: url('../icons/file_save.svg'); mask-image: url('../icons/file_save.svg'); }
 .visage-icon.open        { -webkit-mask-image: url('../icons/file_open.svg'); mask-image: url('../icons/file_open.svg'); }
 .visage-icon.copy        { -webkit-mask-image: url('../icons/content_copy.svg'); mask-image: url('../icons/content_copy.svg'); }
@@ -848,10 +995,30 @@
 .visage-icon.close       { -webkit-mask-image: url('../icons/close.svg'); mask-image: url('../icons/close.svg'); }
 .visage-icon.sync        { -webkit-mask-image: url('../icons/sync_alt.svg'); mask-image: url('../icons/sync_alt.svg'); }
 .visage-icon.domino      { -webkit-mask-image: url('../icons/domino_mask.svg'); mask-image: url('../icons/domino_mask.svg'); }
-.visage-icon.visage      { -webkit-mask-image: url('../icons/switch_account.svg'); mask-image: url('../icons/switch_account.svg'); }
+.visage-icon.scale       { -webkit-mask-image: url('../icons/square_foot.svg'); mask-image: url('../icons/square_foot.svg'); }
+.visage-icon.dimensions  { -webkit-mask-image: url('../icons/aspect_ratio.svg'); mask-image: url('../icons/aspect_ratio.svg'); }
+.visage-icon.wildcard    { -webkit-mask-image: url('../icons/shuffle.svg'); mask-image: url('../icons/shuffle.svg'); }
+.visage-icon.lock        { -webkit-mask-image: url('../icons/lock_reset.svg'); mask-image: url('../icons/lock_reset.svg'); }
+.visage-icon.image-search { -webkit-mask-image: url('../icons/image_search.svg'); mask-image: url('../icons/image_search.svg'); }
+.visage-icon.undo        { -webkit-mask-image: url('../icons/undo.svg'); mask-image: url('../icons/undo.svg'); }
+.visage-icon.save-update { -webkit-mask-image: url('../icons/save.svg'); mask-image: url('../icons/save.svg'); }
+.visage-icon.wand-stars  { -webkit-mask-image: url('../icons/wand_stars.svg'); mask-image: url('../icons/wand_stars.svg'); }
+.visage-icon.zoom-in       { -webkit-mask-image: url('../icons/zoom_in.svg'); mask-image: url('../icons/zoom_in.svg'); }
+.visage-icon.zoom-out      { -webkit-mask-image: url('../icons/zoom_out.svg'); mask-image: url('../icons/zoom_out.svg'); }
+.visage-icon.center-focus  { -webkit-mask-image: url('../icons/center_focus_strong.svg'); mask-image: url('../icons/center_focus_strong.svg'); }
+.visage-icon.grid-on       { -webkit-mask-image: url('../icons/grid_3x3.svg'); mask-image: url('../icons/grid_3x3.svg'); }
+.visage-icon.grid-off      { -webkit-mask-image: url('../icons/grid_3x3_off.svg'); mask-image: url('../icons/grid_3x3_off.svg'); }
+.visage-icon.back        { -webkit-mask-image: url('../icons/arrow_back.svg'); mask-image: url('../icons/arrow_back.svg'); }
+.visage-icon.visual      { -webkit-mask-image: url('../icons/style.svg'); mask-image: url('../icons/style.svg'); }
+.visage-icon.audio       { -webkit-mask-image: url('../icons/music_note.svg'); mask-image: url('../icons/music_note.svg'); }
+.visage-icon.visible     { -webkit-mask-image: url('../icons/visibility.svg'); mask-image: url('../icons/visibility.svg'); }
+.visage-icon.visage-hidden      { -webkit-mask-image: url('../icons/visibility_off.svg'); mask-image: url('../icons/visibility_off.svg'); }
+.visage-icon.stacks     { -webkit-mask-image: url('../icons/stacks.svg'); mask-image: url('../icons/stacks.svg'); }
+.visage-icon.extension-off { -webkit-mask-image: url('../icons/extension_off.svg'); mask-image: url('../icons/extension_off.svg'); }
+.visage-icon.warning       { -webkit-mask-image: url('../icons/warning.svg'); mask-image: url('../icons/warning.svg'); }
+.visage-icon.info          { -webkit-mask-image: url('../icons/info.svg'); mask-image: url('../icons/info.svg'); }
 
 #token-hud .control-icon .visage-icon,
-#token-hud .control-icon .visage-icon-mask,
 #token-hud .control-icon .visage-icon-domino {
     display: block; 
     margin: auto;
@@ -864,26 +1031,62 @@
 }
 
 #token-hud .control-icon:hover .visage-icon,
-#token-hud .control-icon:hover .visage-icon-mask,
 #token-hud .control-icon:hover .visage-icon-domino {
     opacity: 1;
 }
 
+.visage-icon.large {
+    width: 3rem;
+    height: 3rem;
+}
+
 
 /* ==========================================================================
-   6. APPLICATION: VISAGE EDITOR (Unified)
+   6. APPLICATION: VISAGE EDITOR (Unified Workstation)
    ========================================================================== */
 
+/* --- Base Window & Typography --- */
+
 .visage.visage-editor {
-    width: 60rem !important;
+    min-width: 65rem !important;
     max-width: 95vw;
-    min-height: 40rem;
-    height: auto !important;
+    min-height: 45rem;
+    height: 52rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.visage.visage-editor .window-content {
+    flex: 1;    
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important; 
+    overflow: hidden;
+    background: var(--visage-color-bg-darkest);
+    min-height: 0;
+}
+
+.visage.visage-editor .window-content form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+}
+
+.visage-editor-container.workstation-layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    min-height: 0;
 }
 
 .visage.visage-editor label {
-    color: var(--visage-color-text-muted-solid) !important;
+    color: var(--visage-color-text-muted-solid);
     font-weight: var(--filroden-font-weight-bold);
+    font-size: var(--filroden-font-size-xs);
+    text-transform: uppercase;
 }
 
 .visage.visage-editor .hint,
@@ -897,24 +1100,24 @@
     font-size: var(--filroden-font-size-xs);
 }
 
-.visage.visage-editor .visage-notes {
-    margin-bottom: var(--filroden-space-l);
-}
+/* --- Form Elements & States --- */
 
 .visage.visage-editor input:disabled,
 .visage.visage-editor select:disabled,
 .visage.visage-editor button:disabled {
-    opacity: 0.7 !important;
+    opacity: 0.5 !important;
     color: var(--filroden-color-text-muted) !important;
     cursor: not-allowed !important;
-    border-color: var(--visage-color-border) !important;
-    border-style: dashed !important;
+    border-color: transparent !important;
+    background: rgba(0,0,0,0.2) !important;
     box-shadow: none !important;
 }
 
 .visage.visage-editor select {
     background-color: var(--visage-color-bg-light) !important;
     color: var(--visage-color-text-main-solid) !important;
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-small);
 }
 
 .visage.visage-editor select option {
@@ -922,40 +1125,25 @@
     color: var(--visage-color-text-main-solid) !important;
 }
 
-/* Layout Grids */
-.visage-editor-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: var(--filroden-space-l);
-    padding-bottom: var(--filroden-space-m);
-}
+/* --- Checkboxes & Input Groups --- */
 
-.visage-column {
-    display: grid;
-    gap: var(--filroden-space-m);
-}
-
-.visage-column .column-header {
-    border-bottom: 2px solid var(--visage-color-accent);
-    padding-bottom: var(--filroden-space-xs);
-    margin-bottom: 0;
-    color: var(--visage-color-text-main-solid);
-    font-size: var(--filroden-font-size-m);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-/* Checkbox + Input Group Styling */
 .visage .checkbox-input-group {
     display: grid;
     grid-template-columns: 1.5rem 1fr;
     align-items: center;
     gap: var(--filroden-space-xs);
+    margin-bottom: var(--filroden-space-s);
 }
 
 .visage .checkbox-input-group:has(label) {
-    grid-template-columns: 1.5rem auto 1fr;
+    grid-template-columns: 1.5rem max-content 1fr;
     gap: var(--filroden-space-s);
+}
+
+.visage .checkbox-input-group .visage-form-fields {
+    display: flex;
+    gap: var(--filroden-space-xs);
+    width: 100%;
 }
 
 .visage .checkbox-input-group .stacked-selects {
@@ -963,7 +1151,20 @@
     flex-direction: column;
     gap: var(--filroden-space-s);
     width: 100%;
-    height: 4rem;
+}
+
+.visage .visage-form-fields.mirroring-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--filroden-space-s) var(--filroden-space-m);
+    align-items: center;
+    width: 100%;
+}
+
+.visage .mirroring-grid label {
+    margin: 0;
+    text-align: end;
+    color: var(--visage-color-text-muted);
 }
 
 .visage .master-toggle {
@@ -974,6 +1175,7 @@
     color: var(--visage-color-accent);
     cursor: pointer;
     line-height: 1.5;
+    margin-bottom: var(--filroden-space-s);
 }
 
 .visage .effects-grid {
@@ -982,42 +1184,14 @@
     gap: var(--filroden-space-xs);
 }
 
-/* Live Preview Container */
-.visage .visage-live-preview-stage {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.visage .visage-live-preview-stage::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    opacity: 0.1;
-    background-image: 
-        linear-gradient(var(--filroden-color-border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--filroden-color-border) 1px, transparent 1px);
-    background-size: var(--filroden-font-size-xl) var(--filroden-font-size-xl);
-    z-index: 0;
-}
-
-.visage .visage-live-preview-stage .visage-card {
-    position: relative;
-    z-index: 1;
-    width: 18rem;
-}
-
 /* --- Tag Pills --- */
+
 .visage-tag-container {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--filroden-space-xs);
-    background: var(--visage-color-bg-medium-solid);
+    background: var(--visage-color-bg-darkest);
     border: 1px solid var(--visage-color-border);
     border-radius: var(--filroden-radius-small);
     padding: var(--filroden-space-xs);
@@ -1058,7 +1232,6 @@
     font-weight: var(--filroden-font-weight-bold);
     padding: var(--filroden-space-xxs) var(--filroden-space-s);
     margin-inline-end: var(--filroden-space-xs);
-    margin-bottom: var(--filroden-space-xs);
     border-radius: var(--filroden-radius-large);
     white-space: nowrap;
 }
@@ -1075,16 +1248,503 @@
     color: var(--visage-color-bg-hover-solid);
 }
 
-/* --- Editor Footer --- */
-.visage .visage-editor-footer {
-    flex: none;
-    margin-top: var(--filroden-space-l);
+/* --- Workstation Layout --- */
+
+.visage-workstation {
+    flex: 1;
+    display: flex;
+    overflow: hidden; 
+    min-height: 0;
+    height: 100%;
+}
+
+/* --- Global Header --- */
+
+.visage-editor-header {
+    background: var(--visage-color-bg-medium-solid);
+    border-bottom: 1px solid var(--visage-color-border);
+    padding: var(--filroden-space-m);
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row; 
+    align-items: flex-end; /* Align inputs to bottom */
+    gap: var(--filroden-space-l);
+}
+
+.header-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xs);
+}
+
+.header-form-group.label-group {
+    flex: 1; 
+    min-width: 12rem;
+}
+
+.header-form-group.category-group {
+    flex: 0 0 12rem;
+}
+
+.header-form-group.tags-group {
+    flex: 1.5;
+    min-width: 15rem;
+}
+
+/* --- Mode Toggle --- */
+
+.visage-mode-toggle {
+    display: flex;
+    background: var(--visage-color-bg-darkest);
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-small);
+    padding: 2px;
+    gap: 2px;
+}
+
+.visage-mode-toggle input[type="radio"] {
+    display: none;
+}
+
+.visage-mode-toggle label {
+    flex: 1;
+    text-align: center;
+    padding: var(--filroden-space-xs) var(--filroden-space-s);
+    cursor: pointer;
+    border-radius: var(--filroden-radius-small);
+    font-size: var(--filroden-font-size-xs);
+    color: var(--visage-color-text-muted);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--filroden-space-s);
+}
+
+.visage-mode-toggle label:hover {
+    background: var(--visage-color-bg-hover);
+    color: var(--visage-color-text-main);
+}
+
+.visage-mode-toggle input[type="radio"]:checked + label {
+    background: var(--visage-color-accent);
+    color: var(--visage-color-bg-darkest);
+    font-weight: bold;
+}
+
+/* --- Input Overrides for Header --- */
+
+.visage-editor-header input {
+    width: 100%;
+    background: var(--visage-color-bg-darkest);
+}
+
+.visage-tag-container.compact {
+    min-height: 1.6rem;
+    padding: 0 var(--filroden-space-xs);
+    background: var(--visage-color-bg-medium-solid);
+}
+
+/* --- Left Panel (Stage) --- */
+
+.visage-stage-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #000; /* Cinema black for preview */
+    position: relative;
+    border-inline-end: 1px solid var(--visage-color-border);
+    min-width: 0; /* Flexbox text overflow fix */
+}
+
+.visage-live-preview-stage {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 25rem;
+    
+    /* Define this as a query container for size relative units */
+    container-type: size;
+
+    /* Checkerboard background */
+    background-color: var(--visage-color-bg-darkest);
+    background-image: conic-gradient(
+        rgba(255,255,255,0.05) 90deg, 
+        transparent 90deg 180deg, 
+        rgba(255,255,255,0.05) 180deg 270deg, 
+        transparent 270deg
+    );
+    background-size: 20px 20px;
+    background-position: center;
+}
+
+.visage-live-preview-stage::before {
+    /* Retain the grid overlay effect if desired */
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    background-image: 
+        linear-gradient(var(--filroden-color-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--filroden-color-border) 1px, transparent 1px);
+    background-size: var(--filroden-font-size-xl) var(--filroden-font-size-xl);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Used for the token preview content wrapper */
+.visage-preview-content.stage-mode {
+    width: 80cqmin;
+    height: 80cqmin;
+    display: block;    
+    position: relative;
+    z-index: 1;
+    transform-origin: center center;
+    overflow: visible;    
+    cursor: grab;
+    isolation: isolate;
+}
+
+.visage-token-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2; /* Middle Layer */
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.visage-preview-content img.visage-preview-img,
+.visage-preview-content video.visage-preview-video,
+.visage-preview-content .fallback-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Ensure effects don't get clipped by the token container */
+.visage-preview-content.stage-mode .visage-effect-layer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center center;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+    will-change: transform;
+}
+
+.stage-overlay-name {
+    position: absolute;
+    top: var(--filroden-space-m);
+    left: 0; 
+    right: 0;
+    text-align: center;
+    color: var(--visage-color-text-main-solid);
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    pointer-events: none;
+    z-index: 20;
+}
+
+/* --- Floating Zoom HUD --- */
+
+.visage-zoom-controls {
+    position: absolute;
+    bottom: var(--filroden-space-m);
+    inset-inline-end: var(--filroden-space-m);
+    display: flex;
+    gap: var(--filroden-space-xs);
+    background: rgba(0, 0, 0, 0.5);
+    padding: var(--filroden-space-xs);
+    border-radius: var(--filroden-radius-small);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 20;
+    opacity: 0; /* Hidden by default, shown on hover */
+    transition: opacity 0.2s ease;
+}
+
+.visage-live-preview-stage:hover .visage-zoom-controls {
+    opacity: 1;
+}
+
+.visage-zoom-controls button {
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--visage-color-text-main-solid);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.visage-zoom-controls button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--visage-color-accent);
+}
+
+/* Interaction Hint Overlay */
+.visage-stage-hint {
+    position: absolute;
+    top: var(--filroden-space-m);
+    inset-inline-start: var(--filroden-space-m);
+    color: var(--visage-color-text-muted);
+    font-size: var(--filroden-font-size-xs);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Show hint on hover */
+.visage-live-preview-stage:hover .visage-stage-hint {
+    opacity: 0.8;
+}
+
+/* Ensure content can be transformed */
+.visage-preview-content.stage-mode {
+    transform-origin: center center;
+    transition: transform 0.1s linear; /* Fast transition for smooth zooming */
+    cursor: grab;
+}
+
+.visage-preview-content.stage-mode:active {
+    cursor: grabbing;
+}
+
+/* Grid Overlay - Now attached to the CONTENT so it Pans/Zooms */
+.visage-preview-content.stage-mode::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    
+    /* Default: Hidden */
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    
+    /* Grid Pattern: Uses CSS variables set by JS to match Token Dimensions */
+    --grid-w: var(--visage-dim-w, 1);
+    --grid-h: var(--visage-dim-h, 1);
+    
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.5) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.5) 2px, transparent 2px);
+    
+    /* Calculate cell size based on token dimensions */
+    background-size: calc(100% / var(--grid-w)) calc(100% / var(--grid-h));
+    
+    /* Ensure border aligns with the edges */
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-sizing: border-box;
+
+    z-index: 100; /* overlay on top of image */
+    pointer-events: none;
+}
+
+/* Visibility Toggle */
+.visage-live-preview-stage.show-grid .visage-preview-content.stage-mode::after {
+    opacity: 0.7;
+}
+
+/* Metadata Grid (Bottom of Left Panel) */
+.metadata-grid {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: var(--filroden-space-m); 
+    padding: var(--filroden-space-m);
+    background: var(--visage-color-bg-medium-solid);
+    border-top: 1px solid var(--visage-color-border);
+    font-size: var(--filroden-font-size-m); 
+    color: var(--visage-color-text-muted);
+}
+
+.meta-item {
+    display: grid;
+    grid-template-columns: max-content 1fr 1fr; 
+    align-items: center;
+    gap: var(--filroden-space-s);
+    min-width: 0;
+}
+
+.meta-item i, .meta-item img {
+    width: 1.2em;
+    height: 1.2em;
+    font-size: 1em;
+    text-align: center;
+    color: var(--visage-color-text-main-solid);
+}
+
+.meta-label {
+    font-weight: bold;
+    color: var(--visage-color-text-muted-solid);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meta-value {
+    color: var(--visage-color-text-main-solid);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: start;
+}
+
+.meta-item.inactive { opacity: 0.4; }
+
+.visage-disposition-text {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+.visage-disposition-text.friendly { color: #00ffff; }
+.visage-disposition-text.neutral  { color: #ffff00; }
+.visage-disposition-text.hostile  { color: #ff0000; }
+.visage-disposition-text.secret   { color: #ff00ff; }
+
+.meta-item.mirror-split {
+    display: grid;
+    grid-template-columns: 1.2em 1fr 1fr;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    padding: 0;
+    background: transparent;
+}
+
+.mirror-sub-slot.horizontal {
+    grid-column: 1 / 3;
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    width: 100%;
+}
+
+.mirror-sub-slot.vertical {
+    grid-column: 3 / 4;
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    justify-content: start;
+    width: 100%;
+}
+
+.mirror-sub-slot.inactive {
+    opacity: 0.4;
+    color: var(--filroden-color-text-muted);
+}
+
+.mirror-sub-slot img {
+    width: 1.2em;
+    height: 1.2em;
+    margin-inline-end: var(--filroden-space-xs);
+    transform-origin: center;
+    transition: transform 0.2s ease; 
+}
+
+/* --- Right Panel (Inspector) --- */
+
+.visage-inspector-panel {
+    flex: 0 0 24rem; /* Fixed width for controls */
+    display: flex;
+    flex-direction: column;
+    background: var(--visage-color-bg-darkest);
+    border-inline-start: 1px solid var(--filroden-color-border);
+}
+
+/* Tabs */
+.visage-tabs {
+    flex: 0 0 auto;
+    display: flex;
+    background: var(--visage-color-bg-medium-solid);
+    border-bottom: 1px solid var(--visage-color-border);
+    align-items: flex-end;
+}
+
+.visage-tabs .item {
+    flex: 1;
+    text-align: center;
+    padding: var(--filroden-space-s);
+    color: var(--visage-color-text-muted);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: var(--filroden-font-size-s);
+    transition: all 0.2s;
+    font-weight: bold;
+    text-transform: uppercase;
+    line-height: 1.5;
+}
+
+.visage-tabs .item:hover {
+    color: var(--visage-color-text-main-solid);
+    background: rgba(255,255,255,0.05);
+}
+
+.visage-tabs .item.active {
+    color: var(--visage-color-accent);
+    border-bottom-color: var(--visage-color-accent);
+    background: transparent;
+    text-shadow: none;
+}
+
+.visage-tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--filroden-space-l);
+}
+
+/* Ensure form groups in inspector have spacing */
+.visage-tab-content .form-group {
+    margin-bottom: var(--filroden-space-m);
+}
+
+/* Clean up fieldsets inside inspector */
+.visage .inspector-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    box-shadow: none;
+}
+.visage .inspector-fieldset legend {
+    display: none; /* Tabs serve as legends */
+}
+
+.visage-missing-dependency {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--visage-color-text-muted);
+    padding: 2rem;
+}
+
+/* --- Footer --- */
+
+.visage-editor-footer {
+    flex: 0 0 auto;
+    padding: var(--filroden-space-m);
+    border-top: 1px solid var(--visage-color-border);
+    background: var(--visage-color-bg-medium-solid);
     display: flex;
     justify-content: flex-end;
     gap: var(--filroden-space-m);
 }
 
-.visage .visage-reset-btn {
+.visage-reset-btn {
     margin-inline-end: auto;    
     background: transparent;
     border: 1px solid var(--visage-color-text-muted);
@@ -1094,7 +1754,7 @@
     opacity: 0.8;
 }
 
-.visage .visage-reset-btn:hover {
+.visage-reset-btn:hover {
     opacity: 1;
     color: var(--filroden-color-warning);
     background: rgba(255, 255, 255, 0.05);
@@ -1116,6 +1776,179 @@
     background: var(--visage-color-accent-hover);
     border-color: var(--visage-color-accent-hover);
     box-shadow: 0 0 8px var(--visage-color-accent-hover);
+}
+
+/* --- Effects Tab Styles --- */
+
+.effects-tab-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Hide the slide-out content */
+}
+
+/* Only apply flex when the tab is active */
+.effects-tab-container.active {
+    display: flex;
+}
+
+.visage-view {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: var(--filroden-space-l);
+    overflow-y: auto;
+    background: var(--visage-color-bg-darkest);
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* State: Default (List visible, Inspector hidden to right) */
+.view-list { transform: translateX(0); z-index: 1; }
+.view-inspector { transform: translateX(100%); z-index: 2; }
+
+/* State: Editing (List hidden to left, Inspector visible) */
+.effects-tab-container.editing .view-list { transform: translateX(-30%); opacity: 0; }
+.effects-tab-container.editing .view-inspector { transform: translateX(0); }
+
+
+/* --- View 1: Effect Stack --- */
+
+.effects-actions {
+    display: flex;
+    gap: var(--filroden-space-s);
+    margin-bottom: var(--filroden-space-m);
+    flex: 0 0 auto;
+}
+
+.effects-actions button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--filroden-font-size-xs);
+}
+
+.effect-stack-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xs);
+}
+
+.effect-card {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    background: var(--visage-color-bg-medium-solid);
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-small);
+    padding: var(--filroden-space-xs);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.effect-card:hover {
+    border-color: var(--visage-color-accent);
+    background: var(--visage-color-bg-light);
+}
+
+.effect-icon {
+    width: 2rem;
+    height: 2rem;
+    background: rgba(0,0,0,0.3);
+    border-radius: var(--filroden-radius-small);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--visage-color-accent);
+}
+
+.effect-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.effect-name {
+    font-weight: bold;
+    font-size: var(--filroden-font-size-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.effect-meta {
+    font-size: 0.65rem;
+    color: var(--visage-color-text-muted);
+}
+
+.effect-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+}
+
+.effect-btn {
+    width: 2rem;
+    height: 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--visage-color-text-muted);
+    padding: 0;
+}
+.effect-btn:hover { color: var(--visage-color-text-main-solid); }
+.effect-btn.delete:hover { color: var(--filroden-color-danger); }
+
+
+/* --- View 2: Inspector --- */
+
+.inspector-header {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-m);
+    padding-bottom: var(--filroden-space-m);
+    border-bottom: 1px solid var(--visage-color-border);
+    margin-bottom: var(--filroden-space-m);
+}
+
+.back-btn {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    flex: 0 0 auto;
+}
+
+.inspector-title {
+    margin: 0;
+    font-size: var(--filroden-font-size-m);
+    color: var(--visage-color-accent);
+}
+
+/* Rotation Group (Input + Random Checkbox) */
+.rotation-group .visage-form-fields {
+    display: grid;
+    grid-template-columns: 1fr max-content;
+    gap: var(--filroden-space-s);
+}
+
+.rotation-random-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--visage-color-text-muted);
+    cursor: pointer;
+}
+
+/* Audio hint */
+.visage.visage-editor .hint:has(.visage-icon.info) {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+    margin-top: var(--filroden-space-l)
 }
 
 /* ==========================================================================
@@ -1177,12 +2010,25 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    display: block; 
+    padding: var(--filroden-space-l);
+}
+
+.visage-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--filroden-space-m);
     align-content: start;
-    padding: var(--filroden-space-l);
 }
+
+/* Apply themes to cards within sections */
+/* .visage-section.identity-section .visage-card {
+    --visage-color-accent: var(--filroden-color-text-accent);
+}
+
+.visage-section.overlay-section .visage-card {
+    --visage-color-accent: var(--filroden-color2-text-accent);
+} */
 
 .visage-mode-switcher {
     display: flex;
@@ -1289,6 +2135,8 @@
     padding-top: var(--filroden-space-l);
     border-top: 1px solid var(--visage-color-border);
 }
+
+/* --- Filter Bar --- */
 
 .visage-filter-bar {
     flex: 0 0 auto;
@@ -1409,7 +2257,7 @@
     background-color: var(--filroden-color-danger);
 }
 
-/* --- VISAGE CARD & SHARED VISUALS --- */
+/* --- Visage Card & Shared Visuals --- */
 
 .visage-card {
     background: var(--visage-color-bg-light);
@@ -1497,10 +2345,6 @@
 }
 
 /* Mirroring Icons */
-.visage-rotate-0   { transform: rotate(0deg); }   /* Points Up */
-.visage-rotate-90  { transform: rotate(90deg); }  /* Points Right */
-.visage-rotate-180 { transform: rotate(180deg); } /* Points Down */
-.visage-rotate-270 { transform: rotate(270deg); } /* Points Left */
 .metadata-slot img.visage-icon-nav {
     width: 1rem;
     height: 1rem;
@@ -1533,6 +2377,34 @@
     user-select: none;
 }
 
+.visage-card .card-zone-center .visage-card-effect-indicator {
+    pointer-events: auto;
+    cursor: help;
+}
+
+.visage-card-effect-indicator {
+    position: absolute;
+    top: var(--filroden-space-s);
+    inset-inline-start: var(--filroden-space-s);
+    width: 2rem;
+    height: 2rem;
+    background: rgba(0, 0, 0, 0.75);
+    border: var(--filroden-border-main);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    backdrop-filter: blur(4px);
+    box-shadow: var(--filroden-shadow-popout);
+}
+
+.visage-card-effect-indicator img {
+    width: 1.5rem;
+    height: 1.5rem;
+    opacity: 0.9;
+}
+
 .visage-preview-content {
     position: relative;
     width: 100%;
@@ -1550,7 +2422,7 @@
     z-index: 1; 
     pointer-events: none;
     border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--ring-bkg), black 70%) 0%, black 100%);
+    background: color-mix(in srgb, var(--ring-bkg), black 60%);
     transform: scale(0.9);
 }
 
@@ -1909,14 +2781,25 @@ button.visage-tool-icon {
     padding: 0;
 }
 
+.control-icon.visage-button {
+    padding: 0;
+}
+
+#token-hud .control-icon.visage-button .visage-icon {
+    width: 32px;
+    height: 32px;
+    padding: 1px;
+}
+
+
 /* ==========================================================================
-   10. UNIFIED THEME DEFINITIONS (The Engine)
+   10. THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
-/* 1. UNIVERSAL DEFAULTS (The Foundation)
-   Applied to the root .visage class.
-   These act as the "Gold" fallback if no specific theme class is present.
-*/
+/* --- 1. Universal Defaults --- */
+/* The Foundation. Applied to the root .visage class.
+   Acts as the "Gold" fallback if no specific theme class is present. */
+
 .visage {
     /* Backgrounds */
     --visage-color-bg-darkest: var(--filroden-color-bg-darkest);
@@ -1946,7 +2829,8 @@ button.visage-tool-icon {
     --visage-color-border: var(--filroden-color-text-accent);
 }
 
-/* 2. THEME A: GOLD (Local / Visage) */
+/* --- 2. Theme A: Gold (Local / Visage) --- */
+
 .visage-theme-local {
     /* Backgrounds */
     --visage-color-bg-darkest: var(--filroden-color-bg-darkest);
@@ -1976,7 +2860,8 @@ button.visage-tool-icon {
     --visage-color-border: var(--filroden-color-text-accent);
 }
 
-/* 3. THEME B: BLUE (Global / Mask) */
+/* --- 3. Theme B: Blue (Global / Mask) --- */
+
 .visage-theme-global {
     /* Backgrounds (Shifted Hue) */
     --visage-color-bg-darkest: var(--filroden-color2-bg-darkest);

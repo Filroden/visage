@@ -2,27 +2,23 @@
     
     {{!-- SIDEBAR --}}
     <aside class="visage-sidebar">
-        
-        {{!-- MODE SWITCHER (TABS) --}}
         <div class="visage-mode-switcher">
             <button type="button" class="{{#unless isBin}}active{{/unless}}" data-action="toggleBin" data-mode="library">
-                <i class="visage-icon library"></i> {{modeLabel}}
+                <i class="visage-icon library"></i> {{localize "VISAGE.Directory.Mode.Library"}}
             </button>
             <button type="button" class="{{#if isBin}}active{{/if}}" data-action="toggleBin" data-mode="bin">
                 <i class="visage-icon delete"></i> {{localize "VISAGE.Directory.Mode.Bin"}}
             </button>
         </div>
 
-        {{!-- SEARCH --}}
         <div class="search-bar">
             <i class="visage-icon search"></i>
             <input type="text" value="{{filters.search}}" placeholder="{{localize 'VISAGE.Directory.SearchPlaceholder'}}">
             {{#if filters.search}}
-            <a data-action="clearSearch"><i class="fas fa-times"></i></a>
+            <a data-action="clearSearch"><i class="visage-icon close"></i></a>
             {{/if}}
         </div>
 
-        {{!-- CREATE BTN --}}
         {{#unless isBin}}
         <button class="visage-create-btn" data-action="create">
             <i class="visage-icon add"></i> 
@@ -34,7 +30,6 @@
         </button>
         {{/unless}}
 
-        {{!-- CATEGORY PILLS --}}
         <nav class="category-list">
             <h3 class="sidebar-header">{{localize "VISAGE.Directory.Categories"}}</h3>
             <ul>
@@ -57,7 +52,6 @@
                 <i class="visage-icon open"></i> {{localize "VISAGE.Actions.Import"}}
             </button>
         </div>
-
     </aside>
 
     {{!-- MAIN BROWSER --}}
@@ -67,25 +61,21 @@
         {{#if hasFilterBar}}
         <div class="visage-filter-bar">
             <i class="visage-icon filter filter-icon" title="{{localize 'VISAGE.Directory.Filters'}}"></i>
-            
             <div class="filter-pills">
                 {{#each activeTags}}
                 <button class="visage-pill active" data-action="toggleTag" data-tag="{{this.label}}">
-                    {{this.label}} <i class="fas fa-times"></i>
+                    {{this.label}} <i class="visage-icon close"></i>
                 </button>
                 {{/each}}
-
                 {{#if (and activeTags.length popularTags.length)}}
                 <div class="filter-divider"></div>
                 {{/if}}
-
                 {{#each popularTags}}
                 <button class="visage-pill suggestion" data-action="toggleTag" data-tag="{{this.label}}">
-                    <i class="fas fa-plus"></i> {{this.label}}
+                    <i class="visage-icon add"></i> {{this.label}}
                 </button>
                 {{/each}}
             </div>
-
             {{#if activeTags.length}}
             <button class="clear-filters" data-action="clearTags" data-tooltip="{{localize 'VISAGE.Directory.ClearTags'}}">
                 <span class="visage-icon-clear"></span>
@@ -94,175 +84,38 @@
         </div>
         {{/if}}
         
-        {{#if items.length}}
+        {{!-- SECTIONED GRID --}}
+        {{#if hasItems}}
         <div class="visage-browser-grid visage-scrollable">
-            {{#each items}}
-            <div class="visage-card" data-id="{{this.id}}"> 
-                
-                {{!-- CARD BODY --}}
-                <div class="card-body">
-                    
-                    {{!-- LEFT: METADATA --}}
-                    <div class="card-zone-left">
-                        {{!-- LOCK SLOT --}}
-                        <div class="metadata-slot {{#unless this.meta.slots.lock.active}}inactive{{/unless}}"
-                             data-tooltip="{{localize 'VISAGE.RotationLock.Label'}}">
-                            <img src="modules/visage/icons/lock_reset.svg" class="visage-icon-nav"/>
-                            <span class="slot-value">{{this.meta.slots.lock.val}}</span>
-                        </div>
-
-                        {{!-- SCALE SLOT --}}
-                        <div class="metadata-slot {{#unless this.meta.slots.scale.active}}inactive{{/unless}}" 
-                             data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Scale'}}">
-                             <i class="fas fa-ruler-combined"></i>
-                            <span class="slot-value">{{this.meta.slots.scale.val}}</span>
-                        </div>
-
-                        {{!-- DIMENSIONS SLOT --}}
-                        <div class="metadata-slot {{#unless this.meta.slots.dim.active}}inactive{{/unless}}"
-                             data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Dimensions'}}">
-                            <i class="fas fa-vector-square"></i>
-                            <span class="slot-value">{{this.meta.slots.dim.val}}</span>
-                        </div>
-
-                        {{!-- HORIZONTAL FLIP SLOT --}}
-                        <div class="metadata-slot flip-h-slot {{#unless this.meta.slots.flipH.active}}inactive{{/unless}}"
-                              data-tooltip="{{localize 'VISAGE.Mirror.Horizontal.Label'}}">
-                            <img src="{{this.meta.slots.flipH.src}}" class="visage-icon-nav {{this.meta.slots.flipH.cls}}"/>
-                            <span class="slot-value">{{this.meta.slots.flipH.val}}</span>
-                        </div>
-
-                        {{!-- VERTICAL FLIP SLOT --}}
-                        <div class="metadata-slot flip-v-slot {{#unless this.meta.slots.flipV.active}}inactive{{/unless}}"
-                             data-tooltip="{{localize 'VISAGE.Mirror.Vertical.Label'}}">
-                             <img src="{{this.meta.slots.flipV.src}}" class="visage-icon-nav {{this.meta.slots.flipV.cls}}"/>
-                            <span class="slot-value">{{this.meta.slots.flipV.val}}</span>
-                        </div>
-
-                        {{!-- WILDCARD SLOT --}}
-                        <div class="metadata-slot wildcard-slot {{#unless this.meta.slots.wildcard.active}}inactive{{/unless}}"
-                            data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Wildcard'}}">
-                            <i class="fas fa-random"></i>
-                             <span class="slot-value">{{this.meta.slots.wildcard.val}}</span>
-                        </div>
-
-                        {{!-- DISPOSITION SLOT --}}
-                        <div class="metadata-slot disposition-slot">
-                             <div class="visage-disposition-chip {{this.meta.slots.disposition.class}}">
-                                {{this.meta.slots.disposition.val}}
-                            </div>
-                        </div>
-                    </div>
-
-                    {{!-- CENTER: VISUAL PREVIEW --}}
-                    <div class="card-zone-center">
-                        <div class="visual-target">
-                             {{> "modules/visage/templates/parts/visage-preview.hbs" 
-                                resolvedPath=this.changes.img 
-                                name=this.label
-                                hasCheckerboard=true 
-                                alpha=this.alpha
-                                isVideo=this.isVideo                                
-                                hasRing=this.meta.hasRing 
-                                hasInvisibility=this.meta.hasInvisibility
-                                hasPulse=this.meta.hasPulse
-                                hasGradient=this.meta.hasGradient
-                                hasWave=this.meta.hasWave
-                                ringColor=this.meta.ringColor
-                                ringBkg=this.meta.ringBkg
-                                forceFlipX=this.meta.forceFlipX
-                                forceFlipY=this.meta.forceFlipY
-                            }}
-                        </div>
-                        
-                        {{#if this.meta.tokenName}}
-                        <div class="token-name-label">{{this.meta.tokenName}}</div>
-                        {{/if}}
-                    </div>
-
-                    {{!-- RIGHT: ACTIONS --}}
-                    <div class="card-zone-right">
-                        {{#if ../isBin}}
-                            <button data-action="restore" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Restore'}}"><i class="fas fa-trash-restore"></i></button>
-                            <button data-action="destroy" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Destroy'}}" class="danger"><i class="fas fa-ban"></i></button>
-                        {{else}}
-                            
-                            {{!-- 1. APPLY (Play) --}}
-                            {{#if ../isLocal}}
-                                <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Activate'}}"><i class="visage-icon play"></i></button>
-                            {{else}}
-                                <button data-action="apply" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Apply'}}"><i class="visage-icon play"></i></button>
-                            {{/if}}
-                            
-                            {{#unless this.isDefault}}
-                                {{!-- 2. EDIT --}}
-                                <button data-action="edit" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Edit'}}"><i class="visage-icon edit"></i></button>
-                                
-                                {{!-- 3. MENU WRAPPER --}}
-                                <div class="visage-menu-wrapper">
-                                    {{!-- TOGGLE --}}
-                                    <button data-action="toggleMenu" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.MoreActions'}}"><i class="visage-icon kebab"></i></button>
-
-                                    {{!-- POPOUT MENU --}}
-                                    <div class="visage-popover-menu">
-                                        {{!-- DUPLICATE --}}
-                                        <button data-action="duplicate"><i class="visage-icon copy"></i> {{localize "VISAGE.Actions.Duplicate"}}</button>
-                                        
-                                        {{!-- EXPORT INDIVIDUAL --}}
-                                        <button data-action="exportIndividual"><i class="visage-icon save"></i> {{localize "VISAGE.Actions.Export"}}</button>
-
-                                        <hr>
-
-                                        {{#if ../isLocal}}
-                                            {{!-- SWAP DEFAULT --}}
-                                            {{!-- SWAP DEFAULT --}}
-                                            <button data-action="swapDefault" data-visage-id="{{this.id}}">
-                                                <i class="visage-icon sync"></i> {{localize "VISAGE.Actions.MakeDefault"}}
-                                            </button>
-                                            {{!-- PROMOTE --}}
-                                            <button data-action="promote" data-visage-id="{{this.id}}">
-                                                <i class="visage-icon domino"></i> {{localize "VISAGE.Actions.Promote"}}
-                                            </button>
-                                        {{else}}
-                                            {{!-- COPY TO LOCAL --}}
-                                            <button data-action="copyToLocal"><i class="visage-icon visage"></i> {{localize "VISAGE.Actions.CopyToSelection"}}</button>
-                                        {{/if}}
-
-                                        <hr>
-                                        {{!-- DELETE --}}
-                                        <button data-action="delete" class="danger"><i class="visage-icon delete"></i> {{localize "VISAGE.Actions.Delete"}}</button>
-                                    </div>
-                                </div>
-                            {{/unless}}
-                        {{/if}}
-                    </div>
-
-                </div>
-
-                {{!-- FOOTER --}}
-                <div class="card-footer">
-                   <div class="footer-slider">
-                        <div class="footer-slide title-slide">
-                            <h4 class="card-title">{{this.label}}</h4>
-                        </div>
-                        <div class="footer-slide tags-slide">
-                            <div class="card-tags">
-                                {{#each this.meta.itemTags}}
-                                <span class="tag {{#if this.active}}active{{/if}}" 
-                                      data-action="toggleTag" 
-                                      data-tag="{{this.label}}">
-                                      {{this.label}}
-                                </span>
-                                {{/each}}
-                                {{#unless this.meta.itemTags}}
-                                <span class="no-tags">{{localize "VISAGE.Directory.NoTags"}}</span>
-                                {{/unless}}
-                            </div>
-                        </div>
-                    </div>
+            
+            {{!-- SECTION 1: IDENTITIES --}}
+            {{#if identities.length}}
+            <div class="visage-section">
+                <h4 class="visage-section-header">
+                    <i class="visage-icon domino"></i> {{localize "VISAGE.Actions.ApplyIdentity"}}
+                </h4>
+                <div class="visage-grid">
+                    {{#each identities}}
+                        {{> "modules/visage/templates/parts/visage-card.hbs" this}}
+                    {{/each}}
                 </div>
             </div>
-            {{/each}}
+            {{/if}}
+
+            {{!-- SECTION 2: OVERLAYS --}}
+            {{#if overlays.length}}
+            <div class="visage-section">
+                <h4 class="visage-section-header">
+                    <i class="visage-icon domino"></i> {{localize "VISAGE.Actions.ApplyOverlay"}}
+                </h4>
+                <div class="visage-grid">
+                    {{#each overlays}}
+                        {{> "modules/visage/templates/parts/visage-card.hbs" this}}
+                    {{/each}}
+                </div>
+            </div>
+            {{/if}}
+
         </div>
         {{else}}
         <div class="empty-directory">
