@@ -1232,21 +1232,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         ui.notifications.info(game.i18n.localize("VISAGE.Notifications.SettingsReset"));
     }
 
-/**
-     * Extracts form data using Foundry's standard utility.
-     * Automatically handles checkboxes, radio groups, and dot-notation expansion.
-     */
-    _getFormData() {
-        return new foundry.applications.ux.FormDataExtended(this.element).object;
-    }
-
     /**
      * Extracts the current form state into a valid Visage payload.
      * Used for both Saving (Database) and Snapshotting (Re-render).
      * @returns {Object} The complete visage data object.
      */
     _prepareSaveData() {
-        const formData = this._getFormData();
+        const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
         
         // Helper to safely parse numbers
         const getVal = (key, type = String) => {
