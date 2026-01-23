@@ -2781,6 +2781,16 @@ button.visage-tool-icon {
     padding: 0;
 }
 
+.control-icon.visage-button {
+    padding: 0;
+}
+
+#token-hud .control-icon.visage-button .visage-icon {
+    width: 32px;
+    height: 32px;
+    padding: 1px;
+}
+
 
 /* ==========================================================================
    10. THEME DEFINITIONS (The Engine)
