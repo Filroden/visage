@@ -1721,6 +1721,17 @@ li.context-item .visage-icon-domino {
     display: none; /* Tabs serve as legends */
 }
 
+.visage-missing-dependency {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--visage-color-text-muted);
+    padding: 2rem;
+}
+
 /* --- Footer --- */
 
 .visage-editor-footer {

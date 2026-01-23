@@ -239,6 +239,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 isActive: false // Activity state handled by template logic
             });
 
+            Object.assign(context, context.meta);
+
             context.meta.itemTags = (entry.tags || []).map(t => ({
                 label: t,
                 active: this.filters.tags.has(t)
@@ -276,10 +278,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             ? game.i18n.localize("VISAGE.Directory.Empty.Local")
             : game.i18n.localize("VISAGE.Directory.Empty.Global");
 
-        const modeLabel = this.isLocal 
-            ? game.i18n.localize("VISAGE.Directory.Mode.Gallery") 
-            : game.i18n.localize("VISAGE.Directory.Mode.Library");
-
         return {
             isLocal: this.isLocal,
             
@@ -294,8 +292,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             hasFilterBar: activeTags.length > 0 || popularTags.length > 0,
             
             isBin: this.filters.showBin,
-            emptyMessage: emptyMsg,
-            modeLabel: modeLabel
+            emptyMessage: emptyMsg
         };
     }
     

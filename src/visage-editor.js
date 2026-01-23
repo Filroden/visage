@@ -959,8 +959,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.element.addEventListener("change", (event) => {
             this._markDirty();
             
-            // Trigger preview update immediately for Select/Filepicker elements
-            if (event.target.matches("select") || event.target.matches("input[type='text']")) {
+            // Trigger preview update immediately for Select/File picker/checkbox elements
+            if (event.target.matches("select") || 
+                event.target.matches("input[type='text']") || 
+                event.target.matches("input[type='checkbox']")) {
+                
                 this._updatePreview();
             }
         });
@@ -1229,34 +1232,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         ui.notifications.info(game.i18n.localize("VISAGE.Notifications.SettingsReset"));
     }
 
-    /**
-     * Helper to safely extract form data without requiring a <form> tag.
-     * Manual extraction fixes layout breakage issues and handles Radio Buttons/Checkboxes properly.
+/**
+     * Extracts form data using Foundry's standard utility.
+     * Automatically handles checkboxes, radio groups, and dot-notation expansion.
      */
     _getFormData() {
-        const data = {};
-        const inputs = this.element.querySelectorAll("input, select, textarea");
-        
-        for (const input of inputs) {
-            if (!input.name) continue;
-            
-            // Checkboxes
-            if (input.type === "checkbox") {
-                data[input.name] = input.checked;
-                continue;
-            }
-            
-            // Radio Buttons (only checked)
-            if (input.type === "radio") {
-                if (input.checked) data[input.name] = input.value;
-                continue;
-            }
-            
-            // Text/Number/Select
-            data[input.name] = input.value;
-        }
-        
-        return foundry.utils.expandObject(data);
+        return new foundry.applications.ux.FormDataExtended(this.element).object;
     }
 
     /**

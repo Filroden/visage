@@ -1,4 +1,4 @@
-<div class="visage-preview-content {{wrapperClass}}">
+<div class="visage-preview-content {{wrapperClass}} {{#if hasInvisibility}}invisible{{/if}}">
     
     {{!-- 1. BACKGROUND EFFECTS --}}
     {{#each effectsBelow}}
@@ -13,7 +13,8 @@
 
     {{!-- 2. DYNAMIC RING (Background) --}}
     {{#if hasRing}}
-    <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}">
+    <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}"
+         style="--ring-color: {{ringColor}}; --ring-bkg: {{ringBkg}};">
         <div class="ring-band outer"></div>
         <div class="ring-band inner"></div>
     </div>
