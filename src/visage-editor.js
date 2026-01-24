@@ -257,7 +257,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     rotationRandom: effect.rotationRandom ?? false,
                     zOrder: effect.zOrder ?? "above",
                     blendMode: effect.blendMode || "normal",
-                    type: effect.type
+                    type: effect.type,
+                    loop: effect.loop ?? true, 
+                    fadeIn: effect.fadeIn ?? 0,
+                    fadeOut: effect.fadeOut ?? 0
                 };
             }
         }
@@ -357,6 +360,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 // Map Form Fields to Effect Properties
                 if (formData.effectPath !== undefined) e.path = formData.effectPath;
                 if (formData.effectLabel !== undefined) e.label = formData.effectLabel || "New Visual";
+                if (formData.effectLoop !== undefined) e.loop = formData.effectLoop; 
+                if (formData.effectFadeIn !== undefined) e.fadeIn = Number(formData.effectFadeIn) || 0;
+                if (formData.effectFadeOut !== undefined) e.fadeOut = Number(formData.effectFadeOut) || 0;
                 
                 if (e.type === "visual") {
                     if (formData.effectScale !== undefined) e.scale = (parseFloat(formData.effectScale) || 100) / 100;
@@ -869,6 +875,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             rotation: 0,
             rotationRandom: false,
             zOrder: "above",
+            loop: true,
+            fadeIn: 0,
+            fadeOut: 0,
             disabled: false
         };
         
@@ -885,6 +894,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             label: "New Audio",
             path: "",
             opacity: 0.8,
+            loop: true,
+            fadeIn: 0,
+            fadeOut: 0,
             disabled: false
         };
         

@@ -47,30 +47,46 @@ export class VisageSequencer {
                     const path = this._resolveEffectPath(effect.path);
                     if (!path || typeof path !== "string") continue;
 
-                    sequence.effect()
+                    // 1. Defaults
+                    const isLoop = effect.loop ?? true; 
+                    const fadeIn = effect.fadeIn ?? 0;
+                    const fadeOut = effect.fadeOut ?? 0;
+
+                    let seqEffect = sequence.effect()
                         .file(path)
                         .attachTo(token)
                         .scaleToObject(effect.scale ?? 1.0)
                         .opacity(effect.opacity ?? 1.0)
                         .rotate(effect.rotation ?? 0)
                         .belowTokens(effect.zOrder === "below")
-                        
-                        // Lifecycle Strategy:
-                        // We intentionally avoid .persist() to prevent Sequencer from writing 
-                        // potentially corruptible state data to the token's flags.
-                        // Instead, we use an effectively infinite duration (~1 year) and manage
-                        // the restoration lifecycle manually via Visage.restore().
-                        .duration(31536000000) 
-                        
-                        // Explicitly set volume to 0 for visuals to prevent potential 
-                        // null volume crashes in certain Sequencer versions.
-                        .volume(0) 
-                        
+                        .fadeIn(fadeIn)
+                        .fadeOut(fadeOut)
+                        .volume(0)
                         .name(tag)
                         .origin(layer.id);
-                    
+
+                        // 2. The Logic Fork
+                        if (isLoop) {
+                            // --- LOOPING BEHAVIOR ---
+                            // We intentionally avoid .persist() to prevent Sequencer from writing 
+                            // potentially corruptible state data to the token's flags.
+                            // Instead, we use an effectively infinite duration (~1 year) and manage
+                            // the restoration lifecycle manually via Visage.restore().
+                            seqEffect
+                                .duration(31536000000);
+                        } else {
+                            // --- PLAY ONCE BEHAVIOR ---
+                            // No name needed (it dies on its own).
+                            // No duration needed (uses file length).
+                            // .missed(false) ensures it plays even if the token 
+                            // was off-screen when the user clicked the button.
+                            seqEffect
+                                .missed(false);
+                        }
+
                     hasVisuals = true;
                 }
+
                 if (hasVisuals) sequence.play();
             } catch (err) {
                 console.error("Visage | Visual Effect Error:", err);
@@ -123,8 +139,8 @@ export class VisageSequencer {
     }
 
     /**
-     * Internal helper to play looping audio effects.
-     * Tracks the resulting sound instances in `_activeSounds` for later removal.
+     * Internal helper to play audio effects via AudioHelper.
+     * Manually handles Loops, Fades, and One-Shot cleanup.
      * @private
      */
     static async _playAudioEffects(token, audios, tag) {
@@ -137,18 +153,55 @@ export class VisageSequencer {
             if (!path || typeof path !== "string") return;
 
             try {
-                const vol = Number.isFinite(effect.opacity) ? effect.opacity : 0.8;
+                // 1. Resolve Options
+                const isLoop = effect.loop ?? true;
+                const fadeIn = effect.fadeIn ?? 0;
+                const fadeOut = effect.fadeOut ?? 0;
+                const targetVol = Number.isFinite(effect.opacity) ? effect.opacity : 0.8;
                 
-                // Use core AudioHelper for reliable looping audio
+                // If fading in, start silence. Otherwise, start at target volume.
+                const startVol = fadeIn > 0 ? 0 : targetVol;
+
+                // 2. Play Core Audio
                 const sound = await foundry.audio.AudioHelper.play({
                     src: path,
-                    volume: vol,
-                    loop: true
+                    volume: startVol,
+                    loop: isLoop
                 }, false);
 
                 if (sound) {
+                    // 3. Handle Fade In (using Howler/Foundry API)
+                    if (fadeIn > 0) {
+                        // sound.fade(from, to, duration_ms)
+                        sound.fade(0, targetVol, fadeIn);
+                    }
+
+                    // 4. Store Metadata for Removal
+                    // We attach the preferred fadeOut duration to the object 
+                    // so remove() knows how to handle it gracefully.
+                    sound._visageFadeOut = fadeOut;
+
                     activeInstances.push(sound);
-                    // Edge Case: If the mask was removed *while* the audio was loading, stop it immediately.
+
+                    // 5. Self-Cleanup for One-Shots
+                    // If it's not looping, we must remove it from the map when it ends,
+                    // otherwise _activeSounds will leak memory over time.
+                    if (!isLoop) {
+                        sound.on("end", () => {
+                            const currentParams = this._activeSounds.get(soundKey);
+                            if (currentParams) {
+                                const idx = currentParams.indexOf(sound);
+                                if (idx > -1) currentParams.splice(idx, 1);
+                                
+                                // If map is empty, delete key
+                                if (currentParams.length === 0) {
+                                    this._activeSounds.delete(soundKey);
+                                }
+                            }
+                        });
+                    }
+
+                    // Edge Case: If the mask was removed *while* the audio was loading
                     if (!this._activeSounds.has(soundKey)) {
                         sound.stop();
                     }
@@ -181,8 +234,23 @@ export class VisageSequencer {
         const soundKey = `${token.id}-${tag}`;
         if (this._activeSounds.has(soundKey)) {
             const sounds = this._activeSounds.get(soundKey);
+            
             sounds.forEach(sound => {
-                if (sound && typeof sound.stop === "function") sound.stop();
+                if (sound && typeof sound.stop === "function") {
+                    // Check for our custom property
+                    const fadeDuration = sound._visageFadeOut || 0;
+                    
+                    if (fadeDuration > 0) {
+                        // Fade out then stop
+                        // Note: We don't await this because we want the UI to feel instant.
+                        // The sound will linger for 'fadeDuration' ms then die.
+                        sound.fade(sound.volume, 0, fadeDuration);
+                        setTimeout(() => sound.stop(), fadeDuration);
+                    } else {
+                        // Instant Stop
+                        sound.stop();
+                    }
+                }
             });
             this._activeSounds.delete(soundKey);
         }
