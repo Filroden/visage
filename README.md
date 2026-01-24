@@ -164,9 +164,15 @@ Software and associated documentation files in this repository are covered by an
 
 ### Short term
 
-* **Add Public/Private flags to global Visages:** GMs can tag their globally stored Visages (both Identities and Overlays) as either Public or Private. Players can see public Visages inside their token's Selector HUD and apply them to their own tokens.
 * **Light sources:** Allow the token's light source to be configured within Visages (identities and overlays).
+* **Play effects once (on apply) or as a loop:** Allow individual effects to either play once (when applied) or to play in a loop.
+* **Improved APIs:** Improve ability to find and apply Visages
+* **Selector HUD and Gallery UI improvements:** Try to simplify the tiles in the Selector HUD so it is still easy to see what settings are applied but reduce the clutter of badges/chips around the border. Also add some differentiation between Identities and Overlays in both Selector HUD and Libraries.
+* **Re-order Overlay and Effect Stacks:** Allow the Overlay stack to be re-ordered in the Selector HUD, and the Effects stack to be re-ordered in the Editor.
+* **Pre-made Overlays:** Add a small library of pre-made Overlays that can be imported or enabled by the GM via Game Settings.
+* **Add Public/Private flags to global Visages:** GMs can tag their globally stored Visages (both Identities and Overlays) as either Public or Private. Players can see public Visages inside their token's Selector HUD and apply them to their own tokens.
 
 ### Long term (no promises!)
 
+* **Triggers:** Automated application of Visages based on triggers (in combat/out of combat, etc). Likely to be limited to remain system agnostic, but improvements to the API should make other automations easier via macros.
 * **Visual FX Layers/token image builder:** Integration with PIXI filters for true visual effects (Bloom, Glitch, Opacity adjustments, etc.). The idea here is to create a power-user tool to create your own tokens by blending multiple images/videos through normal blend modes (screen, overlay, etc), or to add simple effects like colour tints.
