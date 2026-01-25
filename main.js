@@ -107,6 +107,11 @@ Hooks.once("init", () => {
         Handlebars.registerHelper("visageEq", (a, b) => a === b);
         Handlebars.registerHelper("visageSelected", (condition) => condition ? "selected" : "");
         Handlebars.registerHelper("visageJson", (context) => JSON.stringify(context));
+        Handlebars.registerHelper("visagePercent", (value) => {
+            const num = Number(value);
+            if (isNaN(num)) return "0%";
+            return `${Math.round(num * 100)}%`;
+        });
 
         // Preload interface templates
         foundry.applications.handlebars.loadTemplates([
@@ -114,7 +119,8 @@ Hooks.once("init", () => {
             "modules/visage/templates/visage-editor.hbs",
             "modules/visage/templates/visage-gallery.hbs",
             "modules/visage/templates/parts/visage-preview.hbs",
-            "modules/visage/templates/parts/visage-card.hbs"
+            "modules/visage/templates/parts/visage-card.hbs",
+            "modules/visage/templates/parts/visage-effectCard.hbs"
         ]);
 
         registerSettings();
