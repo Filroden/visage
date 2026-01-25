@@ -41,6 +41,7 @@
    * **Visual Effects:** Attach animated spell effects (like JB2A), particle systems, or looping videos to any Identity or Overlay. These effects automatically play when the Visage is applied and stop when removed.
    * **Audio Effects:** Attach sound files to an entry (like PSFX). Create a "Rage" overlay that plays a roar when applied, or a "Stealth" identity that emits a soft looping hum.
    * **Smart Stacking:** Visual effects can be layered above or below the token, with full control over scale, opacity, rotation, and blend modes.
+   * **New in v3.1:** Audio and visual effects can be sorted (dragged and dropped), and played once when the Visage is applied or on a repeating loop.
 
 3. **Unified Libraries:** You can now create **Local Overlays** (e.g., a specific player's unique "Hunter's Mark") or **Global Identities** (e.g., a world-wide "Invisibility" placeholder). The Selector HUD and the Local and Global Libraries are now smartly organised into "Identities" and "Overlays" sections, making it instant to find what you need.
 
