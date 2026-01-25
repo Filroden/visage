@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "\u200Fשם האפקט",
     "VISAGE.Editor.Effects.PathPlaceholder": "\u200Fלדוגמה: \u2068jb2a.fire_bolt.red\u2069",
     "VISAGE.Notifications.LabelRequired": "\u200F\u2068Visage\u2069 | נדרשת תווית.",
-    "VISAGE.Notifications.DefaultSwapFailed": "\u200F\u2068Visage\u2069 | החלפת מראה ברירת המחדל נכשלה."
+    "VISAGE.Notifications.DefaultSwapFailed": "\u200F\u2068Visage\u2069 | החלפת מראה ברירת המחדל נכשלה.",
+    "VISAGE.Editor.Replay": "\u200Fהפעל מחדש אפקטים",
+    "VISAGE.Editor.Effects.Loop": "\u200Fלולאה",
+    "VISAGE.Editor.Effects.Once": "\u200Fפעם אחת",
+    "VISAGE.Editor.Groups.Foreground": "\u200Fאפקטים בחזית",
+    "VISAGE.Editor.Groups.Background": "\u200Fאפקטים ברקע",
+    "VISAGE.Editor.Groups.Audio": "\u200Fאפקטים קוליים",
+    "VISAGE.Editor.Groups.Empty": "\u200Fגרור אפקטים לכאן"
 }

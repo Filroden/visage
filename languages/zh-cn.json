@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "效果名称",
     "VISAGE.Editor.Effects.PathPlaceholder": "例如: jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | 需要标签。",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | 无法切换默认外观。"
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | 无法切换默认外观。",
+    "VISAGE.Editor.Replay": "重播效果",
+    "VISAGE.Editor.Effects.Loop": "循环",
+    "VISAGE.Editor.Effects.Once": "播放一次",
+    "VISAGE.Editor.Groups.Foreground": "前景效果",
+    "VISAGE.Editor.Groups.Background": "背景效果",
+    "VISAGE.Editor.Groups.Audio": "音频效果",
+    "VISAGE.Editor.Groups.Empty": "拖动效果到此处"
 }

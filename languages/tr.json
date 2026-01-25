@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Efekt İsmi",
     "VISAGE.Editor.Effects.PathPlaceholder": "örn. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Etiket gereklidir.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Varsayılan görünüm değiştirilemedi."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Varsayılan görünüm değiştirilemedi.",
+    "VISAGE.Editor.Replay": "Efektleri Tekrarla",
+    "VISAGE.Editor.Effects.Loop": "Döngü",
+    "VISAGE.Editor.Effects.Once": "Bir Kez",
+    "VISAGE.Editor.Groups.Foreground": "Ön Plan Efektleri",
+    "VISAGE.Editor.Groups.Background": "Arka Plan Efektleri",
+    "VISAGE.Editor.Groups.Audio": "Ses Efektleri",
+    "VISAGE.Editor.Groups.Empty": "Efektleri buraya sürükleyin"
 }

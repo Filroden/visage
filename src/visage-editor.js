@@ -134,13 +134,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             : game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global");
     }
 
-    /* -------------------------------------------- */
-    /* Drag and Drop Implementation                */
-    /* -------------------------------------------- */
-
     /**
-     * Binds HTML5 drag and drop listeners to the effects list.
-     * Called by _onRender.
+     * Initializes HTML5 drag and drop listeners for the effects management interface.
+     * Handles both individual effect reordering and group-level drop logic.
+     * @param {HTMLElement} html - The application element.
+     * @private
      */
     _bindDragDrop(html) {
         let dragSource = null;
@@ -214,10 +212,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Main Drop Handler
-     * @param {Event} ev 
-     * @param {string} targetGroup - 'above', 'below', or 'audio'
-     * @param {string|null} targetId - ID of specific card dropped onto, or null if dropped in container
+     * Primary drop handler for effect reordering.
+     * Performs index calculations and updates the internal `_effects` array 
+     * based on the relative position of the drop target.
+     * * @param {DragEvent} ev 
+     * @param {string} targetGroup - The target group identifier ('above', 'below', or 'audio').
+     * @param {string|null} targetId - ID of the card dropped onto, or null if dropped in a container.
+     * @private
      */
     async _onDrop(ev, targetGroup, targetId) {
         ev.preventDefault();
@@ -290,8 +291,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Override render to snapshot the form state before Foundry wipes the DOM.
-     * This ensures typed text isn't lost when we re-render to show a new effect row.
+     * Extends ApplicationV2 render to capture current form state.
+     * Utilizes a preservation strategy to ensure that transient UI states 
+     * (like partial text input) are maintained during Handlebars partial updates.
+     * @override
      */
     async render(options) {
         if (this.rendered) {
@@ -301,8 +304,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Prepares the data context for the Handlebars template.
-     * Merges Source Data (Database) with Preserved Data (Unsaved Input) to create the UI state.
+     * Prepares the template context by merging persistent data with transient form state.
+     * Calculates UI-specific properties such as autocomplete sets and badge statuses.
+     * @override
      */
     async _prepareContext(options) {
         let data;
@@ -802,10 +806,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * UNIFIED PATH RESOLVER
-     * Handles both Sequencer Database Keys (recursive) and standard File Paths.
-     * @param {string} rawPath - The input string (file path or DB key).
+     * Resolves effect paths from either the local file system or the Sequencer Database.
+     * @param {string} rawPath - The path or database key to resolve.
      * @returns {string|null} The resolved file path.
+     * @private
      */
     _resolveEffectPath(rawPath) {
         if (!rawPath) return null;
@@ -847,7 +851,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Recursive helper for finding files within nested Sequencer Database folders.
+     * Recursively traverses Sequencer Database entries to find valid file paths.
+     * @param {string} path - The database key path.
+     * @param {number} [depth=0] - Recursion depth tracker.
+     * @returns {Object|null}
+     * @private
      */
     _resolveSequencerRecursively(path, depth = 0) {
         if (depth > 10) return null;
@@ -869,7 +877,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Calculates CSS styles for rendering visual effects in the preview stage.
+     * Derives CSS transformation and style strings for effect preview rendering.
+     * @param {Object} effect - The effect data object.
+     * @returns {Object}
+     * @private
      */
     _prepareEffectStyle(effect) {
         const resolvedPath = this._resolveEffectPath(effect.path);
@@ -893,14 +904,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
-    /* -------------------------------------------- */
-    /* Audio Preview Logic                          */
-    /* -------------------------------------------- */
-
     /**
-     * Manages the lifecycle of audio previews.
-     * Ensures only currently active/enabled sounds are playing, handling restarts on change.
-     * Uses Promise tracking to prevent race conditions during rapid updates.
+     * Manages the audio lifecycle for the effects editor.
+     * Synchronizes playing sounds with the current buffer, handling 
+     * volume updates and restart-on-change logic.
+     * @private
      */
     _syncAudioPreviews() {
         const activeAudioEffects = (this._effects || []).filter(e => !e.disabled && e.type === "audio" && e.path);
@@ -988,10 +996,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.close(options);
     }
 
-    /* -------------------------------------------- */
-    /* UI Interactions                             */
-    /* -------------------------------------------- */
-
+    /**
+     * Triggers the Foundry FilePicker for a specific input field.
+     * @private
+     */
     _onOpenFilePicker(event, target) {
         const input = target.previousElementSibling?.tagName === "BUTTON" 
             ? target.parentElement.querySelector("input") 
@@ -1009,6 +1017,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         fp.browse();
     }
 
+    /**
+     * Toggles the enabled state of a specific property field group.
+     * @private
+     */
     _onToggleField(event, target) {
         const fieldName = target.dataset.target;
         const group = target.closest('.form-group');
@@ -1022,10 +1034,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._updatePreview(); 
     }
 
-    /* -------------------------------------------- */
-    /* Effects List Management                     */
-    /* -------------------------------------------- */
-
+    /**
+     * Adds a new Visual Effect to the Visage data.
+     * @private
+     */
     async _onAddVisual(event, target) {
         const newEffect = {
             id: foundry.utils.randomID(16),
@@ -1047,6 +1059,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render(); 
     }
 
+    /**
+     * Adds a new Audio Effect to the Visage data.
+     * @private
+     */
     async _onAddAudio(event, target) {
         const newEffect = {
             id: foundry.utils.randomID(16),
@@ -1064,12 +1080,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render();
     }
 
+    /**
+     * Opens the Inspector pane for a specific effect.
+     * @private
+     */
     _onEditEffect(event, target) {
         const card = target.closest('.effect-card');
         this._activeEffectId = card.dataset.id;
         this.render();
     }
 
+    /**
+     * Closes the Effect Inspector and returns to the effect list view.
+     * @private
+     */
     async _onCloseEffectInspector(event, target) {
         const container = this.element.querySelector('.effects-tab-container');
         if(container) container.classList.remove('editing');
@@ -1077,6 +1101,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render();
     }
 
+    /**
+     * Deletes an effect from the current Visage.
+     * @private
+     */
     async _onDeleteEffect(event, target) {
         const card = target.closest('.effect-card');
         const id = card.dataset.id;
@@ -1103,6 +1131,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
+    /**
+     * Toggles the disabled state of an effect without removing it.
+     * @private
+     */
     _onToggleEffect(event, target) {
         const card = target.closest('.effect-card');
         const id = card.dataset.id;
@@ -1115,6 +1147,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Launches the Sequencer Database Viewer.
+     * @private
+     */
     _onOpenSequencerDatabase(event, target) {
         if (VisageUtilities.hasSequencer) {
             new Sequencer.DatabaseViewer().render(true);
@@ -1124,6 +1160,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Flags the editor state as containing unsaved changes and updates UI cues.
+     * @private
+     */
     _markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
@@ -1196,10 +1236,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    /* -------------------------------------------- */
-    /* Stage Interaction Methods                   */
-    /* -------------------------------------------- */
-
+    /**
+     * Toggles the visibility of the alignment grid on the preview stage.
+     * @private
+     */
     _onToggleGrid(event, target) {
         this._showGrid = !this._showGrid;
         const stage = this.element.querySelector('.visage-live-preview-stage');
@@ -1217,6 +1257,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Binds permanent listeners for the preview stage (e.g., zoom wheel).
+     * @private
+     */
     _bindStaticListeners() {
         const stage = this.element.querySelector('.visage-live-preview-stage');
         if (!stage) return;
@@ -1232,6 +1276,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }, { passive: false });
     }
 
+    /**
+     * Binds listeners to the preview content that may be replaced during partial renders.
+     * Handles pan/drag interaction logic.
+     * @private
+     */
     _bindDynamicListeners() {
         const content = this.element.querySelector('.visage-preview-content.stage-mode');
         if (!content) return;
@@ -1271,6 +1320,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Applies CSS transforms (Translate/Scale) to the preview content based on view state.
+     * @private
+     */
     _applyStageTransform() {
         const content = this.element.querySelector('.visage-preview-content.stage-mode');
         if (content) {
@@ -1288,6 +1341,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._applyStageTransform();
     }
 
+    /**
+     * Resets the stage zoom and pan to default center.
+     * Automatically adjusts scale to fit oversized visuals.
+     * @private
+     */
     _onResetZoom() {
         // Calculate appropriate scale to fit image
         let targetScale = 1.0;
@@ -1300,6 +1358,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._applyStageTransform();
     }
     
+    /**
+     * Manages UI tab switching logic.
+     * @param {string} tabName 
+     * @private
+     */
     _activateTab(tabName) {
         this._activeTab = tabName;
         const navItems = this.element.querySelectorAll(".visage-tabs .item");
@@ -1363,6 +1426,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._updatePreview();
     }
 
+    /**
+     * Initializes the custom tag input component.
+     * Handles pill creation, deletion, and synchronization with the hidden input field.
+     * @private
+     */
     _bindTagInput() {
         const container = this.element.querySelector(".visage-tag-container");
         if (!container) return;
@@ -1428,6 +1496,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         });
     }
 
+    /**
+     * Resets all form fields and effects to their default state.
+     * @private
+     */
     _onResetSettings(event, target) {
         const checkboxes = this.element.querySelectorAll('input[type="checkbox"][name$="_active"]');
         checkboxes.forEach(cb => {
@@ -1526,6 +1598,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return payload;
     }
 
+    /**
+     * Validates and persists the current Visage state to the database.
+     * @private
+     */
     async _onSave(event, target) {
         event.preventDefault();
         

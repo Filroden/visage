@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-3.0.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-3.1.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -41,6 +41,7 @@
    * **Visual Effects:** Attach animated spell effects (like JB2A), particle systems, or looping videos to any Identity or Overlay. These effects automatically play when the Visage is applied and stop when removed.
    * **Audio Effects:** Attach sound files to an entry (like PSFX). Create a "Rage" overlay that plays a roar when applied, or a "Stealth" identity that emits a soft looping hum.
    * **Smart Stacking:** Visual effects can be layered above or below the token, with full control over scale, opacity, rotation, and blend modes.
+   * **New in v3.1:** Audio and visual effects can be sorted (dragged and dropped), and played once when the Visage is applied or on a repeating loop.
 
 3. **Unified Libraries:** You can now create **Local Overlays** (e.g., a specific player's unique "Hunter's Mark") or **Global Identities** (e.g., a world-wide "Invisibility" placeholder). The Selector HUD and the Local and Global Libraries are now smartly organised into "Identities" and "Overlays" sections, making it instant to find what you need.
 
@@ -165,10 +166,9 @@ Software and associated documentation files in this repository are covered by an
 ### Short term
 
 * **Light sources:** Allow the token's light source to be configured within Visages (identities and overlays).
-* **Play effects once (on apply) or as a loop:** Allow individual effects to either play once (when applied) or to play in a loop.
 * **Improved APIs:** Improve ability to find and apply Visages
 * **Selector HUD and Gallery UI improvements:** Try to simplify the tiles in the Selector HUD so it is still easy to see what settings are applied but reduce the clutter of badges/chips around the border. Also add some differentiation between Identities and Overlays in both Selector HUD and Libraries.
-* **Re-order Overlay and Effect Stacks:** Allow the Overlay stack to be re-ordered in the Selector HUD, and the Effects stack to be re-ordered in the Editor.
+* **Re-order Overlay Stacks:** Allow the Overlay stack to be re-ordered in the Selector HUD.
 * **Pre-made Overlays:** Add a small library of pre-made Overlays that can be imported or enabled by the GM via Game Settings.
 * **Add Public/Private flags to global Visages:** GMs can tag their globally stored Visages (both Identities and Overlays) as either Public or Private. Players can see public Visages inside their token's Selector HUD and apply them to their own tokens.
 

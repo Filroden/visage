@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Effektnamn",
     "VISAGE.Editor.Effects.PathPlaceholder": "t.ex. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Etikett krävs.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Misslyckades att byta standardutseende."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Misslyckades att byta standardutseende.",
+    "VISAGE.Editor.Replay": "Spela Upp Igen",
+    "VISAGE.Editor.Effects.Loop": "Loop",
+    "VISAGE.Editor.Effects.Once": "En gång",
+    "VISAGE.Editor.Groups.Foreground": "Förgrundseffekter",
+    "VISAGE.Editor.Groups.Background": "Bakgrundseffekter",
+    "VISAGE.Editor.Groups.Audio": "Ljudeffekter",
+    "VISAGE.Editor.Groups.Empty": "Dra effekter hit"
 }

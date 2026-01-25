@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "효과 이름",
     "VISAGE.Editor.Effects.PathPlaceholder": "예: jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | 라벨이 필요합니다.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | 기본 외형 변경 실패."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | 기본 외형 변경 실패.",
+    "VISAGE.Editor.Replay": "효과 다시 재생",
+    "VISAGE.Editor.Effects.Loop": "반복",
+    "VISAGE.Editor.Effects.Once": "한 번 재생",
+    "VISAGE.Editor.Groups.Foreground": "전경 효과",
+    "VISAGE.Editor.Groups.Background": "배경 효과",
+    "VISAGE.Editor.Groups.Audio": "오디오 효과",
+    "VISAGE.Editor.Groups.Empty": "여기로 효과 드래그"
 }

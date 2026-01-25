@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "\u200Fاسم التأثير",
     "VISAGE.Editor.Effects.PathPlaceholder": "\u200Fمثل: \u2068jb2a.fire_bolt.red\u2069",
     "VISAGE.Notifications.LabelRequired": "\u200F\u2068Visage\u2069 | التسمية مطلوبة.",
-    "VISAGE.Notifications.DefaultSwapFailed": "\u200F\u2068Visage\u2069 | فشل تبديل المظهر الافتراضي."
+    "VISAGE.Notifications.DefaultSwapFailed": "\u200F\u2068Visage\u2069 | فشل تبديل المظهر الافتراضي.",
+    "VISAGE.Editor.Replay": "\u200Fإعادة تشغيل التأثيرات",
+    "VISAGE.Editor.Effects.Loop": "\u200Fتكرار",
+    "VISAGE.Editor.Effects.Once": "\u200Fمرة واحدة",
+    "VISAGE.Editor.Groups.Foreground": "\u200Fتأثيرات المقدمة",
+    "VISAGE.Editor.Groups.Background": "\u200Fتأثيرات الخلفية",
+    "VISAGE.Editor.Groups.Audio": "\u200Fتأثيرات صوتية",
+    "VISAGE.Editor.Groups.Empty": "\u200Fاسحب التأثيرات هنا"
 }

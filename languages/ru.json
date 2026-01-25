@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Имя Эффекта",
     "VISAGE.Editor.Effects.PathPlaceholder": "напр. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Требуется метка.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Не удалось сменить стандартный вид."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Не удалось сменить стандартный вид.",
+    "VISAGE.Editor.Replay": "Повтор Эффектов",
+    "VISAGE.Editor.Effects.Loop": "Зациклить",
+    "VISAGE.Editor.Effects.Once": "Один раз",
+    "VISAGE.Editor.Groups.Foreground": "Эффекты Переднего Плана",
+    "VISAGE.Editor.Groups.Background": "Эффекты Заднего Плана",
+    "VISAGE.Editor.Groups.Audio": "Аудиоэффекты",
+    "VISAGE.Editor.Groups.Empty": "Перетащите эффекты сюда"
 }

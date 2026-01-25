@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Nome Effetto",
     "VISAGE.Editor.Effects.PathPlaceholder": "es. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | L'etichetta è obbligatoria.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Impossibile scambiare l'aspetto predefinito."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Impossibile scambiare l'aspetto predefinito.",
+    "VISAGE.Editor.Replay": "Riproduci Effetti",
+    "VISAGE.Editor.Effects.Loop": "Loop",
+    "VISAGE.Editor.Effects.Once": "Una volta",
+    "VISAGE.Editor.Groups.Foreground": "Effetti in Primo Piano",
+    "VISAGE.Editor.Groups.Background": "Effetti sullo Sfondo",
+    "VISAGE.Editor.Groups.Audio": "Effetti Audio",
+    "VISAGE.Editor.Groups.Empty": "Trascina effetti qui"
 }
