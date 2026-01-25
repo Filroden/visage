@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Nom de l'Efecte",
     "VISAGE.Editor.Effects.PathPlaceholder": "ex. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | L'etiqueta és obligatòria.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Ha fallat el canvi d'aparença predeterminada."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Ha fallat el canvi d'aparença predeterminada.",
+    "VISAGE.Editor.Replay": "Reproduir Efectes",
+    "VISAGE.Editor.Effects.Loop": "Bucle",
+    "VISAGE.Editor.Effects.Once": "Una vegada",
+    "VISAGE.Editor.Groups.Foreground": "Efectes de Primer Pla",
+    "VISAGE.Editor.Groups.Background": "Efectes de Fons",
+    "VISAGE.Editor.Groups.Audio": "Efectes d'Àudio",
+    "VISAGE.Editor.Groups.Empty": "Arrossega efectes aquí"
 }

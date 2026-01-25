@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Název Efektu",
     "VISAGE.Editor.Effects.PathPlaceholder": "např. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Štítek je vyžadován.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nepodařilo se prohodit výchozí vzhled."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nepodařilo se prohodit výchozí vzhled.",
+    "VISAGE.Editor.Replay": "Přehrát Znovu",
+    "VISAGE.Editor.Effects.Loop": "Smyčka",
+    "VISAGE.Editor.Effects.Once": "Jednou",
+    "VISAGE.Editor.Groups.Foreground": "Efekty Popředí",
+    "VISAGE.Editor.Groups.Background": "Efekty Pozadí",
+    "VISAGE.Editor.Groups.Audio": "Zvukové Efekty",
+    "VISAGE.Editor.Groups.Empty": "Sem přetáhněte efekty"
 }

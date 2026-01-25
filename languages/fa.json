@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "\u200Fنام افکت",
     "VISAGE.Editor.Effects.PathPlaceholder": "\u200Fمثلاً: \u2068jb2a.fire_bolt.red\u2069",
     "VISAGE.Notifications.LabelRequired": "\u200F\u2068Visage\u2069 | برچسب الزامی است.",
-    "VISAGE.Notifications.DefaultSwapFailed": "\u200F\u2068Visage\u2069 | تعویض ظاهر پیش‌فرض ناموفق بود."
+    "VISAGE.Notifications.DefaultSwapFailed": "\u200F\u2068Visage\u2069 | تعویض ظاهر پیش‌فرض ناموفق بود.",
+    "VISAGE.Editor.Replay": "\u200Fپخش مجدد افکت‌ها",
+    "VISAGE.Editor.Effects.Loop": "\u200Fتکرار حلقه",
+    "VISAGE.Editor.Effects.Once": "\u200Fیک بار پخش",
+    "VISAGE.Editor.Groups.Foreground": "\u200Fافکت‌های پیش‌زمینه",
+    "VISAGE.Editor.Groups.Background": "\u200Fافکت‌های پس‌زمینه",
+    "VISAGE.Editor.Groups.Audio": "\u200Fافکت‌های صوتی",
+    "VISAGE.Editor.Groups.Empty": "\u200Fافکت‌ها را اینجا بکشید"
 }

@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Effect Naam",
     "VISAGE.Editor.Effects.PathPlaceholder": "bijv. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Label is verplicht.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Kon standaard uiterlijk niet wisselen."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Kon standaard uiterlijk niet wisselen.",
+    "VISAGE.Editor.Replay": "Effecten Herhalen",
+    "VISAGE.Editor.Effects.Loop": "Lus",
+    "VISAGE.Editor.Effects.Once": "Eenmalig",
+    "VISAGE.Editor.Groups.Foreground": "Voorgrond Effecten",
+    "VISAGE.Editor.Groups.Background": "Achtergrond Effecten",
+    "VISAGE.Editor.Groups.Audio": "Audio Effecten",
+    "VISAGE.Editor.Groups.Empty": "Sleep effecten hierheen"
 }

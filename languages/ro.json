@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Nume Efect",
     "VISAGE.Editor.Effects.PathPlaceholder": "ex. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Eticheta este obligatorie.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nu s-a putut schimba aspectul implicit."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nu s-a putut schimba aspectul implicit.",
+    "VISAGE.Editor.Replay": "Redare Efecte",
+    "VISAGE.Editor.Effects.Loop": "Buclă",
+    "VISAGE.Editor.Effects.Once": "O singură dată",
+    "VISAGE.Editor.Groups.Foreground": "Efecte Prim-Plan",
+    "VISAGE.Editor.Groups.Background": "Efecte Fundal",
+    "VISAGE.Editor.Groups.Audio": "Efecte Audio",
+    "VISAGE.Editor.Groups.Empty": "Trage efectele aici"
 }

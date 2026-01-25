@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "エフェクト名",
     "VISAGE.Editor.Effects.PathPlaceholder": "例: jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | ラベルが必要です。",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | デフォルト外見の変更に失敗しました。"
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | デフォルト外見の変更に失敗しました。",
+    "VISAGE.Editor.Replay": "リプレイ",
+    "VISAGE.Editor.Effects.Loop": "ループ",
+    "VISAGE.Editor.Effects.Once": "一回のみ",
+    "VISAGE.Editor.Groups.Foreground": "前景エフェクト",
+    "VISAGE.Editor.Groups.Background": "背景エフェクト",
+    "VISAGE.Editor.Groups.Audio": "オーディオエフェクト",
+    "VISAGE.Editor.Groups.Empty": "ここにエフェクトをドラッグ"
 }
