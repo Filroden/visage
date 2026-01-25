@@ -1819,9 +1819,14 @@ li.context-item .visage-icon-domino {
     display: flex;
     flex-direction: column;
     padding: var(--filroden-space-l);
-    overflow-y: auto;
+    overflow-y: hidden;
     background: var(--visage-color-bg-darkest);
     transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.visage-effect-list {
+    padding: var(--filroden-space-s);
+    overflow-y: auto;
 }
 
 /* State: Default (List visible, Inspector hidden to right) */
@@ -1834,6 +1839,45 @@ li.context-item .visage-icon-domino {
 
 
 /* --- View 1: Effect Stack --- */
+
+.effect-group {
+    margin-bottom: var(--filroden-space-m);
+    position: relative;
+}
+
+.group-header {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    
+    font-family: var(--filroden-font-family);
+    font-size: var(--filroden-font-size-xs);
+    font-weight: var(--filroden-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--visage-color-text-muted);
+    
+    /* Background must be opaque for sticky behavior to hide content behind it */
+    background: var(--visage-color-bg-darkest);
+    
+    margin: 0 0 var(--filroden-space-xs) 0;
+    padding: var(--filroden-space-s) 0;
+    border-bottom: 1px solid var(--visage-color-border);
+    
+    z-index: 5;
+}
+
+/* Sticky positioning logic */
+.group-header.sticky {
+    position: sticky;
+    top: 0;
+}
+
+/* Icon styling within the header */
+.group-header i {
+    color: var(--visage-color-accent);
+    font-size: 1.1em;
+}
 
 .effects-actions {
     display: flex;
@@ -1931,6 +1975,65 @@ li.context-item .visage-icon-domino {
 .effect-btn.active:hover {
     background-color: var(--visage-color-accent-hover);
     color: var(--visage-color-text-on-accent);
+}
+
+/* --- Drag & Drop Styling for Effect Cards --- */
+
+.effect-card.dragging {
+    opacity: 0.4;
+    border: 1px dashed var(--visage-color-accent);
+    background: var(--visage-color-bg-darkest);
+}
+
+.effect-card.drag-over {
+    border-top: 2px solid var(--visage-color-accent);
+    margin-top: var(--filroden-space-xxs); /* Smooth spacing adjustment */
+    transition: all 0.1s;
+}
+
+.effect-group {
+    transition: background-color 0.2s, border-color 0.2s;
+    border-radius: var(--filroden-radius-medium);
+    padding: var(--filroden-space-xxs); /* Padding for the outline */
+    border: 1px solid transparent;
+}
+
+.effect-group.group-drag-over {
+    background-color: rgba(var(--visage-color-accent-rgb), 0.05);
+    border: 1px dashed var(--visage-color-accent);
+}
+
+/* Drag Handle Icon styling */
+.effect-card .drag-handle {
+    color: var(--visage-color-text-muted);
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    padding-right: var(--filroden-space-xs);
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.effect-card:hover .drag-handle {
+    opacity: 1;
+}
+
+.effect-card .drag-handle:active {
+    cursor: grabbing;
+    color: var(--visage-color-accent);
+}
+
+.effect-group.group-drag-over .empty-group-placeholder {
+    background-color: transparent;
+    border-color: var(--visage-color-accent);
+    color: var(--visage-color-accent);
+}
+
+.group-drop-zone {
+    min-height: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xs);
 }
 
 /* --- View 2: Inspector --- */

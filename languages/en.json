@@ -244,5 +244,9 @@
     "VISAGE.Editor.Effects.Once": "Play Once",
     "VISAGE.Editor.Effects.Fade": "Fade Duration",
     "VISAGE.Editor.Effects.FadeIn": "In",
-    "VISAGE.Editor.Effects.FadeOut": "Out"
+    "VISAGE.Editor.Effects.FadeOut": "Out",
+    "VISAGE.Editor.Groups.Foreground": "Foreground Effects",
+    "VISAGE.Editor.Groups.Background": "Background Effects",
+    "VISAGE.Editor.Groups.Audio": "Audio Effects",
+    "VISAGE.Editor.Groups.Empty": "Drag effects here"
 }

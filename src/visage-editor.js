@@ -134,6 +134,161 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             : game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global");
     }
 
+    /* -------------------------------------------- */
+    /* Drag and Drop Implementation                */
+    /* -------------------------------------------- */
+
+    /**
+     * Binds HTML5 drag and drop listeners to the effects list.
+     * Called by _onRender.
+     */
+    _bindDragDrop(html) {
+        let dragSource = null;
+
+        // 1. Drag Start (Card)
+        const cards = html.querySelectorAll('.effect-card');
+        cards.forEach(card => {
+            card.addEventListener('dragstart', (ev) => {
+                dragSource = card;
+                ev.dataTransfer.effectAllowed = "move";
+                ev.dataTransfer.setData("text/plain", card.dataset.id);
+                ev.dataTransfer.setData("type", card.dataset.type);
+                card.classList.add('dragging');
+            });
+
+            card.addEventListener('dragend', (ev) => {
+                card.classList.remove('dragging');
+                dragSource = null;
+                // Cleanup highlights
+                html.querySelectorAll('.drag-over, .group-drag-over').forEach(el => {
+                    el.classList.remove('drag-over', 'group-drag-over');
+                });
+            });
+            
+            // Allow dropping onto other cards (for reordering)
+            card.addEventListener('dragenter', (ev) => ev.preventDefault());
+            card.addEventListener('dragover', (ev) => {
+                ev.preventDefault();
+                // Only allow if types match (Visual <-> Visual, Audio <-> Audio)
+                const sourceType = dragSource?.dataset.type;
+                const targetType = card.dataset.type;
+                
+                // Allow Visuals to mix (above/below), but strictly separate Audio
+                const isSourceVisual = sourceType === "visual";
+                const isTargetVisual = targetType === "visual";
+                
+                if (isSourceVisual !== isTargetVisual) return;
+
+                card.classList.add('drag-over');
+            });
+            card.addEventListener('dragleave', (ev) => {
+                card.classList.remove('drag-over');
+            });
+            card.addEventListener('drop', (ev) => this._onDrop(ev, card.closest('.effect-group').dataset.group, card.dataset.id));
+        });
+
+        // 2. Drop Zones (Groups) - Handling drops into empty areas or at end of lists
+        const groups = html.querySelectorAll('.effect-group');
+        groups.forEach(group => {
+            group.addEventListener('dragenter', (ev) => ev.preventDefault());
+            group.addEventListener('dragover', (ev) => {
+                ev.preventDefault();
+                const sourceType = dragSource?.dataset.type;
+                const targetGroup = group.dataset.group;
+
+                // Type Safety Check
+                if (sourceType === "audio" && targetGroup !== "audio") return;
+                if (sourceType === "visual" && targetGroup === "audio") return;
+
+                group.classList.add('group-drag-over');
+            });
+            group.addEventListener('dragleave', (ev) => {
+                group.classList.remove('group-drag-over');
+            });
+            group.addEventListener('drop', (ev) => {
+                // If we dropped on a card, the card's listener handles it (stopPropagation).
+                // If we bubble up here, it means we dropped in the empty space/container.
+                this._onDrop(ev, group.dataset.group, null); 
+            });
+        });
+    }
+
+    /**
+     * Main Drop Handler
+     * @param {Event} ev 
+     * @param {string} targetGroup - 'above', 'below', or 'audio'
+     * @param {string|null} targetId - ID of specific card dropped onto, or null if dropped in container
+     */
+    async _onDrop(ev, targetGroup, targetId) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const draggedId = ev.dataTransfer.getData("text/plain");
+        if (!draggedId || draggedId === targetId) return;
+
+        // 1. Get Original Indices
+        const draggedIndex = this._effects.findIndex(e => e.id === draggedId);
+        const originalTargetIndex = targetId ? this._effects.findIndex(e => e.id === targetId) : -1;
+        
+        if (draggedIndex === -1) return;
+        const draggedEffect = this._effects[draggedIndex];
+
+        // 2. Intelligent Logic: Update Properties based on Target Group
+        // We do this BEFORE moving, so the object has the correct state when re-inserted
+        if (targetGroup === "above" && draggedEffect.type === "visual") {
+            draggedEffect.zOrder = "above";
+        } else if (targetGroup === "below" && draggedEffect.type === "visual") {
+            draggedEffect.zOrder = "below";
+        } else if (targetGroup === "audio" && draggedEffect.type !== "audio") {
+            return;
+        }
+
+        // 3. Reorder Array
+        // Remove from old position
+        this._effects.splice(draggedIndex, 1);
+
+        if (targetId) {
+            // Case A: Dropped onto another card
+            // We need to find the *new* index of the target (since the array shifted)
+            const newTargetIndex = this._effects.findIndex(e => e.id === targetId);
+            
+            if (newTargetIndex !== -1) {
+                // Directional Logic:
+                // If we dragged an item from "above" (lower index) to "below" (higher index),
+                // the logical expectation is to place it AFTER the target.
+                // If we dragged "up", we place it BEFORE.
+                
+                if (draggedIndex < originalTargetIndex) {
+                     // Moving Down: Insert AFTER the target
+                     this._effects.splice(newTargetIndex + 1, 0, draggedEffect);
+                } else {
+                     // Moving Up: Insert BEFORE the target
+                     this._effects.splice(newTargetIndex, 0, draggedEffect);
+                }
+            } else {
+                this._effects.push(draggedEffect); // Fallback
+            }
+        } else {
+            // Case B: Dropped into the container (Empty Space) -> Append to end of that group
+            let insertIndex = this._effects.length; 
+            
+            if (targetGroup === "above" || targetGroup === "below") {
+                // Find last visual effect of this specific zOrder
+                const lastOfGroupIndex = this._effects.findLastIndex(e => e.type === "visual" && e.zOrder === targetGroup);
+                if (lastOfGroupIndex !== -1) insertIndex = lastOfGroupIndex + 1;
+            } else if (targetGroup === "audio") {
+                const lastAudioIndex = this._effects.findLastIndex(e => e.type === "audio");
+                if (lastAudioIndex !== -1) insertIndex = lastAudioIndex + 1;
+            }
+            
+            this._effects.splice(insertIndex, 0, draggedEffect);
+        }
+
+        this._markDirty();
+        this._updatePreview(); 
+        await this.render();
+    }
+
     /**
      * Override render to snapshot the form state before Foundry wipes the DOM.
      * This ensures typed text isn't lost when we re-render to show a new effect row.
@@ -244,12 +399,33 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (c.lockRotation === true) lockVal = "true";
         if (c.lockRotation === false) lockVal = "false";
 
-        // Prepare Active Effect Data for Inspector Pane
-        let activeEffectData = {};
+        // Helper to format effect for card display
+        const formatEffect = (e) => ({
+            ...e,
+            icon: e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
+            metaLabel: e.type === "audio" 
+                ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%` 
+                : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`
+        });
+
+        // 1. Filter and Map into Groups
+        const effectsAbove = this._effects.filter(e => e.type === "visual" && e.zOrder === "above").map(formatEffect);
+        const effectsBelow = this._effects.filter(e => e.type === "visual" && e.zOrder === "below").map(formatEffect);
+        const effectsAudio = this._effects.filter(e => e.type === "audio").map(formatEffect);
+
+        // 2. Build Base Inspector Object with these Groups
+        let inspectorData = {
+            hasEffects: this._effects.length > 0,
+            effectsAbove: effectsAbove,
+            effectsBelow: effectsBelow,
+            effectsAudio: effectsAudio
+        };
+
+        // 3. If an effect is selected, merge its editable properties into the inspector object
         if (this._activeEffectId) {
             const effect = this._effects.find(e => e.id === this._activeEffectId);
             if (effect) {
-                activeEffectData = {
+                foundry.utils.mergeObject(inspectorData, {
                     id: effect.id,
                     label: effect.label,
                     path: effect.path,
@@ -261,20 +437,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     blendMode: effect.blendMode || "normal",
                     type: effect.type,
                     loop: effect.loop ?? true
-                };
+                });
             }
         }
-
-        // Process Effects Stack for List View
-        const effectsStack = this._effects.map(e => {
-            return {
-                ...e,
-                icon: e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
-                metaLabel: e.type === "audio" 
-                    ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%` 
-                    : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`
-            };
-        });
 
         return {
             ...context, 
@@ -288,7 +453,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             mode: currentMode,
             appId: this.id,
 
-            // Tab State (Active class management)
             tabs: {
                 appearance: { active: this._activeTab === "appearance", cssClass: this._activeTab === "appearance" ? "active" : "" },
                 ring: { active: this._activeTab === "ring", cssClass: this._activeTab === "ring" ? "active" : "" },
@@ -297,7 +461,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
             img: prep(rawImg, ""),
             
-            // ATOMIC PROPERTIES
             scale: { 
                 value: (c.scale !== undefined && c.scale !== null) ? Math.round(c.scale * 100) : 100, 
                 active: c.scale !== undefined && c.scale !== null 
@@ -319,10 +482,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
             ring: { active: ringActive, ...ringContext },
             
-            // EFFECTS DATA
             hasSequencer: VisageUtilities.hasSequencer,
-            effects: effectsStack,
-            inspector: activeEffectData,
+            // Pass the populated inspector object to the template
+            inspector: inspectorData,
 
             preview: {
                 ...context.meta, 
@@ -908,16 +1070,25 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
-    _onCloseEffectInspector(event, target) {
+    async _onCloseEffectInspector(event, target) {
         const container = this.element.querySelector('.effects-tab-container');
         if(container) container.classList.remove('editing');
         this._activeEffectId = null;
+        await this.render();
     }
 
-    _onDeleteEffect(event, target) {
+    async _onDeleteEffect(event, target) {
         const card = target.closest('.effect-card');
         const id = card.dataset.id;
         
+        const confirm = await foundry.applications.api.DialogV2.confirm({
+            window: { title: game.i18n.localize("VISAGE.Dialog.Destroy.Title") },
+            content: `<p>${game.i18n.localize("VISAGE.Dialog.Destroy.Content")}</p>`,
+            modal: true
+        });
+
+        if (!confirm) return;
+
         this._effects = this._effects.filter(e => e.id !== id);
         if (this._activeEffectId === id) this._activeEffectId = null;
         
@@ -978,6 +1149,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         
         this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
+        this._bindDragDrop(this.element);
         
         // Debounce text inputs to avoid rapid Preview re-renders
         let debounceTimer;
@@ -999,7 +1171,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 this._activateTab(target);
             });
         });
-        
+
         if (this._activeTab) this._activateTab(this._activeTab);
 
         if (this._activeEffectId) {

@@ -380,46 +380,61 @@
                                 </button>
                             </div>
 
-                            <div class="effect-stack-list">
-                                {{#each effects}}
-                                <div class="effect-card" data-id="{{this.id}}" data-action="editEffect">
-                                    <div class="effect-icon">
-                                        <i class="{{this.icon}}"></i>
-                                    </div>
-                                    <div class="effect-info">
-                                        <span class="effect-name">{{this.label}}</span>
-                                        <span class="effect-meta">{{this.metaLabel}}</span>
-                                    </div>
-                                    <div class="effect-controls">
-                                        {{!-- Loop Toggle --}}
-                                        <button type="button" class="effect-btn {{#if this.loop}}active{{/if}}" 
-                                                data-action="toggleLoop" 
-                                                title="{{localize 'VISAGE.Editor.Effects.Loop'}}">
-                                            <i class="visage-icon repeat"></i>
-                                        </button>
-                                        
-                                        {{!-- Enable/Disable Toggle --}}
-                                        <button type="button" class="effect-btn" data-action="toggleEffect" title="{{localize 'VISAGE.Actions.Toggle'}}">
-                                            {{#if this.disabled}}
-                                            <i class="visage-icon visage-hidden"></i>
-                                            {{else}}
-                                            <i class="visage-icon visible"></i>
-                                            {{/if}}
-                                        </button>
-
-                                        {{!-- Delete Effect --}}
-                                        <button type="button" class="effect-btn delete" data-action="deleteEffect" title="{{localize 'VISAGE.Actions.Delete'}}">
-                                            <i class="visage-icon delete"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                {{/each}}
+                            {{!-- EFFECTS LIST (Grouped) --}}
+                            <div class="visage-effect-list visage-scrollable">
                                 
-                                {{#unless effects.length}}
-                                <div class="empty-placeholder" style="padding: 1rem; font-size: 0.8em;">
-                                    {{localize "VISAGE.Editor.Effects.Empty"}}
-                                </div>
-                                {{/unless}}
+                                {{#if inspector.hasEffects}}
+                                    {{!-- 1. FOREGROUND (Above) --}}
+                                    <div class="effect-group" data-group="above">
+                                        <h3 class="group-header sticky">
+                                            <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Groups.Foreground"}}
+                                        </h3>
+                                        <div class="group-drop-zone">
+                                            {{#each inspector.effectsAbove}}
+                                                {{> "modules/visage/templates/parts/visage-effectCard.hbs" this activeId=../activeId inspector=../inspector}}
+                                            {{/each}}
+                                            {{#unless inspector.effectsAbove.length}}
+                                                <div class="empty-group-placeholder">{{localize "VISAGE.Editor.Groups.Empty"}}</div>
+                                            {{/unless}}
+                                        </div>
+                                    </div>
+
+                                    {{!-- 2. BACKGROUND (Below) --}}
+                                    <div class="effect-group" data-group="below">
+                                        <h3 class="group-header sticky">
+                                            <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Groups.Background"}}
+                                        </h3>
+                                        <div class="group-drop-zone">
+                                            {{#each inspector.effectsBelow}}
+                                                {{> "modules/visage/templates/parts/visage-effectCard.hbs" this activeId=../activeId inspector=../inspector}}
+                                            {{/each}}
+                                            {{#unless inspector.effectsBelow.length}}
+                                                <div class="empty-group-placeholder">{{localize "VISAGE.Editor.Groups.Empty"}}</div>
+                                            {{/unless}}
+                                        </div>
+                                    </div>
+
+                                    {{!-- 3. AUDIO --}}
+                                    <div class="effect-group" data-group="audio">
+                                        <h3 class="group-header sticky">
+                                            <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Groups.Audio"}}
+                                        </h3>
+                                        <div class="group-drop-zone">
+                                            {{#each inspector.effectsAudio}}
+                                                {{> "modules/visage/templates/parts/visage-effectCard.hbs" this activeId=../activeId inspector=../inspector}}
+                                            {{/each}}
+                                            {{#unless inspector.effectsAudio.length}}
+                                                <div class="empty-group-placeholder">{{localize "VISAGE.Editor.Groups.Empty"}}</div>
+                                            {{/unless}}
+                                        </div>
+                                    </div>
+                                {{else}}
+                                    {{!-- EMPTY STATE --}}
+                                    <div class="empty-placeholder">
+                                        <i class="visage-icon magic-wand"></i>
+                                        <p>{{localize "VISAGE.Editor.Effects.Empty"}}</p>
+                                    </div>
+                                {{/if}}
                             </div>
 
                         </div>
