@@ -110,6 +110,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             closeEffectInspector: VisageEditor.prototype._onCloseEffectInspector,
             deleteEffect: VisageEditor.prototype._onDeleteEffect,
             toggleEffect: VisageEditor.prototype._onToggleEffect,
+            toggleLoop: VisageEditor.prototype._onToggleLoop,
+            replayPreview: VisageEditor.prototype._onReplayPreview,
             openSequencerDatabase: VisageEditor.prototype._onOpenSequencerDatabase
         }
     };
@@ -258,9 +260,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     zOrder: effect.zOrder ?? "above",
                     blendMode: effect.blendMode || "normal",
                     type: effect.type,
-                    loop: effect.loop ?? true, 
-                    fadeIn: effect.fadeIn ?? 0,
-                    fadeOut: effect.fadeOut ?? 0
+                    loop: effect.loop ?? true
                 };
             }
         }
@@ -360,9 +360,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 // Map Form Fields to Effect Properties
                 if (formData.effectPath !== undefined) e.path = formData.effectPath;
                 if (formData.effectLabel !== undefined) e.label = formData.effectLabel || "New Visual";
-                if (formData.effectLoop !== undefined) e.loop = formData.effectLoop; 
-                if (formData.effectFadeIn !== undefined) e.fadeIn = Number(formData.effectFadeIn) || 0;
-                if (formData.effectFadeOut !== undefined) e.fadeOut = Number(formData.effectFadeOut) || 0;
+                if (formData.effectLoop !== undefined) e.loop = formData.effectLoop;
                 
                 if (e.type === "visual") {
                     if (formData.effectScale !== undefined) e.scale = (parseFloat(formData.effectScale) || 100) / 100;
@@ -787,14 +785,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             // B. Create New Sound
             if (!this._audioPreviews.has(e.id)) {
                 const resolvedPath = this._resolveEffectPath(e.path);
-                
                 if (!resolvedPath) return; 
+
+                // Use the effect's loop setting (default to true)
+                const isLoop = e.loop ?? true;
 
                 // Store Promise immediately to prevent duplicate play calls
                 const playPromise = foundry.audio.AudioHelper.play({
                     src: resolvedPath,
                     volume: vol,
-                    loop: true
+                    loop: isLoop
                 }, false).then(sound => {
                     // Race Condition Check: Ensure it wasn't deleted while loading
                     const currentEffect = (this._effects || []).find(fx => fx.id === e.id);
@@ -876,8 +876,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             rotationRandom: false,
             zOrder: "above",
             loop: true,
-            fadeIn: 0,
-            fadeOut: 0,
             disabled: false
         };
         
@@ -895,8 +893,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             path: "",
             opacity: 0.8,
             loop: true,
-            fadeIn: 0,
-            fadeOut: 0,
             disabled: false
         };
         
@@ -1150,6 +1146,49 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                  c.querySelector(".effects-tab-container")?.classList.remove("active");
             }
         });
+    }
+
+    /**
+     * Toggles the 'loop' property of an effect.
+     * Updates the internal state and re-renders to reflect the active/inactive icon style.
+     */
+    _onToggleLoop(event, target) {
+        const card = target.closest('.effect-card');
+        const id = card.dataset.id;
+        const effect = this._effects.find(e => e.id === id);
+        
+        if (effect) {
+            // Toggle boolean (defaulting to true if undefined)
+            effect.loop = !(effect.loop ?? true);
+            this._markDirty();
+            
+            // Update the card UI directly (optional optimization) or just re-render
+            this.render(); 
+        }
+    }
+
+    /**
+     * Re-triggers the Live Preview generation.
+     * This effectively "replays" any One-Shot effects by destroying and recreating them.
+     */
+    _onReplayPreview(event, target) {
+        // Optional: Animate the icon to give feedback
+        const icon = target.querySelector('i');
+        if (icon) {
+            icon.animate([
+                { transform: 'rotate(0deg)' },
+                { transform: 'rotate(360deg)' }
+            ], { duration: 500 });
+        }
+
+        // Force stop and clear all audio previews so they restart
+        for (const [id, sound] of this._audioPreviews) {
+            if (sound && typeof sound.stop === "function") sound.stop();
+        }
+        this._audioPreviews.clear();
+        
+        // Force update the preview stage
+        this._updatePreview();
     }
 
     _bindTagInput() {

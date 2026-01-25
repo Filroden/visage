@@ -48,9 +48,7 @@ export class VisageSequencer {
                     if (!path || typeof path !== "string") continue;
 
                     // 1. Defaults
-                    const isLoop = effect.loop ?? true; 
-                    const fadeIn = effect.fadeIn ?? 0;
-                    const fadeOut = effect.fadeOut ?? 0;
+                    const isLoop = effect.loop ?? true;
 
                     let seqEffect = sequence.effect()
                         .file(path)
@@ -59,8 +57,6 @@ export class VisageSequencer {
                         .opacity(effect.opacity ?? 1.0)
                         .rotate(effect.rotation ?? 0)
                         .belowTokens(effect.zOrder === "below")
-                        .fadeIn(fadeIn)
-                        .fadeOut(fadeOut)
                         .volume(0)
                         .name(tag)
                         .origin(layer.id);
@@ -153,50 +149,31 @@ export class VisageSequencer {
             if (!path || typeof path !== "string") return;
 
             try {
-                // 1. Resolve Options
+                // Resolve Options
                 const isLoop = effect.loop ?? true;
-                const fadeIn = effect.fadeIn ?? 0;
-                const fadeOut = effect.fadeOut ?? 0;
                 const targetVol = Number.isFinite(effect.opacity) ? effect.opacity : 0.8;
-                
-                // If fading in, start silence. Otherwise, start at target volume.
-                const startVol = fadeIn > 0 ? 0 : targetVol;
 
-                // 2. Play Core Audio
+                // Play Core Audio
                 const sound = await foundry.audio.AudioHelper.play({
                     src: path,
-                    volume: startVol,
+                    volume: targetVol,
                     loop: isLoop
                 }, false);
 
                 if (sound) {
-                    // 3. Handle Fade In (using Howler/Foundry API)
-                    if (fadeIn > 0) {
-                        // sound.fade(from, to, duration_ms)
-                        sound.fade(0, targetVol, fadeIn);
-                    }
-
-                    // 4. Store Metadata for Removal
-                    // We attach the preferred fadeOut duration to the object 
-                    // so remove() knows how to handle it gracefully.
-                    sound._visageFadeOut = fadeOut;
-
                     activeInstances.push(sound);
 
-                    // 5. Self-Cleanup for One-Shots
-                    // If it's not looping, we must remove it from the map when it ends,
-                    // otherwise _activeSounds will leak memory over time.
+                    if (game.audio.locked) {
+                        console.log("Visage | Audio is locked. Sound will play upon first click.");
+                    }
+
+                    // Self-Cleanup for One-Shots
                     if (!isLoop) {
-                        sound.on("end", () => {
+                        sound.addEventListener("end", () => {
                             const currentParams = this._activeSounds.get(soundKey);
                             if (currentParams) {
                                 const idx = currentParams.indexOf(sound);
                                 if (idx > -1) currentParams.splice(idx, 1);
-                                
-                                // If map is empty, delete key
-                                if (currentParams.length === 0) {
-                                    this._activeSounds.delete(soundKey);
-                                }
                             }
                         });
                     }
@@ -236,21 +213,7 @@ export class VisageSequencer {
             const sounds = this._activeSounds.get(soundKey);
             
             sounds.forEach(sound => {
-                if (sound && typeof sound.stop === "function") {
-                    // Check for our custom property
-                    const fadeDuration = sound._visageFadeOut || 0;
-                    
-                    if (fadeDuration > 0) {
-                        // Fade out then stop
-                        // Note: We don't await this because we want the UI to feel instant.
-                        // The sound will linger for 'fadeDuration' ms then die.
-                        sound.fade(sound.volume, 0, fadeDuration);
-                        setTimeout(() => sound.stop(), fadeDuration);
-                    } else {
-                        // Instant Stop
-                        sound.stop();
-                    }
-                }
+                if (sound && typeof sound.stop === "function") { sound.stop(); }
             });
             this._activeSounds.delete(soundKey);
         }

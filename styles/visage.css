@@ -1017,6 +1017,8 @@ li.context-item .visage-icon-domino {
 .visage-icon.extension-off { -webkit-mask-image: url('../icons/extension_off.svg'); mask-image: url('../icons/extension_off.svg'); }
 .visage-icon.warning       { -webkit-mask-image: url('../icons/warning.svg'); mask-image: url('../icons/warning.svg'); }
 .visage-icon.info          { -webkit-mask-image: url('../icons/info.svg'); mask-image: url('../icons/info.svg'); }
+.visage-icon.repeat      { -webkit-mask-image: url('../icons/repeat.svg'); mask-image: url('../icons/repeat.svg'); }
+.visage-icon.refresh     { -webkit-mask-image: url('../icons/refresh.svg'); mask-image: url('../icons/refresh.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -1732,6 +1734,23 @@ li.context-item .visage-icon-domino {
     padding: 2rem;
 }
 
+
+
+/* Fade Grid (Inspector) - Mimics .mirroring-grid */
+.visage .visage-form-fields.fade-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr max-content 1fr; /* Label Input Label Input */
+    gap: var(--filroden-space-s);
+    align-items: center;
+    width: 100%;
+}
+
+.visage .fade-grid label {
+    margin: 0;
+    color: var(--visage-color-text-muted);
+    font-size: 0.8em;
+}
+
 /* --- Footer --- */
 
 .visage-editor-footer {
@@ -1902,6 +1921,17 @@ li.context-item .visage-icon-domino {
 .effect-btn:hover { color: var(--visage-color-text-main-solid); }
 .effect-btn.delete:hover { color: var(--filroden-color-danger); }
 
+.effect-btn.active {
+    background-color: var(--visage-color-accent);
+    color: var(--visage-color-text-on-accent);
+    box-shadow: 0 0 5px var(--visage-color-accent);
+    opacity: 1;
+}
+
+.effect-btn.active:hover {
+    background-color: var(--visage-color-accent-hover);
+    color: var(--visage-color-text-on-accent);
+}
 
 /* --- View 2: Inspector --- */
 

@@ -4,7 +4,7 @@
     {{#each effectsBelow}}
         {{#if this.resolvedPath}}
             {{#if this.isVideo}}
-            <video class="visage-effect-layer below" src="{{this.resolvedPath}}" autoplay loop muted style="{{this.style}}"></video>
+            <video class="visage-effect-layer below" src="{{this.resolvedPath}}" autoplay {{#if this.loop}}loop{{/if}} muted style="{{this.style}}"></video>
             {{else}}
             <img class="visage-effect-layer below" src="{{this.resolvedPath}}" style="{{this.style}}">
             {{/if}}
@@ -42,7 +42,7 @@
     {{#each effectsAbove}}
         {{#if this.resolvedPath}}
             {{#if this.isVideo}}
-            <video class="visage-effect-layer above" src="{{this.resolvedPath}}" autoplay loop muted style="{{this.style}}"></video>
+            <video class="visage-effect-layer above" src="{{this.resolvedPath}}" autoplay {{#if this.loop}}loop{{/if}} muted style="{{this.style}}"></video>
             {{else}}
             <img class="visage-effect-layer above" src="{{this.resolvedPath}}" style="{{this.style}}">
             {{/if}}
