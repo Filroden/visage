@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Tehosteen Nimi",
     "VISAGE.Editor.Effects.PathPlaceholder": "esim. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Etiketti vaaditaan.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Oletusulkoasun vaihto epäonnistui."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Oletusulkoasun vaihto epäonnistui.",
+    "VISAGE.Editor.Replay": "Toista Tehosteet",
+    "VISAGE.Editor.Effects.Loop": "Silmukka",
+    "VISAGE.Editor.Effects.Once": "Kerran",
+    "VISAGE.Editor.Groups.Foreground": "Etualan Tehosteet",
+    "VISAGE.Editor.Groups.Background": "Taustan Tehosteet",
+    "VISAGE.Editor.Groups.Audio": "Äänitehosteet",
+    "VISAGE.Editor.Groups.Empty": "Vedä tehosteet tähän"
 }

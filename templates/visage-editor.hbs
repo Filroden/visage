@@ -89,7 +89,7 @@
                 {{!-- Hint Text --}}
                 <div class="visage-stage-hint">{{localize "VISAGE.Editor.StageHint"}}</div>
 
-                {{!-- Zoom Controls HUD --}}
+                {{!-- Stage Controls HUD --}}
                 <div class="visage-zoom-controls">
                     {{!-- Grid Toggle --}}
                     <button type="button" data-action="toggleGrid" data-tooltip="{{localize 'VISAGE.Editor.ToggleGrid'}}">
@@ -98,6 +98,7 @@
                     
                     <div class="visage-divider-vertical" style="width:1px; background:rgba(255,255,255,0.1); margin: 0 4px;"></div>
 
+                    {{!-- Zoom Controls --}}
                     <button type="button" data-action="zoomOut" data-tooltip="{{localize 'VISAGE.Editor.ZoomOut'}}">
                         <i class="visage-icon zoom-out"></i>
                     </button>
@@ -107,7 +108,15 @@
                     <button type="button" data-action="zoomIn" data-tooltip="{{localize 'VISAGE.Editor.ZoomIn'}}">
                         <i class="visage-icon zoom-in"></i>
                     </button>
+
+                    <div class="visage-divider-vertical" style="width:1px; background:rgba(255,255,255,0.1); margin: 0 4px;"></div>
+
+                    {{!-- Playback Controls --}}
+                    <button type="button" data-action="replayPreview" data-tooltip="{{localize 'VISAGE.Editor.Replay'}}">
+                        <i class="visage-icon refresh"></i>
+                    </button>
                 </div>
+
             </div>
 
             {{!-- B. METADATA GRID (Compact Footer) --}}
@@ -371,36 +380,61 @@
                                 </button>
                             </div>
 
-                            <div class="effect-stack-list">
-                                {{#each effects}}
-                                <div class="effect-card" data-id="{{this.id}}" data-action="editEffect">
-                                    <div class="effect-icon">
-                                        <i class="{{this.icon}}"></i>
-                                    </div>
-                                    <div class="effect-info">
-                                        <span class="effect-name">{{this.label}}</span>
-                                        <span class="effect-meta">{{this.metaLabel}}</span>
-                                    </div>
-                                    <div class="effect-controls">
-                                        <button type="button" class="effect-btn" data-action="toggleEffect" title="{{localize 'VISAGE.Actions.Toggle'}}">
-                                            {{#if this.disabled}}
-                                            <i class="visage-icon visage-hidden"></i>
-                                            {{else}}
-                                            <i class="visage-icon visible"></i>
-                                            {{/if}}
-                                        </button>
-                                        <button type="button" class="effect-btn delete" data-action="deleteEffect" title="{{localize 'VISAGE.Actions.Delete'}}">
-                                            <i class="visage-icon delete"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                {{/each}}
+                            {{!-- EFFECTS LIST (Grouped) --}}
+                            <div class="visage-effect-list visage-scrollable">
                                 
-                                {{#unless effects.length}}
-                                <div class="empty-placeholder" style="padding: 1rem; font-size: 0.8em;">
-                                    {{localize "VISAGE.Editor.Effects.Empty"}}
-                                </div>
-                                {{/unless}}
+                                {{#if inspector.hasEffects}}
+                                    {{!-- 1. FOREGROUND (Above) --}}
+                                    <div class="effect-group" data-group="above">
+                                        <h3 class="group-header sticky">
+                                            <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Groups.Foreground"}}
+                                        </h3>
+                                        <div class="group-drop-zone">
+                                            {{#each inspector.effectsAbove}}
+                                                {{> "modules/visage/templates/parts/visage-effectCard.hbs" this activeId=../activeId inspector=../inspector}}
+                                            {{/each}}
+                                            {{#unless inspector.effectsAbove.length}}
+                                                <div class="empty-group-placeholder">{{localize "VISAGE.Editor.Groups.Empty"}}</div>
+                                            {{/unless}}
+                                        </div>
+                                    </div>
+
+                                    {{!-- 2. BACKGROUND (Below) --}}
+                                    <div class="effect-group" data-group="below">
+                                        <h3 class="group-header sticky">
+                                            <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Groups.Background"}}
+                                        </h3>
+                                        <div class="group-drop-zone">
+                                            {{#each inspector.effectsBelow}}
+                                                {{> "modules/visage/templates/parts/visage-effectCard.hbs" this activeId=../activeId inspector=../inspector}}
+                                            {{/each}}
+                                            {{#unless inspector.effectsBelow.length}}
+                                                <div class="empty-group-placeholder">{{localize "VISAGE.Editor.Groups.Empty"}}</div>
+                                            {{/unless}}
+                                        </div>
+                                    </div>
+
+                                    {{!-- 3. AUDIO --}}
+                                    <div class="effect-group" data-group="audio">
+                                        <h3 class="group-header sticky">
+                                            <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Groups.Audio"}}
+                                        </h3>
+                                        <div class="group-drop-zone">
+                                            {{#each inspector.effectsAudio}}
+                                                {{> "modules/visage/templates/parts/visage-effectCard.hbs" this activeId=../activeId inspector=../inspector}}
+                                            {{/each}}
+                                            {{#unless inspector.effectsAudio.length}}
+                                                <div class="empty-group-placeholder">{{localize "VISAGE.Editor.Groups.Empty"}}</div>
+                                            {{/unless}}
+                                        </div>
+                                    </div>
+                                {{else}}
+                                    {{!-- EMPTY STATE --}}
+                                    <div class="empty-placeholder">
+                                        <i class="visage-icon wand-stars"></i>
+                                        <p>{{localize "VISAGE.Editor.Effects.Empty"}}</p>
+                                    </div>
+                                {{/if}}
                             </div>
 
                         </div>
@@ -417,41 +451,41 @@
 
                             <fieldset class="visage-fieldset inspector-fieldset">
                             
-                            {{!-- SHARED: Label & Path --}}
-                            <div class="form-group">
-                                <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
-                                <div class="visage-form-fields">
-                                    <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="{{localize 'VISAGE.Editor.Effects.PathPlaceholder'}}">
-                                </div>
-                            </div>
-
-                            <div class="form-group stacked">
-                                <label>{{localize "VISAGE.Editor.Effects.Path"}}</label>
-                                <div class="visage-form-fields">
-                                    {{!-- Text Input for DB Key or File Path --}}
-                                    <input type="text" name="effectPath" value="{{inspector.path}}" placeholder="e.g. jb2a.fire_bolt.red">
-                                    
-                                    <button type="button" data-action="openSequencerDatabase" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenDatabase'}}">
-                                        <i class="visage-icon library"></i>
-                                    </button>
-
-                                    <button type="button" class="file-picker-button" data-action="openFilePicker" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenFile'}}">
-                                        <i class="visage-icon open"></i>
-                                    </button>
-                                </div>
-                                <p class="hint">{{localize "VISAGE.Editor.Effects.DatabaseHint"}}</p>
-                            </div>
-
-                            {{!-- VISUAL SPECIFIC CONTROLS --}}
-                            {{#if (eq inspector.type 'visual')}}
-                                
+                                {{!-- SHARED: Label & Path --}}
                                 <div class="form-group">
-                                    <label>{{localize "VISAGE.Config.List.Scale"}}</label>
+                                    <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
                                     <div class="visage-form-fields">
-                                        {{!-- Step 10 for percentage increments --}}
-                                        <input type="number" name="effectScale" value="{{inspector.scale}}" step="10">
+                                        <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="{{localize 'VISAGE.Editor.Effects.PathPlaceholder'}}">
                                     </div>
                                 </div>
+
+                                <div class="form-group stacked">
+                                    <label>{{localize "VISAGE.Editor.Effects.Path"}}</label>
+                                    <div class="visage-form-fields">
+                                        {{!-- Text Input for DB Key or File Path --}}
+                                        <input type="text" name="effectPath" value="{{inspector.path}}" placeholder="e.g. jb2a.fire_bolt.red">
+                                        
+                                        <button type="button" data-action="openSequencerDatabase" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenDatabase'}}">
+                                            <i class="visage-icon library"></i>
+                                        </button>
+
+                                        <button type="button" class="file-picker-button" data-action="openFilePicker" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenFile'}}">
+                                            <i class="visage-icon open"></i>
+                                        </button>
+                                    </div>
+                                    <p class="hint">{{localize "VISAGE.Editor.Effects.DatabaseHint"}}</p>
+                                </div>
+
+                                {{!-- VISUAL SPECIFIC CONTROLS --}}
+                                {{#if (eq inspector.type 'visual')}}
+                                    
+                                    <div class="form-group">
+                                        <label>{{localize "VISAGE.Config.List.Scale"}}</label>
+                                        <div class="visage-form-fields">
+                                            {{!-- Step 10 for percentage increments --}}
+                                            <input type="number" name="effectScale" value="{{inspector.scale}}" step="10">
+                                        </div>
+                                    </div>
 
                                     <div class="form-group">
                                         <label>{{localize "VISAGE.Config.Opacity.Label"}}</label>
@@ -501,18 +535,12 @@
 
                                 {{!-- AUDIO SPECIFIC CONTROLS --}}
                                 {{#if (eq inspector.type 'audio')}}
-                                    
                                     <div class="form-group checkbox-input-group">
                                         <label>{{localize "VISAGE.Editor.Effects.Volume"}}</label>
                                         <div class="visage-form-fields">
                                             <range-picker name="effectVolume" value="{{inspector.opacity}}" min="0" max="1" step="0.1"></range-picker>
                                         </div>
                                     </div>
-                                    
-                                    <p class="hint">
-                                        <i class="visage-icon info"></i> {{localize "VISAGE.Editor.Effects.AudioHint"}}
-                                    </p>
-
                                 {{/if}}
 
                             </fieldset>

@@ -1017,6 +1017,8 @@ li.context-item .visage-icon-domino {
 .visage-icon.extension-off { -webkit-mask-image: url('../icons/extension_off.svg'); mask-image: url('../icons/extension_off.svg'); }
 .visage-icon.warning       { -webkit-mask-image: url('../icons/warning.svg'); mask-image: url('../icons/warning.svg'); }
 .visage-icon.info          { -webkit-mask-image: url('../icons/info.svg'); mask-image: url('../icons/info.svg'); }
+.visage-icon.repeat      { -webkit-mask-image: url('../icons/repeat.svg'); mask-image: url('../icons/repeat.svg'); }
+.visage-icon.refresh     { -webkit-mask-image: url('../icons/refresh.svg'); mask-image: url('../icons/refresh.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -1732,6 +1734,23 @@ li.context-item .visage-icon-domino {
     padding: 2rem;
 }
 
+
+
+/* Fade Grid (Inspector) - Mimics .mirroring-grid */
+.visage .visage-form-fields.fade-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr max-content 1fr; /* Label Input Label Input */
+    gap: var(--filroden-space-s);
+    align-items: center;
+    width: 100%;
+}
+
+.visage .fade-grid label {
+    margin: 0;
+    color: var(--visage-color-text-muted);
+    font-size: 0.8em;
+}
+
 /* --- Footer --- */
 
 .visage-editor-footer {
@@ -1800,9 +1819,14 @@ li.context-item .visage-icon-domino {
     display: flex;
     flex-direction: column;
     padding: var(--filroden-space-l);
-    overflow-y: auto;
+    overflow-y: hidden;
     background: var(--visage-color-bg-darkest);
     transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.visage-effect-list {
+    padding: var(--filroden-space-s);
+    overflow-y: auto;
 }
 
 /* State: Default (List visible, Inspector hidden to right) */
@@ -1815,6 +1839,45 @@ li.context-item .visage-icon-domino {
 
 
 /* --- View 1: Effect Stack --- */
+
+.effect-group {
+    margin-bottom: var(--filroden-space-m);
+    position: relative;
+}
+
+.group-header {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    
+    font-family: var(--filroden-font-family);
+    font-size: var(--filroden-font-size-xs);
+    font-weight: var(--filroden-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--visage-color-text-muted);
+    
+    /* Background must be opaque for sticky behavior to hide content behind it */
+    background: var(--visage-color-bg-darkest);
+    
+    margin: 0 0 var(--filroden-space-xs) 0;
+    padding: var(--filroden-space-s) 0;
+    border-bottom: 1px solid var(--visage-color-border);
+    
+    z-index: 5;
+}
+
+/* Sticky positioning logic */
+.group-header.sticky {
+    position: sticky;
+    top: 0;
+}
+
+/* Icon styling within the header */
+.group-header i {
+    color: var(--visage-color-accent);
+    font-size: 1.1em;
+}
 
 .effects-actions {
     display: flex;
@@ -1829,6 +1892,12 @@ li.context-item .visage-icon-domino {
     align-items: center;
     justify-content: center;
     font-size: var(--filroden-font-size-xs);
+}
+
+.empty-placeholder {
+    display: flex;
+    gap: var(--filroden-space-s);
+    align-items: center;
 }
 
 .effect-stack-list {
@@ -1852,6 +1921,11 @@ li.context-item .visage-icon-domino {
 .effect-card:hover {
     border-color: var(--visage-color-accent);
     background: var(--visage-color-bg-light);
+}
+
+.effect-card.visage-disabled {
+    opacity: 0.5;
+    background: var(--visage-color-bg-darkest);
 }
 
 .effect-icon {
@@ -1902,6 +1976,76 @@ li.context-item .visage-icon-domino {
 .effect-btn:hover { color: var(--visage-color-text-main-solid); }
 .effect-btn.delete:hover { color: var(--filroden-color-danger); }
 
+.effect-btn.active {
+    background-color: var(--visage-color-accent);
+    color: var(--visage-color-text-on-accent);
+    box-shadow: 0 0 5px var(--visage-color-accent);
+    opacity: 1;
+}
+
+.effect-btn.active:hover {
+    background-color: var(--visage-color-accent-hover);
+    color: var(--visage-color-text-on-accent);
+}
+
+/* --- Drag & Drop Styling for Effect Cards --- */
+
+.effect-card.dragging {
+    opacity: 0.4;
+    border: 1px dashed var(--visage-color-accent);
+    background: var(--visage-color-bg-darkest);
+}
+
+.effect-card.drag-over {
+    border-top: 2px solid var(--visage-color-accent);
+    margin-top: var(--filroden-space-xxs); /* Smooth spacing adjustment */
+    transition: all 0.1s;
+}
+
+.effect-group {
+    transition: background-color 0.2s, border-color 0.2s;
+    border-radius: var(--filroden-radius-medium);
+    padding: var(--filroden-space-xxs); /* Padding for the outline */
+    border: 1px solid transparent;
+}
+
+.effect-group.group-drag-over {
+    background-color: rgba(var(--visage-color-accent-rgb), 0.05);
+    border: 1px dashed var(--visage-color-accent);
+}
+
+/* Drag Handle Icon styling */
+.effect-card .drag-handle {
+    color: var(--visage-color-text-muted);
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    padding-right: var(--filroden-space-xs);
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.effect-card:hover .drag-handle {
+    opacity: 1;
+}
+
+.effect-card .drag-handle:active {
+    cursor: grabbing;
+    color: var(--visage-color-accent);
+}
+
+.effect-group.group-drag-over .empty-group-placeholder {
+    background-color: transparent;
+    border-color: var(--visage-color-accent);
+    color: var(--visage-color-accent);
+}
+
+.group-drop-zone {
+    min-height: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xs);
+}
 
 /* --- View 2: Inspector --- */
 

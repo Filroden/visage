@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Enw Effaith",
     "VISAGE.Editor.Effects.PathPlaceholder": "e.e. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Mae angen label.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Methwyd cyfnewid ymddangosiad diofyn."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Methwyd cyfnewid ymddangosiad diofyn.",
+    "VISAGE.Editor.Replay": "Ail-chwarae Effeithiau",
+    "VISAGE.Editor.Effects.Loop": "Dolen",
+    "VISAGE.Editor.Effects.Once": "Unwaith",
+    "VISAGE.Editor.Groups.Foreground": "Effeithiau Blaendir",
+    "VISAGE.Editor.Groups.Background": "Effeithiau Cefndir",
+    "VISAGE.Editor.Groups.Audio": "Effeithiau Sain",
+    "VISAGE.Editor.Groups.Empty": "Llusgwch effeithiau yma"
 }

@@ -110,6 +110,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             closeEffectInspector: VisageEditor.prototype._onCloseEffectInspector,
             deleteEffect: VisageEditor.prototype._onDeleteEffect,
             toggleEffect: VisageEditor.prototype._onToggleEffect,
+            toggleLoop: VisageEditor.prototype._onToggleLoop,
+            replayPreview: VisageEditor.prototype._onReplayPreview,
             openSequencerDatabase: VisageEditor.prototype._onOpenSequencerDatabase
         }
     };
@@ -133,8 +135,166 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Override render to snapshot the form state before Foundry wipes the DOM.
-     * This ensures typed text isn't lost when we re-render to show a new effect row.
+     * Initializes HTML5 drag and drop listeners for the effects management interface.
+     * Handles both individual effect reordering and group-level drop logic.
+     * @param {HTMLElement} html - The application element.
+     * @private
+     */
+    _bindDragDrop(html) {
+        let dragSource = null;
+
+        // 1. Drag Start (Card)
+        const cards = html.querySelectorAll('.effect-card');
+        cards.forEach(card => {
+            card.addEventListener('dragstart', (ev) => {
+                dragSource = card;
+                ev.dataTransfer.effectAllowed = "move";
+                ev.dataTransfer.setData("text/plain", card.dataset.id);
+                ev.dataTransfer.setData("type", card.dataset.type);
+                card.classList.add('dragging');
+            });
+
+            card.addEventListener('dragend', (ev) => {
+                card.classList.remove('dragging');
+                dragSource = null;
+                // Cleanup highlights
+                html.querySelectorAll('.drag-over, .group-drag-over').forEach(el => {
+                    el.classList.remove('drag-over', 'group-drag-over');
+                });
+            });
+            
+            // Allow dropping onto other cards (for reordering)
+            card.addEventListener('dragenter', (ev) => ev.preventDefault());
+            card.addEventListener('dragover', (ev) => {
+                ev.preventDefault();
+                // Only allow if types match (Visual <-> Visual, Audio <-> Audio)
+                const sourceType = dragSource?.dataset.type;
+                const targetType = card.dataset.type;
+                
+                // Allow Visuals to mix (above/below), but strictly separate Audio
+                const isSourceVisual = sourceType === "visual";
+                const isTargetVisual = targetType === "visual";
+                
+                if (isSourceVisual !== isTargetVisual) return;
+
+                card.classList.add('drag-over');
+            });
+            card.addEventListener('dragleave', (ev) => {
+                card.classList.remove('drag-over');
+            });
+            card.addEventListener('drop', (ev) => this._onDrop(ev, card.closest('.effect-group').dataset.group, card.dataset.id));
+        });
+
+        // 2. Drop Zones (Groups) - Handling drops into empty areas or at end of lists
+        const groups = html.querySelectorAll('.effect-group');
+        groups.forEach(group => {
+            group.addEventListener('dragenter', (ev) => ev.preventDefault());
+            group.addEventListener('dragover', (ev) => {
+                ev.preventDefault();
+                const sourceType = dragSource?.dataset.type;
+                const targetGroup = group.dataset.group;
+
+                // Type Safety Check
+                if (sourceType === "audio" && targetGroup !== "audio") return;
+                if (sourceType === "visual" && targetGroup === "audio") return;
+
+                group.classList.add('group-drag-over');
+            });
+            group.addEventListener('dragleave', (ev) => {
+                group.classList.remove('group-drag-over');
+            });
+            group.addEventListener('drop', (ev) => {
+                // If we dropped on a card, the card's listener handles it (stopPropagation).
+                // If we bubble up here, it means we dropped in the empty space/container.
+                this._onDrop(ev, group.dataset.group, null); 
+            });
+        });
+    }
+
+    /**
+     * Primary drop handler for effect reordering.
+     * Performs index calculations and updates the internal `_effects` array 
+     * based on the relative position of the drop target.
+     * * @param {DragEvent} ev 
+     * @param {string} targetGroup - The target group identifier ('above', 'below', or 'audio').
+     * @param {string|null} targetId - ID of the card dropped onto, or null if dropped in a container.
+     * @private
+     */
+    async _onDrop(ev, targetGroup, targetId) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const draggedId = ev.dataTransfer.getData("text/plain");
+        if (!draggedId || draggedId === targetId) return;
+
+        // 1. Get Original Indices
+        const draggedIndex = this._effects.findIndex(e => e.id === draggedId);
+        const originalTargetIndex = targetId ? this._effects.findIndex(e => e.id === targetId) : -1;
+        
+        if (draggedIndex === -1) return;
+        const draggedEffect = this._effects[draggedIndex];
+
+        // 2. Intelligent Logic: Update Properties based on Target Group
+        // We do this BEFORE moving, so the object has the correct state when re-inserted
+        if (targetGroup === "above" && draggedEffect.type === "visual") {
+            draggedEffect.zOrder = "above";
+        } else if (targetGroup === "below" && draggedEffect.type === "visual") {
+            draggedEffect.zOrder = "below";
+        } else if (targetGroup === "audio" && draggedEffect.type !== "audio") {
+            return;
+        }
+
+        // 3. Reorder Array
+        // Remove from old position
+        this._effects.splice(draggedIndex, 1);
+
+        if (targetId) {
+            // Case A: Dropped onto another card
+            // We need to find the *new* index of the target (since the array shifted)
+            const newTargetIndex = this._effects.findIndex(e => e.id === targetId);
+            
+            if (newTargetIndex !== -1) {
+                // Directional Logic:
+                // If we dragged an item from "above" (lower index) to "below" (higher index),
+                // the logical expectation is to place it AFTER the target.
+                // If we dragged "up", we place it BEFORE.
+                
+                if (draggedIndex < originalTargetIndex) {
+                     // Moving Down: Insert AFTER the target
+                     this._effects.splice(newTargetIndex + 1, 0, draggedEffect);
+                } else {
+                     // Moving Up: Insert BEFORE the target
+                     this._effects.splice(newTargetIndex, 0, draggedEffect);
+                }
+            } else {
+                this._effects.push(draggedEffect); // Fallback
+            }
+        } else {
+            // Case B: Dropped into the container (Empty Space) -> Append to end of that group
+            let insertIndex = this._effects.length; 
+            
+            if (targetGroup === "above" || targetGroup === "below") {
+                // Find last visual effect of this specific zOrder
+                const lastOfGroupIndex = this._effects.findLastIndex(e => e.type === "visual" && e.zOrder === targetGroup);
+                if (lastOfGroupIndex !== -1) insertIndex = lastOfGroupIndex + 1;
+            } else if (targetGroup === "audio") {
+                const lastAudioIndex = this._effects.findLastIndex(e => e.type === "audio");
+                if (lastAudioIndex !== -1) insertIndex = lastAudioIndex + 1;
+            }
+            
+            this._effects.splice(insertIndex, 0, draggedEffect);
+        }
+
+        this._markDirty();
+        this._updatePreview(); 
+        await this.render();
+    }
+
+    /**
+     * Extends ApplicationV2 render to capture current form state.
+     * Utilizes a preservation strategy to ensure that transient UI states 
+     * (like partial text input) are maintained during Handlebars partial updates.
+     * @override
      */
     async render(options) {
         if (this.rendered) {
@@ -144,8 +304,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Prepares the data context for the Handlebars template.
-     * Merges Source Data (Database) with Preserved Data (Unsaved Input) to create the UI state.
+     * Prepares the template context by merging persistent data with transient form state.
+     * Calculates UI-specific properties such as autocomplete sets and badge statuses.
+     * @override
      */
     async _prepareContext(options) {
         let data;
@@ -242,12 +403,33 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (c.lockRotation === true) lockVal = "true";
         if (c.lockRotation === false) lockVal = "false";
 
-        // Prepare Active Effect Data for Inspector Pane
-        let activeEffectData = {};
+        // Helper to format effect for card display
+        const formatEffect = (e) => ({
+            ...e,
+            icon: e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
+            metaLabel: e.type === "audio" 
+                ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%` 
+                : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`
+        });
+
+        // 1. Filter and Map into Groups
+        const effectsAbove = this._effects.filter(e => e.type === "visual" && e.zOrder === "above").map(formatEffect);
+        const effectsBelow = this._effects.filter(e => e.type === "visual" && e.zOrder === "below").map(formatEffect);
+        const effectsAudio = this._effects.filter(e => e.type === "audio").map(formatEffect);
+
+        // 2. Build Base Inspector Object with these Groups
+        let inspectorData = {
+            hasEffects: this._effects.length > 0,
+            effectsAbove: effectsAbove,
+            effectsBelow: effectsBelow,
+            effectsAudio: effectsAudio
+        };
+
+        // 3. If an effect is selected, merge its editable properties into the inspector object
         if (this._activeEffectId) {
             const effect = this._effects.find(e => e.id === this._activeEffectId);
             if (effect) {
-                activeEffectData = {
+                foundry.utils.mergeObject(inspectorData, {
                     id: effect.id,
                     label: effect.label,
                     path: effect.path,
@@ -257,21 +439,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     rotationRandom: effect.rotationRandom ?? false,
                     zOrder: effect.zOrder ?? "above",
                     blendMode: effect.blendMode || "normal",
-                    type: effect.type
-                };
+                    type: effect.type,
+                    loop: effect.loop ?? true
+                });
             }
         }
-
-        // Process Effects Stack for List View
-        const effectsStack = this._effects.map(e => {
-            return {
-                ...e,
-                icon: e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
-                metaLabel: e.type === "audio" 
-                    ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%` 
-                    : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`
-            };
-        });
 
         return {
             ...context, 
@@ -285,7 +457,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             mode: currentMode,
             appId: this.id,
 
-            // Tab State (Active class management)
             tabs: {
                 appearance: { active: this._activeTab === "appearance", cssClass: this._activeTab === "appearance" ? "active" : "" },
                 ring: { active: this._activeTab === "ring", cssClass: this._activeTab === "ring" ? "active" : "" },
@@ -294,7 +465,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
             img: prep(rawImg, ""),
             
-            // ATOMIC PROPERTIES
             scale: { 
                 value: (c.scale !== undefined && c.scale !== null) ? Math.round(c.scale * 100) : 100, 
                 active: c.scale !== undefined && c.scale !== null 
@@ -316,10 +486,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
             ring: { active: ringActive, ...ringContext },
             
-            // EFFECTS DATA
             hasSequencer: VisageUtilities.hasSequencer,
-            effects: effectsStack,
-            inspector: activeEffectData,
+            // Pass the populated inspector object to the template
+            inspector: inspectorData,
 
             preview: {
                 ...context.meta, 
@@ -357,6 +526,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 // Map Form Fields to Effect Properties
                 if (formData.effectPath !== undefined) e.path = formData.effectPath;
                 if (formData.effectLabel !== undefined) e.label = formData.effectLabel || "New Visual";
+                if (formData.effectLoop !== undefined) e.loop = formData.effectLoop;
                 
                 if (e.type === "visual") {
                     if (formData.effectScale !== undefined) e.scale = (parseFloat(formData.effectScale) || 100) / 100;
@@ -636,10 +806,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * UNIFIED PATH RESOLVER
-     * Handles both Sequencer Database Keys (recursive) and standard File Paths.
-     * @param {string} rawPath - The input string (file path or DB key).
+     * Resolves effect paths from either the local file system or the Sequencer Database.
+     * @param {string} rawPath - The path or database key to resolve.
      * @returns {string|null} The resolved file path.
+     * @private
      */
     _resolveEffectPath(rawPath) {
         if (!rawPath) return null;
@@ -681,7 +851,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Recursive helper for finding files within nested Sequencer Database folders.
+     * Recursively traverses Sequencer Database entries to find valid file paths.
+     * @param {string} path - The database key path.
+     * @param {number} [depth=0] - Recursion depth tracker.
+     * @returns {Object|null}
+     * @private
      */
     _resolveSequencerRecursively(path, depth = 0) {
         if (depth > 10) return null;
@@ -703,7 +877,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Calculates CSS styles for rendering visual effects in the preview stage.
+     * Derives CSS transformation and style strings for effect preview rendering.
+     * @param {Object} effect - The effect data object.
+     * @returns {Object}
+     * @private
      */
     _prepareEffectStyle(effect) {
         const resolvedPath = this._resolveEffectPath(effect.path);
@@ -727,14 +904,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
-    /* -------------------------------------------- */
-    /* Audio Preview Logic                          */
-    /* -------------------------------------------- */
-
     /**
-     * Manages the lifecycle of audio previews.
-     * Ensures only currently active/enabled sounds are playing, handling restarts on change.
-     * Uses Promise tracking to prevent race conditions during rapid updates.
+     * Manages the audio lifecycle for the effects editor.
+     * Synchronizes playing sounds with the current buffer, handling 
+     * volume updates and restart-on-change logic.
+     * @private
      */
     _syncAudioPreviews() {
         const activeAudioEffects = (this._effects || []).filter(e => !e.disabled && e.type === "audio" && e.path);
@@ -781,14 +955,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             // B. Create New Sound
             if (!this._audioPreviews.has(e.id)) {
                 const resolvedPath = this._resolveEffectPath(e.path);
-                
                 if (!resolvedPath) return; 
+
+                // Use the effect's loop setting (default to true)
+                const isLoop = e.loop ?? true;
 
                 // Store Promise immediately to prevent duplicate play calls
                 const playPromise = foundry.audio.AudioHelper.play({
                     src: resolvedPath,
                     volume: vol,
-                    loop: true
+                    loop: isLoop
                 }, false).then(sound => {
                     // Race Condition Check: Ensure it wasn't deleted while loading
                     const currentEffect = (this._effects || []).find(fx => fx.id === e.id);
@@ -820,10 +996,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.close(options);
     }
 
-    /* -------------------------------------------- */
-    /* UI Interactions                             */
-    /* -------------------------------------------- */
-
+    /**
+     * Triggers the Foundry FilePicker for a specific input field.
+     * @private
+     */
     _onOpenFilePicker(event, target) {
         const input = target.previousElementSibling?.tagName === "BUTTON" 
             ? target.parentElement.querySelector("input") 
@@ -841,6 +1017,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         fp.browse();
     }
 
+    /**
+     * Toggles the enabled state of a specific property field group.
+     * @private
+     */
     _onToggleField(event, target) {
         const fieldName = target.dataset.target;
         const group = target.closest('.form-group');
@@ -854,10 +1034,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._updatePreview(); 
     }
 
-    /* -------------------------------------------- */
-    /* Effects List Management                     */
-    /* -------------------------------------------- */
-
+    /**
+     * Adds a new Visual Effect to the Visage data.
+     * @private
+     */
     async _onAddVisual(event, target) {
         const newEffect = {
             id: foundry.utils.randomID(16),
@@ -869,6 +1049,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             rotation: 0,
             rotationRandom: false,
             zOrder: "above",
+            loop: true,
             disabled: false
         };
         
@@ -878,6 +1059,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render(); 
     }
 
+    /**
+     * Adds a new Audio Effect to the Visage data.
+     * @private
+     */
     async _onAddAudio(event, target) {
         const newEffect = {
             id: foundry.utils.randomID(16),
@@ -885,6 +1070,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             label: "New Audio",
             path: "",
             opacity: 0.8,
+            loop: true,
             disabled: false
         };
         
@@ -894,22 +1080,43 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render();
     }
 
+    /**
+     * Opens the Inspector pane for a specific effect.
+     * @private
+     */
     _onEditEffect(event, target) {
         const card = target.closest('.effect-card');
         this._activeEffectId = card.dataset.id;
         this.render();
     }
 
-    _onCloseEffectInspector(event, target) {
+    /**
+     * Closes the Effect Inspector and returns to the effect list view.
+     * @private
+     */
+    async _onCloseEffectInspector(event, target) {
         const container = this.element.querySelector('.effects-tab-container');
         if(container) container.classList.remove('editing');
         this._activeEffectId = null;
+        await this.render();
     }
 
-    _onDeleteEffect(event, target) {
+    /**
+     * Deletes an effect from the current Visage.
+     * @private
+     */
+    async _onDeleteEffect(event, target) {
         const card = target.closest('.effect-card');
         const id = card.dataset.id;
         
+        const confirm = await foundry.applications.api.DialogV2.confirm({
+            window: { title: game.i18n.localize("VISAGE.Dialog.Destroy.Title") },
+            content: `<p>${game.i18n.localize("VISAGE.Dialog.Destroy.Content")}</p>`,
+            modal: true
+        });
+
+        if (!confirm) return;
+
         this._effects = this._effects.filter(e => e.id !== id);
         if (this._activeEffectId === id) this._activeEffectId = null;
         
@@ -924,6 +1131,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
+    /**
+     * Toggles the disabled state of an effect without removing it.
+     * @private
+     */
     _onToggleEffect(event, target) {
         const card = target.closest('.effect-card');
         const id = card.dataset.id;
@@ -936,6 +1147,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Launches the Sequencer Database Viewer.
+     * @private
+     */
     _onOpenSequencerDatabase(event, target) {
         if (VisageUtilities.hasSequencer) {
             new Sequencer.DatabaseViewer().render(true);
@@ -945,6 +1160,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Flags the editor state as containing unsaved changes and updates UI cues.
+     * @private
+     */
     _markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
@@ -970,6 +1189,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         
         this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
+        this._bindDragDrop(this.element);
         
         // Debounce text inputs to avoid rapid Preview re-renders
         let debounceTimer;
@@ -991,7 +1211,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 this._activateTab(target);
             });
         });
-        
+
         if (this._activeTab) this._activateTab(this._activeTab);
 
         if (this._activeEffectId) {
@@ -1016,10 +1236,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    /* -------------------------------------------- */
-    /* Stage Interaction Methods                   */
-    /* -------------------------------------------- */
-
+    /**
+     * Toggles the visibility of the alignment grid on the preview stage.
+     * @private
+     */
     _onToggleGrid(event, target) {
         this._showGrid = !this._showGrid;
         const stage = this.element.querySelector('.visage-live-preview-stage');
@@ -1037,6 +1257,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Binds permanent listeners for the preview stage (e.g., zoom wheel).
+     * @private
+     */
     _bindStaticListeners() {
         const stage = this.element.querySelector('.visage-live-preview-stage');
         if (!stage) return;
@@ -1052,6 +1276,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }, { passive: false });
     }
 
+    /**
+     * Binds listeners to the preview content that may be replaced during partial renders.
+     * Handles pan/drag interaction logic.
+     * @private
+     */
     _bindDynamicListeners() {
         const content = this.element.querySelector('.visage-preview-content.stage-mode');
         if (!content) return;
@@ -1091,6 +1320,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Applies CSS transforms (Translate/Scale) to the preview content based on view state.
+     * @private
+     */
     _applyStageTransform() {
         const content = this.element.querySelector('.visage-preview-content.stage-mode');
         if (content) {
@@ -1108,6 +1341,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._applyStageTransform();
     }
 
+    /**
+     * Resets the stage zoom and pan to default center.
+     * Automatically adjusts scale to fit oversized visuals.
+     * @private
+     */
     _onResetZoom() {
         // Calculate appropriate scale to fit image
         let targetScale = 1.0;
@@ -1120,6 +1358,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._applyStageTransform();
     }
     
+    /**
+     * Manages UI tab switching logic.
+     * @param {string} tabName 
+     * @private
+     */
     _activateTab(tabName) {
         this._activeTab = tabName;
         const navItems = this.element.querySelectorAll(".visage-tabs .item");
@@ -1140,6 +1383,54 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         });
     }
 
+    /**
+     * Toggles the 'loop' property of an effect.
+     * Updates the internal state and re-renders to reflect the active/inactive icon style.
+     */
+    _onToggleLoop(event, target) {
+        const card = target.closest('.effect-card');
+        const id = card.dataset.id;
+        const effect = this._effects.find(e => e.id === id);
+        
+        if (effect) {
+            // Toggle boolean (defaulting to true if undefined)
+            effect.loop = !(effect.loop ?? true);
+            this._markDirty();
+            
+            // Update the card UI directly (optional optimization) or just re-render
+            this.render(); 
+        }
+    }
+
+    /**
+     * Re-triggers the Live Preview generation.
+     * This effectively "replays" any One-Shot effects by destroying and recreating them.
+     */
+    _onReplayPreview(event, target) {
+        // Optional: Animate the icon to give feedback
+        const icon = target.querySelector('i');
+        if (icon) {
+            icon.animate([
+                { transform: 'rotate(0deg)' },
+                { transform: 'rotate(360deg)' }
+            ], { duration: 500 });
+        }
+
+        // Force stop and clear all audio previews so they restart
+        for (const [id, sound] of this._audioPreviews) {
+            if (sound && typeof sound.stop === "function") sound.stop();
+        }
+        this._audioPreviews.clear();
+        
+        // Force update the preview stage
+        this._updatePreview();
+    }
+
+    /**
+     * Initializes the custom tag input component.
+     * Handles pill creation, deletion, and synchronization with the hidden input field.
+     * @private
+     */
     _bindTagInput() {
         const container = this.element.querySelector(".visage-tag-container");
         if (!container) return;
@@ -1205,6 +1496,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         });
     }
 
+    /**
+     * Resets all form fields and effects to their default state.
+     * @private
+     */
     _onResetSettings(event, target) {
         const checkboxes = this.element.querySelectorAll('input[type="checkbox"][name$="_active"]');
         checkboxes.forEach(cb => {
@@ -1303,6 +1598,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return payload;
     }
 
+    /**
+     * Validates and persists the current Visage state to the database.
+     * @private
+     */
     async _onSave(event, target) {
         event.preventDefault();
         

@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Nazwa Efektu",
     "VISAGE.Editor.Effects.PathPlaceholder": "np. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Etykieta jest wymagana.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nie udało się zmienić domyślnego wyglądu."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nie udało się zmienić domyślnego wyglądu.",
+    "VISAGE.Editor.Replay": "Odtwórz Ponownie",
+    "VISAGE.Editor.Effects.Loop": "Pętla",
+    "VISAGE.Editor.Effects.Once": "Raz",
+    "VISAGE.Editor.Groups.Foreground": "Efekty Pierwszego Planu",
+    "VISAGE.Editor.Groups.Background": "Efekty Tła",
+    "VISAGE.Editor.Groups.Audio": "Efekty Dźwiękowe",
+    "VISAGE.Editor.Groups.Empty": "Przeciągnij efekty tutaj"
 }

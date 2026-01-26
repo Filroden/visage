@@ -194,5 +194,12 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Hatás Neve",
     "VISAGE.Editor.Effects.PathPlaceholder": "pl. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Címke megadása kötelező.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nem sikerült lecserélni az alapértelmezett megjelenést."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Nem sikerült lecserélni az alapértelmezett megjelenést.",
+    "VISAGE.Editor.Replay": "Hatások Újrajátszása",
+    "VISAGE.Editor.Effects.Loop": "Ismétlés",
+    "VISAGE.Editor.Effects.Once": "Egyszer",
+    "VISAGE.Editor.Groups.Foreground": "Előtér Hatások",
+    "VISAGE.Editor.Groups.Background": "Háttér Hatások",
+    "VISAGE.Editor.Groups.Audio": "Hanghatások",
+    "VISAGE.Editor.Groups.Empty": "Húzd ide a hatásokat"
 }

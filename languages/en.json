@@ -236,5 +236,14 @@
     "VISAGE.Editor.Effects.NamePlaceholder": "Effect Name",
     "VISAGE.Editor.Effects.PathPlaceholder": "e.g. jb2a.fire_bolt.red",
     "VISAGE.Notifications.LabelRequired": "Visage | Label is required.",
-    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Failed to swap default appearance."
+    "VISAGE.Notifications.DefaultSwapFailed": "Visage | Failed to swap default appearance.",
+
+    "_comment_V3_1_ADDITIONAL_KEYS": "--- V3.1 ADDITIONAL KEYS ---",
+    "VISAGE.Editor.Replay": "Replay Effects",
+    "VISAGE.Editor.Effects.Loop": "Loop Effect",
+    "VISAGE.Editor.Effects.Once": "Play Once",
+    "VISAGE.Editor.Groups.Foreground": "Foreground Effects",
+    "VISAGE.Editor.Groups.Background": "Background Effects",
+    "VISAGE.Editor.Groups.Audio": "Audio Effects",
+    "VISAGE.Editor.Groups.Empty": "Drag effects here"
 }

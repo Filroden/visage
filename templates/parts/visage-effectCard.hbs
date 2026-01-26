@@ -1,0 +1,40 @@
+<div class="effect-card {{#if (eq activeId this.id)}}active{{/if}} {{#if this.disabled}}visage-disabled{{/if}}" 
+     data-id="{{this.id}}" 
+     data-type="{{this.type}}"
+     draggable="true">
+    
+    {{!-- Drag Handle --}}
+    <div class="drag-handle"><i class="visage-icon kebab"></i></div>
+
+    <div class="effect-info" data-action="editEffect" data-effect-id="{{this.id}}">
+        <span class="effect-name">{{this.label}}</span>
+        <span class="effect-meta">
+            {{#if (eq this.type 'audio')}}
+                {{localize "VISAGE.Editor.Effects.Volume"}}: {{visagePercent (or this.opacity 0.8)}}
+            {{else}}
+                {{#if (eq this.zOrder 'below')}}{{localize "VISAGE.Editor.Effects.Below"}}{{else}}{{localize "VISAGE.Editor.Effects.Above"}}{{/if}} 
+                • {{visagePercent (or this.scale 1.0)}}
+            {{/if}}
+        </span>
+    </div>
+
+    <div class="effect-controls">
+        {{!-- Loop Toggle --}}
+        <button type="button" class="effect-btn {{#if this.loop}}active{{/if}}" 
+                data-action="toggleLoop" 
+                data-effect-id="{{this.id}}"
+                data-tooltip="VISAGE.Editor.Effects.Loop">
+            <i class="visage-icon repeat"></i>
+        </button>
+        
+        {{!-- Visibility Toggle --}}
+        <button type="button" class="effect-btn toggle-visibility" data-action="toggleEffect" data-effect-id="{{this.id}}">
+            <i class="visage-icon {{#if this.disabled}}visage-hidden{{else}}visible{{/if}}"></i>
+        </button>
+        
+        {{!-- Delete --}}
+        <button type="button" class="effect-btn delete" data-action="deleteEffect" data-effect-id="{{this.id}}">
+            <i class="visage-icon delete"></i>
+        </button>
+    </div>
+</div>

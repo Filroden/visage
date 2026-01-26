@@ -4,7 +4,7 @@
     {{#each effectsBelow}}
         {{#if this.resolvedPath}}
             {{#if this.isVideo}}
-            <video class="visage-effect-layer below" src="{{this.resolvedPath}}" autoplay loop muted style="{{this.style}}"></video>
+            <video class="visage-effect-layer below" src="{{this.resolvedPath}}" autoplay {{#if this.loop}}loop{{/if}} muted style="{{this.style}}"></video>
             {{else}}
             <img class="visage-effect-layer below" src="{{this.resolvedPath}}" style="{{this.style}}">
             {{/if}}
@@ -23,7 +23,6 @@
     {{!-- 3. MAIN TOKEN IMAGE --}}
     <div class="visage-token-layer" style="opacity: {{alpha}};">
         
-        {{!-- Fix: Only render media tags if we have a path --}}
         {{#if resolvedPath}}
             {{#if isVideo}}
             <video class="visage-preview-video" src="{{resolvedPath}}" autoplay loop muted 
@@ -42,7 +41,7 @@
     {{#each effectsAbove}}
         {{#if this.resolvedPath}}
             {{#if this.isVideo}}
-            <video class="visage-effect-layer above" src="{{this.resolvedPath}}" autoplay loop muted style="{{this.style}}"></video>
+            <video class="visage-effect-layer above" src="{{this.resolvedPath}}" autoplay {{#if this.loop}}loop{{/if}} muted style="{{this.style}}"></video>
             {{else}}
             <img class="visage-effect-layer above" src="{{this.resolvedPath}}" style="{{this.style}}">
             {{/if}}
