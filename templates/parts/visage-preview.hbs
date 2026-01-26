@@ -23,7 +23,6 @@
     {{!-- 3. MAIN TOKEN IMAGE --}}
     <div class="visage-token-layer" style="opacity: {{alpha}};">
         
-        {{!-- Fix: Only render media tags if we have a path --}}
         {{#if resolvedPath}}
             {{#if isVideo}}
             <video class="visage-preview-video" src="{{resolvedPath}}" autoplay loop muted 

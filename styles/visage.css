@@ -1923,6 +1923,11 @@ li.context-item .visage-icon-domino {
     background: var(--visage-color-bg-light);
 }
 
+.effect-card.visage-disabled {
+    opacity: 0.5;
+    background: var(--visage-color-bg-darkest);
+}
+
 .effect-icon {
     width: 2rem;
     height: 2rem;
