@@ -281,20 +281,22 @@ export class VisageData {
         let effectsTooltip = "";
         if (hasEffects) {
             const listItems = activeEffects.map(e => {
-                const icon = e.type === "audio" ? "visage-icon audio" : "visage-icon visual";
-                let meta = "";
+            const icon = e.type === "audio" ? "visage-icon audio" : "visage-icon visual";
+            let meta = "";
 
-                if (e.type === "audio") {
-                    const volLabel = game.i18n.localize("VISAGE.Editor.Effects.Volume");
-                    meta = `${volLabel}: ${Math.round((e.opacity ?? 0.8) * 100)}%`;
-                } else {
-                    const zLabel = e.zOrder === "below" 
-                        ? game.i18n.localize("VISAGE.Editor.Effects.Below") 
-                        : game.i18n.localize("VISAGE.Editor.Effects.Above");
-                    meta = zLabel;
-                }
-                
-                return `
+            if (e.type === "audio") {
+                const volLabel = game.i18n.localize("VISAGE.Editor.Effects.Volume");
+                // Standardized to 0.8 fallback to match editor logic
+                meta = `${volLabel}: ${Math.round((e.opacity ?? 0.8) * 100)}%`; 
+            } else {
+                const zLabel = e.zOrder === "below" 
+                    ? game.i18n.localize("VISAGE.Editor.Effects.Below") 
+                    : game.i18n.localize("VISAGE.Editor.Effects.Above");
+                // Added scale percentage to the tooltip
+                meta = `${zLabel} • ${Math.round((e.scale ?? 1.0) * 100)}%`;
+            }
+            
+            return `
                 <div class='visage-tooltip-row'>
                     <i class='${icon}'></i> 
                     <span class='label'>${e.label || "Effect"}</span>
