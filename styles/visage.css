@@ -12,7 +12,8 @@
  * 7. Application: Visage Gallery
  * 8. Popout Menu
  * 9. Scene Control Integration
- * 10. Theme Definitions (The Engine)
+ * 10. Welcome Chat Card
+ * 11. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
@@ -2935,9 +2936,101 @@ button.visage-tool-icon {
     padding: 1px;
 }
 
+/* ==========================================================================
+   10. WELCOME CHAT CARD
+   ========================================================================== */
+
+.chat-message:has(.visage-chat-card) {
+    background: var(--filroden-color-bg-medium-solid) !important;
+    border: 1px solid var(--filroden-color-text-accent) !important;
+}
+
+.chat-message:has(.visage-chat-card) .message-header {
+    color: var(--filroden-color-text-placeholder);
+}
+
+.chat-message:has(.visage-chat-card) .message-content {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.visage.visage-chat-card {
+    border: 1px solid var(--filroden-color-border);
+    border-radius: var(--filroden-radius-medium);
+    background: var(--filroden-color-bg-darkest);
+    box-shadow: var(--filroden-shadow-card);
+    overflow: hidden;
+    margin: 5px 0;
+}
+
+.visage-chat-card .chat-header {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    padding: var(--filroden-space-m);
+}
+
+.visage-chat-card .chat-header .visage-title {
+    color: var(--filroden-color-text-accent);
+    font-size: var(--filroden-font-size-s);
+}
+
+.visage-chat-card .chat-header i {
+    color: var(--filroden-color-text-accent);
+}
+
+.visage-chat-card .chat-content {
+    padding: var(--filroden-space-m);
+    padding-top: 0;
+    font-size: var(--filroden-font-size-s);
+}
+
+.visage-chat-card .chat-content p {
+    color: var(--filroden-color-text-accent);
+}
+
+.visage-chat-card .visage-divider {
+    background-color: var(--filroden-color-text-accent);
+}
+
+.visage-chat-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--filroden-space-xs);
+    margin-top: var(--filroden-space-m);
+}
+
+.visage-chat-links a {
+    background: var(--filroden-color-bg-light-solid);
+    padding: var(--filroden-space-xs);
+    border-radius: var(--filroden-radius-small);
+    text-align: center;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    font-size: var(--filroden-font-size-xs);
+    color: var(--filroden-color-text-main-solid);
+    text-decoration: none;
+}
+
+.visage-chat-links a:hover {
+    border-color: var(--filroden-color-text-accent);
+    background: var(--filroden-color-bg-hover-solid);
+    text-decoration: none;
+    text-shadow: none;
+}
+
+.visage-chat-card .chat-footer {
+    padding: var(--filroden-space-xxs) var(--filroden-space-s);
+    background: var(--filroden-color-bg-medium-solid);
+    font-size: var(--filroden-font-size-xxs);
+    color: var(--filroden-color-text-muted);
+    text-align: right;
+    opacity: 0.6;
+}
+
 
 /* ==========================================================================
-   10. THEME DEFINITIONS (The Engine)
+   11. THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
 /* --- 1. Universal Defaults --- */
