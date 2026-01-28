@@ -1,6 +1,18 @@
 <div class="visage-preview-content {{wrapperClass}} {{#if hasInvisibility}}invisible{{/if}}">
     
-    {{!-- 1. BACKGROUND EFFECTS --}}
+    {{!-- 1. LIGHT LAYER --}}
+    {{#if hasLight}}
+    <div class="visage-light-preview" style="
+        position: absolute;
+        inset: -100%;
+        z-index: -1;
+        background: radial-gradient(closest-side, {{lightColor}} 0%, transparent 100%);
+        opacity: 0.6;
+        pointer-events: none;
+    "></div>
+    {{/if}}
+
+    {{!-- 2. BACKGROUND EFFECTS --}}
     {{#each effectsBelow}}
         {{#if this.resolvedPath}}
             {{#if this.isVideo}}
@@ -11,7 +23,7 @@
         {{/if}}
     {{/each}}
 
-    {{!-- 2. DYNAMIC RING (Background) --}}
+    {{!-- 3. DYNAMIC RING (Background) --}}
     {{#if hasRing}}
     <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}"
          style="--ring-color: {{ringColor}}; --ring-bkg: {{ringBkg}};">
@@ -20,7 +32,7 @@
     </div>
     {{/if}}
 
-    {{!-- 3. MAIN TOKEN IMAGE --}}
+    {{!-- 4. MAIN TOKEN IMAGE --}}
     <div class="visage-token-layer" style="opacity: {{alpha}};">
         
         {{#if resolvedPath}}
@@ -37,7 +49,7 @@
         <div class="visage-icon-domino fallback-icon" style="{{#if resolvedPath}}display:none;{{/if}}"></div>
     </div>
 
-    {{!-- 4. FOREGROUND EFFECTS --}}
+    {{!-- 5. FOREGROUND EFFECTS --}}
     {{#each effectsAbove}}
         {{#if this.resolvedPath}}
             {{#if this.isVideo}}

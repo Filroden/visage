@@ -50,7 +50,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /**
      * Removes all active effects *except* the base identity.
-     * Useful for quickly cleaning up a messy stack of overlays.
      */
     async _onRevertGlobal(event, target) {
         const token = canvas.tokens.get(this.tokenId);
@@ -60,7 +59,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentFormKey = token.document.getFlag(ns, "identity") || "default";
         const currentStack = token.document.getFlag(ns, "activeStack") || [];
 
-        // Filter stack to keep only the active Identity layer
         const newStack = currentStack.filter(layer => layer.id === currentFormKey);
         await VisageComposer.compose(token, newStack);
     }
@@ -77,7 +75,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const ns = Visage.DATA_NAMESPACE;
         const currentFormKey = token.document.getFlag(ns, "identity") || "default";
 
-        // 1. Prepare Default Identity (Base Token State)
+        // 1. Prepare Default Identity
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
         const defaultForm = VisageData.toPresentation(defaultRaw, {
             isActive: currentFormKey === "default",
@@ -86,7 +84,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         defaultForm.resolvedPath = await Visage.resolvePath(defaultForm.path);
 
         // 2. Fetch LOCAL items ONLY
-        // The HUD is strictly for Actor-specific options. Global masks are accessed via the full Gallery.
         const localItems = VisageData.getLocal(actor).filter(v => !v.deleted);
         
         // 3. Process & Split by Mode
@@ -102,14 +99,56 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             form.key = item.id;
             form.resolvedPath = await Visage.resolvePath(form.path);
 
-            if (item.mode === "identity") {
-                identities.push(form);
-            } else {
-                overlays.push(form);
+            // --- Phase 3: Tooltip Injection ---
+            let tooltipContent = [];
+            const existingTooltip = form.meta.effectsTooltip || "";
+            
+            // A. Light Source
+            if (form.meta.hasLight) {
+                const light = form.changes.light || {};
+                const dim = light.dim || 0;
+                const bright = light.bright || 0;
+                const label = game.i18n.localize("VISAGE.Light.Title");
+                tooltipContent.push(`
+                    <div class='visage-tooltip-row'>
+                        <i class='visage-icon wand-stars'></i> 
+                        <span class='label'>${label}</span>
+                        <span class='meta'>${dim} / ${bright}</span>
+                    </div>`);
             }
+
+            // B. Existing Effects
+            if (existingTooltip) {
+                const inner = existingTooltip.replace("<div class='visage-tooltip-content'>", "").replace("</div>", "");
+                tooltipContent.push(inner);
+            }
+
+            // C. Transition Delay
+            if (form.meta.hasDelay) {
+                const ms = form.delay || 0;
+                const sec = Math.abs(ms) / 1000;
+                const label = game.i18n.localize("VISAGE.Transition.Delay");
+                const dir = ms >= 0 ? game.i18n.localize("VISAGE.Transition.EffectsLead") : "Token Lead";
+                tooltipContent.push(`
+                    <div class='visage-tooltip-row'>
+                        <i class='visage-icon repeat'></i> 
+                        <span class='label'>${label}</span>
+                        <span class='meta'>${sec}s (${dir})</span>
+                    </div>`);
+            }
+
+            // Apply Updates
+            if (tooltipContent.length > 0) {
+                form.meta.effectsTooltip = `<div class='visage-tooltip-content'>${tooltipContent.join("")}</div>`;
+                form.meta.hasEffects = true;
+            }
+
+            Object.assign(form, form.meta); // Flatten meta for HUD template
+
+            if (item.mode === "identity") identities.push(form);
+            else overlays.push(form);
         }
 
-        // Sorting: Default first, then alphabetical
         identities.sort((a, b) => {
             if (a.key === "default") return -1;
             if (b.key === "default") return 1;
@@ -117,8 +156,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         });
         overlays.sort((a, b) => a.label.localeCompare(b.label));
 
-        // 4. Prepare Active Stack Display (Bottom Bar)
-        // Shows currently active overlays so they can be dismissed individually.
+        // 4. Prepare Active Stack Display
         const flags = token.document.flags[Visage.MODULE_ID] || {};
         const activeStack = flags.activeStack || flags.stack || [];
         const visibleStack = activeStack.filter(layer => layer.id !== currentFormKey);
@@ -141,10 +179,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
     
-    /* -------------------------------------------- */
-    /* Event Listeners                             */
-    /* -------------------------------------------- */
-
     async _onSelectVisage(event, target) {
         const formKey = target.dataset.formKey;
         if (formKey) {
@@ -153,7 +187,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 const currentIdentity = token.document.getFlag(Visage.MODULE_ID, "identity");
                 if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
             } else {
-                // Visage.apply handles mode logic (Identity Swap vs Overlay Stack) automatically
                 await Visage.apply(this.tokenId, formKey);
             }
             this.close();
@@ -199,24 +232,15 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.close(options);
     }
 
-    /**
-     * Binds a global pointer listener to detect clicks outside the HUD.
-     * If the user clicks anywhere else on the screen (except the toggle button or another Visage window),
-     * this selector closes automatically.
-     */
     _bindDismissListeners() {
         this._onDocPointerDown = (ev) => {
             const root = this.element;
             if (!root) return;
-            
-            // Ignore clicks inside the HUD itself
             if (root.contains(ev.target)) return;
             
-            // Ignore clicks on the HUD button that spawned this (prevents immediate re-opening)
             const hudBtn = document.querySelector('.visage-button');
             if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
             
-            // Ignore clicks on other Visage windows (Gallery/Editor)
             const dirApp = ev.target.closest('.visage-gallery');
             const editorApp = ev.target.closest('.visage-editor');
             if (dirApp || editorApp) return;
@@ -225,7 +249,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         };
         document.addEventListener('pointerdown', this._onDocPointerDown, true);
         
-        // Auto-refresh the HUD if the token updates while it is open
         this._onTokenUpdate = (document, change, options, userId) => {
             if (document.id === this.tokenId) {
                 this.render();

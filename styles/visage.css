@@ -1735,8 +1735,6 @@ li.context-item .visage-icon-domino {
     padding: 2rem;
 }
 
-
-
 /* Fade Grid (Inspector) - Mimics .mirroring-grid */
 .visage .visage-form-fields.fade-grid {
     display: grid;
@@ -2095,6 +2093,95 @@ li.context-item .visage-icon-domino {
     gap: var(--filroden-space-xs);
     margin-top: var(--filroden-space-l)
 }
+
+/* --- Transition Bar --- */
+.visage-transition-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-m);
+    padding: var(--filroden-space-s);
+    margin-bottom: var(--filroden-space-m);
+    background: var(--visage-color-bg-medium-solid);
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-medium);
+}
+
+.transition-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    cursor: help;
+    white-space: nowrap;
+}
+.transition-toggle label {
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: var(--visage-color-text-main-solid);
+}
+
+.transition-slider {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+}
+.transition-slider label {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    min-width: 6rem;
+}
+.transition-slider input {
+    width: 100%;
+}
+
+/* --- Pinned Light Card --- */
+.effect-card.pinned {
+    border: 1px solid var(--visage-color-accent);
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+    margin-bottom: var(--filroden-space-m);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+.effect-card.pinned .effect-name {
+    color: var(--visage-color-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* --- Light Animation Classes (Preview) --- */
+/* Pulse */
+@keyframes visage-light-pulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.3); }
+}
+.visage-anim-pulse {
+    animation: visage-light-pulse 2s infinite ease-in-out;
+}
+
+/* Torch (Flicker) */
+@keyframes visage-light-torch {
+    0% { opacity: 1; transform: scale(1); }
+    10% { opacity: 0.9; transform: scale(1.01); }
+    20% { opacity: 0.95; transform: scale(0.99); }
+    40% { opacity: 0.85; transform: scale(1.02); }
+    60% { opacity: 0.95; transform: scale(0.98); }
+    90% { opacity: 0.9; transform: scale(1.01); }
+    100% { opacity: 1; transform: scale(1); }
+}
+.visage-anim-torch {
+    animation: visage-light-torch 1s infinite steps(10);
+}
+
+/* Chroma */
+@keyframes visage-light-chroma {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+.visage-anim-chroma {
+    animation: visage-light-chroma 4s infinite linear;
+}
+
 
 /* ==========================================================================
    7. APPLICATION: VISAGE GALLERY (Unified)

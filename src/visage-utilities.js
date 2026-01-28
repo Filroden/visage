@@ -112,10 +112,10 @@ export class VisageUtilities {
     /**
      * Captures the current visual properties of a token document or a plain data object.
      * * STRICT V3 MODE: This method ensures we are extracting the standardized V3 schema
-     * (e.g. nested texture objects) regardless of whether the input is a Document or raw data.
+     * (e.g. nested texture objects, light sources, actor portrait) regardless of whether the input is a Document or raw data.
      * * Used for creating snapshots (the "Original State") before applying masks so we can revert later.
      * @param {TokenDocument|Object} data - The token document or data object to inspect.
-     * @returns {Object} A standardized visual state object (v2 Schema).
+     * @returns {Object} A standardized visual state object (v3 Schema).
      */
     static extractVisualState(data) {
         if (!data) return {};
@@ -131,6 +131,19 @@ export class VisageUtilities {
         // Safely extract Ring data (Foundry V12+ Dynamic Token Rings)
         const ringData = source.ring?.toObject?.() ?? source.ring ?? {};
         
+        // Safely extract Light data (Visage v3.2)
+        const lightData = source.light?.toObject?.() ?? source.light ?? {};
+
+        // Extract Actor Portrait (Visage v3.2)
+        // If data is a Document, we can access the actor directly.
+        // If data is just a token object, we rely on the actor reference if it exists, otherwise null.
+        let portrait = null;
+        if (data instanceof foundry.abstract.Document && data.actor) {
+            portrait = data.actor.img;
+        } else if (data.actor?.img) {
+            portrait = data.actor.img;
+        }
+
         // Standardize texture properties
         const textureSrc = get("texture.src");
         const scaleX = get("texture.scaleX") ?? 1.0;
@@ -151,7 +164,9 @@ export class VisageUtilities {
                 scaleX: scaleX,
                 scaleY: scaleY
             },
-            ring: ringData
+            ring: ringData,
+            light: lightData,
+            portrait: portrait
         };
     }
 

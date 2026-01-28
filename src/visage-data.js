@@ -107,6 +107,7 @@ export class VisageData {
             label: data.label || "Unknown",
             // Inherit mode if present, otherwise infer from source (Local=Identity, Global=Overlay)
             mode: data.mode || (source === "local" ? "identity" : "overlay"),
+            delay: data.delay || 0, // Transition timing
             source: source,
             changes: foundry.utils.deepClone(data.changes || {})
         };
@@ -120,7 +121,7 @@ export class VisageData {
                     delete obj[key];
                 } else if (typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
                     clean(obj[key]);
-                    // If an object (like 'texture') becomes empty after cleaning children, remove it entirely
+                    // If an object (like 'texture' or 'light') becomes empty after cleaning children, remove it entirely
                     if (Object.keys(obj[key]).length === 0) delete obj[key];
                 }
             }
@@ -180,6 +181,12 @@ export class VisageData {
             ? (sourceData.ring.toObject ? sourceData.ring.toObject() : sourceData.ring) 
             : {};
         
+        // Visage v3.2 Properties
+        const lightData = sourceData.light 
+            ? (sourceData.light.toObject ? sourceData.light.toObject() : sourceData.light) 
+            : {};
+        const portrait = sourceData.portrait || null;
+        
         // Check for flipped state in scale
         const flipX = scaleX < 0;
         const flipY = scaleY < 0;
@@ -191,6 +198,7 @@ export class VisageData {
             tags: [],
             isDefault: true,
             mode: "identity",
+            delay: 0,
             changes: {
                 name: sourceData.name,
                 texture: {
@@ -201,7 +209,9 @@ export class VisageData {
                 width: width,
                 height: height,
                 disposition: disposition,
-                ring: ringData
+                ring: ringData,
+                light: lightData,
+                portrait: portrait
             }
         };
     }
@@ -311,6 +321,15 @@ export class VisageData {
         const ringCtx = this.prepareRingContext(c.ring);
         const isWildcard = options.isWildcard ?? false;
 
+        // 7. Light Context (v3.2)
+        const hasLight = !!(c.light && (c.light.dim > 0 || c.light.bright > 0));
+
+        // 8. Transition Delay (v3.2)
+        const hasDelay = !!(data.delay && data.delay > 0);
+
+        // 9. Portrait (v3.2)
+        const hasPortrait = !!(c.portrait);
+
         return {
             ...data,
             isActive: options.isActive ?? false,
@@ -324,7 +343,8 @@ export class VisageData {
             forceFlipY: isFlippedY,
             alpha: alpha,
             lockRotation: lockRotation,
-            mode: data.mode, 
+            mode: data.mode,
+            delay: data.delay || 0,
             
             meta: {
                 hasRing: ringCtx.enabled,
@@ -342,6 +362,10 @@ export class VisageData {
                 
                 hasEffects: hasEffects,
                 effectsTooltip: effectsTooltip,
+                
+                hasLight: hasLight,
+                hasDelay: hasDelay,
+                hasPortrait: hasPortrait,
 
                 slots: {
                     scale: { active: isScaleActive, val: scaleLabel },
@@ -410,7 +434,8 @@ export class VisageData {
                     label: data.label || data.name || "Unknown",
                     category: data.category || "",
                     tags: Array.isArray(data.tags) ? data.tags : [],
-                    mode: data.mode || "identity", 
+                    mode: data.mode || "identity",
+                    delay: data.delay || 0,
                     changes: foundry.utils.deepClone(data.changes),
                     deleted: !!data.deleted
                 });
@@ -434,6 +459,7 @@ export class VisageData {
             category: source.category,
             tags: source.tags ? [...source.tags] : [],
             mode: source.mode, 
+            delay: source.delay || 0,
             changes: foundry.utils.deepClone(source.changes)
         };
 
@@ -466,6 +492,7 @@ export class VisageData {
             category: "Backup",
             tags: ["Backup", ...(currentDefault.tags || [])],
             mode: "identity",
+            delay: 0,
             changes: currentDefault.changes
         };
         await this._saveLocal(backupData, token.actor);
@@ -489,6 +516,17 @@ export class VisageData {
         if (newDefaultData.height !== undefined) updatePayload.height = newDefaultData.height;
         if (newDefaultData.disposition !== undefined) updatePayload.disposition = newDefaultData.disposition;
         if (newDefaultData.ring) updatePayload.ring = newDefaultData.ring;
+        if (newDefaultData.light) updatePayload.light = newDefaultData.light;
+        
+        // Handle Portrait (Actor Image) commit
+        if (newDefaultData.portrait) {
+            // Note: We do not typically update the actor image when "Committing to Default" on an unlinked token
+            // unless we explicitly want to change the actor.
+            // For now, if the token is Linked, we update the Actor.
+            if (token.document.isLinked) {
+                await token.actor.update({ img: newDefaultData.portrait });
+            }
+        }
 
         // Clean undefined keys
         for (const key of Object.keys(updatePayload)) {
@@ -573,6 +611,7 @@ export class VisageData {
             category: data.category || "",
             tags: data.tags || [],
             mode: data.mode || "overlay", 
+            delay: data.delay || 0,
             created: existing ? existing.created : timestamp,
             updated: timestamp,
             deleted: false,
@@ -602,6 +641,7 @@ export class VisageData {
             category: data.category,
             tags: data.tags,
             mode: data.mode || "identity", 
+            delay: data.delay || 0,
             changes: foundry.utils.deepClone(data.changes || {}),
             updated: Date.now()
         };

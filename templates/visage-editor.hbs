@@ -9,7 +9,7 @@
             <input type="text" name="label" value="{{label}}" placeholder="{{localize 'VISAGE.GlobalEditor.DefaultLabel'}}" required>
         </div>
 
-        {{!-- NEW: Mode Group --}}
+        {{!-- Mode Group --}}
         <div class="header-form-group mode-group">
             <label>{{localize "VISAGE.GlobalEditor.Mode"}}</label>
             <div class="visage-mode-toggle">
@@ -70,14 +70,17 @@
                     name=preview.name
                     hasCheckerboard=true
                     alpha=preview.alpha
-                    isVideo=preview.isVideo                                    
+                    isVideo=preview.isVideo
                     hasRing=preview.hasRing 
                     hasInvisibility=preview.hasInvisibility
                     hasPulse=preview.hasPulse
                     hasGradient=preview.hasGradient
                     hasWave=preview.hasWave
                     ringColor=preview.ringColor
-                    ringBkg=preview.ringBkg                                    
+                    ringBkg=preview.ringBkg
+                    hasLight=preview.hasLight
+                    lightColor=preview.lightColor
+                    lightAnimation=preview.lightAnimation
                     forceFlipX=preview.flipX
                     forceFlipY=preview.flipY
                     wrapperClass="visage-preview-content stage-mode"
@@ -91,6 +94,7 @@
 
                 {{!-- Stage Controls HUD --}}
                 <div class="visage-zoom-controls">
+                
                     {{!-- Grid Toggle --}}
                     <button type="button" data-action="toggleGrid" data-tooltip="{{localize 'VISAGE.Editor.ToggleGrid'}}">
                         <i class="visage-icon grid-on"></i>
@@ -212,13 +216,23 @@
                             </div>
                         </div>
 
-                        {{!-- Image --}}
+                        {{!-- Token Image --}}
                         <div class="form-group checkbox-input-group">
                             <input class="visage-checkbox" type="checkbox" name="img_active" data-action="toggleField" data-target="img" {{checked img.active}}>
                             <label>{{localize "VISAGE.GlobalEditor.TokenImage"}}</label>
                             <div class="visage-form-fields">
                                 <input type="text" name="img" value="{{this.img.value}}" {{disabled (not img.active)}} placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}">
                                 <button type="button" class="file-picker-button" data-action="openFilePicker" {{disabled (not img.active)}}><i class="visage-icon image-search"></i></button>
+                            </div>
+                        </div>
+
+                        {{!-- NEW: Actor Portrait --}}
+                        <div class="form-group checkbox-input-group">
+                            <input class="visage-checkbox" type="checkbox" name="portrait_active" data-action="toggleField" data-target="portrait" {{checked portrait.active}}>
+                            <label>{{localize "VISAGE.GlobalEditor.PortraitImage"}}</label>
+                            <div class="visage-form-fields">
+                                <input type="text" name="portrait" value="{{this.portrait.value}}" {{disabled (not portrait.active)}} placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}">
+                                <button type="button" class="file-picker-button" data-action="openFilePicker" {{disabled (not portrait.active)}}><i class="visage-icon image-search"></i></button>
                             </div>
                         </div>
 
@@ -281,7 +295,7 @@
                                     <option value="false" {{visageSelected (eq lockRotation.value "false")}}>{{localize "VISAGE.RotationLock.Off"}}</option>
                                     <option value="true" {{visageSelected (eq lockRotation.value "true")}}>{{localize "VISAGE.RotationLock.On"}}</option>
                                 </select>
-                             </div>
+                            </div>
                         </div>
 
                         <hr class="visage-divider">
@@ -371,6 +385,19 @@
                         {{!-- VIEW 1: THE STACK --}}
                         <div class="visage-view view-list">
                             
+                            {{!-- Transition Bar --}}
+                            <div class="visage-transition-bar">
+                                <div class="transition-toggle" data-tooltip="{{localize 'VISAGE.Transition.DirectionHint'}}">
+                                    <input class="visage-checkbox" type="checkbox" name="transitionDirection" {{checked transition.isEffectsLead}} data-action="toggleTransitionDirection">
+                                    <label>{{localize "VISAGE.Transition.EffectsLead"}}</label>
+                                </div>
+                                
+                                <div class="transition-slider">
+                                    <label>{{localize "VISAGE.Transition.Delay"}} ({{transition.delay}}ms)</label>
+                                    <input type="range" name="transitionDelay" value="{{transition.delay}}" min="0" max="3000" step="100">
+                                </div>
+                            </div>
+
                             <div class="effects-actions">
                                 <button type="button" data-action="addVisual">
                                     <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Effects.AddVisual"}}
@@ -383,6 +410,25 @@
                             {{!-- EFFECTS LIST (Grouped) --}}
                             <div class="visage-effect-list visage-scrollable">
                                 
+                                {{!-- NEW: Pinned Light Card --}}
+                                <div class="effect-card pinned light-source-card {{#if (eq activeId 'light-source')}}active{{/if}}" 
+                                     data-id="light-source" 
+                                     data-type="light"
+                                     data-action="editEffect">
+                                    <div class="effect-info">
+                                        <span class="effect-name">{{localize "VISAGE.Light.Title"}}</span>
+                                        <span class="effect-meta">
+                                            {{inspector.light.summary}}
+                                        </span>
+                                    </div>
+                                    <div class="effect-controls">
+                                        {{!-- Visibility Toggle handles light.dim/bright > 0 logic in controller --}}
+                                        <button type="button" class="effect-btn toggle-visibility" data-action="toggleLight" data-effect-id="light-source">
+                                            <i class="visage-icon {{#if inspector.light.active}}visible{{else}}visage-hidden{{/if}}"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
                                 {{#if inspector.hasEffects}}
                                     {{!-- 1. FOREGROUND (Above) --}}
                                     <div class="effect-group" data-group="above">
@@ -429,10 +475,9 @@
                                         </div>
                                     </div>
                                 {{else}}
-                                    {{!-- EMPTY STATE --}}
+                                    {{!-- EMPTY STATE (Only shows if light is also inactive, usually) --}}
                                     <div class="empty-placeholder">
-                                        <i class="visage-icon wand-stars"></i>
-                                        <p>{{localize "VISAGE.Editor.Effects.Empty"}}</p>
+                                        <p style="margin-top: 2rem; opacity: 0.5; text-align: center;">{{localize "VISAGE.Editor.Effects.Empty"}}</p>
                                     </div>
                                 {{/if}}
                             </div>
@@ -446,101 +491,170 @@
                                 <button type="button" class="back-btn" data-action="closeEffectInspector">
                                     <i class="visage-icon back"></i>
                                 </button>
-                                <h4 class="inspector-title">{{localize "VISAGE.Editor.Effects.SettingsTitle"}}</h4>
+                                <h4 class="inspector-title">
+                                    {{#if (eq inspector.type 'light')}}
+                                        {{localize "VISAGE.Light.SettingsTitle"}}
+                                    {{else}}
+                                        {{localize "VISAGE.Editor.Effects.SettingsTitle"}}
+                                    {{/if}}
+                                </h4>
                             </header>
 
                             <fieldset class="visage-fieldset inspector-fieldset">
-                            
-                                {{!-- SHARED: Label & Path --}}
-                                <div class="form-group">
-                                    <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
-                                    <div class="visage-form-fields">
-                                        <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="{{localize 'VISAGE.Editor.Effects.PathPlaceholder'}}">
-                                    </div>
-                                </div>
-
-                                <div class="form-group stacked">
-                                    <label>{{localize "VISAGE.Editor.Effects.Path"}}</label>
-                                    <div class="visage-form-fields">
-                                        {{!-- Text Input for DB Key or File Path --}}
-                                        <input type="text" name="effectPath" value="{{inspector.path}}" placeholder="e.g. jb2a.fire_bolt.red">
-                                        
-                                        <button type="button" data-action="openSequencerDatabase" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenDatabase'}}">
-                                            <i class="visage-icon library"></i>
-                                        </button>
-
-                                        <button type="button" class="file-picker-button" data-action="openFilePicker" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenFile'}}">
-                                            <i class="visage-icon open"></i>
-                                        </button>
-                                    </div>
-                                    <p class="hint">{{localize "VISAGE.Editor.Effects.DatabaseHint"}}</p>
-                                </div>
-
-                                {{!-- VISUAL SPECIFIC CONTROLS --}}
-                                {{#if (eq inspector.type 'visual')}}
+                                
+                                {{!-- CASE: LIGHT SOURCE INSPECTOR --}}
+                                {{#if (eq inspector.type 'light')}}
                                     
                                     <div class="form-group">
-                                        <label>{{localize "VISAGE.Config.List.Scale"}}</label>
+                                        <label>{{localize "VISAGE.Light.DimRadius"}}</label>
                                         <div class="visage-form-fields">
-                                            {{!-- Step 10 for percentage increments --}}
-                                            <input type="number" name="effectScale" value="{{inspector.scale}}" step="10">
+                                            <input type="number" name="lightDim" value="{{inspector.light.dim}}" min="0" step="0.5">
                                         </div>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>{{localize "VISAGE.Config.Opacity.Label"}}</label>
+                                        <label>{{localize "VISAGE.Light.BrightRadius"}}</label>
                                         <div class="visage-form-fields">
-                                            <range-picker name="effectOpacity" value="{{inspector.opacity}}" min="0" max="1" step="0.1"></range-picker>
+                                            <input type="number" name="lightBright" value="{{inspector.light.bright}}" min="0" step="0.5">
                                         </div>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>{{localize "VISAGE.Editor.Effects.BlendMode"}}</label>
+                                        <label>{{localize "VISAGE.Light.Color"}}</label>
                                         <div class="visage-form-fields">
-                                            <select name="effectBlendMode">
-                                                <option value="normal" {{visageSelected (eq inspector.blendMode "normal")}}>{{localize "VISAGE.BlendMode.Normal"}}</option>
-                                                <option value="screen" {{visageSelected (eq inspector.blendMode "screen")}}>{{localize "VISAGE.BlendMode.Screen"}}</option>
-                                                <option value="multiply" {{visageSelected (eq inspector.blendMode "multiply")}}>{{localize "VISAGE.BlendMode.Multiply"}}</option>
-                                                <option value="overlay" {{visageSelected (eq inspector.blendMode "overlay")}}>{{localize "VISAGE.BlendMode.Overlay"}}</option>
-                                                <option value="lighten" {{visageSelected (eq inspector.blendMode "lighten")}}>{{localize "VISAGE.BlendMode.Lighten"}}</option>
-                                                <option value="darken" {{visageSelected (eq inspector.blendMode "darken")}}>{{localize "VISAGE.BlendMode.Darken"}}</option>
-                                            </select>
+                                            <color-picker name="lightColor" value="{{inspector.light.color}}"></color-picker>
                                         </div>
                                     </div>
 
-                                    <div class="form-group rotation-group">
-                                        <label>{{localize "VISAGE.Rotation.Label"}}</label>
+                                    <div class="form-group">
+                                        <label>{{localize "VISAGE.Light.Alpha"}}</label>
                                         <div class="visage-form-fields">
-                                            <input type="number" name="effectRotation" value="{{inspector.rotation}}" placeholder="0">
-                                            <label class="rotation-random-toggle">
-                                                <input type="checkbox" name="effectRotationRandom" class="visage-checkbox" {{checked inspector.rotationRandom}}>
-                                                {{localize "VISAGE.Random"}}
-                                            </label>
+                                             <range-picker name="lightAlpha" value="{{inspector.light.alpha}}" min="0" max="1" step="0.05"></range-picker>
                                         </div>
                                     </div>
 
                                     <hr class="visage-divider">
-
+                                    
                                     <div class="form-group">
-                                        <label>{{localize "VISAGE.Editor.Effects.Layering"}}</label>
+                                        <label>{{localize "VISAGE.Light.AnimationType"}}</label>
                                         <div class="visage-form-fields">
-                                            <select name="effectZIndex">
-                                                <option value="above" {{visageSelected (eq inspector.zOrder "above")}}>{{localize "VISAGE.Editor.Effects.Above"}}</option>
-                                                <option value="below" {{visageSelected (eq inspector.zOrder "below")}}>{{localize "VISAGE.Editor.Effects.Below"}}</option>
+                                            <select name="lightAnimationType">
+                                                <option value="" {{visageSelected (eq inspector.light.animation.type "")}}>{{localize "VISAGE.Light.None"}}</option>
+                                                <option value="pulse" {{visageSelected (eq inspector.light.animation.type "pulse")}}>{{localize "VISAGE.Light.Anim.Pulse"}}</option>
+                                                <option value="torch" {{visageSelected (eq inspector.light.animation.type "torch")}}>{{localize "VISAGE.Light.Anim.Torch"}}</option>
+                                                <option value="chroma" {{visageSelected (eq inspector.light.animation.type "chroma")}}>{{localize "VISAGE.Light.Anim.Chroma"}}</option>
+                                                <option value="wave" {{visageSelected (eq inspector.light.animation.type "wave")}}>{{localize "VISAGE.Light.Anim.Wave"}}</option>
+                                                <option value="fog" {{visageSelected (eq inspector.light.animation.type "fog")}}>{{localize "VISAGE.Light.Anim.Fog"}}</option>
                                             </select>
                                         </div>
                                     </div>
 
-                                {{/if}}
-
-                                {{!-- AUDIO SPECIFIC CONTROLS --}}
-                                {{#if (eq inspector.type 'audio')}}
-                                    <div class="form-group checkbox-input-group">
-                                        <label>{{localize "VISAGE.Editor.Effects.Volume"}}</label>
+                                    <div class="form-group">
+                                        <label>{{localize "VISAGE.Light.AnimationSpeed"}}</label>
                                         <div class="visage-form-fields">
-                                            <range-picker name="effectVolume" value="{{inspector.opacity}}" min="0" max="1" step="0.1"></range-picker>
+                                            <range-picker name="lightAnimationSpeed" value="{{inspector.light.animation.speed}}" min="1" max="10" step="1"></range-picker>
                                         </div>
                                     </div>
+
+                                    <div class="form-group">
+                                        <label>{{localize "VISAGE.Light.AnimationIntensity"}}</label>
+                                        <div class="visage-form-fields">
+                                            <range-picker name="lightAnimationIntensity" value="{{inspector.light.animation.intensity}}" min="1" max="10" step="1"></range-picker>
+                                        </div>
+                                    </div>
+                                {{else}}
+                                
+                                    {{!-- SHARED: Label & Path --}}
+                                    <div class="form-group">
+                                        <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
+                                        <div class="visage-form-fields">
+                                            <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="{{localize 'VISAGE.Editor.Effects.PathPlaceholder'}}">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group stacked">
+                                        <label>{{localize "VISAGE.Editor.Effects.Path"}}</label>
+                                        <div class="visage-form-fields">
+                                            {{!-- Text Input for DB Key or File Path --}}
+                                            <input type="text" name="effectPath" value="{{inspector.path}}" placeholder="e.g. jb2a.fire_bolt.red">
+                                            
+                                            <button type="button" data-action="openSequencerDatabase" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenDatabase'}}">
+                                                <i class="visage-icon library"></i>
+                                            </button>
+
+                                            <button type="button" class="file-picker-button" data-action="openFilePicker" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenFile'}}">
+                                                <i class="visage-icon open"></i>
+                                            </button>
+                                        </div>
+                                        <p class="hint">{{localize "VISAGE.Editor.Effects.DatabaseHint"}}</p>
+                                    </div>
+
+                                    {{!-- VISUAL SPECIFIC CONTROLS --}}
+                                    {{#if (eq inspector.type 'visual')}}
+                                
+                                        <div class="form-group">
+                                            <label>{{localize "VISAGE.Config.List.Scale"}}</label>
+                                            <div class="visage-form-fields">
+                                                {{!-- Step 10 for percentage increments --}}
+                                                <input type="number" name="effectScale" value="{{inspector.scale}}" step="10">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>{{localize "VISAGE.Config.Opacity.Label"}}</label>
+                                            <div class="visage-form-fields">
+                                                <range-picker name="effectOpacity" value="{{inspector.opacity}}" min="0" max="1" step="0.1"></range-picker>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>{{localize "VISAGE.Editor.Effects.BlendMode"}}</label>
+                                            <div class="visage-form-fields">
+                                                <select name="effectBlendMode">
+                                                    <option value="normal" {{visageSelected (eq inspector.blendMode "normal")}}>{{localize "VISAGE.BlendMode.Normal"}}</option>
+                                                    <option value="screen" {{visageSelected (eq inspector.blendMode "screen")}}>{{localize "VISAGE.BlendMode.Screen"}}</option>
+                                                    <option value="multiply" {{visageSelected (eq inspector.blendMode "multiply")}}>{{localize "VISAGE.BlendMode.Multiply"}}</option>
+                                                    <option value="overlay" {{visageSelected (eq inspector.blendMode "overlay")}}>{{localize "VISAGE.BlendMode.Overlay"}}</option>
+                                                    <option value="lighten" {{visageSelected (eq inspector.blendMode "lighten")}}>{{localize "VISAGE.BlendMode.Lighten"}}</option>
+                                                    <option value="darken" {{visageSelected (eq inspector.blendMode "darken")}}>{{localize "VISAGE.BlendMode.Darken"}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group rotation-group">
+                                            <label>{{localize "VISAGE.Rotation.Label"}}</label>
+                                            <div class="visage-form-fields">
+                                                <input type="number" name="effectRotation" value="{{inspector.rotation}}" placeholder="0">
+                                                <label class="rotation-random-toggle">
+                                                    <input type="checkbox" name="effectRotationRandom" class="visage-checkbox" {{checked inspector.rotationRandom}}>
+                                                    {{localize "VISAGE.Random"}}
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <hr class="visage-divider">
+
+                                        <div class="form-group">
+                                            <label>{{localize "VISAGE.Editor.Effects.Layering"}}</label>
+                                            <div class="visage-form-fields">
+                                                <select name="effectZIndex">
+                                                    <option value="above" {{visageSelected (eq inspector.zOrder "above")}}>{{localize "VISAGE.Editor.Effects.Above"}}</option>
+                                                    <option value="below" {{visageSelected (eq inspector.zOrder "below")}}>{{localize "VISAGE.Editor.Effects.Below"}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                    {{/if}}
+
+                                    {{!-- AUDIO SPECIFIC CONTROLS --}}
+                                    {{#if (eq inspector.type 'audio')}}
+                                        <div class="form-group checkbox-input-group">
+                                            <label>{{localize "VISAGE.Editor.Effects.Volume"}}</label>
+                                            <div class="visage-form-fields">
+                                                <range-picker name="effectVolume" value="{{inspector.opacity}}" min="0" max="1" step="0.1"></range-picker>
+                                            </div>
+                                        </div>
+                                    {{/if}}
                                 {{/if}}
 
                             </fieldset>

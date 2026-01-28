@@ -17,143 +17,106 @@ export class VisageComposer {
 
     /**
      * Composes the final appearance of a token by layering the active stack on top of its base state.
-     * * **Architecture: Decoupled Composition**
-     * 1. **Deconstruction:** The Base State is broken down into atomic properties (Source, Magnitude, Orientation).
-     * Critically, Foundry's `scaleX` (which handles both size and flipping) is split into `scale` (size) and `mirror` (flip).
-     * 2. **Layering:** The stack is iterated from bottom (Identity) to top (Overlay). Each layer can override specific atoms 
-     * (e.g., changing Scale) without affecting others (e.g., keeping the previous Orientation).
-     * 3. **Reconstruction:** The atomic properties are re-baked into standard Foundry VTT data structures 
-     * (combining size and flip back into a signed `scaleX`) for the final database update.
-     * * @param {Token} token - The target token object (canvas placeable).
-     * @param {Array<Object>|null} [stackOverride=null] - An optional stack of layers to use (e.g., for temporary previews).
-     * @param {Object|null} [baseOverride=null] - An optional base state snapshot to use instead of the stored original state.
+     * @param {Token} token - The token object (placeable) to update.
+     * @param {Array<Object>} [stackOverride=null] - Optional. A specific stack to apply (used for previews/reverts).
+     * @param {Object} [baseOverride=null] - Optional. A specific base state to start from (used when the base token is updated).
      * @returns {Promise<void>}
      */
     static async compose(token, stackOverride = null, baseOverride = null) {
-        if (!token) return;
+        const tokenDoc = token.document;
+        if (!tokenDoc) return;
 
-        // 1. Retrieve Context
-        // Determine which stack to process: the one currently on the token, or a temporary override.
-        const allFlags = token.document.flags[Visage.MODULE_ID] || {};
-        const currentStack = stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
+        // 1. Fetch State
+        // The "Original State" is the snapshot of the token BEFORE any Visage was applied.
+        // We always start calculation from this clean state to prevent data corruption ("drift").
+        const originalState = baseOverride || tokenDoc.getFlag(Visage.MODULE_ID, "originalState");
+        if (!originalState) return; 
+
+        // The Stack is the ordered list of Visages currently applied (Identity -> Overlay 1 -> Overlay 2).
+        const stack = stackOverride || tokenDoc.getFlag(Visage.MODULE_ID, "activeStack") || [];
         
-        // 2. Revert Condition
-        // If the stack is empty and we aren't forcing a specific base, 
-        // we simply revert the token to its clean state.
-        if (currentStack.length === 0 && !baseOverride) {
-            return this.revertToDefault(token.document);
-        }
+        // If stack is empty, we are effectively reverting to default.
+        if (stack.length === 0) return this.revertToDefault(tokenDoc);
 
-        // 3. Establish Base State (The "Canvas")
-        // The snapshot represents the token's "True Form" beneath all illusions.
-        // If no snapshot exists (first application), we extract it from the current document.
-        let base = baseOverride ?? allFlags.originalState;
-        if (!base) {
-            base = VisageUtilities.extractVisualState(token.document);
-        }
-        
-        // --- DECOUPLING PHASE ---
-        // Foundry VTT stores "Flip" as a negative Scale value. 
-        // We split these apart so layers can target them independently.
-        let currentSrc = base.texture?.src || "";
-        let currentScaleX = Math.abs(base.texture?.scaleX ?? 1);
-        let currentScaleY = Math.abs(base.texture?.scaleY ?? 1);
-        
-        // Convert signed scale into boolean intent
-        let currentMirrorX = (base.texture?.scaleX ?? 1) < 0;
-        let currentMirrorY = (base.texture?.scaleY ?? 1) < 0;
+        // 2. Initialize Accumulator
+        // We start with the original state and progressively merge layers on top.
+        // We use deepClone to ensure we don't accidentally mutate the saved flag data.
+        let finalState = foundry.utils.deepClone(originalState);
 
-        // 4. Layer Composition Loop
-        // Iterate from Bottom (Identity) to Top (Overlays/Masks).
-        // We clone the base data to serve as the accumulator for our final state.
-        const finalData = foundry.utils.deepClone(base);
-        if (!finalData.texture) finalData.texture = {};
-
-        for (const layer of currentStack) {
-            const c = layer.changes || {}; 
-
-            // A. Texture Source
-            if (c.texture?.src) currentSrc = c.texture.src;
-
-            // B. Scale (Magnitude Override)
-            let handledScale = false;
-
-            // Priority 1: Atomic Scale (Modern Schema)
-            // Checks for the explicit 'scale' property. This overrides individual X/Y scaling.
-            if (c.scale !== undefined && c.scale !== null) {
-                currentScaleX = c.scale;
-                currentScaleY = c.scale; 
-                handledScale = true; 
-            }
-
-            // Priority 2: Texture Scale (Legacy Schema)
-            // If atomic scale is missing, check for legacy baked scale data.
-            // This ensures backward compatibility for older masks that haven't been migrated.
-            if (!handledScale && c.texture) {
-                if (c.texture.scaleX !== undefined) {
-                    currentScaleX = Math.abs(c.texture.scaleX);
-                    // Legacy data implies flipping via negative scale, so we update mirror intent here too
-                    currentMirrorX = c.texture.scaleX < 0;
-                }
-                if (c.texture.scaleY !== undefined) {
-                    currentScaleY = Math.abs(c.texture.scaleY);
-                    currentMirrorY = c.texture.scaleY < 0;
-                }
-            }
-
-            // C. Mirroring (Atomic Override)
-            // Applies explicit intent (True/False). 
-            // If undefined, the state from the previous layer (or base) persists.
-            if (c.mirrorX !== undefined && c.mirrorX !== null) currentMirrorX = c.mirrorX;
-            if (c.mirrorY !== undefined && c.mirrorY !== null) currentMirrorY = c.mirrorY;
-
-            // D. Dynamic Ring
-            if (c.ring) { finalData.ring = c.ring; }
-
-            // E. Disposition
-            if (c.disposition !== undefined && c.disposition !== null) {
-                finalData.disposition = c.disposition;
-            }
+        // 3. Layer Iteration
+        // Iterate through the stack (bottom to top).
+        for (const layer of stack) {
+            const changes = layer.changes || {};
             
-            // F. Name Override
-            if (c.name) finalData.name = c.name;
-
-            // G. Dimensions
-            if (c.width !== undefined && c.width !== null) finalData.width = c.width;
-            if (c.height !== undefined && c.height !== null) finalData.height = c.height;
-        
-            // H. Opacity
-            if (c.alpha !== undefined && c.alpha !== null) finalData.alpha = c.alpha;
-
-            // I. Rotation Lock
-            if (c.lockRotation !== undefined && c.lockRotation !== null) finalData.lockRotation = c.lockRotation;
+            // A. Identity Mode (Destructive Replacement)
+            // If this layer is an Identity (e.g. Polymorph), it establishes a NEW base.
+            // We discard previous accumulation for specific properties (like texture) but keep others.
+            if (layer.mode === "identity") {
+                 // For identity, we want to start fresh with this layer's properties
+                 // But we merge into the *original* state defaults to ensure we have valid fallbacks for missing props.
+                 // Actually, usually Identity just overrides. 
+                 // Let's merge the layer changes ON TOP of the current accumulator.
+                 finalState = foundry.utils.mergeObject(finalState, changes, { inplace: true, insertKeys: true });
+            } 
+            // B. Overlay Mode (Additive)
+            else {
+                // For overlays, we merge carefully.
+                // Texture: Overlays usually DON'T change the token image unless specifically requested.
+                // However, our data model allows it.
+                finalState = foundry.utils.mergeObject(finalState, changes, { inplace: true, insertKeys: true });
+            }
         }
 
-        // 5. Reconstruction Phase
-        // Re-bake the atomic properties into the standard Foundry data structure.
-        // We multiply the absolute scale by -1 if mirroring is active.
-        finalData.texture.src = currentSrc;
-        finalData.texture.scaleX = currentScaleX * (currentMirrorX ? -1 : 1);
-        finalData.texture.scaleY = currentScaleY * (currentMirrorY ? -1 : 1);
+        // 4. Reconstruction (Baking)
+        // Convert our internal "Visage Schema" back into "Foundry Token Data".
+        // This primarily involves recombining Scale/Mirroring and normalizing Texture paths.
+        
+        const updates = {};
+        
+        // Texture & Scale Reconstruction
+        // Visage stores scale (size) and mirror (flip) separately.
+        // Foundry stores them combined in texture.scaleX / texture.scaleY.
+        const textureSrc = finalState.texture?.src || originalState.texture?.src;
+        
+        // Resolve atomic properties (fallback to original if a layer deleted them but didn't replace them)
+        const scale = finalState.scale ?? originalState.scale ?? 1.0;
+        const mirrorX = finalState.mirrorX ?? (originalState.texture?.scaleX < 0);
+        const mirrorY = finalState.mirrorY ?? (originalState.texture?.scaleY < 0);
 
-        // 6. Atomic Update
-        // We update the visual data and the state flags in a single operation 
-        // to prevent database desynchronization.
-        const updateData = {
-            ...finalData,
-            [`flags.${Visage.MODULE_ID}.activeStack`]: currentStack,
-            [`flags.${Visage.MODULE_ID}.originalState`]: base
+        // Calculate final Foundry values
+        const finalScaleX = Math.abs(scale) * (mirrorX ? -1 : 1);
+        const finalScaleY = Math.abs(scale) * (mirrorY ? -1 : 1);
+
+        updates.texture = {
+            src: textureSrc,
+            scaleX: finalScaleX,
+            scaleY: finalScaleY
         };
 
-        // pass 'visageUpdate: true' to prevent infinite recursion in update hooks
-        await token.document.update(updateData, { visageUpdate: true });
+        // Pass-through Properties
+        // These properties map 1:1 from Visage Data to Token Data.
+        if (finalState.width !== undefined) updates.width = finalState.width;
+        if (finalState.height !== undefined) updates.height = finalState.height;
+        if (finalState.alpha !== undefined) updates.alpha = finalState.alpha;
+        if (finalState.lockRotation !== undefined) updates.lockRotation = finalState.lockRotation;
+        if (finalState.disposition !== undefined) updates.disposition = finalState.disposition;
+        if (finalState.name !== undefined) updates.name = finalState.name;
+        
+        // Complex Objects (Ring, Light)
+        // We allow the mergeObject in step 3 to handle the deep merging of these.
+        if (finalState.ring) updates.ring = finalState.ring;
+        
+        // v3.2: Light Source Handling
+        if (finalState.light) updates.light = finalState.light;
+
+        // 5. Execute Update
+        // We tag this update so our hooks know it comes from Visage (preventing infinite loops).
+        return tokenDoc.update(updates, { visageUpdate: true });
     }
 
     /**
-     * Public API to revert a token to its clean, original state.
-     * Removes all Visage effects, clears the stack, and restores the original visual data.
-     * @param {TokenDocument} tokenDoc - The token document to revert.
-     * @returns {Promise<TokenDocument>} The updated document.
+     * Reverts a token to its stored "Original State" and clears active flags.
+     * @param {TokenDocument} tokenDoc - The token to revert.
      */
     static async revertToDefault(tokenDoc) {
         if (!tokenDoc) return;
@@ -165,8 +128,6 @@ export class VisageComposer {
      * Internal implementation of the revert logic.
      * Distinguishes between tokens that have a "clean snapshot" and those that don't.
      * @private
-     * @param {TokenDocument} tokenDoc - The token document.
-     * @param {Object} flags - The current flags on the document.
      */
     static async _revert(tokenDoc, flags) {
         // Scenario A: No snapshot exists (e.g. data cleaned manually or never initialized).
@@ -174,20 +135,30 @@ export class VisageComposer {
         if (!flags.originalState) {
             const clearFlags = {
                 [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
-                [`flags.${Visage.MODULE_ID}.-=originalState`]: null
+                [`flags.${Visage.MODULE_ID}.-=originalState`]: null,
+                [`flags.${Visage.MODULE_ID}.-=identity`]: null
             };
             return tokenDoc.update(clearFlags, { visageUpdate: true });
         }
 
         // Scenario B: Snapshot exists.
         // Restore the original visual data from the snapshot AND wipe the flags in a single update.
+        // v3.2: This now automatically restores 'light' if it exists in originalState.
         const updateData = {
             ...flags.originalState,
             [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
             [`flags.${Visage.MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
-            [`flags.${Visage.MODULE_ID}.-=originalState`]: null
+            [`flags.${Visage.MODULE_ID}.-=originalState`]: null,
+            [`flags.${Visage.MODULE_ID}.-=identity`]: null
         };
 
-        await tokenDoc.update(updateData, { visageUpdate: true });
+        // Clean internal Visage properties that shouldn't exist on a raw token
+        delete updateData.scale;
+        delete updateData.mirrorX;
+        delete updateData.mirrorY;
+        // Clean portrait from token update (it's handled by Actor update in cleanup/visage.js)
+        delete updateData.portrait;
+
+        return tokenDoc.update(updateData, { visageUpdate: true });
     }
 }

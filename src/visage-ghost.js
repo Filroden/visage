@@ -146,9 +146,15 @@ export function handleGhostEdit(app, html, data) {
     };
 
     // A. Standard Restore Loop
+    // Automatically handles all visual properties including Texture, Scale, Ring, and Light (v3.2)
     for (const [key, value] of Object.entries(flatData)) {
         // Skip internal flags and ID to prevent corruption or overwriting system data
         if (key.startsWith("flags") || key === "_id") continue;
+        
+        // NOTE: 'portrait' data is not restored here as this form is for the Token, 
+        // and the Actor Sheet is not managed by Ghost Edit.
+        if (key === "portrait") continue;
+
         setInput(key, value);
     }
     
