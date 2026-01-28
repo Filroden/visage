@@ -26,7 +26,7 @@ export class VisageUtilities {
     /**
      * Resolves wildcard paths or S3 bucket URLs into a concrete file path.
      * Filters the directory contents to ensure only files matching the wildcard pattern are selected.
-     * * Handles both local storage ("data") and S3 buckets ("s3").
+     * * Handles both local storage ("data") and S3 buckets ("s3\").
      * * Decodes URL components to handle spaces and special characters.
      * @param {string} path - The image path (e.g., "tokens/guards/bear-*.png").
      * @returns {Promise<string|null>} The resolved single file path, or null if resolution fails.
@@ -131,6 +131,20 @@ export class VisageUtilities {
         // Safely extract Ring data (Foundry V12+ Dynamic Token Rings)
         const ringData = source.ring?.toObject?.() ?? source.ring ?? {};
         
+        // NEW: Capture Light Source (V3.2)
+        const lightData = source.light?.toObject?.() ?? source.light ?? {};
+
+        // NEW: Capture Portrait (Actor Image) (V3.2)
+        // Check multiple locations for the actor reference
+        let portrait = null;
+        if (data.actor) portrait = data.actor.img;
+        else if (data.document?.actor) portrait = data.document.actor.img;
+        else if (source.actorId && canvas.tokens?.placeables) {
+            // Attempt fallback lookup (use cautiously)
+            const actor = game.actors?.get(source.actorId);
+            if (actor) portrait = actor.img;
+        }
+
         // Standardize texture properties
         const textureSrc = get("texture.src");
         const scaleX = get("texture.scaleX") ?? 1.0;
@@ -151,7 +165,12 @@ export class VisageUtilities {
                 scaleX: scaleX,
                 scaleY: scaleY
             },
-            ring: ringData
+            ring: ringData,
+            
+            // New Data Properties (V3.2)
+            light: lightData,
+            portrait: portrait,
+            delay: 0
         };
     }
 

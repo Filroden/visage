@@ -176,10 +176,19 @@ export class VisageData {
         const width = sourceData.width ?? 1;
         const height = sourceData.height ?? 1;
         const disposition = sourceData.disposition ?? 0;
+        
         const ringData = sourceData.ring 
             ? (sourceData.ring.toObject ? sourceData.ring.toObject() : sourceData.ring) 
             : {};
         
+        // NEW: Capture Light Configuration
+        const lightData = sourceData.light
+            ? (sourceData.light.toObject ? sourceData.light.toObject() : sourceData.light)
+            : (tokenDoc.light.toObject ? tokenDoc.light.toObject() : tokenDoc.light);
+
+        // NEW: Capture Portrait (Actor Image)
+        const portrait = sourceData.portrait || tokenDoc.actor?.img || null;
+
         // Check for flipped state in scale
         const flipX = scaleX < 0;
         const flipY = scaleY < 0;
@@ -201,6 +210,12 @@ export class VisageData {
                 width: width,
                 height: height,
                 disposition: disposition,
+                
+                // V3.2 Properties
+                light: lightData,
+                portrait: portrait,
+                delay: 0,
+                
                 ring: ringData
             }
         };
@@ -273,43 +288,87 @@ export class VisageData {
             }
         }
 
-        // 5. Effects / Sequencer Badge
+        // 5. Effects / Light / Delay Badges
         const rawEffects = c.effects || [];
         const activeEffects = rawEffects.filter(e => !e.disabled);
         const hasEffects = activeEffects.length > 0;
         
+        // FIX: A light is only "Active" if it exists AND has a radius > 0.
+        // This prevents default tokens (0/0) from showing the icon.
+        const hasLight = c.light && (c.light.dim > 0 || c.light.bright > 0);
+        const hasDelay = (c.delay !== undefined && c.delay !== 0);
+        
+        // Show badge if ANY of these behavior modifiers are present
+        const showEffectsBadge = hasEffects || hasLight || hasDelay;
         let effectsTooltip = "";
-        if (hasEffects) {
-            const listItems = activeEffects.map(e => {
-            const icon = e.type === "audio" ? "visage-icon audio" : "visage-icon visual";
-            let meta = "";
 
-            if (e.type === "audio") {
-                const volLabel = game.i18n.localize("VISAGE.Editor.Effects.Volume");
-                // Standardized to 0.8 fallback to match editor logic
-                meta = `${volLabel}: ${Math.round((e.opacity ?? 0.8) * 100)}%`; 
-            } else {
-                const zLabel = e.zOrder === "below" 
-                    ? game.i18n.localize("VISAGE.Editor.Effects.Below") 
-                    : game.i18n.localize("VISAGE.Editor.Effects.Above");
-                // Added scale percentage to the tooltip
-                meta = `${zLabel} • ${Math.round((e.scale ?? 1.0) * 100)}%`;
+        if (showEffectsBadge) {
+            let content = "";
+
+            // A. Light (Top)
+            if (hasLight) {
+                const l = c.light;
+                content += `
+                <div class='visage-tooltip-row header'>
+                    <i class='visage-icon light'></i> 
+                    <span class='label'>${game.i18n.localize("VISAGE.Editor.Light.Title")}</span>
+                    <span class='meta'>${l.dim} / ${l.bright}</span>
+                </div>`;
+            }
+
+            // B. Sequencer Effects (Middle)
+            if (hasEffects) {
+                content += activeEffects.map(e => {
+                    const icon = e.type === "audio" ? "visage-icon audio" : "visage-icon visual";
+                    let meta = "";
+                    if (e.type === "audio") {
+                        const volLabel = game.i18n.localize("VISAGE.Editor.Effects.Volume");
+                        meta = `${volLabel}: ${Math.round((e.opacity ?? 0.8) * 100)}%`; 
+                    } else {
+                        const zLabel = e.zOrder === "below" 
+                            ? game.i18n.localize("VISAGE.Editor.Effects.Below") 
+                            : game.i18n.localize("VISAGE.Editor.Effects.Above");
+                        meta = `${zLabel} • ${Math.round((e.scale ?? 1.0) * 100)}%`;
+                    }
+                    
+                    return `
+                        <div class='visage-tooltip-row'>
+                            <i class='${icon}'></i> 
+                            <span class='label'>${e.label || "Effect"}</span>
+                            <span class='meta'>${meta}</span>
+                        </div>`;
+                }).join("");
+            }
+
+            // C. Delay (Bottom)
+            if (hasDelay) {
+                const s = Math.abs(c.delay) / 1000;
+                const dirLabel = c.delay > 0 
+                    ? game.i18n.localize("VISAGE.Editor.TransitionDelay.EffectsLead") 
+                    : game.i18n.localize("VISAGE.Editor.TransitionDelay.TokenLeads");
+                
+                content += `
+                <div class='visage-tooltip-row footer'>
+                    <i class='visage-icon timer'></i> 
+                    <span class='label'>${game.i18n.localize("VISAGE.Editor.TransitionDelay.Label")}</span>
+                    <span class='meta'>${s}s (${dirLabel})</span>
+                </div>`;
             }
             
-            return `
-                <div class='visage-tooltip-row'>
-                    <i class='${icon}'></i> 
-                    <span class='label'>${e.label || "Effect"}</span>
-                    <span class='meta'>${meta}</span>
-                </div>`;
-            }).join("");
-            
-            effectsTooltip = `<div class='visage-tooltip-content'>${listItems}</div>`;
+            effectsTooltip = `<div class='visage-tooltip-content'>${content}</div>`;
         }
 
         // 6. Ring Context
         const ringCtx = this.prepareRingContext(c.ring);
         const isWildcard = options.isWildcard ?? false;
+
+        // 7. Portrait Badge
+        const hasPortrait = !!(c.portrait);
+        let portraitTooltip = "";
+        if (hasPortrait) {
+            // Embed the image directly in the tooltip
+            portraitTooltip = `<img src='${c.portrait}' class='visage-tooltip-image' alt='Portrait' />`;
+        }
 
         return {
             ...data,
@@ -340,8 +399,11 @@ export class VisageData {
                 showDispositionChip: dispClass !== "none",
                 tokenName: c.name || null,
                 
-                hasEffects: hasEffects,
+                // V3.2 Badges
+                showEffectsBadge: showEffectsBadge,
                 effectsTooltip: effectsTooltip,
+                hasPortrait: hasPortrait,
+                portraitTooltip: portraitTooltip,
 
                 slots: {
                     scale: { active: isScaleActive, val: scaleLabel },
@@ -489,6 +551,9 @@ export class VisageData {
         if (newDefaultData.height !== undefined) updatePayload.height = newDefaultData.height;
         if (newDefaultData.disposition !== undefined) updatePayload.disposition = newDefaultData.disposition;
         if (newDefaultData.ring) updatePayload.ring = newDefaultData.ring;
+        
+        // V3.2 Properties
+        if (newDefaultData.light) updatePayload.light = newDefaultData.light;
 
         // Clean undefined keys
         for (const key of Object.keys(updatePayload)) {
@@ -499,6 +564,9 @@ export class VisageData {
         const isLinked = token.document.isLinked;
         if (isLinked) await token.actor.update({ prototypeToken: updatePayload });
         else await token.document.update(updatePayload);
+
+        // Note: We do NOT commit 'portrait' here because changing the token default 
+        // doesn't inherently imply changing the Actor's permanent portrait.
 
         // 5. Update the "Original State" flag so Visage accepts this as the new normal
         const newOriginalState = VisageUtilities.extractVisualState({

@@ -127,6 +127,9 @@ export class VisageComposer {
 
             // I. Rotation Lock
             if (c.lockRotation !== undefined && c.lockRotation !== null) finalData.lockRotation = c.lockRotation;
+
+            // J. Light Source (V3.2)
+            if (c.light) finalData.light = c.light;
         }
 
         // 5. Reconstruction Phase
@@ -144,6 +147,10 @@ export class VisageComposer {
             [`flags.${Visage.MODULE_ID}.activeStack`]: currentStack,
             [`flags.${Visage.MODULE_ID}.originalState`]: base
         };
+
+        // NEW: Ensure light is passed correctly (if it exists)
+        // This is crucial because light is not part of the standard 'texture' object
+        if (finalData.light) updateData.light = finalData.light;
 
         // pass 'visageUpdate: true' to prevent infinite recursion in update hooks
         await token.document.update(updateData, { visageUpdate: true });

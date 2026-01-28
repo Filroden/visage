@@ -38,14 +38,26 @@
 
         {{!-- CENTER: VISUAL PREVIEW --}}
         <div class="card-zone-center">
-            {{#if this.meta.hasEffects}}
-            <div class="visage-card-effect-indicator" 
-                 data-tooltip="{{this.meta.effectsTooltip}}" 
-                 data-tooltip-class="visage-tooltip">
+
+            {{!-- Effects / Light / Delay Indicator --}}
+            {{#if this.meta.showEffectsBadge}}
+            <div class="visage-card-effect-indicator behavior" 
+                    data-tooltip="{{this.meta.effectsTooltip}}" 
+                    data-tooltip-class="visage-tooltip">
                 <i class="visage-icon wand-stars"></i>
             </div>
             {{/if}}
 
+            {{!-- Portrait Indicator --}}
+            {{#if this.meta.hasPortrait}}
+            <div class="visage-card-effect-indicator portrait" 
+                    data-tooltip="{{this.meta.portraitTooltip}}" 
+                    data-tooltip-class="visage-tooltip">
+                <i class="visage-icon portrait"></i>
+            </div>
+            {{/if}}            
+
+            {{!-- Main Image --}}
             <div class="visual-target">
                 {{> "modules/visage/templates/parts/visage-preview.hbs" 
                     resolvedPath=this.changes.img 

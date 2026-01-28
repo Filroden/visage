@@ -20,6 +20,13 @@
     </div>
     {{/if}}
 
+    {{!-- NEW: LIGHT SOURCE PREVIEW --}}
+    {{#if hasLight}}
+    <div class="visage-light-overlay"
+         style="--light-color: {{lightColor}}; --light-dim: {{lightDim}}; --light-bright: {{lightBright}};">
+    </div>
+    {{/if}}
+
     {{!-- 3. MAIN TOKEN IMAGE --}}
     <div class="visage-token-layer" style="opacity: {{alpha}};">
         

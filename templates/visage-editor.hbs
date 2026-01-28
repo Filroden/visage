@@ -9,7 +9,7 @@
             <input type="text" name="label" value="{{label}}" placeholder="{{localize 'VISAGE.GlobalEditor.DefaultLabel'}}" required>
         </div>
 
-        {{!-- NEW: Mode Group --}}
+        {{!-- Mode Group --}}
         <div class="header-form-group mode-group">
             <label>{{localize "VISAGE.GlobalEditor.Mode"}}</label>
             <div class="visage-mode-toggle">
@@ -70,14 +70,21 @@
                     name=preview.name
                     hasCheckerboard=true
                     alpha=preview.alpha
-                    isVideo=preview.isVideo                                    
+                    isVideo=preview.isVideo
+                    
                     hasRing=preview.hasRing 
                     hasInvisibility=preview.hasInvisibility
                     hasPulse=preview.hasPulse
                     hasGradient=preview.hasGradient
                     hasWave=preview.hasWave
                     ringColor=preview.ringColor
-                    ringBkg=preview.ringBkg                                    
+                    ringBkg=preview.ringBkg
+                    
+                    hasLight=preview.hasLight
+                    lightColor=preview.lightColor
+                    lightDim=preview.lightDim
+                    lightBright=preview.lightBright
+                    
                     forceFlipX=preview.flipX
                     forceFlipY=preview.flipY
                     wrapperClass="visage-preview-content stage-mode"
@@ -222,6 +229,16 @@
                             </div>
                         </div>
 
+                        {{!-- NEW: Actor Portrait --}}
+                        <div class="form-group checkbox-input-group">
+                            <input class="visage-checkbox" type="checkbox" name="portrait_active" data-action="toggleField" data-target="portrait" {{checked portrait.active}}>
+                            <label>{{localize "VISAGE.GlobalEditor.ActorPortrait"}}</label>
+                            <div class="visage-form-fields">
+                                <input type="text" name="portrait" value="{{this.portrait.value}}" {{disabled (not portrait.active)}} placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}">
+                                <button type="button" class="file-picker-button" data-action="openFilePicker" {{disabled (not portrait.active)}}><i class="visage-icon image-search"></i></button>
+                            </div>
+                        </div>
+
                         {{!-- Scale --}}
                         <div class="form-group checkbox-input-group">
                             <input class="visage-checkbox" type="checkbox" name="scale_active" data-action="toggleField" data-target="scale" {{checked scale.active}}>
@@ -290,7 +307,7 @@
                         <div class="form-group stacked">
                              <label>{{localize "VISAGE.GlobalEditor.Mirroring"}}</label>
                              <div class="visage-form-fields mirroring-grid">
-                                
+                                 
                                 {{!-- Row 1: Horizontal --}}
                                 <label>{{localize "VISAGE.Mirror.Label.Horizontal"}}</label>
                                 <select name="isFlippedX">
@@ -350,7 +367,7 @@
                         </div>
 
                         <div class="form-group stacked">
-                            <label>{{localize "VISAGE.RingConfig.Effects.Label"}}</label>
+                             <label>{{localize "VISAGE.RingConfig.Effects.Label"}}</label>
                             <div class="visage-form-fields effects-grid">
                                 {{#each ring.effects}}
                                 <label class="checkbox">
@@ -365,12 +382,39 @@
                 </div>
 
                 {{!-- TAB 3: EFFECTS --}}
-                <div class="tab effects-tab-container" data-tab="effects" data-group="primary">
+                <div class="tab effects-tab-container {{#if inspector.type}}editing{{/if}}" data-tab="effects" data-group="primary">
                     
                     {{#if hasSequencer}}
                         {{!-- VIEW 1: THE STACK --}}
                         <div class="visage-view view-list">
                             
+                            {{!-- NEW: Transition Timing Header --}}
+                            <div class="transition-settings-bar {{#unless inspector.hasEffects}}disabled-look{{/unless}}">
+                                <label>
+                                    <i class="visage-icon timer"></i> 
+                                    {{localize "VISAGE.Editor.TransitionDelay.Label"}}
+                                </label>
+                                
+                                <div class="delay-controls">
+                                    {{!-- Direction Toggle --}}
+                                    <div class="delay-direction-toggle">
+                                        <button type="button" class="delay-btn {{#if (visageEq delay.direction 'before')}}active{{/if}}" 
+                                            data-action="toggleDelayDirection" data-value="before" data-tooltip="VISAGE.Editor.TransitionDelay.Before">
+                                            {{localize "VISAGE.Editor.TransitionDelay.TokenLeads"}}
+                                        </button>
+                                        <button type="button" class="delay-btn {{#if (visageEq delay.direction 'after')}}active{{/if}}" 
+                                            data-action="toggleDelayDirection" data-value="after" data-tooltip="VISAGE.Editor.TransitionDelay.After">
+                                            {{localize "VISAGE.Editor.TransitionDelay.EffectsLead"}}
+                                        </button>
+                                    </div>
+
+                                    {{!-- Range Picker: 0s to 3s --}}
+                                    <div class="delay-slider-wrapper">
+                                        <range-picker name="delayValue" value="{{delay.value}}" min="0" max="3.0" step="0.1" {{disabled (not inspector.hasEffects)}}></range-picker>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="effects-actions">
                                 <button type="button" data-action="addVisual">
                                     <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Effects.AddVisual"}}
@@ -383,6 +427,43 @@
                             {{!-- EFFECTS LIST (Grouped) --}}
                             <div class="visage-effect-list visage-scrollable">
                                 
+                                {{!-- NEW: Pinned Light Card --}}
+                                <div class="effect-group" data-group="light">
+                                    <h3 class="group-header sticky">
+                                        <i class="visage-icon light"></i> {{localize "VISAGE.Editor.Groups.LightSource"}}
+                                    </h3>
+                                    <div class="effect-card pinned-light {{#if light.active}}active{{else}}visage-disabled{{/if}}" data-action="editLight">
+                                        
+                                        <div class="effect-info">
+                                            <span class="effect-name">{{localize "VISAGE.Editor.Light.Title"}}</span>
+                                            <span class="effect-meta">
+                                                {{#if light.active}}
+                                                    {{!-- Ranges --}}
+                                                    <span>dim {{light.dim}} / bright {{light.bright}}</span>
+                                                    
+                                                    {{!-- Animation Name --}}
+                                                    {{#if light.animation.type}}
+                                                        <span> • {{light.animation.type}}</span>
+                                                    {{/if}}
+
+                                                    {{!-- Color Dot --}}
+                                                    <span class="visage-color-dot" 
+                                                        style="background-color: {{light.color}};" 
+                                                        title="{{light.color}}">
+                                                    </span>
+                                                {{else}}
+                                                    {{localize "VISAGE.Editor.Light.Disabled"}}
+                                                {{/if}}
+                                            </span>
+                                        </div>
+                                        <div class="effect-controls">
+                                            <button type="button" class="effect-btn toggle-visibility" data-action="toggleLight">
+                                                <i class="visage-icon {{#if (not light.active)}}visage-hidden{{else}}visible{{/if}}"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {{#if inspector.hasEffects}}
                                     {{!-- 1. FOREGROUND (Above) --}}
                                     <div class="effect-group" data-group="above">
@@ -446,35 +527,81 @@
                                 <button type="button" class="back-btn" data-action="closeEffectInspector">
                                     <i class="visage-icon back"></i>
                                 </button>
-                                <h4 class="inspector-title">{{localize "VISAGE.Editor.Effects.SettingsTitle"}}</h4>
+                                <h4 class="inspector-title">
+                                    {{#if (eq inspector.type 'light')}}
+                                        {{localize "VISAGE.Editor.Light.SettingsTitle"}}
+                                    {{else}}
+                                        {{localize "VISAGE.Editor.Effects.SettingsTitle"}}
+                                    {{/if}}
+                                </h4>
                             </header>
 
                             <fieldset class="visage-fieldset inspector-fieldset">
                             
+                                {{!-- NEW: LIGHT SETTINGS --}}
+                                {{#if (eq inspector.type 'light')}}
+                                    <div class="form-group fade-grid">
+                                        <label>{{localize "VISAGE.Editor.Light.Dim"}}</label>
+                                        <input type="number" name="lightDim" value="{{inspector.dim}}" step="0.5">
+                                        <label>{{localize "VISAGE.Editor.Light.Bright"}}</label>
+                                        <input type="number" name="lightBright" value="{{inspector.bright}}" step="0.5">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>{{localize "VISAGE.Editor.Light.Color"}}</label>
+                                        <div class="visage-form-fields">
+                                            <color-picker name="lightColor" value="{{inspector.color}}"></color-picker>
+                                            <input type="range" name="lightAlpha" value="{{inspector.alpha}}" min="0" max="1" step="0.05" title="{{localize 'VISAGE.Config.Opacity.Label'}}">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>{{localize "VISAGE.Editor.Light.AnimationType"}}</label>
+                                        <div class="visage-form-fields">
+                                            <select name="lightAnimationType">
+                                                <option value="" {{visageSelected (eq inspector.animation.type "")}}>{{localize "VISAGE.Editor.Light.None"}}</option>
+                                                <option value="torch" {{visageSelected (eq inspector.animation.type "torch")}}>{{localize "VISAGE.Editor.Light.Torch"}}</option>
+                                                <option value="pulse" {{visageSelected (eq inspector.animation.type "pulse")}}>{{localize "VISAGE.Editor.Light.Pulse"}}</option>
+                                                <option value="chroma" {{visageSelected (eq inspector.animation.type "chroma")}}>{{localize "VISAGE.Editor.Light.Chroma"}}</option>
+                                                <option value="wave" {{visageSelected (eq inspector.animation.type "wave")}}>{{localize "VISAGE.Editor.Light.Wave"}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group fade-grid">
+                                        <label>{{localize "VISAGE.Editor.Light.Speed"}}</label>
+                                        <input type="number" name="lightAnimationSpeed" value="{{inspector.animation.speed}}" min="0" max="10" step="1">
+                                        <label>{{localize "VISAGE.Editor.Light.Intensity"}}</label>
+                                        <input type="number" name="lightAnimationIntensity" value="{{inspector.animation.intensity}}" min="0" max="10" step="1">
+                                    </div>
+                                {{/if}}
+
                                 {{!-- SHARED: Label & Path --}}
-                                <div class="form-group">
-                                    <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
-                                    <div class="visage-form-fields">
-                                        <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="{{localize 'VISAGE.Editor.Effects.PathPlaceholder'}}">
+                                {{#unless (eq inspector.type 'light')}}
+                                    <div class="form-group">
+                                        <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
+                                        <div class="visage-form-fields">
+                                            <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="{{localize 'VISAGE.Editor.Effects.PathPlaceholder'}}">
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="form-group stacked">
-                                    <label>{{localize "VISAGE.Editor.Effects.Path"}}</label>
-                                    <div class="visage-form-fields">
-                                        {{!-- Text Input for DB Key or File Path --}}
-                                        <input type="text" name="effectPath" value="{{inspector.path}}" placeholder="e.g. jb2a.fire_bolt.red">
-                                        
-                                        <button type="button" data-action="openSequencerDatabase" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenDatabase'}}">
-                                            <i class="visage-icon library"></i>
-                                        </button>
+                                    <div class="form-group stacked">
+                                        <label>{{localize "VISAGE.Editor.Effects.Path"}}</label>
+                                        <div class="visage-form-fields">
+                                            {{!-- Text Input for DB Key or File Path --}}
+                                            <input type="text" name="effectPath" value="{{inspector.path}}" placeholder="e.g. jb2a.fire_bolt.red">
+                                            
+                                            <button type="button" data-action="openSequencerDatabase" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenDatabase'}}">
+                                                <i class="visage-icon library"></i>
+                                            </button>
 
-                                        <button type="button" class="file-picker-button" data-action="openFilePicker" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenFile'}}">
-                                            <i class="visage-icon open"></i>
-                                        </button>
+                                            <button type="button" class="file-picker-button" data-action="openFilePicker" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenFile'}}">
+                                                <i class="visage-icon open"></i>
+                                            </button>
+                                        </div>
+                                        <p class="hint">{{localize "VISAGE.Editor.Effects.DatabaseHint"}}</p>
                                     </div>
-                                    <p class="hint">{{localize "VISAGE.Editor.Effects.DatabaseHint"}}</p>
-                                </div>
+                                {{/unless}}
 
                                 {{!-- VISUAL SPECIFIC CONTROLS --}}
                                 {{#if (eq inspector.type 'visual')}}
