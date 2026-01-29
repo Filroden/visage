@@ -568,6 +568,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             const animType = get("light.animation.type");
             const animSpeed = get("light.animation.speed");
             const animInt = get("light.animation.intensity");
+
             const angle = get("light.angle");
             const lumin = get("light.luminosity");
             const prio = get("light.priority");
@@ -576,8 +577,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (bright !== undefined) this._lightData.bright = parseFloat(bright) || 0;
             if (color !== undefined) this._lightData.color = color;
             if (alpha !== undefined) this._lightData.alpha = parseFloat(alpha);
+
             if (angle !== undefined) this._lightData.angle = parseInt(angle) || 360;
-            if (lumin !== undefined) this._lightData.luminosity = parseFloat(lumin) || 0.5;
+
+            if (lumin !== undefined) {
+                const lVal = parseFloat(lumin);
+                this._lightData.luminosity = isNaN(lVal) ? 0.5 : lVal;
+            }
+            
             if (prio !== undefined) this._lightData.priority = parseInt(prio) || 0;
             
             if (animType !== undefined) {
@@ -784,6 +791,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const isDarkness = lLumin < 0;
         const effectiveColor = isDarkness ? "#000000" : lColor;
         
+        // Scaling Preview Intensity by Luminosity Magnitude
+        const previewOpacity = lAlpha * (Math.abs(lLumin) * 2);
+
         // Rotation logic
         // If Flipped Y (North), offset by 0deg. If Default (South), offset by 180deg.
         const rotationOffset = flipY ? 0 : 180; 
@@ -817,7 +827,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             // Light Props (Uses Persistent Data)
             hasLight: lData.active,
             lightColor: effectiveColor,
-            lightAlpha: lAlpha,
+            lightAlpha: Math.min(1, previewOpacity),
             lightDim: lDim,
             lightBright: lBright,
             lightSizePct: sizeRatio * 100,
@@ -1338,24 +1348,30 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         });
         
-        // NEW: Slider Reset on Double Click
+        // Slider Listeners (Debounced Input + Double-Click Reset)
+        const debouncedSliderUpdate = foundry.utils.debounce(() => this._updatePreview(), 50);
+
         const sliders = this.element.querySelectorAll('input[type="range"]');
         sliders.forEach(slider => {
-            // 1. Live Update listener
-            slider.addEventListener('input', () => this._updatePreview());
+            // Live Update listener
+            slider.addEventListener('input', () => debouncedSliderUpdate());
             
-            // 2. Reset listener
+            // Reset listener
             slider.addEventListener('dblclick', (ev) => {
-                // Determine default based on name
-                let def = 0; // Default for most things
+                let def = 0;
                 const name = ev.target.name;
                 
+                // --- Step 1: General Defaults ---
                 if (name.includes('scale')) def = 100;
-                else if (name.includes('alpha') || name.includes('luminosity')) def = 0.5;
-                else if (name.includes('speed') || name.includes('intensity')) def = 5;
-                else if (name.includes('angle')) def = 360;
-                
-                if (name === "light.luminosity") def = 0.5;
+                if (name.includes('alpha') || name.includes('luminosity')) def = 0.5;
+                if (name.includes('speed') || name.includes('intensity')) def = 5;
+                if (name.includes('angle')) def = 360;
+
+                // --- Step 2: Specific Overrides ---
+                // These run last, so they safely overwrite any from above.
+                if (name.includes('Volume')) def = 1;
+                if (name.includes('Opacity')) def = 1;
+                if (name.includes('ringSubjectScale')) def = 1;
                 
                 ev.target.value = def;
                 
@@ -1370,7 +1386,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
         this._bindDragDrop(this.element);
-    
 
         // Debounce text inputs to avoid rapid Preview re-renders
         let debounceTimer;
