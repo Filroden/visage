@@ -3,4 +3,5 @@
 /dist
 /unpacked
 
+.eslintcache
 *.iml

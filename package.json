@@ -6,6 +6,10 @@
     "foundry-id": "node scripts/foundry-id.mjs"
   },
   "devDependencies": {
-    "@foundryvtt/foundryvtt-cli": "3.0.0"
+    "@eslint/js": "^9.39.2",
+    "@foundryvtt/foundryvtt-cli": "3.0.0",
+    "@league-of-foundry-developers/foundry-vtt-types": "^13.340.1",
+    "eslint": "^9.39.2",
+    "globals": "^17.2.0"
   }
 }
