@@ -7,5 +7,9 @@
 
     "_comment_RING": "--- DYNAMIC RING ---",
     "VISAGE.RingConfig.RingColor": "Ring Colour",
-    "VISAGE.RingConfig.BackgroundColor": "Background Colour"
+    "VISAGE.RingConfig.BackgroundColor": "Background Colour",
+
+    "_comment_V3_2_KEYS": "--- V3.2 KEYS ---",
+    "VISAGE.Editor.Light.Color": "Colour",
+    "VISAGE.Editor.Light.ColorIntensity": "Colour Intensity"
 }

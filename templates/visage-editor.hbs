@@ -427,7 +427,7 @@
                             {{!-- EFFECTS LIST (Grouped) --}}
                             <div class="visage-effect-list visage-scrollable">
                                 
-                                {{!-- NEW: Pinned Light Card --}}
+                                {{!-- Pinned Light Card --}}
                                 <div class="effect-group" data-group="light">
                                     <h3 class="group-header sticky">
                                         <i class="visage-icon light"></i> {{localize "VISAGE.Editor.Groups.LightSource"}}
@@ -439,11 +439,11 @@
                                             <span class="effect-meta">
                                                 {{#if light.active}}
                                                     {{!-- Ranges --}}
-                                                    <span>dim {{light.dim}} / bright {{light.bright}}</span>
+                                                    <span>dim&nbsp;{{light.dim}}&nbsp;/&nbsp;bright&nbsp;{{light.bright}}</span>
                                                     
                                                     {{!-- Animation Name --}}
                                                     {{#if light.animation.type}}
-                                                        <span> • {{light.animation.type}}</span>
+                                                        <span>&nbsp;•&nbsp;{{light.animation.type}}</span>
                                                     {{/if}}
 
                                                     {{!-- Color Dot --}}
@@ -538,41 +538,105 @@
 
                             <fieldset class="visage-fieldset inspector-fieldset">
                             
-                                {{!-- NEW: LIGHT SETTINGS --}}
+                                {{!-- LIGHT SETTINGS --}}
                                 {{#if (eq inspector.type 'light')}}
+                                    
+                                    {{!-- Radius Row --}}
                                     <div class="form-group fade-grid">
                                         <label>{{localize "VISAGE.Editor.Light.Dim"}}</label>
-                                        <input type="number" name="lightDim" value="{{inspector.dim}}" step="0.5">
+                                        <input type="number" name="light.dim" value="{{light.dim}}" step="0.5">
                                         <label>{{localize "VISAGE.Editor.Light.Bright"}}</label>
-                                        <input type="number" name="lightBright" value="{{inspector.bright}}" step="0.5">
+                                        <input type="number" name="light.bright" value="{{light.bright}}" step="0.5">
                                     </div>
 
+                                    {{!-- Color Row --}}
                                     <div class="form-group">
                                         <label>{{localize "VISAGE.Editor.Light.Color"}}</label>
                                         <div class="visage-form-fields">
-                                            <color-picker name="lightColor" value="{{inspector.color}}"></color-picker>
-                                            <input type="range" name="lightAlpha" value="{{inspector.alpha}}" min="0" max="1" step="0.05" title="{{localize 'VISAGE.Config.Opacity.Label'}}">
+                                            <color-picker name="light.color" value="{{light.color}}"></color-picker>
                                         </div>
                                     </div>
 
+                                    {{!-- Intensity (Alpha) --}}
                                     <div class="form-group">
-                                        <label>{{localize "VISAGE.Editor.Light.AnimationType"}}</label>
+                                        <label>{{localize "VISAGE.Editor.Light.ColorIntensity"}}</label>
                                         <div class="visage-form-fields">
-                                            <select name="lightAnimationType">
-                                                <option value="" {{visageSelected (eq inspector.animation.type "")}}>{{localize "VISAGE.Editor.Light.None"}}</option>
-                                                <option value="torch" {{visageSelected (eq inspector.animation.type "torch")}}>{{localize "VISAGE.Editor.Light.Torch"}}</option>
-                                                <option value="pulse" {{visageSelected (eq inspector.animation.type "pulse")}}>{{localize "VISAGE.Editor.Light.Pulse"}}</option>
-                                                <option value="chroma" {{visageSelected (eq inspector.animation.type "chroma")}}>{{localize "VISAGE.Editor.Light.Chroma"}}</option>
-                                                <option value="wave" {{visageSelected (eq inspector.animation.type "wave")}}>{{localize "VISAGE.Editor.Light.Wave"}}</option>
+                                            <div class="range-wrapper">
+                                                <input type="range" name="light.alpha" value="{{light.alpha}}" min="0" max="1" step="0.05" oninput="this.nextElementSibling.value = this.value">
+                                                <output class="value-display">{{light.alpha}}</output>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr class="visage-divider">
+
+                                    {{!-- Luminosity (Darkness) --}}
+                                    <div class="form-group">
+                                        <label data-tooltip="{{localize 'VISAGE.Editor.Light.LuminosityHint'}}">
+                                            {{localize "VISAGE.Editor.Light.Luminosity"}}
+                                        </label>
+                                        <div class="visage-form-fields">
+                                            <div class="range-wrapper">
+                                                {{!-- Range -1.0 (Dark) to 1.0 (Light) --}}
+                                                <input type="range" name="light.luminosity" value="{{light.luminosity}}" min="-1" max="1" step="0.05" oninput="this.nextElementSibling.value = this.value">
+                                                <output class="value-display">{{light.luminosity}}</output>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{!-- Emission Angle --}}
+                                    <div class="form-group">
+                                        <label>{{localize "VISAGE.Editor.Light.Angle"}}</label>
+                                        <div class="visage-form-fields">
+                                            <div class="range-wrapper">
+                                                <input type="range" name="light.angle" value="{{light.angle}}" min="0" max="360" step="1" oninput="this.nextElementSibling.value = this.value">
+                                                <output class="value-display">{{light.angle}}°</output>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{!-- Priority --}}
+                                    <div class="form-group">
+                                        <label data-tooltip="{{localize 'VISAGE.Editor.Light.PriorityHint'}}">{{localize "VISAGE.Editor.Light.Priority"}}</label>
+                                        <div class="visage-form-fields">
+                                            <input type="number" name="light.priority" value="{{light.priority}}" step="1" placeholder="0">
+                                        </div>
+                                    </div>
+
+                                    <hr class="visage-divider">
+
+                                    {{!-- Animation Type --}}
+                                    <div class="form-group">
+                                        <label data-tooltip="{{localize 'VISAGE.Editor.Light.AnimationHint'}}">
+                                            {{localize "VISAGE.Editor.Light.AnimationType"}}
+                                        </label>
+                                        <div class="visage-form-fields">
+                                            <select name="light.animation.type">
+                                                {{selectOptions lightAnimationOptions selected=light.animation.type}}
                                             </select>
                                         </div>
                                     </div>
-                                    
-                                    <div class="form-group fade-grid">
+
+                                    {{!-- Animation Speed --}}
+                                    <div class="form-group">
                                         <label>{{localize "VISAGE.Editor.Light.Speed"}}</label>
-                                        <input type="number" name="lightAnimationSpeed" value="{{inspector.animation.speed}}" min="0" max="10" step="1">
+                                        <div class="visage-form-fields">
+                                            <div class="range-wrapper">
+                                                <input type="range" name="light.animation.speed" value="{{light.animation.speed}}" min="1" max="10" step="1" oninput="this.nextElementSibling.value = this.value">
+                                                <output class="value-display">{{light.animation.speed}}</output>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{!-- Animation Intensity --}}
+                                    <div class="form-group">
                                         <label>{{localize "VISAGE.Editor.Light.Intensity"}}</label>
-                                        <input type="number" name="lightAnimationIntensity" value="{{inspector.animation.intensity}}" min="0" max="10" step="1">
+                                        <div class="visage-form-fields">
+                                            <div class="range-wrapper">
+                                                <input type="range" name="light.animation.intensity" value="{{light.animation.intensity}}" min="1" max="10" step="1" oninput="this.nextElementSibling.value = this.value">
+                                                <output class="value-display">{{light.animation.intensity}}</output>
+                                            </div>
+                                        </div>
                                     </div>
                                 {{/if}}
 
@@ -662,7 +726,7 @@
 
                                 {{!-- AUDIO SPECIFIC CONTROLS --}}
                                 {{#if (eq inspector.type 'audio')}}
-                                    <div class="form-group checkbox-input-group">
+                                    <div class="form-group checkbox-input-group" style="grid-template-columns: 1fr max-content max-content;">
                                         <label>{{localize "VISAGE.Editor.Effects.Volume"}}</label>
                                         <div class="visage-form-fields">
                                             <range-picker name="effectVolume" value="{{inspector.opacity}}" min="0" max="1" step="0.1"></range-picker>

@@ -167,9 +167,13 @@ export class VisageData {
         // Retrieve the cached original state if one exists (Visage active), otherwise snapshot now.
         let sourceData = tokenDoc.flags?.[this.MODULE_ID]?.originalState;
         if (!sourceData) {
-            sourceData = VisageUtilities.extractVisualState(tokenDoc);
+            // If linked, use prototype token to bypass temporary canvas effects
+            if (tokenDoc.isLinked && tokenDoc.actor) {
+                sourceData = tokenDoc.actor.prototypeToken.toObject();
+            } else {
+                sourceData = VisageUtilities.extractVisualState(tokenDoc);
+            }
         }
-
         const src = sourceData.texture?.src || tokenDoc.texture.src;
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1.0; 
@@ -308,11 +312,21 @@ export class VisageData {
             // A. Light (Top)
             if (hasLight) {
                 const l = c.light;
+                // V3.2: Resolve Animation Label
+                let animLabel = "";
+                if (l.animation && l.animation.type) {
+                    // Try to localize "VISAGE.LightAnim.Type", fallback to raw type if missing
+                    const key = `VISAGE.LightAnim.${l.animation.type.charAt(0).toUpperCase() + l.animation.type.slice(1)}`;
+                    const label = game.i18n.has(key) ? game.i18n.localize(key) : l.animation.type;
+                    // Strip the asterisk (*) if present for cleaner UI
+                    animLabel = ` • ${label.replace(" (*)", "")}`;
+                }
+
                 content += `
                 <div class='visage-tooltip-row header'>
                     <i class='visage-icon light'></i> 
                     <span class='label'>${game.i18n.localize("VISAGE.Editor.Light.Title")}</span>
-                    <span class='meta'>${l.dim} / ${l.bright}</span>
+                    <span class='meta'>${l.dim} / ${l.bright}${animLabel}</span>
                 </div>`;
             }
 

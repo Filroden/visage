@@ -1,6 +1,34 @@
 <div class="visage-preview-content {{wrapperClass}} {{#if hasInvisibility}}invisible{{/if}}">
-    
-    {{!-- 1. BACKGROUND EFFECTS --}}
+        
+    {{!-- 1. LIGHT SOURCE --}}
+    {{#if hasLight}}
+    <div class="visage-light-overlay {{#if lightAnimType}}anim-active anim-{{lightAnimType}}{{/if}}"
+         style="
+            width: {{lightSizePct}}%; 
+            height: {{lightSizePct}}%; 
+            --visage-light-color: {{lightColor}};
+            --visage-intensity: {{lightAnimIntensity}};
+            --visage-angle: {{lightAngle}}deg;
+            background: radial-gradient(circle closest-side, {{lightColor}} 0%, {{lightColor}} {{lightBrightPct}}%, transparent 100%);
+            -webkit-mask: conic-gradient(from calc(180deg + {{lightRotation}}deg) at 50% 50%, 
+                transparent calc(180deg - var(--visage-angle)/2), 
+                black calc(180deg - var(--visage-angle)/2), 
+                black calc(180deg + var(--visage-angle)/2), 
+                transparent calc(180deg + var(--visage-angle)/2)
+            );
+            mask: conic-gradient(from calc(180deg + {{lightRotation}}deg) at 50% 50%, 
+                transparent calc(180deg - var(--visage-angle)/2), 
+                black calc(180deg - var(--visage-angle)/2), 
+                black calc(180deg + var(--visage-angle)/2), 
+                transparent calc(180deg + var(--visage-angle)/2)
+            );
+            animation-duration: {{lightAnimDuration}};
+            opacity: {{lightAlpha}};
+         ">
+    </div>
+    {{/if}}
+
+    {{!-- 2. BACKGROUND EFFECTS --}}
     {{#each effectsBelow}}
         {{#if this.resolvedPath}}
             {{#if this.isVideo}}
@@ -11,7 +39,7 @@
         {{/if}}
     {{/each}}
 
-    {{!-- 2. DYNAMIC RING (Background) --}}
+    {{!-- 3. DYNAMIC RING (Background) --}}
     {{#if hasRing}}
     <div class="visage-ring-preview {{#if hasPulse}}pulse{{/if}} {{#if hasGradient}}gradient{{/if}} {{#if hasWave}}wave{{/if}}"
          style="--ring-color: {{ringColor}}; --ring-bkg: {{ringBkg}};">
@@ -20,14 +48,7 @@
     </div>
     {{/if}}
 
-    {{!-- NEW: LIGHT SOURCE PREVIEW --}}
-    {{#if hasLight}}
-    <div class="visage-light-overlay"
-         style="--light-color: {{lightColor}}; --light-dim: {{lightDim}}; --light-bright: {{lightBright}};">
-    </div>
-    {{/if}}
-
-    {{!-- 3. MAIN TOKEN IMAGE --}}
+    {{!-- 4. MAIN TOKEN IMAGE --}}
     <div class="visage-token-layer" style="opacity: {{alpha}};">
         
         {{#if resolvedPath}}
@@ -44,7 +65,7 @@
         <div class="visage-icon-domino fallback-icon" style="{{#if resolvedPath}}display:none;{{/if}}"></div>
     </div>
 
-    {{!-- 4. FOREGROUND EFFECTS --}}
+    {{!-- 5. FOREGROUND EFFECTS --}}
     {{#each effectsAbove}}
         {{#if this.resolvedPath}}
             {{#if this.isVideo}}
