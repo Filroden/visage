@@ -5,10 +5,6 @@
  */
 
 export class VisageUtilities {
-    /**
-     * The module ID used for scoping settings and flags.
-     * @type {string}
-     */
     static MODULE_ID = "visage";
 
     /**
@@ -24,9 +20,21 @@ export class VisageUtilities {
     }
 
     /**
+     * Determines the correct FilePicker source based on the hosting environment.
+     * Detects The Forge ("forgevtt") vs Standard ("data").
+     * @returns {string} "forgevtt", "data", etc.
+     */
+    static getDataSource() {
+        if (typeof ForgeVTT !== "undefined" && ForgeVTT?.usingTheForge) {
+            return "forgevtt";
+        }
+        return "data";
+    }
+
+    /**
      * Resolves wildcard paths or S3 bucket URLs into a concrete file path.
      * Filters the directory contents to ensure only files matching the wildcard pattern are selected.
-     * * Handles both local storage ("data") and S3 buckets ("s3\").
+     * * Handles local storage ("data"), The Forge ("forgevtt"), and S3 buckets ("s3").
      * * Decodes URL components to handle spaces and special characters.
      * @param {string} path - The image path (e.g., "tokens/guards/bear-*.png").
      * @returns {Promise<string|null>} The resolved single file path, or null if resolution fails.
@@ -38,7 +46,6 @@ export class VisageUtilities {
         if (!path.includes('*') && !path.includes('?')) return path;
 
         // Decode URL components (e.g. %20 -> space) before processing
-        // This ensures 'tokens/my%20images/*.png' becomes 'tokens/my images/*.png' for the browser file picker
         try {
             path = decodeURIComponent(path);
         } catch (e) {
@@ -47,7 +54,7 @@ export class VisageUtilities {
 
         try {
             const browseOptions = {};
-            let source = "data";
+            let source = this.getDataSource(); // Default to 'data' or 'forgevtt'
             let directory = "";
             let pattern = "";
 
@@ -64,17 +71,27 @@ export class VisageUtilities {
                 directory = lastSlash >= 0 ? keyPrefix.slice(0, lastSlash + 1) : "";
                 pattern   = lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
             }
+            // Handle Core Icons (Public)
+            else if (path.startsWith("icons/") || path.startsWith("systems/") || path.startsWith("modules/")) {
+                 // Systems and Modules are usually accessible via 'public' or just 'data',
+                 // but 'icons/' is strictly 'public'.
+                 if (path.startsWith("icons/")) source = "public";
+                 // Fallback for modules/systems is usually fine with default source, 
+                 // but we keep the logic consistent.
+                 const lastSlash = path.lastIndexOf('/');
+                 directory = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : "";
+                 pattern   = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
+            }
+            // Standard / Forge Data
             else {
-                // Non-S3 paths (Data/Public)
-                if (path.startsWith("icons/")) source = "public";
-
+                // If on Forge, we use 'forgevtt'. If Local, we use 'data'.
+                // The directory parsing is the same for both.
                 const lastSlash = path.lastIndexOf('/');
                 directory = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : "";
                 pattern   = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
             }
 
             // Convert wildcard pattern to a strict RegExp
-            // We escape standard regex chars (like . or +) but convert * to .* and ? to .
             const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
             const regex = new RegExp(`^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
 
@@ -98,7 +115,6 @@ export class VisageUtilities {
                 const choice = matches[Math.floor(Math.random() * matches.length)];
                 return choice;
             } else {
-                // Warn specifically if the pattern was valid but no files matched it
                 console.warn(`Visage | Wildcard Resolution Failed: No files matched pattern '${pattern}' in directory '${directory}' (Source: ${source})`);
             }
         }
@@ -121,8 +137,6 @@ export class VisageUtilities {
         if (!data) return {};
         
         // Helper: Prefer raw source data (if Document) to avoid temporary flags/mods.
-        // For example, Foundry modifies `document.alpha` automatically when hidden; 
-        // we want the true user setting from `_source` to avoid capturing temporary states.
         const source = data._source || data;
         
         // Fallback helper for nested properties which might not be in _source if they haven't been updated yet
@@ -131,21 +145,18 @@ export class VisageUtilities {
         // Safely extract Ring data (Foundry V12+ Dynamic Token Rings)
         const ringData = source.ring?.toObject?.() ?? source.ring ?? {};
         
-        // NEW: Capture Light Source (V3.2)
+        // Capture Light Source
         const lightData = source.light?.toObject?.() ?? source.light ?? {};
 
-        // NEW: Capture Portrait (Actor Image) (V3.2)
-        // Check multiple locations for the actor reference
+        // Capture Portrait (Actor Image)
         let portrait = null;
         if (data.actor) portrait = data.actor.img;
         else if (data.document?.actor) portrait = data.document.actor.img;
         else if (source.actorId && canvas.tokens?.placeables) {
-            // Attempt fallback lookup (use cautiously)
             const actor = game.actors?.get(source.actorId);
             if (actor) portrait = actor.img;
         }
 
-        // Standardize texture properties
         const textureSrc = get("texture.src");
         const scaleX = get("texture.scaleX") ?? 1.0;
         const scaleY = get("texture.scaleY") ?? 1.0;
@@ -166,8 +177,6 @@ export class VisageUtilities {
                 scaleY: scaleY
             },
             ring: ringData,
-            
-            // New Data Properties (V3.2)
             light: lightData,
             portrait: portrait,
             delay: 0
@@ -176,11 +185,6 @@ export class VisageUtilities {
 
     /**
      * Helper to resolve the Target Actor and Token from a set of IDs.
-     * Supports resolving from Canvas (Linked), Scene (Unlinked/Synthetic), or Actor directory.
-     * * Priority order:
-     * 1. Specific Token on Canvas (active scene)
-     * 2. Specific Token on a Scene (inactive scene)
-     * 3. Actor Document (Sidebar)
      * @param {Object} ids - { actorId, tokenId, sceneId }
      * @returns {Object} { actor, token } - The resolved documents (or null).
      */
@@ -206,7 +210,6 @@ export class VisageUtilities {
 
     /**
      * Applies standard Visage theme classes and RTL settings to an application element.
-     * Used by all UI windows (Editor, Gallery, HUD) to ensure consistent styling.
      * @param {HTMLElement} element - The application's root element.
      * @param {boolean} isLocal - Whether to apply the 'Local' (Gold) or 'Global' (Blue) theme.
      */
@@ -219,7 +222,6 @@ export class VisageUtilities {
         }
 
         // 2. Theme Classes
-        // Ensure we don't have conflicting classes before adding the new one
         element.classList.remove("visage-theme-local", "visage-theme-global");
         
         if (isLocal) {
@@ -231,7 +233,6 @@ export class VisageUtilities {
 
     /**
      * Helper property to check availability of the Sequencer module.
-     * Sequencer is required for advanced visual effects (holograms, glitches, etc).
      * @returns {boolean} True if Sequencer is active.
      */
     static get hasSequencer() { return game.modules.get("sequencer")?.active; }
