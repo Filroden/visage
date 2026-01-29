@@ -44,6 +44,9 @@ async function getRevertData(token) {
         
         // Restore Ring Data (V12+)
         if (original.ring) updates["ring"] = original.ring;
+        
+        // NEW: Restore Light Source (V3.2)
+        if (original.light) updates["light"] = original.light;
 
         // Restore other properties
         if (original.name) updates["name"] = original.name;

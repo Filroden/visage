@@ -120,7 +120,8 @@ Hooks.once("init", () => {
             "modules/visage/templates/visage-gallery.hbs",
             "modules/visage/templates/parts/visage-preview.hbs",
             "modules/visage/templates/parts/visage-card.hbs",
-            "modules/visage/templates/parts/visage-effectCard.hbs"
+            "modules/visage/templates/parts/visage-effectCard.hbs",
+            "modules/visage/templates/parts/visage-tile.hbs"
         ]);
 
         registerSettings();

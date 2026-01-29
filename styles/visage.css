@@ -12,7 +12,8 @@
  * 7. Application: Visage Gallery
  * 8. Popout Menu
  * 9. Scene Control Integration
- * 10. Theme Definitions (The Engine)
+ * 10. Welcome Chat Card
+ * 11. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
@@ -133,6 +134,12 @@ li.context-item .visage-icon-domino {
 
 .visage-tooltip-row .meta {
     opacity: 0.7;
+}
+
+/* --- Labels --- */
+
+.visage label {
+    line-height: normal;
 }
 
 /* --- Inputs and Selects --- */
@@ -435,7 +442,8 @@ li.context-item .visage-icon-domino {
 .visage .visage-wildcard-indicator,
 .visage .visage-flip-indicator,
 .visage .visage-lock-indicator,
-.visage .visage-effects-indicator {
+.visage .visage-effects-indicator,
+.visage .visage-portrait-indicator {
     position: absolute;
     width: var(--filroden-font-size-l);
     height: var(--filroden-font-size-l);
@@ -452,7 +460,8 @@ li.context-item .visage-icon-domino {
 .visage .visage-wildcard-indicator img,
 .visage .visage-flip-indicator img,
 .visage .visage-lock-indicator img,
-.visage .visage-effects-indicator img {
+.visage .visage-effects-indicator img,
+.visage .visage-portrait-indicator img {
     width: var(--filroden-space-m);
     height: var(--filroden-space-m);
     font-size: var(--filroden-font-size-xs);
@@ -462,7 +471,8 @@ li.context-item .visage-icon-domino {
 .visage .visage-chip img,
 .visage .visage-default-indicator img,
 .visage .visage-effects-indicator img,
-.visage .visage-lock-indicator img {
+.visage .visage-lock-indicator img,
+.visage .visage-portrait-indicator img {
     filter: invert(100%);
 }
 
@@ -483,6 +493,28 @@ li.context-item .visage-icon-domino {
     background-color: var(--visage-color-accent); 
 }
 
+.visage .visage-portrait-indicator {
+    top: 25%;
+    inset-inline-start: -8px;
+    transform: translateY(-50%);
+    background-color: #ffcc80;
+}
+
+.visage .visage-effects-indicator {
+    top: 50%; /* Moved from 33% */
+    inset-inline-start: -8px;
+    transform: translateY(-50%);    
+    background-color: #90f8ff; 
+}
+
+
+.visage .visage-lock-indicator {
+    top: 75%;
+    inset-inline-start: -8px; 
+    transform: translateY(-50%);
+    background-color: var(--filroden-color-text-muted-solid);
+}
+
 .visage .visage-wildcard-indicator {
     bottom: -8px;
     inset-inline-start: -8px;
@@ -497,21 +529,6 @@ li.context-item .visage-icon-domino {
 
 .visage .visage-flip-indicator img {
     transform: scaleX(var(--filroden-dir-flip));
-}
-
-.visage .visage-effects-indicator {
-    top: 33%;
-    inset-inline-start: -8px;
-    transform: translateY(-50%);    
-    background-color: #90f8ff; 
-
-}
-
-.visage .visage-lock-indicator {
-    top: 66%;
-    inset-inline-start: -8px; 
-    transform: translateY(-50%);
-    background-color: var(--filroden-color-text-muted-solid);
 }
 
 /* --- Data Chips --- */
@@ -2186,19 +2203,15 @@ li.context-item .visage-icon-domino {
 
 .visage-light-overlay {
     position: absolute;
-    inset: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); 
     pointer-events: none;
-    z-index: 5;
-    
-    /* Simulate light with radial gradient */
-    background: radial-gradient(
-        circle, 
-        var(--light-color) 0%, 
-        transparent 70%
-    );
+    z-index: 0;
     opacity: 0.6;
-    mix-blend-mode: screen; /* Lighten the underlying token */
+    mix-blend-mode: screen; 
     filter: blur(10px);
+    border-radius: 50%;
 }
 
 /* Align the static icon exactly where the drag handle was */
@@ -2215,8 +2228,8 @@ li.context-item .visage-icon-domino {
 /* The Color Indicator */
 .visage-color-dot {
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.3);
     margin-left: 6px;
@@ -2227,7 +2240,72 @@ li.context-item .visage-icon-domino {
 /* Ensure the meta text aligns nicely with the dot */
 .visage .effect-card.pinned-light .effect-meta {
     display: flex;
+    align-items: baseline;
+}
+
+.visage .effects-tab-container .visage-fieldset .range-wrapper {
+    display: flex;
     align-items: center;
+    gap: 5px;
+    flex: 1;
+}
+
+/* --- Light Animation Keyframes --- */
+
+.visage-light-overlay.anim-active {
+    animation-iteration-count: infinite;
+    animation-fill-mode: forwards;
+    --visage-intensity: 0.5;
+}
+
+/* 1. PULSE (Breathing) 
+   Intensity controls the depth of the scale dip.
+   Min scale = 1.0 - (0.2 * Intensity). Max dip is to 0.8.
+*/
+@keyframes visage-pulse {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { 
+        transform: translate(-50%, -50%) scale(calc(1 - (0.2 * var(--visage-intensity)))); 
+        opacity: calc(0.6 - (0.3 * var(--visage-intensity))); 
+    } 
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+}
+.visage-light-overlay.anim-pulse {
+    animation-name: visage-pulse;
+    animation-timing-function: ease-in-out;
+}
+
+/* 2. TORCH (Flicker) 
+   Intensity controls the variance in opacity.
+*/
+@keyframes visage-torch {
+    0%   { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+    10%  { opacity: calc(0.6 - (0.1 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(0.99); }
+    20%  { opacity: calc(0.6 + (0.1 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(1.01); }
+    30%  { opacity: calc(0.6 - (0.2 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(0.98); }
+    40%  { opacity: calc(0.6 + (0.15 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(1.02); }
+    50%  { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+    60%  { opacity: calc(0.6 - (0.1 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(0.99); }
+    70%  { opacity: calc(0.6 + (0.1 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(1.01); }
+    80%  { opacity: calc(0.6 - (0.2 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(0.98); }
+    90%  { opacity: calc(0.6 + (0.1 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(1.01); }
+    100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+}
+.visage-light-overlay.anim-torch {
+    animation-name: visage-torch;
+    animation-timing-function: steps(3, end);
+}
+
+/* 3. CHROMA (Hue Rotate) 
+   Speed controls rotation speed. Intensity is unused.
+*/
+@keyframes visage-chroma {
+    0% { filter: blur(10px) hue-rotate(0deg); }
+    100% { filter: blur(10px) hue-rotate(360deg); }
+}
+.visage-light-overlay.anim-chroma {
+    animation-name: visage-chroma;
+    animation-timing-function: linear;
 }
 
 
@@ -3071,7 +3149,100 @@ button.visage-tool-icon {
 
 
 /* ==========================================================================
-   10. THEME DEFINITIONS (The Engine)
+   10. WELCOME CHAT CARD
+   ========================================================================== */
+
+.chat-message:has(.visage-chat-card) {
+    background: var(--filroden-color-bg-medium-solid) !important;
+    border: 1px solid var(--filroden-color-text-accent) !important;
+}
+
+.chat-message:has(.visage-chat-card) .message-header {
+    color: var(--filroden-color-text-placeholder);
+}
+
+.chat-message:has(.visage-chat-card) .message-content {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.visage.visage-chat-card {
+    border: 1px solid var(--filroden-color-border);
+    border-radius: var(--filroden-radius-medium);
+    background: var(--filroden-color-bg-darkest);
+    box-shadow: var(--filroden-shadow-card);
+    overflow: hidden;
+    margin: 5px 0;
+}
+
+.visage-chat-card .chat-header {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    padding: var(--filroden-space-m);
+}
+
+.visage-chat-card .chat-header .visage-title {
+    color: var(--filroden-color-text-accent);
+    font-size: var(--filroden-font-size-s);
+}
+
+.visage-chat-card .chat-header i {
+    color: var(--filroden-color-text-accent);
+}
+
+.visage-chat-card .chat-content {
+    padding: var(--filroden-space-m);
+    padding-top: 0;
+    font-size: var(--filroden-font-size-s);
+}
+
+.visage-chat-card .chat-content p {
+    color: var(--filroden-color-text-accent);
+}
+
+.visage-chat-card .visage-divider {
+    background-color: var(--filroden-color-text-accent);
+}
+
+.visage-chat-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--filroden-space-xs);
+    margin-top: var(--filroden-space-m);
+}
+
+.visage-chat-links a {
+    background: var(--filroden-color-bg-light-solid);
+    padding: var(--filroden-space-xs);
+    border-radius: var(--filroden-radius-small);
+    text-align: center;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    font-size: var(--filroden-font-size-xs);
+    color: var(--filroden-color-text-main-solid);
+    text-decoration: none;
+}
+
+.visage-chat-links a:hover {
+    border-color: var(--filroden-color-text-accent);
+    background: var(--filroden-color-bg-hover-solid);
+    text-decoration: none;
+    text-shadow: none;
+}
+
+.visage-chat-card .chat-footer {
+    padding: var(--filroden-space-xxs) var(--filroden-space-s);
+    background: var(--filroden-color-bg-medium-solid);
+    font-size: var(--filroden-font-size-xxs);
+    color: var(--filroden-color-text-muted);
+    text-align: right;
+    opacity: 0.6;
+}
+
+
+/* ==========================================================================
+   11. THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
 /* --- 1. Universal Defaults --- */

@@ -59,6 +59,7 @@ export function handleGhostEdit(app, html, data) {
 
     // 4. Invisibly Swap Form Values
     // Flatten the original state object to map easily to form input names (e.g., "texture.src")
+    // NOTE: This includes light.* keys because extractVisualState (visage-utilities.js) now includes the light object.
     const flatData = foundry.utils.flattenObject(originalState);
 
     /**
