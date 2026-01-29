@@ -32,6 +32,22 @@ jobs:
       - name: Run pack command
         run: npm run pack
 
+      - name: Update Manifest Details
+        run: |
+          echo "Updating module.json details..."
+          
+          # 1. Get the version number without the 'v' (e.g. "3.2.0-beta1")
+          # This assumes your tag is like "v3.2.0-beta1"
+          TAG_VERSION=${{ github.ref_name }}
+          CLEAN_VERSION=${TAG_VERSION#v}
+          
+          # 2. Update the Download Link (as discussed)
+          sed -i -E "s|releases/download/[^/]*/visage.zip|releases/download/${{ github.ref_name }}/visage.zip|g" dist/module.json
+          
+          # 3. Temporarily update the "version" field in the JSON so testers see the right number
+          # This replaces "version": "3.1.1" with "version": "3.2.0-beta1" inside the zip only
+          sed -i -E "s|\"version\": \"[^\"]*\"|\"version\": \"$CLEAN_VERSION\"|g" dist/module.json
+
       - name: Create zip of all dist files
         run: |
           cd dist
@@ -39,7 +55,6 @@ jobs:
 
       - name: Generate Changelog
         run: |
-          # Get the previous tag that starts with 'v', ignoring all other tags like 'latest'
           PREVIOUS_TAG=$(git tag --sort=-v:refname | grep "^v" | sed -n '2p')
           
           echo "## Release ${{ github.ref_name }}" > changelog.md
@@ -53,13 +68,10 @@ jobs:
           echo "## Changelog" >> changelog.md
 
           if [ -z "$PREVIOUS_TAG" ]; then
-            # If no previous v-tag is found, log only the current commit's message
             echo "No previous v* tag found. Creating changelog from the current commit." >> changelog.md
             git log -n 1 --pretty=format:"* %s (%h)" >> changelog.md
           else
-            # Otherwise, log commits between the previous v-tag and the current tag
             echo "Changes since $PREVIOUS_TAG" >> changelog.md
-            # Check if there are any commits in the range
             if git rev-list $PREVIOUS_TAG..${{ github.ref_name }} | grep -q '.'; then
               git log --pretty=format:"* %s (%h)" $PREVIOUS_TAG..${{ github.ref_name }} | { grep -E -i '^\* (feat|fix):' || true; } >> changelog.md
             else
@@ -76,8 +88,10 @@ jobs:
           name: ${{ github.ref_name }}
           body_path: "changelog.md"
           draft: false
-          prerelease: false
-          generate_release_notes: false # We use our own changelog
+          # --- UPDATED: Dynamic Prerelease Flag ---
+          # If the tag contains a hyphen (e.g. v3.1.0-beta1), mark as prerelease.
+          prerelease: ${{ contains(github.ref, '-') }}
+          generate_release_notes: false
           files: |
             ${{ env.MODULE_ZIP_NAME }}
             dist/module.json
