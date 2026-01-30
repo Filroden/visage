@@ -20,18 +20,32 @@ export class VisageUtilities {
     }
 
     /**
-     * Removes query strings (cache busters) from a file path.
-     * Essential for Tokenizer integration where paths like 'img.webp?123' break extension detection.
+     * Removes query strings (cache busters) from a file path safely.
+     * * **Strategy:**
+     * 1. Find the last period (.) denoting the file extension.
+     * 2. If a '?' appears *after* that period, it is a cache buster -> Strip it.
+     * 3. If a '?' appears *before* that period (or no period exists), it is a wildcard -> Keep it.
      * @param {string} path - The raw file path.
-     * @returns {string} The clean path (e.g., 'img.webp').
+     * @returns {string} The clean path.
      */
     static cleanPath(path) {
         if (!path || typeof path !== "string") return "";
-        try {
-            return path.split("?")[0];
-        } catch (e) {
-            return path;
+        
+        const lastDot = path.lastIndexOf(".");
+        
+        // If no extension is found, fallback to standard splitting (unlikely for valid assets)
+        if (lastDot === -1) return path.split("?")[0];
+
+        // Search for a '?' only occurring AFTER the extension dot
+        const queryIndex = path.indexOf("?", lastDot);
+        
+        if (queryIndex !== -1) {
+            // Found a cache buster after the extension
+            return path.substring(0, queryIndex);
         }
+        
+        // No cache buster found (any '?' present must be before the dot, i.e., a wildcard)
+        return path;
     }
 
     /**
