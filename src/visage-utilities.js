@@ -120,6 +120,25 @@ export class VisageUtilities {
                 pattern   = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
             }
 
+            // Forge initialisation
+            if (typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge) {
+                browseOptions.cookieKey = true;
+
+                // Ensure API is ready
+                if (!window.ForgeAPI?.lastStatus) {
+                    try {
+                        await window.ForgeAPI.status();
+                    } catch (err) {
+                        console.warn("Visage | ForgeAPI.status() failed", err);
+                    }
+                }
+
+                // If source is generic "data", switch to "forgevtt" to enable Bazaar/Assets
+                if (source === "data" && FilePickerClass.sources?.forgevtt) {
+                    source = "forgevtt";
+                }
+            }
+
             // Convert wildcard pattern to a strict RegExp
             const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
             const regex = new RegExp(`^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
