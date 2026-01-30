@@ -1153,22 +1153,43 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * Triggers the Foundry FilePicker for a specific input field.
      * @private
      */
-    _onOpenFilePicker(event, target) {
+    async _onOpenFilePicker(event, target) {
         const input = target.previousElementSibling?.tagName === "BUTTON" 
             ? target.parentElement.querySelector("input") 
             : target.previousElementSibling;
 
+        let source = "data";
+        const browseOptions = {};
+
+        if (typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge) {
+            browseOptions.cookieKey = true;
+
+            if (!window.ForgeAPI?.lastStatus) {
+                try {
+                    await window.ForgeAPI.status();
+                } catch (err) {
+                    console.warn("Visage | ForgeAPI.status() failed", err);
+                }
+            }
+
+            if (foundry.applications.apps.FilePicker.sources?.forgevtt) {
+                source = "forgevtt";
+            }
+        }
+
         const fp = new foundry.applications.apps.FilePicker({
             type: "imagevideo",
             current: input.value,
-            source: "data",
+            source,
+            browseOptions,
             callback: (path) => {
                 input.value = path;
                 this._markDirty();
-                input.dispatchEvent(new Event('change', { bubbles: true }));
+                input.dispatchEvent(new Event("change", { bubbles: true }));
             }
         });
-        fp.browse();
+
+        fp.render(true);
     }
 
     /**
