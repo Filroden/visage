@@ -1161,14 +1161,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const input = target.previousElementSibling?.tagName === "BUTTON" 
             ? target.parentElement.querySelector("input") 
             : target.previousElementSibling;
-            
-        // Use the utility to determine if we are on Forge or Local
-        const activeSource = VisageUtilities.getDataSource();
 
         const fp = new foundry.applications.apps.FilePicker({
             type: "imagevideo",
             current: input.value,
-            source: activeSource,
+            source: "data",
             callback: (path) => {
                 input.value = path;
                 this._markDirty();

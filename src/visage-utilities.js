@@ -20,21 +20,9 @@ export class VisageUtilities {
     }
 
     /**
-     * Determines the correct FilePicker source based on the hosting environment.
-     * Detects The Forge ("forgevtt") vs Standard ("data").
-     * @returns {string} "forgevtt", "data", etc.
-     */
-    static getDataSource() {
-        if (typeof ForgeVTT !== "undefined" && ForgeVTT?.usingTheForge) {
-            return "forgevtt";
-        }
-        return "data";
-    }
-
-    /**
      * Resolves wildcard paths or S3 bucket URLs into a concrete file path.
      * Filters the directory contents to ensure only files matching the wildcard pattern are selected.
-     * * Handles local storage ("data"), The Forge ("forgevtt"), and S3 buckets ("s3").
+     * * Handles local storage ("data") and S3 buckets ("s3").
      * * Decodes URL components to handle spaces and special characters.
      * @param {string} path - The image path (e.g., "tokens/guards/bear-*.png").
      * @returns {Promise<string|null>} The resolved single file path, or null if resolution fails.
@@ -54,7 +42,7 @@ export class VisageUtilities {
 
         try {
             const browseOptions = {};
-            let source = this.getDataSource(); // Default to 'data' or 'forgevtt'
+            let source = "data";
             let directory = "";
             let pattern = "";
 
@@ -82,10 +70,7 @@ export class VisageUtilities {
                  directory = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : "";
                  pattern   = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
             }
-            // Standard / Forge Data
             else {
-                // If on Forge, we use 'forgevtt'. If Local, we use 'data'.
-                // The directory parsing is the same for both.
                 const lastSlash = path.lastIndexOf('/');
                 directory = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : "";
                 pattern   = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
@@ -97,6 +82,7 @@ export class VisageUtilities {
 
             // Perform the browse call to get file list
             const content = await FilePickerClass.browse(source, directory, browseOptions);
+            if (!content?.files?.length) return null;
 
             // Filter files returned by the server against our wildcard pattern
             const matches = content.files.filter(file => {
