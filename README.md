@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-3.1.1-blue)
+![Latest Version](https://img.shields.io/badge/Version-3.2.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -33,11 +33,12 @@
 
 1. **Identities vs. Overlays:** Gone are the restrictions of the past. Every entry in Visage, whether it's stored locally on an Actor or globally in the World, can now be defined as one of two Modes:
 
-   * **Visage Identity (Who you are):** Replaces the token's base image. Use this for shapeshifting, disguises, or character portraits. Only one **Identity** can be active at a time.
+   * **Visage Identity (Who you are):** Replaces the token's base image and/or the actor's portrait. Use this for shapeshifting, disguises, or character portraits. Only one **Identity** can be active at a time.
    * **Visage Overlay (What is happening to you):** Adds a layer *on top* of the token without removing the base image. Use this for conditions (Burning, Frozen), spell effects (Spirit Guardians), or environmental markers. You can stack unlimited **Overlays**.
 
 2. **The Effects Engine (Sequencer Integration):** Visage now integrates with the **Sequencer** module.
 
+   * **Light Source:** Configure the standard Foundry Light Source for the token.
    * **Visual Effects:** Attach animated spell effects (like JB2A), particle systems, or looping videos to any Identity or Overlay. These effects automatically play when the Visage is applied and stop when removed.
    * **Audio Effects:** Attach sound files to an entry (like PSFX). Create a "Rage" overlay that plays a roar when applied, or a "Stealth" identity that emits a soft looping hum.
    * **Smart Stacking:** Visual effects can be layered above or below the token, with full control over scale, opacity, rotation, and blend modes.
@@ -118,7 +119,8 @@ An editor that lets you build and **preview** your token's appearance before sav
 
 Key Features:
 
-* **Visual and Audio Effects**: Add and configure visual or audio effects to Identities and Overlays, using direct filepaths or Sequencer Database Keys. Effects can be place below or above the token.
+* **Light Source (new in v3.2):** Configure the standard Foundry Light Source for the token. This is added to the Effects tab, but is treated as part of the Visage's appearance. Toggle it on and click it to edit its properties.
+* **Visual and Audio Effects**: Add and configure visual or audio effects to Identities and Overlays, using direct filepaths or Sequencer Database Keys. Effects can be place below or above the token. You can configure a delay between applying a Visage's appearance (image, scale, dynamic ring, light source, etc) and any visual and audio effects, and vice versa.
 * **Video Support:** Use `.webm` or `.mp4` files for animated transformations.
 * **Wildcard Support:** Point a Visage to a folder (e.g., `creatures/wolves/*`) or include wildcards (`*` or `?`) within the filename. Every time you apply it, a random image that matches is chosen.
 
@@ -165,7 +167,6 @@ Software and associated documentation files in this repository are covered by an
 
 ### Short term
 
-* **Light sources:** Allow the token's light source to be configured within Visages (identities and overlays).
 * **Improved APIs:** Improve ability to find and apply Visages
 * **Selector HUD and Gallery UI improvements:** Try to simplify the tiles in the Selector HUD so it is still easy to see what settings are applied but reduce the clutter of badges/chips around the border. Also add some differentiation between Identities and Overlays in both Selector HUD and Libraries.
 * **Re-order Overlay Stacks:** Allow the Overlay stack to be re-ordered in the Selector HUD.
@@ -175,4 +176,3 @@ Software and associated documentation files in this repository are covered by an
 ### Long term (no promises!)
 
 * **Triggers:** Automated application of Visages based on triggers (in combat/out of combat, etc). Likely to be limited to remain system agnostic, but improvements to the API should make other automations easier via macros.
-* **Visual FX Layers/token image builder:** Integration with PIXI filters for true visual effects (Bloom, Glitch, Opacity adjustments, etc.). The idea here is to create a power-user tool to create your own tokens by blending multiple images/videos through normal blend modes (screen, overlay, etc), or to add simple effects like colour tints.

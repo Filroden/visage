@@ -36,6 +36,7 @@ export default [
         // Hosting & Module Globals
         ForgeVTT: "readonly",
         Sequencer: "readonly",
+        Sequence: "readonly",
         Trowel: "readonly"
       }
     },
