@@ -1177,10 +1177,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        const fp = new foundry.applications.apps.FilePicker({
+        const fp = new foundry.applications.apps.FilePicker.implementation({
             type: "imagevideo",
             current: input.value,
-            source,
+            activeSource: source,
             browseOptions,
             callback: (path) => {
                 input.value = path;

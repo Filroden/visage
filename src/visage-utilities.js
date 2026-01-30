@@ -133,10 +133,7 @@ export class VisageUtilities {
                     }
                 }
 
-                // If source is generic "data", switch to "forgevtt" to enable Bazaar/Assets
-                if (source === "data" && FilePickerClass.sources?.forgevtt) {
-                    source = "forgevtt";
-                }
+                source = "forgevtt";
             }
 
             // Convert wildcard pattern to a strict RegExp
