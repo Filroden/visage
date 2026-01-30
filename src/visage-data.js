@@ -236,8 +236,13 @@ export class VisageData {
         const c = data.changes || {};
         const tx = c.texture || {};
         
-        const displayPath = this.getRepresentativeImage(c);
-        const isVideo = options.isVideo ?? foundry.helpers.media.VideoHelper.hasVideoExtension(displayPath);
+        // 1. Resolve Main Texture
+        const rawPath = c.texture?.src || "";
+        const resolvedPath = options.resolvedPath || rawPath; 
+
+        // 2. Identify Media Type (Use clean path for check)
+        const cleanPath = VisageUtilities.cleanPath(resolvedPath);
+        const isVideo = options.isVideo ?? VisageUtilities.isVideo(cleanPath);
 
         // Normalize Scale Data
         const atomicScale = c.scale;
@@ -381,7 +386,8 @@ export class VisageData {
         let portraitTooltip = "";
         if (hasPortrait) {
             // Embed the image directly in the tooltip
-            portraitTooltip = `<img src='${c.portrait}' class='visage-tooltip-image' alt='Portrait' />`;
+            const cleanPortrait = VisageUtilities.cleanPath(c.portrait);
+            portraitTooltip = `<img src='${cleanPortrait}' class='visage-tooltip-image' alt='Portrait' />`;
         }
 
         return {
@@ -389,7 +395,8 @@ export class VisageData {
             isActive: options.isActive ?? false,
             isVideo: isVideo,
             isWildcard: isWildcard,
-            path: displayPath,
+            path: cleanPath,
+            resolvedPath: cleanPath,
             scale: finalScale,
             isFlippedX,
             isFlippedY,
@@ -397,7 +404,7 @@ export class VisageData {
             forceFlipY: isFlippedY,
             alpha: alpha,
             lockRotation: lockRotation,
-            mode: data.mode, 
+            mode: data.mode,
             
             meta: {
                 hasRing: ringCtx.enabled,

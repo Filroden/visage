@@ -148,7 +148,7 @@ export class VisageComposer {
             [`flags.${Visage.MODULE_ID}.originalState`]: base
         };
 
-        // NEW: Ensure light is passed correctly (if it exists)
+        // Ensure light is passed correctly (if it exists)
         // This is crucial because light is not part of the standard 'texture' object
         if (finalData.light) updateData.light = finalData.light;
 

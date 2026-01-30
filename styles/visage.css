@@ -2364,6 +2364,10 @@ li.context-item .visage-icon-domino {
     overflow-y: hidden;
 }
 
+.visage-browser .empty-directory {
+    padding: var(--filroden-space-m);
+}
+
 .visage-browser-grid {
     flex: 1;
     min-height: 0;
@@ -3040,14 +3044,14 @@ li.context-item .visage-icon-domino {
    8. POPOUT MENU (Kebab Actions)
    ========================================================================== */
 
-.visage-menu-wrapper {
+.visage .visage-menu-wrapper {
     position: relative;
     display: flex;
     justify-content: center;
     width: 100%;
 }
 
-.visage-popover-menu {
+.visage .visage-popover-menu {
     position: absolute;
     top: 0;
     inset-inline-end: 3.5rem;
@@ -3071,13 +3075,13 @@ li.context-item .visage-icon-domino {
     transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-.visage-popover-menu.active {
+.visage .visage-popover-menu.active {
     opacity: 1;
     transform: translateX(0);
     pointer-events: all;
 }
 
-.visage-popover-menu button {
+.visage .visage-popover-menu button {
     width: 100%;
     height: auto;
     padding: var(--filroden-space-xs) var(--filroden-space-m);
@@ -3093,13 +3097,13 @@ li.context-item .visage-icon-domino {
     border-radius: var(--filroden-radius-small);
 }
 
-.visage-popover-menu button:hover {
+.visage .visage-popover-menu button:hover {
     background: var(--visage-color-accent);
     color: var(--visage-color-text-on-accent);
     box-shadow: none;
 }
 
-.visage-popover-menu hr {
+.visage .visage-popover-menu hr {
     width: 100%;
     height: 1px;
     background: var(--visage-color-border);
@@ -3107,7 +3111,7 @@ li.context-item .visage-icon-domino {
     margin: var(--filroden-space-xxs) 0;
 }
 
-.visage-popover-menu button.danger:hover {
+.visage .visage-popover-menu button.danger:hover {
     background: var(--filroden-color-danger);
     color: white;
 }
