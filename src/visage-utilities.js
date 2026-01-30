@@ -20,6 +20,33 @@ export class VisageUtilities {
     }
 
     /**
+     * Removes query strings (cache busters) from a file path.
+     * Essential for Tokenizer integration where paths like 'img.webp?123' break extension detection.
+     * @param {string} path - The raw file path.
+     * @returns {string} The clean path (e.g., 'img.webp').
+     */
+    static cleanPath(path) {
+        if (!path || typeof path !== "string") return "";
+        try {
+            return path.split("?")[0];
+        } catch (e) {
+            return path;
+        }
+    }
+
+    /**
+     * Determines if a given file path points to a video file based on extension.
+     * Handles cleaning query strings before checking to ensuring accurate detection.
+     * @param {string} path - The file path to check.
+     * @returns {boolean} True if the file is a video.
+     */
+    static isVideo(path) {
+        if (!path) return false;
+        const clean = this.cleanPath(path);
+        return foundry.helpers.media.VideoHelper.hasVideoExtension(clean);
+    }
+
+    /**
      * Resolves wildcard paths or S3 bucket URLs into a concrete file path.
      * Filters the directory contents to ensure only files matching the wildcard pattern are selected.
      * * Handles local storage ("data") and S3 buckets ("s3").
@@ -30,12 +57,19 @@ export class VisageUtilities {
     static async resolvePath(path) {
         if (!path) return path;
         
-        // Optimization: If no wildcard characters, return the path as is without filesystem lookup.
-        if (!path.includes('*') && !path.includes('?')) return path;
+        // 1. Clean the path to determine if it truly contains wildcards
+        // We ignore query strings (like Tokenizer's cache busters) for this check.
+        const clean = this.cleanPath(path);
 
-        // Decode URL components (e.g. %20 -> space) before processing
+        // Optimization: If the CLEAN path has no wildcards, return the ORIGINAL path.
+        // This preserves query strings (cache busters) for the token update, 
+        // while preventing them from breaking the file system lookup below.
+        if (!clean.includes('*') && !clean.includes('?')) return path;
+
+        // 2. Prepare the clean path for FileSystem browsing
+        let processingPath = clean;
         try {
-            path = decodeURIComponent(path);
+            processingPath = decodeURIComponent(processingPath);
         } catch (e) {
             // Ignore decode errors, rely on raw path if decoding fails
         }
@@ -49,9 +83,9 @@ export class VisageUtilities {
             const FilePickerClass = foundry.applications?.apps?.FilePicker;
 
             // Handle S3 Bucket parsing logic
-            if (/\.s3\./i.test(path)) {
+            if (/\.s3\./i.test(processingPath)) {
                 source = "s3";
-                const { bucket, keyPrefix } = FilePickerClass.parseS3URL(path);
+                const { bucket, keyPrefix } = FilePickerClass.parseS3URL(processingPath);
                 if (!bucket) return null; 
                 browseOptions.bucket = bucket;
 
@@ -60,20 +94,16 @@ export class VisageUtilities {
                 pattern   = lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
             }
             // Handle Core Icons (Public)
-            else if (path.startsWith("icons/") || path.startsWith("systems/") || path.startsWith("modules/")) {
-                 // Systems and Modules are usually accessible via 'public' or just 'data',
-                 // but 'icons/' is strictly 'public'.
-                 if (path.startsWith("icons/")) source = "public";
-                 // Fallback for modules/systems is usually fine with default source, 
-                 // but we keep the logic consistent.
-                 const lastSlash = path.lastIndexOf('/');
-                 directory = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : "";
-                 pattern   = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
+            else if (processingPath.startsWith("icons/") || processingPath.startsWith("systems/") || processingPath.startsWith("modules/")) {
+                 if (processingPath.startsWith("icons/")) source = "public";
+                 const lastSlash = processingPath.lastIndexOf('/');
+                 directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
+                 pattern   = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
             }
             else {
-                const lastSlash = path.lastIndexOf('/');
-                directory = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : "";
-                pattern   = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
+                const lastSlash = processingPath.lastIndexOf('/');
+                directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
+                pattern   = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
             }
 
             // Convert wildcard pattern to a strict RegExp

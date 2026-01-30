@@ -763,10 +763,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const subjectTexture = get("ringSubjectTexture");
         const mainImage = mockData.changes.texture?.src || "";
         const rawPath = (ringEnabled && subjectTexture) ? subjectTexture : mainImage;
-        
         const resolved = await VisageUtilities.resolvePath(rawPath);
-        const resolvedPath = resolved || rawPath;
-
         const context = VisageData.toPresentation(mockData, { isWildcard: rawPath.includes('*') });
         const meta = context.meta;
 
@@ -1044,8 +1041,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         let isVideo = false;
 
         if (resolvedPath) {
-            const ext = resolvedPath.split('.').pop().toLowerCase();
-            isVideo = ["webm", "mp4", "m4v"].includes(ext);
+            isVideo = VisageUtilities.isVideo(resolvedPath);
         }
 
         return {
@@ -1337,10 +1333,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onRender(context, options) {
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
+        // 1. Define Debounce for Sliders (50ms)
+        const debouncedSliderUpdate = foundry.utils.debounce(() => this._updatePreview(), 50);
+
+        // 2. Change Listener (Immediate updates for non-typing inputs)
         this.element.addEventListener("change", (event) => {
             this._markDirty();
             
-            // Trigger preview update immediately for Select/File picker/checkbox elements
             if (event.target.matches("select") || 
                 event.target.matches("input[type='text']") || 
                 event.target.matches("input[type='checkbox']")) {
@@ -1349,13 +1348,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         });
         
-        // Slider Listeners (Debounced Input + Double-Click Reset)
-        const debouncedSliderUpdate = foundry.utils.debounce(() => this._updatePreview(), 50);
-
+        // 3. Slider Listeners (Debounced Input + Double-Click Reset)
         const sliders = this.element.querySelectorAll('input[type="range"]');
         sliders.forEach(slider => {
             // Live Update listener
-            slider.addEventListener('input', () => debouncedSliderUpdate());
+            slider.addEventListener('input', () => {
+                this._markDirty();
+                debouncedSliderUpdate();
+            });
             
             // Reset listener
             slider.addEventListener('dblclick', (ev) => {
@@ -1369,7 +1369,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (name.includes('angle')) def = 360;
 
                 // --- Step 2: Specific Overrides ---
-                // These run last, so they safely overwrite any from above.
                 if (name.includes('Volume')) def = 1;
                 if (name.includes('Opacity')) def = 1;
                 if (name.includes('ringSubjectScale')) def = 1;
@@ -1380,15 +1379,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 const display = ev.target.nextElementSibling;
                 if (display && display.tagName === 'OUTPUT') display.value = def;
 
-                this._updatePreview();
+                this._markDirty();
+                this._updatePreview(); // Immediate update on reset
             });
         });
 
+        // 4. Generic Input Listeners
         this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
         this._bindDragDrop(this.element);
 
-        // Debounce text inputs to avoid rapid Preview re-renders
+        // 5. Text Input Debounce
         let debounceTimer;
         this.element.addEventListener("input", (event) => {
             this._markDirty();
@@ -1400,7 +1401,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         });
 
-        // Tab Navigation
+        // 6. Tab Navigation
         const tabs = this.element.querySelectorAll(".visage-tabs .item");
         tabs.forEach(t => {
             t.addEventListener("click", (e) => {
@@ -1416,6 +1417,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (container) container.classList.add('editing');
         }
         
+        // 7. Final Initialization
         this._updatePreview();
         this._bindStaticListeners();
         this._bindDynamicListeners();
