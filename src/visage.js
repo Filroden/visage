@@ -9,36 +9,12 @@ import { VisageSequencer } from "./visage-sequencer.js";
  * Acts as the central controller orchestrating Data, Composer, and Sequencer components.
  */
 export class Visage {
-    /**
-     * The module ID used for scoping settings and flags.
-     * @type {string}
-     */
     static MODULE_ID = "visage";
-
-    /**
-     * The namespace used for document flags.
-     * @type {string}
-     */
     static DATA_NAMESPACE = "visage";
-
-    /**
-     * Tracks whether the Sequencer module (dependency) is fully ready.
-     * @type {boolean}
-     */
+    
     static sequencerReady = false;
 
-    /**
-     * Logs a message to the console with the module prefix.
-     * @param {string} message - The message to log.
-     * @param {boolean} [force=false] - If true, logs even if debug mode is off.
-     */
     static log(message, force = false) { VisageUtilities.log(message, force); }
-
-    /**
-     * Resolves a file path, handling wildcards or relative paths via Utilities.
-     * @param {string} path - The file path to resolve.
-     * @returns {Promise<string>} The resolved path.
-     */
     static async resolvePath(path) { return VisageUtilities.resolvePath(path); }
 
     /**

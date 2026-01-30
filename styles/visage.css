@@ -3156,12 +3156,15 @@ button.visage-tool-icon {
    ========================================================================== */
 
 .chat-message:has(.visage-chat-card) {
-    background: var(--filroden-color-bg-medium-solid) !important;
     border: 1px solid var(--filroden-color-text-accent) !important;
 }
 
+.chat-message:has(.visage-chat-card)::before {
+    background: none !important;
+}
+
 .chat-message:has(.visage-chat-card) .message-header {
-    color: var(--filroden-color-text-placeholder);
+    color: var(--filroden-color-text-on-accent);
 }
 
 .chat-message:has(.visage-chat-card) .message-content {
@@ -3188,6 +3191,8 @@ button.visage-tool-icon {
 .visage-chat-card .chat-header .visage-title {
     color: var(--filroden-color-text-accent);
     font-size: var(--filroden-font-size-s);
+    padding: 0;
+    margin: 0;
 }
 
 .visage-chat-card .chat-header i {

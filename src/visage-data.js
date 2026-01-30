@@ -167,12 +167,7 @@ export class VisageData {
         // Retrieve the cached original state if one exists (Visage active), otherwise snapshot now.
         let sourceData = tokenDoc.flags?.[this.MODULE_ID]?.originalState;
         if (!sourceData) {
-            // If linked, use prototype token to bypass temporary canvas effects
-            if (tokenDoc.isLinked && tokenDoc.actor) {
-                sourceData = tokenDoc.actor.prototypeToken.toObject();
-            } else {
-                sourceData = VisageUtilities.extractVisualState(tokenDoc);
-            }
+            sourceData = VisageUtilities.extractVisualState(tokenDoc);
         }
         const src = sourceData.texture?.src || tokenDoc.texture.src;
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
@@ -185,12 +180,12 @@ export class VisageData {
             ? (sourceData.ring.toObject ? sourceData.ring.toObject() : sourceData.ring) 
             : {};
         
-        // NEW: Capture Light Configuration
+        // Capture Light Configuration
         const lightData = sourceData.light
             ? (sourceData.light.toObject ? sourceData.light.toObject() : sourceData.light)
             : (tokenDoc.light.toObject ? tokenDoc.light.toObject() : tokenDoc.light);
 
-        // NEW: Capture Portrait (Actor Image)
+        // Capture Portrait (Actor Image)
         const portrait = sourceData.portrait || tokenDoc.actor?.img || null;
 
         // Check for flipped state in scale

@@ -328,12 +328,33 @@ function registerSettings() {
 Hooks.once("ready", async () => {
     if (!game.user.isGM) return;
 
+    const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
+    const currentVersion = game.modules.get(Visage.MODULE_ID).version;
+        
+    // RECENT MESSAGE GUARD
+    // Look at the last 5 messages in the chat log
+    const recentMessages = game.messages.contents.slice(-5);
+    const alreadyPosted = recentMessages.some(m => 
+        m.content.includes("visage-chat-card") && m.content.includes("https://foundryvtt.com/packages/visage")
+    );
+
+    if (!alreadyPosted) {
+
+        const visageHtml = await renderTemplate("modules/visage/templates/parts/visage-chat-welcome.hbs", {
+            version: currentVersion
+        });
+
+        await ChatMessage.create({
+            user: game.user.id,
+            content: visageHtml,
+            whisper: [game.user.id],
+            speaker: { alias: "Visage" }
+        });
+    }
+
     try {
         // Clean up deleted items older than retention period
         VisageData.runGarbageCollection();
-
-        const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
-        const currentVersion = game.modules.get(Visage.MODULE_ID).version;
 
         // Check if a migration is required based on the version difference
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {
