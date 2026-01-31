@@ -135,6 +135,11 @@ export class VisageData {
             layer.changes.texture.src = resolved || layer.changes.texture.src;
         }
 
+        if (layer.changes?.portrait) {
+            const resolvedPortrait = await VisageUtilities.resolvePath(layer.changes.portrait);
+            if (resolvedPortrait) layer.changes.portrait = resolvedPortrait;
+        }
+
         // 4. Handle Ring Data Structure
         if (layer.changes?.ring) {
             if (layer.changes.ring.enabled === true) {
@@ -230,11 +235,11 @@ export class VisageData {
         const c = data.changes || {};
         const tx = c.texture || {};
         
-        // 1. Resolve Main Texture
+        // Resolve Main Texture
         const rawPath = c.texture?.src || "";
         const resolvedPath = options.resolvedPath || rawPath; 
 
-        // 2. Identify Media Type (Use clean path for check)
+        // Identify Media Type (Use clean path for check)
         const cleanPath = VisageUtilities.cleanPath(resolvedPath);
         const isVideo = options.isVideo ?? VisageUtilities.isVideo(cleanPath);
 
@@ -296,7 +301,7 @@ export class VisageData {
         const activeEffects = rawEffects.filter(e => !e.disabled);
         const hasEffects = activeEffects.length > 0;
         
-        // FIX: A light is only "Active" if it exists AND has a radius > 0.
+        // A light is only "Active" if it exists AND has a radius > 0.
         // This prevents default tokens (0/0) from showing the icon.
         const hasLight = c.light && (c.light.dim > 0 || c.light.bright > 0);
         const hasDelay = (c.delay !== undefined && c.delay !== 0);
@@ -377,12 +382,13 @@ export class VisageData {
 
         // 7. Portrait Badge
         const hasPortrait = !!(c.portrait);
-        let portraitTooltip = "";
-        if (hasPortrait) {
-            // Embed the image directly in the tooltip
-            const cleanPortrait = VisageUtilities.cleanPath(c.portrait);
-            portraitTooltip = `<img src='${cleanPortrait}' class='visage-tooltip-image' alt='Portrait' />`;
-        }
+    let portraitTooltip = "";
+    if (hasPortrait) {
+        // Use the resolved path passed in options, or fallback to the raw path
+        const displayPortrait = options.resolvedPortrait || c.portrait;
+        const cleanPortrait = VisageUtilities.cleanPath(displayPortrait);
+        portraitTooltip = `<img src='${cleanPortrait}' class='visage-tooltip-image' alt='Portrait' />`;
+    }
 
         return {
             ...data,

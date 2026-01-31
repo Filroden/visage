@@ -15,6 +15,7 @@ import { cleanseSceneTokens, cleanseAllTokens } from "./src/visage-cleanup.js";
 import { migrateWorldData } from "./src/visage-migration.js";
 import { handleGhostEdit } from "./src/visage-ghost.js";
 import { MODULE_ID } from "./src/visage-constants.js";
+import { VisageSequencer } from "./src/visage-sequencer.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -447,4 +448,39 @@ Hooks.on("renderTokenHUD", handleTokenHUD);
 // Monitor token updates to capture default state changes or maintain Visage persistence
 Hooks.on("updateToken", (document, change, options, userId) => {
     Visage.handleTokenUpdate(document, change, options, userId);
+});
+
+/* -------------------------------------------- */
+/* Cleanup Hooks                               */
+/* -------------------------------------------- */
+
+/**
+ * Handle Token Deletion.
+ * 1. Cleans up any active Sequencer effects (particles/sounds).
+ * 2. If the token was Linked (Actor), reverts the Actor's portrait to its pre-Visage state.
+ */
+Hooks.on("deleteToken", async (tokenDoc, options, userId) => {
+    // 1. Concurrency Control: Only the user who triggered the delete handles the cleanup
+    // This prevents race conditions where 4 players delete a token and all 4 try to update the Actor.
+    if (game.user.id !== userId) return;
+
+    // 2. Clean up Sequencer Effects
+    if (tokenDoc.object && Visage.sequencerReady) {
+        VisageSequencer.revert(tokenDoc.object);
+    }
+
+    // 3. Revert Actor Portrait (Linked Tokens Only)
+    if (tokenDoc.isLinked && tokenDoc.actorId) {
+        const actor = game.actors.get(tokenDoc.actorId);
+        if (!actor) return;
+
+        const flags = tokenDoc.flags[MODULE_ID] || {};
+        const originalPortrait = flags.originalState?.portrait;
+
+        // Restore if we have a record of the original and it differs from current
+        if (originalPortrait && actor.img !== originalPortrait) {
+            console.log(`Visage | Reverting Actor Portrait for ${actor.name} upon token deletion.`);
+            await actor.update({ img: originalPortrait });
+        }
+    }
 });

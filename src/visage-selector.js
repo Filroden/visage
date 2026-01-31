@@ -95,10 +95,18 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
         for (const item of localItems) {
             const rawPath = VisageData.getRepresentativeImage(item.changes);
+
+            let resolvedPortrait = undefined;
+            if (item.changes.portrait) {
+                resolvedPortrait = await Visage.resolvePath(item.changes.portrait);
+            }
+
             const form = VisageData.toPresentation(item, {
                 isActive: item.id === currentFormKey,
-                isWildcard: (rawPath || "").includes('*') 
+                isWildcard: (rawPath || "").includes('*'),
+                resolvedPortrait: resolvedPortrait
             });
+
             form.key = item.id;
             form.resolvedPath = await Visage.resolvePath(form.path);
 

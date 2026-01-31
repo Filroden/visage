@@ -235,9 +235,16 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         for (const entry of filteredItems) {
             const rawPath = VisageData.getRepresentativeImage(entry.changes);
             const resolvedPath = await Visage.resolvePath(rawPath);
+
+            let resolvedPortrait = undefined;
+            if (entry.changes.portrait) {
+                resolvedPortrait = await Visage.resolvePath(entry.changes.portrait);
+            }
+
             const context = VisageData.toPresentation(entry, {
                 isWildcard: (rawPath || "").includes('*'),
-                isActive: false // Activity state handled by template logic
+                isActive: false,
+                resolvedPortrait: resolvedPortrait
             });
 
             Object.assign(context, context.meta);

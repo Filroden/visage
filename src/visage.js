@@ -49,11 +49,6 @@ export class Visage {
                 setTimeout(() => VisageSequencer.restore(tokenDoc.object), 250);
             }
         });
-
-        // Clean up effects when a token is deleted
-        Hooks.on("deleteToken", (tokenDoc) => {
-            if (tokenDoc.object) VisageSequencer.revert(tokenDoc.object);
-        });
     }
 
     /**
@@ -95,7 +90,7 @@ export class Visage {
 
         const layer = await VisageData.toLayer(data, source);
         const changes = layer.changes || {};
-        const delay = changes.delay || 0; // ms
+        const delay = changes.delay || 0; 
 
         // 2. Prepare Stack Updates
         const ns = DATA_NAMESPACE;
@@ -115,11 +110,27 @@ export class Visage {
             updateFlags[`flags.${ns}.identity`] = layer.id;
         }
 
+        // Add the new layer to the stack
         stack = stack.filter(l => l.id !== layer.id);
         if (switchIdentity) stack.unshift(layer);
         else stack.push(layer);
         
         updateFlags[`flags.${ns}.activeStack`] = stack;
+
+        // Calculate Effective Portrait
+        let targetPortrait = null;
+
+        for (let i = stack.length - 1; i >= 0; i--) {
+            if (stack[i].changes?.portrait) {
+                targetPortrait = stack[i].changes.portrait;
+                break;
+            }
+        }
+
+        if (!targetPortrait) {
+            const originalState = token.document.getFlag(ns, "originalState");
+            targetPortrait = originalState?.portrait || token.actor.img;
+        }
 
         // 3. Define Orchestration Tasks
         
@@ -131,31 +142,28 @@ export class Visage {
             }
         };
 
-        // Task B: Data Update (Appearance + Light + Portrait)
+        // Task B: Data Update
         const runDataUpdate = async () => {
             // Commit Stack & Visage Data
             await token.document.update(updateFlags);
             await VisageComposer.compose(token);
 
-            // Update Actor Portrait (if exists)
-            if (changes.portrait && token.actor) {
-                if (token.actor.img !== changes.portrait) {
-                    await token.actor.update({ img: changes.portrait });
+            // Update Actor Portrait (Using calculated targetPortrait)
+            if (targetPortrait && token.actor) {
+                if (token.actor.img !== targetPortrait) {
+                    await token.actor.update({ img: targetPortrait });
                 }
             }
         };
 
         // 4. Execute with Transition Timing
         if (delay > 0) {
-            // Effects Lead (Positive): FX -> Wait -> Data
             runVisualFX();
             setTimeout(runDataUpdate, delay);
         } else if (delay < 0) {
-            // Token Leads (Negative): Data -> Wait -> FX
             await runDataUpdate();
             setTimeout(runVisualFX, Math.abs(delay));
         } else {
-            // Instant
             runVisualFX();
             await runDataUpdate();
         }
