@@ -24,11 +24,6 @@
 
 ![Applying Visages (Identities and Overlays)](images/v3/apply_visages.gif?raw=true)
 
-<video src="https://raw.githubusercontent.com/Filroden/visage/main/images/v3/apply_visages.mp4" 
-       controls="controls" muted="muted" autoplay="autoplay" loop="loop" playsinline="playsinline" 
-       style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-</video>
-
 ## What's New in v3.0?
 
 1. **Identities vs. Overlays:** Gone are the restrictions of the past. Every entry in Visage, whether it's stored locally on an Actor or globally in the World, can now be defined as one of two Modes:
