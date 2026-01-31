@@ -304,6 +304,6 @@
     "VISAGE.LightAnim.SmokePatch": "Smoke Patch",
     "VISAGE.Editor.Light.Speed": "Speed",
     "VISAGE.Editor.Light.Intensity": "Intensity",
-    "VISAGE.Light.Meta.Dim": "dim",
-    "VISAGE.Light.Meta.Bright": "bright"
+    "VISAGE.Light.Meta.Dim": "Dim",
+    "VISAGE.Light.Meta.Bright": "Bright"
 }

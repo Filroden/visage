@@ -486,7 +486,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             ? ((lMax * 2) / gridDist) / tokenWidthUnits 
             : 1;
         const brightPct = lMax > 0 ? (lBright / lMax) * 100 : 0;
+
         const animType = this._lightData.animation?.type || "";
+        const animKey = `VISAGE.LightAnim.${animType.charAt(0).toUpperCase() + animType.slice(1)}`;
+        let localizedAnim = (animType && game.i18n.has(animKey)) ? game.i18n.localize(animKey) : animType;
+        if (localizedAnim.endsWith(" (*)")) {
+            localizedAnim = localizedAnim.replace(" (*)", "");
+        }
+        
         const speed = this._lightData.animation?.speed ?? 5;
         const animDuration = Math.max(0.5, (11 - speed) * 0.35) + "s";
 
@@ -507,9 +514,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             },
             img: prep(rawImg, ""),
             portrait: prep(c.portrait, ""),
-            light: this._lightData,
+            light: {
+                ...this._lightData,
+                localizedAnimation: localizedAnim
+            },
             lightAnimationOptions: lightAnimationOptions,
-            delay: { value: Math.abs(this._delayData) / 1000, direction: this._delayData >= 0 ? "after" : "before" },
+            delay: { value: delaySeconds, direction: delayDirection },
             scale: { 
                 value: (c.scale !== undefined && c.scale !== null) ? Math.round(c.scale * 100) : 100, 
                 active: c.scale !== undefined && c.scale !== null 

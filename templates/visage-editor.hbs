@@ -434,11 +434,11 @@
                                         <span class="effect-meta">
                                             {{#if light.active}}
                                                 {{!-- Ranges --}}
-                                                <span>dim&nbsp;{{light.dim}}&nbsp;/&nbsp;bright&nbsp;{{light.bright}}</span>
+                                                <span>{{localize "VISAGE.Light.Meta.Dim"}}&nbsp;{{light.dim}}&nbsp;/&nbsp;{{localize "VISAGE.Light.Meta.Bright"}}&nbsp;{{light.bright}}</span>
                                                 
                                                 {{!-- Animation Name --}}
                                                 {{#if light.animation.type}}
-                                                    <span>&nbsp;•&nbsp;{{light.animation.type}}</span>
+                                                    <span>&nbsp;•&nbsp;{{light.localizedAnimation}}</span>
                                                 {{/if}}
 
                                                 {{!-- Color Dot --}}
