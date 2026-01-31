@@ -2,7 +2,8 @@ import { Visage } from "./visage.js";
 import { VisageData } from "./visage-data.js"; 
 import { VisageEditor } from "./visage-editor.js";
 import { VisageUtilities } from "./visage-utilities.js";
-import { cleanVisageData } from "./visage-migration.js"; 
+import { cleanVisageData } from "./visage-migration.js";
+import { MODULE_ID } from "./visage-constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -603,8 +604,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             
             // Manual check in case isActive returns stale data
             const token = canvas.tokens.get(this.tokenId);
-            const currentIdentity = token?.document.getFlag(Visage.MODULE_ID, "identity");
-            const inStack = token?.document.getFlag(Visage.MODULE_ID, "activeStack")?.some(i => i.id === id);
+            const currentIdentity = token?.document.getFlag(MODULE_ID, "identity");
+            const inStack = token?.document.getFlag(MODULE_ID, "activeStack")?.some(i => i.id === id);
 
             if (currentIdentity === id || inStack) {
                 const confirm = await foundry.applications.api.DialogV2.confirm({
@@ -677,7 +678,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             if (this.tokenId) {
                 if (id === "default") {
                     const token = canvas.tokens.get(this.tokenId);
-                    const currentIdentity = token.document.getFlag(Visage.MODULE_ID, "identity");
+                    const currentIdentity = token.document.getFlag(MODULE_ID, "identity");
                     if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
                     ui.notifications.info(game.i18n.format("VISAGE.Notifications.Updated", { name: name }));
                 } else {

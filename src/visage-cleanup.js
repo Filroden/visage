@@ -6,7 +6,7 @@
  * @version 3.0.0
  */
 
-import { Visage } from "./visage.js";
+import { DATA_NAMESPACE } from "./visage-constants.js";
 
 /**
  * Generates the update data required to revert a token to its original state.
@@ -15,15 +15,14 @@ import { Visage } from "./visage.js";
  * @returns {Promise<Object|null>} An update object compatible with updateEmbeddedDocuments, or null if no Visage data exists.
  */
 async function getRevertData(token) {
-    const ns = Visage.DATA_NAMESPACE;
-    const flags = token.flags?.[ns];
+    const flags = token.flags?.[DATA_NAMESPACE];
     if (!flags) return null;
 
     // 1. Prepare the "Wipe" command to remove the entire Visage flag namespace
     // This ensures no residual data remains on the token after cleanup.
     const updates = {
         _id: token.id,
-        [`flags.-=${ns}`]: null
+        [`flags.-=${DATA_NAMESPACE}`]: null
     };
 
     // 2. Retrieve Original State Snapshot
@@ -69,7 +68,7 @@ export async function cleanseSceneTokens() {
 
     // Batch updates to minimize database transactions
     for (const token of canvas.scene.tokens) {
-        if (token.flags?.[Visage.DATA_NAMESPACE]) {
+        if (token.flags?.[DATA_NAMESPACE]) {
             const revertUpdate = await getRevertData(token);
             if (revertUpdate) {
                 tokenUpdates.push(revertUpdate);
@@ -112,14 +111,14 @@ export async function cleanseAllTokens() {
         // Linked actors are effectively pointers to the Sidebar, so we handle them in Step 2 
         // to avoid updating the same document multiple times.
         if (!token.actorLink && token.actor) {
-            if (token.actor.flags?.[Visage.DATA_NAMESPACE]) {
-                const deleteKey = `flags.-=${Visage.DATA_NAMESPACE}`;
+            if (token.actor.flags?.[DATA_NAMESPACE]) {
+                const deleteKey = `flags.-=${DATA_NAMESPACE}`;
                 unlinkedPromises.push(token.actor.update({ [deleteKey]: null }));
             }
         }
 
         // B. Token Cleanup (Revert Appearance)
-        if (token.flags?.[Visage.DATA_NAMESPACE]) {
+        if (token.flags?.[DATA_NAMESPACE]) {
              const revertUpdate = await getRevertData(token);
              if (revertUpdate) {
                  tokenUpdates.push(revertUpdate);
@@ -137,10 +136,10 @@ export async function cleanseAllTokens() {
   // This covers every "real" character in the game, regardless of what scene they are on.
   const sidebarActorUpdates = [];
   for (const actor of game.actors) {
-      if (actor.flags?.[Visage.DATA_NAMESPACE]) {
+      if (actor.flags?.[DATA_NAMESPACE]) {
           sidebarActorUpdates.push({ 
               _id: actor.id, 
-              [`flags.-=${Visage.DATA_NAMESPACE}`]: null 
+              [`flags.-=${DATA_NAMESPACE}`]: null 
           });
       }
   }

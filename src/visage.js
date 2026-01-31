@@ -2,6 +2,7 @@ import { VisageComposer } from "./visage-composer.js";
 import { VisageData } from "./visage-data.js"; 
 import { VisageUtilities } from "./visage-utilities.js";
 import { VisageSequencer } from "./visage-sequencer.js"; 
+import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
 
 /**
  * The core API class for the Visage module.
@@ -9,9 +10,6 @@ import { VisageSequencer } from "./visage-sequencer.js";
  * Acts as the central controller orchestrating Data, Composer, and Sequencer components.
  */
 export class Visage {
-    static MODULE_ID = "visage";
-    static DATA_NAMESPACE = "visage";
-    
     static sequencerReady = false;
 
     static log(message, force = false) { VisageUtilities.log(message, force); }
@@ -25,7 +23,7 @@ export class Visage {
         this.log("Initializing Visage API (v3)");
         
         // Expose public API methods
-        game.modules.get(this.MODULE_ID).api = {
+        game.modules.get(MODULE_ID).api = {
             apply: this.apply.bind(this),
             remove: this.remove.bind(this),
             revert: this.revert.bind(this),
@@ -100,7 +98,7 @@ export class Visage {
         const delay = changes.delay || 0; // ms
 
         // 2. Prepare Stack Updates
-        const ns = this.DATA_NAMESPACE;
+        const ns = DATA_NAMESPACE;
         let stack = foundry.utils.deepClone(token.document.getFlag(ns, "activeStack") || []);
         const updateFlags = {};
 
@@ -175,7 +173,7 @@ export class Visage {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
 
-        const ns = this.DATA_NAMESPACE;
+        const ns = DATA_NAMESPACE;
         let stack = foundry.utils.deepClone(token.document.getFlag(ns, "activeStack") || []);
         
         const initialLength = stack.length;
@@ -238,7 +236,7 @@ export class Visage {
         if (!token) return;
 
         // CACHE PORTRAIT BEFORE WIPE (Critical Fix)
-        const flags = token.document.flags[this.MODULE_ID] || {};
+        const flags = token.document.flags[MODULE_ID] || {};
         const originalPortrait = flags.originalState?.portrait;
 
         // 1. Remove all Sequencer effects
@@ -262,7 +260,7 @@ export class Visage {
     static isActive(tokenOrId, maskId) {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
-        const stack = token.document.getFlag(this.DATA_NAMESPACE, "activeStack") || [];
+        const stack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
         return stack.some(l => l.id === maskId);
     }
 
@@ -313,7 +311,7 @@ export class Visage {
 
         if (!isRelevant) return;
 
-        const flags = tokenDocument.flags[this.MODULE_ID] || {};
+        const flags = tokenDocument.flags[MODULE_ID] || {};
         const stack = flags.activeStack || flags.stack || [];
 
         // If Visage is active, capture the change into the "Original State" instead of the visual surface

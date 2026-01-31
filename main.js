@@ -13,8 +13,8 @@ import { VisageGallery } from "./src/visage-gallery.js";
 import { handleTokenHUD } from "./src/visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./src/visage-cleanup.js";
 import { migrateWorldData } from "./src/visage-migration.js";
-import { VisageComposer } from "./src/visage-composer.js";
-import { handleGhostEdit } from "./src/visage-ghost.js"; 
+import { handleGhostEdit } from "./src/visage-ghost.js";
+import { MODULE_ID } from "./src/visage-constants.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -257,7 +257,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
  * Includes debugging tools, cleanup utilities, and migration triggers.
  */
 function registerSettings() {
-    game.settings.register(Visage.MODULE_ID, "cleanseScene", {
+    game.settings.register(MODULE_ID, "cleanseScene", {
         name: "VISAGE.Settings.CleanseScene.Name",
         hint: "VISAGE.Settings.CleanseScene.Hint",
         scope: "world",
@@ -269,12 +269,12 @@ function registerSettings() {
             if (value) {
                 cleanseSceneTokens();
                 // Reset toggle immediately after execution
-                game.settings.set(Visage.MODULE_ID, "cleanseScene", false);
+                game.settings.set(MODULE_ID, "cleanseScene", false);
             }
         },
     });
 
-    game.settings.register(Visage.MODULE_ID, "cleanseAll", {
+    game.settings.register(MODULE_ID, "cleanseAll", {
         name: "VISAGE.Settings.CleanseAll.Name",
         hint: "VISAGE.Settings.CleanseAll.Hint",
         scope: "world",
@@ -285,13 +285,13 @@ function registerSettings() {
         onChange: (value) => {
             if (value) {
                 cleanseAllTokens();
-                game.settings.set(Visage.MODULE_ID, "cleanseAll", false);
+                game.settings.set(MODULE_ID, "cleanseAll", false);
             }
         },
     });
 
     // Hidden setting to track data versioning for auto-migrations
-    game.settings.register(Visage.MODULE_ID, "worldVersion", {
+    game.settings.register(MODULE_ID, "worldVersion", {
         name: "World Data Version",
         scope: "world",
         config: false,
@@ -300,7 +300,7 @@ function registerSettings() {
     });
 
     // --- Manual Migration Trigger ---
-    game.settings.register(Visage.MODULE_ID, "manualMigration", {
+    game.settings.register(MODULE_ID, "manualMigration", {
         name: "VISAGE.Settings.ManualMigration.Name",
         hint: "VISAGE.Settings.ManualMigration.Hint",
         scope: "world",
@@ -311,7 +311,7 @@ function registerSettings() {
         onChange: (value) => {
             if (value) {
                 migrateWorldData();
-                game.settings.set(Visage.MODULE_ID, "manualMigration", false);
+                game.settings.set(MODULE_ID, "manualMigration", false);
             }
         }
     });
@@ -328,8 +328,8 @@ function registerSettings() {
 Hooks.once("ready", async () => {
     if (!game.user.isGM) return;
 
-    const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
-    const currentVersion = game.modules.get(Visage.MODULE_ID).version;
+    const lastVersion = game.settings.get(MODULE_ID, "worldVersion");
+    const currentVersion = game.modules.get(MODULE_ID).version;
         
     // RECENT MESSAGE GUARD
     // Look at the last 5 messages in the chat log
@@ -366,7 +366,7 @@ Hooks.once("ready", async () => {
                 await migrateWorldData();
             }
             // Only update the version flag if migration succeeded
-            await game.settings.set(Visage.MODULE_ID, "worldVersion", currentVersion);
+            await game.settings.set(MODULE_ID, "worldVersion", currentVersion);
         }
     } catch (err) {
         console.warn("Visage | Version check failed:", err);

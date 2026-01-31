@@ -1,4 +1,3 @@
-import { Visage } from "./visage.js";
 import { VisageData } from "./visage-data.js";
 import { VisageUtilities } from "./visage-utilities.js";
 

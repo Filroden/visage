@@ -5,8 +5,8 @@
  * @module visage
  */
 
-import { Visage } from "./visage.js";
 import { VisageUtilities } from "./visage-utilities.js";
+import { MODULE_ID } from "./visage-constants.js";
 
 /**
  * The VisageComposer class handles the mathematical composition of token data.
@@ -34,7 +34,7 @@ export class VisageComposer {
 
         // 1. Retrieve Context
         // Determine which stack to process: the one currently on the token, or a temporary override.
-        const allFlags = token.document.flags[Visage.MODULE_ID] || {};
+        const allFlags = token.document.flags[MODULE_ID] || {};
         const currentStack = stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
         
         // 2. Revert Condition
@@ -144,8 +144,8 @@ export class VisageComposer {
         // to prevent database desynchronization.
         const updateData = {
             ...finalData,
-            [`flags.${Visage.MODULE_ID}.activeStack`]: currentStack,
-            [`flags.${Visage.MODULE_ID}.originalState`]: base
+            [`flags.${MODULE_ID}.activeStack`]: currentStack,
+            [`flags.${MODULE_ID}.originalState`]: base
         };
 
         // Ensure light is passed correctly (if it exists)
@@ -164,7 +164,7 @@ export class VisageComposer {
      */
     static async revertToDefault(tokenDoc) {
         if (!tokenDoc) return;
-        const flags = tokenDoc.flags[Visage.MODULE_ID] || {};
+        const flags = tokenDoc.flags[MODULE_ID] || {};
         return this._revert(tokenDoc, flags);
     }
 
@@ -180,8 +180,8 @@ export class VisageComposer {
         // We just remove the flags to ensure the token is marked as "clean".
         if (!flags.originalState) {
             const clearFlags = {
-                [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
-                [`flags.${Visage.MODULE_ID}.-=originalState`]: null
+                [`flags.${MODULE_ID}.-=activeStack`]: null,
+                [`flags.${MODULE_ID}.-=originalState`]: null
             };
             return tokenDoc.update(clearFlags, { visageUpdate: true });
         }
@@ -190,9 +190,9 @@ export class VisageComposer {
         // Restore the original visual data from the snapshot AND wipe the flags in a single update.
         const updateData = {
             ...flags.originalState,
-            [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
-            [`flags.${Visage.MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
-            [`flags.${Visage.MODULE_ID}.-=originalState`]: null
+            [`flags.${MODULE_ID}.-=activeStack`]: null,
+            [`flags.${MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
+            [`flags.${MODULE_ID}.-=originalState`]: null
         };
 
         await tokenDoc.update(updateData, { visageUpdate: true });

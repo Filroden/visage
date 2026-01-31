@@ -1,4 +1,5 @@
 import { VisageUtilities } from "./visage-utilities.js";
+import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
 
 /**
  * The primary data controller class for Visage.
@@ -6,8 +7,6 @@ import { VisageUtilities } from "./visage-utilities.js";
  * Handles data normalization, presentation formatting, and state extraction.
  */
 export class VisageData {
-    static MODULE_ID = "visage";
-    static DATA_NAMESPACE = "visage";
     
     /** Flag key for storing local visages on an Actor. */
     static ALTERNATE_FLAG_KEY = "alternateVisages";
@@ -20,7 +19,7 @@ export class VisageData {
      * Sets up the global dictionary object and change listeners.
      */
     static registerSettings() {
-        game.settings.register(this.MODULE_ID, this.SETTING_KEY, {
+        game.settings.register(MODULE_ID, this.SETTING_KEY, {
             name: "Global Visage Library",
             scope: "world",
             config: false,
@@ -165,7 +164,7 @@ export class VisageData {
         if (!tokenDoc) return null;
 
         // Retrieve the cached original state if one exists (Visage active), otherwise snapshot now.
-        let sourceData = tokenDoc.flags?.[this.MODULE_ID]?.originalState;
+        let sourceData = tokenDoc.flags?.[MODULE_ID]?.originalState;
         if (!sourceData) {
             sourceData = VisageUtilities.extractVisualState(tokenDoc);
         }
@@ -439,7 +438,7 @@ export class VisageData {
      * Retrieves the raw settings object for global visages.
      * @private
      */
-    static _getRawGlobal() { return game.settings.get(this.MODULE_ID, this.SETTING_KEY); }
+    static _getRawGlobal() { return game.settings.get(MODULE_ID, this.SETTING_KEY); }
 
     /**
      * @returns {Array} List of all active global visages, sorted by creation date.
@@ -474,7 +473,7 @@ export class VisageData {
      */
     static getLocal(actor) {
         if (!actor) return [];
-        const ns = this.DATA_NAMESPACE; 
+        const ns = DATA_NAMESPACE; 
         const sourceData = actor.flags?.[ns]?.[this.ALTERNATE_FLAG_KEY] || {};
         const results = [];
 
@@ -590,10 +589,10 @@ export class VisageData {
             ...foundry.utils.expandObject(updatePayload) 
         });
 
-        await token.document.update({ [`flags.${this.DATA_NAMESPACE}.originalState`]: newOriginalState });
+        await token.document.update({ [`flags.${DATA_NAMESPACE}.originalState`]: newOriginalState });
 
         // 6. Remove the active mask (since it is now the base)
-        const VisageApi = game.modules.get(this.MODULE_ID).api;
+        const VisageApi = game.modules.get(MODULE_ID).api;
         if (VisageApi) await VisageApi.remove(token.id, visageId);
         
         ui.notifications.info(game.i18n.format("VISAGE.Notifications.DefaultSwapped", { label: targetVisage.label }));
@@ -615,7 +614,7 @@ export class VisageData {
      * @param {Actor|null} [actor=null] - The target actor (null implies Global).
      */
     static async delete(id, actor = null) {
-        if (actor) return actor.update({ [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true });
+        if (actor) return actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true });
         return this.updateGlobal(id, { deleted: true, deletedAt: Date.now() });
     }
 
@@ -625,7 +624,7 @@ export class VisageData {
      * @param {Actor|null} [actor=null] - The target actor.
      */
     static async restore(id, actor = null) {
-        if (actor) return actor.update({ [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false });
+        if (actor) return actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false });
         return this.updateGlobal(id, { deleted: false, deletedAt: null });
     }
 
@@ -635,11 +634,11 @@ export class VisageData {
      * @param {Actor|null} [actor=null] - The target actor.
      */
     static async destroy(id, actor = null) {
-        if (actor) return actor.update({ [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null });
+        if (actor) return actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null });
         const all = this._getRawGlobal();
         if (all[id]) {
             delete all[id];
-            await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
+            await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
         }
     }
 
@@ -665,7 +664,7 @@ export class VisageData {
         };
 
         all[id] = entry;
-        await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
+        await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
         return entry;
     }
 
@@ -675,7 +674,7 @@ export class VisageData {
         const merged = foundry.utils.mergeObject(all[id], updates, { inplace: false });
         merged.updated = Date.now();
         all[id] = merged;
-        await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
+        await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
     }
 
     static async _saveLocal(data, actor) {
@@ -691,7 +690,7 @@ export class VisageData {
         };
 
         await actor.update({
-            [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry
+            [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry
         });
         console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
     }
@@ -714,6 +713,6 @@ export class VisageData {
             }
         }
         
-        if (dirty) await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
+        if (dirty) await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
     }
 }
