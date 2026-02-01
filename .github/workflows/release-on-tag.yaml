@@ -50,7 +50,7 @@ jobs:
           fi
 
           # Check if VERSION.md has the entry
-          if ! grep -q "| **Version $CLEAN_VERSION** |" VERSION.md; then
+          if ! grep -Fq "| **Version $CLEAN_VERSION** |" VERSION.md; then
             echo "::error::No entry found for Version $CLEAN_VERSION in VERSION.md"
             exit 1
           fi
