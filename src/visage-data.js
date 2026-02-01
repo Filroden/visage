@@ -213,12 +213,9 @@ export class VisageData {
                 width: width,
                 height: height,
                 disposition: disposition,
-                
-                // V3.2 Properties
                 light: lightData,
                 portrait: portrait,
                 delay: 0,
-                
                 ring: ringData
             }
         };
@@ -316,7 +313,7 @@ export class VisageData {
             // A. Light (Top)
             if (hasLight) {
                 const l = c.light;
-                // V3.2: Resolve Animation Label
+                // Resolve Animation Label
                 let animLabel = "";
                 if (l.animation && l.animation.type) {
                     // Try to localize "VISAGE.LightAnim.Type", fallback to raw type if missing
@@ -382,13 +379,13 @@ export class VisageData {
 
         // 7. Portrait Badge
         const hasPortrait = !!(c.portrait);
-    let portraitTooltip = "";
-    if (hasPortrait) {
-        // Use the resolved path passed in options, or fallback to the raw path
-        const displayPortrait = options.resolvedPortrait || c.portrait;
-        const cleanPortrait = VisageUtilities.cleanPath(displayPortrait);
-        portraitTooltip = `<img src='${cleanPortrait}' class='visage-tooltip-image' alt='Portrait' />`;
-    }
+        let portraitTooltip = "";
+        if (hasPortrait) {
+            // Use the resolved path passed in options, or fallback to the raw path
+            const displayPortrait = options.resolvedPortrait || c.portrait;
+            const cleanPortrait = VisageUtilities.cleanPath(displayPortrait);
+            portraitTooltip = `<img src='${cleanPortrait}' class='visage-tooltip-image' alt='Portrait' />`;
+        }
 
         return {
             ...data,
@@ -414,18 +411,14 @@ export class VisageData {
                 hasInvisibility: ringCtx.hasInvisibility,
                 ringColor: ringCtx.colors.ring,
                 ringBkg: ringCtx.colors.background,
-                
                 showDataChip: isScaleActive || isDimActive,
                 showFlipBadge: hActive || vActive,
                 showDispositionChip: dispClass !== "none",
                 tokenName: c.name || null,
-                
-                // V3.2 Badges
                 showEffectsBadge: showEffectsBadge,
                 effectsTooltip: effectsTooltip,
                 hasPortrait: hasPortrait,
                 portraitTooltip: portraitTooltip,
-
                 slots: {
                     scale: { active: isScaleActive, val: scaleLabel },
                     dim: { active: isDimActive, val: sizeLabel },
@@ -571,8 +564,6 @@ export class VisageData {
         if (newDefaultData.height !== undefined) updatePayload.height = newDefaultData.height;
         if (newDefaultData.disposition !== undefined) updatePayload.disposition = newDefaultData.disposition;
         if (newDefaultData.ring) updatePayload.ring = newDefaultData.ring;
-        
-        // V3.2 Properties
         if (newDefaultData.light) updatePayload.light = newDefaultData.light;
 
         // Clean undefined keys

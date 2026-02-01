@@ -41,10 +41,10 @@ async function getRevertData(token) {
         if (original.texture?.scaleX !== undefined) updates["texture.scaleX"] = original.texture.scaleX;
         if (original.texture?.scaleY !== undefined) updates["texture.scaleY"] = original.texture.scaleY;
         
-        // Restore Ring Data (V12+)
+        // Restore Ring Data
         if (original.ring) updates["ring"] = original.ring;
         
-        // NEW: Restore Light Source (V3.2)
+        // Restore Light Source
         if (original.light) updates["light"] = original.light;
 
         // Restore other properties
@@ -145,7 +145,7 @@ export async function cleanseAllTokens() {
   }
   
   if (sidebarActorUpdates.length > 0) {
-      // Use Actor.updateDocuments for efficient bulk update
+      // Uses Actor.updateDocuments for efficient bulk update
       await Actor.updateDocuments(sidebarActorUpdates);
       count += sidebarActorUpdates.length;
   }

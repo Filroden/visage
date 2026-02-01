@@ -72,7 +72,7 @@ export function handleGhostEdit(app, html, data) {
         const input = form.querySelector(`[name="${name}"]`);
         if (!input) return;
 
-        // --- SPECIAL CASE: Multi-Checkbox (V12 Ring Effects) ---
+        // --- SPECIAL CASE: Multi-Checkbox (Ring Effects) ---
         // Foundry's <multi-checkbox> custom element expects an array of keys.
         // However, the stored data might be a bitmask number (integer).
         if (input.tagName === "MULTI-CHECKBOX") {

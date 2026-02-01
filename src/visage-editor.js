@@ -838,8 +838,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             lightBright: lBright,
             lightSizePct: sizeRatio * 100,
             lightBrightPct: brightPct,
-            
-            // New V3.2 Preview Props
             lightAngle: lAngle,
             lightRotation: rotationOffset,
             lightAnimType: animType,
@@ -890,7 +888,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this._syncAudioPreviews();
         
-        // Update UI Badges (Same as before)
+        // Update UI Badges
         const findItem = (iconClass) => {
             const icon = el.querySelector(`.metadata-grid i.${iconClass}`) || el.querySelector(`.metadata-grid img[src*="${iconClass}"]`);
             return icon ? icon.closest('.meta-item') : null;
