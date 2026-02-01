@@ -479,8 +479,7 @@ export class VisageData {
      */
     static getLocal(actor) {
         if (!actor) return [];
-        const ns = DATA_NAMESPACE; 
-        const sourceData = actor.flags?.[ns]?.[this.ALTERNATE_FLAG_KEY] || {};
+        const sourceData = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY] || {};
         const results = [];
 
         for (const [key, data] of Object.entries(sourceData)) {

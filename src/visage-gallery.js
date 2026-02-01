@@ -607,7 +607,6 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         
         // Safety Check: Prevent deletion if Visage is currently active on the token
         if (this.isLocal && this.tokenId) {
-            const isActive = Visage.isActive(this.tokenId, id); 
             
             // Manual check in case isActive returns stale data
             const token = canvas.tokens.get(this.tokenId);

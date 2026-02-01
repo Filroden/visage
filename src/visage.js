@@ -93,21 +93,20 @@ export class Visage {
         const delay = changes.delay || 0; 
 
         // 2. Prepare Stack Updates
-        const ns = DATA_NAMESPACE;
-        let stack = foundry.utils.deepClone(token.document.getFlag(ns, "activeStack") || []);
+        let stack = foundry.utils.deepClone(token.document.getFlag(DATA_NAMESPACE, "activeStack") || []);
         const updateFlags = {};
 
         if (clearStack) {
             if (Visage.sequencerReady) await VisageSequencer.revert(token);
             stack = [];
-            updateFlags[`flags.${ns}.identity`] = layer.id;
+            updateFlags[`flags.${DATA_NAMESPACE}.identity`] = layer.id;
         } else if (switchIdentity) {
-            const currentIdentity = token.document.getFlag(ns, "identity");
+            const currentIdentity = token.document.getFlag(DATA_NAMESPACE, "identity");
             if (currentIdentity) {
                 stack = stack.filter(l => l.id !== currentIdentity);
                 if (Visage.sequencerReady) await VisageSequencer.remove(token, currentIdentity, true);
             }
-            updateFlags[`flags.${ns}.identity`] = layer.id;
+            updateFlags[`flags.${DATA_NAMESPACE}.identity`] = layer.id;
         }
 
         // Add the new layer to the stack
@@ -115,26 +114,19 @@ export class Visage {
         if (switchIdentity) stack.unshift(layer);
         else stack.push(layer);
         
-        updateFlags[`flags.${ns}.activeStack`] = stack;
+        updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
 
-        // Calculate Effective Portrait
-        let targetPortrait = null;
-
-        for (let i = stack.length - 1; i >= 0; i--) {
-            if (stack[i].changes?.portrait) {
-                targetPortrait = stack[i].changes.portrait;
-                break;
-            }
-        }
-
-        if (!targetPortrait) {
-            const originalState = token.document.getFlag(ns, "originalState");
-            targetPortrait = originalState?.portrait || token.actor.img;
-        }
+        // Calculate Effective Portrait using Composer
+        const originalState = token.document.getFlag(DATA_NAMESPACE, "originalState");
+        const targetPortrait = VisageComposer.resolvePortrait(
+            stack, 
+            originalState, 
+            token.actor.img
+        );
 
         // 3. Define Orchestration Tasks
         
-        // Task A: Visual Effects
+        // Task A: Visual Effects (Keep existing)
         const runVisualFX = async () => {
             if (VisageUtilities.hasSequencer && changes.effects) {
                 const isBase = switchIdentity || clearStack;
@@ -142,13 +134,12 @@ export class Visage {
             }
         };
 
-        // Task B: Data Update
+        // Task B: Data Update (Simplified)
         const runDataUpdate = async () => {
-            // Commit Stack & Visage Data
             await token.document.update(updateFlags);
             await VisageComposer.compose(token);
 
-            // Update Actor Portrait (Using calculated targetPortrait)
+            // Update Actor Portrait
             if (targetPortrait && token.actor) {
                 if (token.actor.img !== targetPortrait) {
                     await token.actor.update({ img: targetPortrait });
@@ -181,27 +172,25 @@ export class Visage {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
 
-        const ns = DATA_NAMESPACE;
-        let stack = foundry.utils.deepClone(token.document.getFlag(ns, "activeStack") || []);
+        const currentIdentity = token.document.getFlag(DATA_NAMESPACE, "identity");
+
+        let stack = foundry.utils.deepClone(token.document.getFlag(DATA_NAMESPACE, "activeStack") || []);
         
         const initialLength = stack.length;
         stack = stack.filter(l => l.id !== maskId);
         if (stack.length === initialLength) return false;
 
-        // CACHE PORTRAIT BEFORE UPDATE (Critical Fix)
+        // Cache Portrait Before Update
         // We grab the original state now because compose() might wipe the flags if the stack is empty.
-        const originalState = token.document.getFlag(ns, "originalState");
-        const originalPortrait = originalState?.portrait;
-
+        const originalState = token.document.getFlag(DATA_NAMESPACE, "originalState");
         const updateFlags = {};
-        const currentIdentity = token.document.getFlag(ns, "identity");
         
         if (currentIdentity === maskId) {
-            updateFlags[`flags.${ns}.-=identity`] = null;
+            updateFlags[`flags.${DATA_NAMESPACE}.-=identity`] = null;
         }
 
-        if (stack.length === 0) updateFlags[`flags.${ns}.-=activeStack`] = null;
-        else updateFlags[`flags.${ns}.activeStack`] = stack;
+        if (stack.length === 0) updateFlags[`flags.${DATA_NAMESPACE}.-=activeStack`] = null;
+        else updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
 
         await token.document.update(updateFlags);
         await VisageComposer.compose(token);
@@ -210,21 +199,14 @@ export class Visage {
         const isBase = (currentIdentity === maskId);
         if (Visage.sequencerReady) await VisageSequencer.remove(token, maskId, isBase);
 
-        // Revert Actor Portrait
+        // Revert Actor Portrait using Composer
         if (token.actor) {
-            let targetPortrait = null;
-            // Iterate remaining stack to find a new portrait
-            for (let i = stack.length - 1; i >= 0; i--) {
-                if (stack[i].changes?.portrait) {
-                    targetPortrait = stack[i].changes.portrait;
-                    break;
-                }
-            }
-            // Fallback to the cached original state
-            if (!targetPortrait) {
-                targetPortrait = originalPortrait;
-            }
-            // Apply if needed
+            const targetPortrait = VisageComposer.resolvePortrait(
+                stack, 
+                originalState, 
+                originalState?.portrait // Fallback to original
+            );
+            
             if (targetPortrait && token.actor.img !== targetPortrait) {
                 await token.actor.update({ img: targetPortrait });
             }

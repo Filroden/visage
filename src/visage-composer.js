@@ -197,4 +197,30 @@ export class VisageComposer {
 
         await tokenDoc.update(updateData, { visageUpdate: true });
     }
+
+    /**
+     * Calculates the "Effective Portrait" based on the current stack priority.
+     * Iterates from the top of the stack (Overlays) down to the bottom (Identity).
+     * @param {Array<Object>} stack - The active Visage stack.
+     * @param {Object} [originalState] - The snapshot of the token/actor before Visage was applied.
+     * @param {string} [currentActorImage] - The current Actor image (used as a fallback if no original state exists).
+     * @returns {string|null} The resolved image path to display on the Actor sheet.
+     */
+    static resolvePortrait(stack, originalState, currentActorImage) {
+        // 1. Search Stack from Top to Bottom
+        // The first layer (highest priority) with a portrait defined "wins".
+        for (let i = stack.length - 1; i >= 0; i--) {
+            if (stack[i].changes?.portrait) {
+                return stack[i].changes.portrait;
+            }
+        }
+
+        // 2. Fallback to Original State (if we are reverting to base)
+        if (originalState?.portrait) {
+            return originalState.portrait;
+        }
+
+        // 3. Fallback to Current Image (Safety catch for first-time application)
+        return currentActorImage;
+    }
 }

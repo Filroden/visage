@@ -56,9 +56,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token) return;
 
-        const ns = DATA_NAMESPACE;
-        const currentFormKey = token.document.getFlag(ns, "identity") || "default";
-        const currentStack = token.document.getFlag(ns, "activeStack") || [];
+        const currentFormKey = token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
+        const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
         // Filter stack to keep only the active Identity layer
         const newStack = currentStack.filter(layer => layer.id === currentFormKey);
@@ -74,8 +73,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!token || !token.actor) return { identities: [], overlays: [] };
         
         const actor = token.actor; 
-        const ns = DATA_NAMESPACE;
-        const currentFormKey = token.document.getFlag(ns, "identity") || "default";
+        const currentFormKey = token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
 
         // 1. Prepare Default Identity (Base Token State)
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
