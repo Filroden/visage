@@ -1,0 +1,69 @@
+name: Bug Report
+description: Create a report to help us improve Visage
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  
+  # --- NEW FIELD ADDED HERE ---
+  - type: textarea
+    id: description
+    attributes:
+      label: General Description
+      description: A clear and concise description of what the bug is.
+      placeholder: When I click X, Y happens, but I expected Z to happen...
+    validations:
+      required: true
+
+  - type: input
+    id: foundry_version
+    attributes:
+      label: Foundry Version
+      description: Which version of Foundry VTT are you using? (e.g., v13.351)
+      placeholder: v13.351
+    validations:
+      required: true
+
+  - type: input
+    id: visage_version
+    attributes:
+      label: Visage Version
+      description: Which version of Visage are you using?
+      placeholder: v3.2.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: modules_disabled
+    attributes:
+      label: Are all other modules disabled?
+      description: Testing with only Visage active helps rule out conflicts.
+      options:
+        - "Yes, only Visage is active"
+        - "No, I have other modules active"
+    validations:
+      required: true
+
+  - type: textarea
+    id: active_modules
+    attributes:
+      label: If not, what modules are you using?
+      description: If you selected "No" above, please list the other active modules here.
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: What steps did you take?
+      description: Please describe the steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
