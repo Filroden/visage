@@ -15,7 +15,7 @@
 
 **Visage** is the ultimate token appearance and visual effects manager for Foundry VTT. It allows players and GMs to instantly switch token settings (image, size, disposition, dynamic ring, light source, etc) by choosing from a library of Visages. Visages can also change portrait art, and layer visual and audio effects (requires Sequencer). Visages are non-destructive and can be applied as a base identity or be added to provide and manage complex stacks of graphical overrides through a dedicated HUD.
 
-![Visage Selector HUD](https://github.com/Filroden/visage/blob/main/images/v3/apply_visages.gif?raw=true)
+![Visage Selector HUD](https://github.com/Filroden/visage/blob/main/images/v3/apply_visages.gif)
 
 **Why use Visage?** It solves the problem of rigid token settings. Instead of manually editing a token every time a character polymorphs, casts Invisibility, or gets Enlarged, you simply click a button. Visage creates a non-destructive "stack" of changes on top of your token—allowing you to layer a disguise over a wild shape, add a rage status effect on top of that, and then peel them away one by one to reveal the original character perfectly intact underneath. It turns complex, time-consuming administrative tasks into instant, immersive gameplay moments.
 
@@ -26,7 +26,7 @@
 3. **Configure:** In the Editor's header, give it a Label (e.g., "Wolf Form"), select the mode (**Identity**) and, on the Appearance tab, click the checkbox next to image and use the filepicker to find a good image of a wolf. Make any other changes you want. Then click "Save Local Layer".
 4. **Apply:** Click the **Play** button on the card. Your token is now a Wolf! From now on, you can quickly choose which Visage to apply from the Selector HUD.
 
-![Applying Visages (Identities and Overlays)](https://github.com/Filroden/visage/blob/main/images/v3/apply_visages.gif?raw=true)
+![Applying Visages (Identities and Overlays)](https://github.com/Filroden/visage/blob/main/images/v3/apply_visages.gif)
 
 ## Core Concepts
 
