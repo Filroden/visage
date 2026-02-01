@@ -13,8 +13,9 @@ import { VisageGallery } from "./src/visage-gallery.js";
 import { handleTokenHUD } from "./src/visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./src/visage-cleanup.js";
 import { migrateWorldData } from "./src/visage-migration.js";
-import { VisageComposer } from "./src/visage-composer.js";
-import { handleGhostEdit } from "./src/visage-ghost.js"; 
+import { handleGhostEdit } from "./src/visage-ghost.js";
+import { MODULE_ID } from "./src/visage-constants.js";
+import { VisageSequencer } from "./src/visage-sequencer.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -120,7 +121,8 @@ Hooks.once("init", () => {
             "modules/visage/templates/visage-gallery.hbs",
             "modules/visage/templates/parts/visage-preview.hbs",
             "modules/visage/templates/parts/visage-card.hbs",
-            "modules/visage/templates/parts/visage-effectCard.hbs"
+            "modules/visage/templates/parts/visage-effectCard.hbs",
+            "modules/visage/templates/parts/visage-tile.hbs"
         ]);
 
         registerSettings();
@@ -256,7 +258,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
  * Includes debugging tools, cleanup utilities, and migration triggers.
  */
 function registerSettings() {
-    game.settings.register(Visage.MODULE_ID, "cleanseScene", {
+    game.settings.register(MODULE_ID, "cleanseScene", {
         name: "VISAGE.Settings.CleanseScene.Name",
         hint: "VISAGE.Settings.CleanseScene.Hint",
         scope: "world",
@@ -268,12 +270,12 @@ function registerSettings() {
             if (value) {
                 cleanseSceneTokens();
                 // Reset toggle immediately after execution
-                game.settings.set(Visage.MODULE_ID, "cleanseScene", false);
+                game.settings.set(MODULE_ID, "cleanseScene", false);
             }
         },
     });
 
-    game.settings.register(Visage.MODULE_ID, "cleanseAll", {
+    game.settings.register(MODULE_ID, "cleanseAll", {
         name: "VISAGE.Settings.CleanseAll.Name",
         hint: "VISAGE.Settings.CleanseAll.Hint",
         scope: "world",
@@ -284,13 +286,13 @@ function registerSettings() {
         onChange: (value) => {
             if (value) {
                 cleanseAllTokens();
-                game.settings.set(Visage.MODULE_ID, "cleanseAll", false);
+                game.settings.set(MODULE_ID, "cleanseAll", false);
             }
         },
     });
 
     // Hidden setting to track data versioning for auto-migrations
-    game.settings.register(Visage.MODULE_ID, "worldVersion", {
+    game.settings.register(MODULE_ID, "worldVersion", {
         name: "World Data Version",
         scope: "world",
         config: false,
@@ -299,7 +301,7 @@ function registerSettings() {
     });
 
     // --- Manual Migration Trigger ---
-    game.settings.register(Visage.MODULE_ID, "manualMigration", {
+    game.settings.register(MODULE_ID, "manualMigration", {
         name: "VISAGE.Settings.ManualMigration.Name",
         hint: "VISAGE.Settings.ManualMigration.Hint",
         scope: "world",
@@ -310,7 +312,7 @@ function registerSettings() {
         onChange: (value) => {
             if (value) {
                 migrateWorldData();
-                game.settings.set(Visage.MODULE_ID, "manualMigration", false);
+                game.settings.set(MODULE_ID, "manualMigration", false);
             }
         }
     });
@@ -327,12 +329,33 @@ function registerSettings() {
 Hooks.once("ready", async () => {
     if (!game.user.isGM) return;
 
+    const lastVersion = game.settings.get(MODULE_ID, "worldVersion");
+    const currentVersion = game.modules.get(MODULE_ID).version;
+        
+    // RECENT MESSAGE GUARD
+    // Look at the last 5 messages in the chat log
+    const recentMessages = game.messages.contents.slice(-5);
+    const alreadyPosted = recentMessages.some(m => 
+        m.content.includes("visage-chat-card") && m.content.includes("https://foundryvtt.com/packages/visage")
+    );
+
+    if (!alreadyPosted) {
+
+        const visageHtml = await renderTemplate("modules/visage/templates/parts/visage-chat-welcome.hbs", {
+            version: currentVersion
+        });
+
+        await ChatMessage.create({
+            user: game.user.id,
+            content: visageHtml,
+            whisper: [game.user.id],
+            speaker: { alias: "Visage" }
+        });
+    }
+
     try {
         // Clean up deleted items older than retention period
         VisageData.runGarbageCollection();
-
-        const lastVersion = game.settings.get(Visage.MODULE_ID, "worldVersion");
-        const currentVersion = game.modules.get(Visage.MODULE_ID).version;
 
         // Check if a migration is required based on the version difference
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {
@@ -344,7 +367,7 @@ Hooks.once("ready", async () => {
                 await migrateWorldData();
             }
             // Only update the version flag if migration succeeded
-            await game.settings.set(Visage.MODULE_ID, "worldVersion", currentVersion);
+            await game.settings.set(MODULE_ID, "worldVersion", currentVersion);
         }
     } catch (err) {
         console.warn("Visage | Version check failed:", err);
@@ -425,4 +448,39 @@ Hooks.on("renderTokenHUD", handleTokenHUD);
 // Monitor token updates to capture default state changes or maintain Visage persistence
 Hooks.on("updateToken", (document, change, options, userId) => {
     Visage.handleTokenUpdate(document, change, options, userId);
+});
+
+/* -------------------------------------------- */
+/* Cleanup Hooks                               */
+/* -------------------------------------------- */
+
+/**
+ * Handle Token Deletion.
+ * 1. Cleans up any active Sequencer effects (particles/sounds).
+ * 2. If the token was Linked (Actor), reverts the Actor's portrait to its pre-Visage state.
+ */
+Hooks.on("deleteToken", async (tokenDoc, options, userId) => {
+    // 1. Concurrency Control: Only the user who triggered the delete handles the cleanup
+    // This prevents race conditions where 4 players delete a token and all 4 try to update the Actor.
+    if (game.user.id !== userId) return;
+
+    // 2. Clean up Sequencer Effects
+    if (tokenDoc.object && Visage.sequencerReady) {
+        VisageSequencer.revert(tokenDoc.object);
+    }
+
+    // 3. Revert Actor Portrait (Linked Tokens Only)
+    if (tokenDoc.isLinked && tokenDoc.actorId) {
+        const actor = game.actors.get(tokenDoc.actorId);
+        if (!actor) return;
+
+        const flags = tokenDoc.flags[MODULE_ID] || {};
+        const originalPortrait = flags.originalState?.portrait;
+
+        // Restore if we have a record of the original and it differs from current
+        if (originalPortrait && actor.img !== originalPortrait) {
+            console.log(`Visage | Reverting Actor Portrait for ${actor.name} upon token deletion.`);
+            await actor.update({ img: originalPortrait });
+        }
+    }
 });

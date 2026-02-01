@@ -1,4 +1,3 @@
-import { Visage } from "./visage.js";
 import { VisageData } from "./visage-data.js";
 import { VisageUtilities } from "./visage-utilities.js";
 
@@ -23,27 +22,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(options = {}) {
         super(options);
         
-        /** @type {string|null} The ID of the Visage being edited. Null implies creation mode. */
         this.visageId = options.visageId || null;
-        
-        /** @type {string|null} The Actor ID for local scoping. */
         this.actorId = options.actorId || null;
-        
-        /** @type {string|null} The Token ID for context. */
         this.tokenId = options.tokenId || null;
-        
-        /** @type {boolean} Tracks if unsaved changes exist. */
         this.isDirty = false;
-        
-        // State tracking for UI Tabs (Appearance, Ring, Effects)
         this._activeTab = "appearance";
-
-        // Internal state buffer to hold form data between re-renders
         this._preservedData = null;
-
-        /** * Viewport State for the Live Preview Stage.
-         * Controls zoom and pan transformations.
-         */
         this._viewState = {
             scale: 1.0,
             x: 0,
@@ -53,30 +37,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             lastY: 0
         };
 
-        /** @type {Array<Object>|null} Local memory buffer for effect data. Populated in _prepareContext. */
-        this._effects = null;       
-
-        /** @type {string|null} The ID of the effect currently being edited in the Inspector pane. */
+        this._effects = null;
         this._activeEffectId = null;
-        
-        /** * Audio Preview State.
-         * Maps Effect IDs to active Sound instances (or Promises thereof) to manage playback lifecycle.
-         * @type {Map<string, Sound|Promise>}
-         */
-        this._audioPreviews = new Map(); 
+        this._audioPreviews = new Map();
+        this._editingLight = false;
+        this._lightData = null; // Stores { active, dim, bright, color, animation... }
+        this._delayData = 0;    // Stores ms (positive = effects lead, negative = token leads)
     }
 
-    /**
-     * @returns {boolean} True if editing a Local Visage (Actor-specific), False for Global (World).
-     */
     get isLocal() { return !!this.actorId; }
-
-    /**
-     * @returns {Actor|null} The resolved Actor document, if applicable.
-     */
-    get actor() {
-        return VisageUtilities.resolveTarget(this.options).actor;
-    }
+    get actor() { return VisageUtilities.resolveTarget(this.options).actor; }
 
     static DEFAULT_OPTIONS = {
         tag: "form",
@@ -112,7 +82,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleEffect: VisageEditor.prototype._onToggleEffect,
             toggleLoop: VisageEditor.prototype._onToggleLoop,
             replayPreview: VisageEditor.prototype._onReplayPreview,
-            openSequencerDatabase: VisageEditor.prototype._onOpenSequencerDatabase
+            openSequencerDatabase: VisageEditor.prototype._onOpenSequencerDatabase,
+            toggleLight: VisageEditor.prototype._onToggleLight,
+            editLight: VisageEditor.prototype._onEditLight,
+            toggleDelayDirection: VisageEditor.prototype._onToggleDelayDirection,
         }
     };
 
@@ -360,8 +333,26 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         
         // Initialize Local Effects Memory (Once)
         // We clone this array to detach it from the database until saved.
-        if (this._effects === null) {
-            this._effects = c.effects ? foundry.utils.deepClone(c.effects) : [];
+        if (this._effects === null) { this._effects = c.effects ? foundry.utils.deepClone(c.effects) : []; }
+
+        // Initialize Light Memory
+        if (this._lightData === null) {
+            if (c.light) {
+                this._lightData = { active: true, ...c.light };
+            } else {
+                // Default Light Template
+                this._lightData = {
+                    active: false,
+                    dim: 0, bright: 0, color: "#ffffff", alpha: 0.5, 
+                    angle: 360, luminosity: 0.5, priority: 0,
+                    animation: { type: "", speed: 5, intensity: 5 }
+                };
+            }
+        }
+
+        // Initialize Delay Memory
+        if (this._delayData === 0 && c.delay !== undefined) {
+            this._delayData = c.delay;
         }
 
         const rawImg = c.texture?.src || "";
@@ -396,6 +387,32 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const ringActive = !!(c.ring && c.ring.enabled);
         const ringContext = VisageData.prepareRingContext(c.ring); 
 
+        const lightAnimationOptions = {
+            "": game.i18n.localize("VISAGE.LightAnim.None"),
+            "torch": game.i18n.localize("VISAGE.LightAnim.Torch"),
+            "pulse": game.i18n.localize("VISAGE.LightAnim.Pulse"),
+            "chroma": game.i18n.localize("VISAGE.LightAnim.Chroma"),
+            "wave": game.i18n.localize("VISAGE.LightAnim.Wave"),
+            "fog": game.i18n.localize("VISAGE.LightAnim.Fog"),
+            "sunburst": game.i18n.localize("VISAGE.LightAnim.Sunburst"),
+            "dome": game.i18n.localize("VISAGE.LightAnim.Dome"),
+            "emanation": game.i18n.localize("VISAGE.LightAnim.Emanation"),
+            "hexa": game.i18n.localize("VISAGE.LightAnim.Hexa"),
+            "ghost": game.i18n.localize("VISAGE.LightAnim.Ghost"),
+            "energy": game.i18n.localize("VISAGE.LightAnim.Energy"),
+            "hole": game.i18n.localize("VISAGE.LightAnim.Hole"),
+            "vortex": game.i18n.localize("VISAGE.LightAnim.Vortex"),
+            "witchwave": game.i18n.localize("VISAGE.LightAnim.Witchwave"),
+            "rainbowswirl": game.i18n.localize("VISAGE.LightAnim.RainbowSwirl"),
+            "radialrainbow": game.i18n.localize("VISAGE.LightAnim.RadialRainbow"),
+            "fairy": game.i18n.localize("VISAGE.LightAnim.Fairy"),
+            "grid": game.i18n.localize("VISAGE.LightAnim.Grid"),
+            "starlight": game.i18n.localize("VISAGE.LightAnim.Starlight"),
+            "revolving": game.i18n.localize("VISAGE.LightAnim.Revolving"),
+            "siren": game.i18n.localize("VISAGE.LightAnim.Siren"),
+            "smokepatch": game.i18n.localize("VISAGE.LightAnim.SmokePatch")
+        };
+
         // Input Value conversions (0-1 -> 0-100)
         const alphaVal = (c.alpha !== undefined && c.alpha !== null) ? Math.round(c.alpha * 100) : 100;
         
@@ -403,7 +420,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (c.lockRotation === true) lockVal = "true";
         if (c.lockRotation === false) lockVal = "false";
 
-        // Helper to format effect for card display
+        // Delay Logic (Convert MS to Seconds for UI)
+        const delaySeconds = Math.abs(this._delayData) / 1000;
+        const delayDirection = this._delayData >= 0 ? "after" : "before";
+
+        // Effect Formatting
         const formatEffect = (e) => ({
             ...e,
             icon: e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
@@ -419,14 +440,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // 2. Build Base Inspector Object with these Groups
         let inspectorData = {
-            hasEffects: this._effects.length > 0,
+            hasEffects: this._effects.length > 0 || this._lightData.active,
             effectsAbove: effectsAbove,
             effectsBelow: effectsBelow,
-            effectsAudio: effectsAudio
+            effectsAudio: effectsAudio,
+            type: null 
         };
 
         // 3. If an effect is selected, merge its editable properties into the inspector object
-        if (this._activeEffectId) {
+        if (this._editingLight) {
+            inspectorData.type = "light";
+            foundry.utils.mergeObject(inspectorData, {
+                dim: this._lightData.dim,
+                bright: this._lightData.bright,
+                color: this._lightData.color,
+                alpha: this._lightData.alpha,
+                animation: this._lightData.animation
+            });
+        } else if (this._activeEffectId) {
             const effect = this._effects.find(e => e.id === this._activeEffectId);
             if (effect) {
                 foundry.utils.mergeObject(inspectorData, {
@@ -445,6 +476,27 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
+        // Light Geometry Calculation (For Scaled Preview)
+        const gridDist = canvas.scene?.grid?.distance || 5; 
+        const tokenWidthUnits = c.width || 1;
+        const lDim = this._lightData?.dim || 0;
+        const lBright = this._lightData?.bright || 0;
+        const lMax = Math.max(lDim, lBright);
+        const sizeRatio = lMax > 0 
+            ? ((lMax * 2) / gridDist) / tokenWidthUnits 
+            : 1;
+        const brightPct = lMax > 0 ? (lBright / lMax) * 100 : 0;
+
+        const animType = this._lightData.animation?.type || "";
+        const animKey = `VISAGE.LightAnim.${animType.charAt(0).toUpperCase() + animType.slice(1)}`;
+        let localizedAnim = (animType && game.i18n.has(animKey)) ? game.i18n.localize(animKey) : animType;
+        if (localizedAnim.endsWith(" (*)")) {
+            localizedAnim = localizedAnim.replace(" (*)", "");
+        }
+        
+        const speed = this._lightData.animation?.speed ?? 5;
+        const animDuration = Math.max(0.5, (11 - speed) * 0.35) + "s";
+
         return {
             ...context, 
             isEdit: !!this.visageId,
@@ -453,43 +505,36 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             categories: Array.from(categorySet).sort(),
             allTags: Array.from(tagSet).sort(),
             tagsString: (data.tags || []).join(","), 
-            
             mode: currentMode,
             appId: this.id,
-
             tabs: {
                 appearance: { active: this._activeTab === "appearance", cssClass: this._activeTab === "appearance" ? "active" : "" },
                 ring: { active: this._activeTab === "ring", cssClass: this._activeTab === "ring" ? "active" : "" },
                 effects: { active: this._activeTab === "effects", cssClass: this._activeTab === "effects" ? "active" : "" }
             },
-
             img: prep(rawImg, ""),
-            
+            portrait: prep(c.portrait, ""),
+            light: {
+                ...this._lightData,
+                localizedAnimation: localizedAnim
+            },
+            lightAnimationOptions: lightAnimationOptions,
+            delay: { value: delaySeconds, direction: delayDirection },
             scale: { 
                 value: (c.scale !== undefined && c.scale !== null) ? Math.round(c.scale * 100) : 100, 
                 active: c.scale !== undefined && c.scale !== null 
             },
-            isFlippedX: { 
-                value: c.mirrorX, 
-                active: c.mirrorX !== undefined && c.mirrorX !== null 
-            },
-            isFlippedY: { 
-                value: c.mirrorY, 
-                active: c.mirrorY !== undefined && c.mirrorY !== null 
-            },
+            isFlippedX: {  value: c.mirrorX, active: c.mirrorX !== undefined && c.mirrorX !== null },
+            isFlippedY: {  value: c.mirrorY, active: c.mirrorY !== undefined && c.mirrorY !== null },
             alpha: { value: alphaVal, active: (c.alpha !== undefined && c.alpha !== null) },
             lockRotation: { value: lockVal, active: true },
             width: prep(c.width, 1),
             height: prep(c.height, 1),
             disposition: prep(c.disposition, 0),
             nameOverride: prep(c.name, ""),
-
             ring: { active: ringActive, ...ringContext },
-            
             hasSequencer: VisageUtilities.hasSequencer,
-            // Pass the populated inspector object to the template
             inspector: inspectorData,
-
             preview: {
                 ...context.meta, 
                 img: resolvedImg || rawImg, 
@@ -497,51 +542,126 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 flipX: context.isFlippedX,
                 flipY: context.isFlippedY,
                 tagList: data.tags || [],
-                alpha: (c.alpha !== undefined && c.alpha !== null) ? c.alpha : 1.0 
+                alpha: (c.alpha !== undefined && c.alpha !== null) ? c.alpha : 1.0 ,
+                hasLight: this._lightData.active,
+                lightColor: this._lightData.color,
+                lightAlpha: this._lightData.alpha ?? 0.5,
+                lightDim: this._lightData.dim,
+                lightBright: this._lightData.bright,
+                lightSizePct: sizeRatio * 100,
+                lightBrightPct: brightPct,
+                lightAnimType: animType,
+                lightAnimDuration: animDuration
             }
         };
     }
 
     /**
      * Updates the Live Preview pane based on current form values.
-     * * **Process:**
-     * 1. Extracts current form data.
-     * 2. Syncs "Active Effect" changes back to the main effects array in memory.
-     * 3. Calculates a "Mock" Visage object representing the current state.
-     * 4. Renders the `visage-preview.hbs` template and injects it into the stage.
-     * 5. Applies CSS transforms (Zoom/Pan).
-     * 6. Updates metadata badges (Scale, Flip, Lock, etc.).
      */
     async _updatePreview() {
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
         const el = this.element;
 
-        // 1. Sync Active Effect Data from Form to Memory
-        // This ensures that typing in the inspector updates the internal effect object immediately.
+        // Helper to safely get nested properties from formData
+        // e.g. get("light.animation.speed")
+        const get = (path) => foundry.utils.getProperty(formData, path);
+
+        // 1. Sync Light Data
+        // We now use 'get()' to retrieve the nested values correctly
+        if (this._editingLight && this._lightData) {
+            const dim = get("light.dim");
+            const bright = get("light.bright");
+            const color = get("light.color");
+            const alpha = get("light.alpha");
+            const animType = get("light.animation.type");
+            const animSpeed = get("light.animation.speed");
+            const animInt = get("light.animation.intensity");
+
+            const angle = get("light.angle");
+            const lumin = get("light.luminosity");
+            const prio = get("light.priority");
+
+            if (dim !== undefined) this._lightData.dim = parseFloat(dim) || 0;
+            if (bright !== undefined) this._lightData.bright = parseFloat(bright) || 0;
+            if (color !== undefined) this._lightData.color = color;
+            if (alpha !== undefined) this._lightData.alpha = parseFloat(alpha);
+
+            if (angle !== undefined) this._lightData.angle = parseInt(angle) || 360;
+
+            if (lumin !== undefined) {
+                const lVal = parseFloat(lumin);
+                this._lightData.luminosity = isNaN(lVal) ? 0.5 : lVal;
+            }
+            
+            if (prio !== undefined) this._lightData.priority = parseInt(prio) || 0;
+            
+            if (animType !== undefined) {
+                if (!this._lightData.animation) this._lightData.animation = {};
+                this._lightData.animation.type = animType;
+                this._lightData.animation.speed = parseInt(animSpeed) || 5;
+                this._lightData.animation.intensity = parseInt(animInt) || 5;
+            }
+            
+            // Live update the Light Card text in the list
+            const lightCard = el.querySelector('.effect-card.pinned-light');
+            if (lightCard) {
+                const meta = lightCard.querySelector('.effect-meta');
+                if (meta) meta.textContent = `${this._lightData.dim} / ${this._lightData.bright} • ${this._lightData.color}`;
+            }
+        }
+
+        // 2. Sync Delay Data
+        // 'delayValue' is a top-level input, so we can access it directly or via get()
+        const delayVal = get("delayValue");
+        if (delayVal !== undefined) {
+            const seconds = parseFloat(delayVal) || 0;
+            const directionBtn = this.element.querySelector('.delay-btn[data-value="after"]');
+            const direction = (directionBtn && directionBtn.classList.contains('active')) ? 1 : -1;
+            this._delayData = Math.round(seconds * 1000) * direction;
+            
+            const display = el.querySelector('.delay-slider-wrapper .value-display');
+            if (display) display.textContent = `${seconds}s`;
+        }
+
+        // 3. Sync Active Effect Data
+        // Effects use flat names (e.g. "effectPath"), so direct access is fine, 
+        // but get() works too for consistency.
         if (this._activeEffectId && this._effects) {
             const effectIndex = this._effects.findIndex(e => e.id === this._activeEffectId);
             if (effectIndex > -1) {
                 const e = this._effects[effectIndex];
                 
-                // Map Form Fields to Effect Properties
-                if (formData.effectPath !== undefined) e.path = formData.effectPath;
-                if (formData.effectLabel !== undefined) e.label = formData.effectLabel || "New Visual";
-                if (formData.effectLoop !== undefined) e.loop = formData.effectLoop;
+                const ePath = get("effectPath");
+                const eLabel = get("effectLabel");
+                const eLoop = get("effectLoop");
+
+                if (ePath !== undefined) e.path = ePath;
+                if (eLabel !== undefined) e.label = eLabel || "New Visual";
+                if (eLoop !== undefined) e.loop = eLoop;
                 
                 if (e.type === "visual") {
-                    if (formData.effectScale !== undefined) e.scale = (parseFloat(formData.effectScale) || 100) / 100;
-                    if (formData.effectOpacity !== undefined) e.opacity = parseFloat(formData.effectOpacity) || 1.0;
-                    if (formData.effectRotation !== undefined) e.rotation = parseFloat(formData.effectRotation) || 0;
-                    if (formData.effectRotationRandom !== undefined) e.rotationRandom = formData.effectRotationRandom || false;
-                    if (formData.effectZIndex !== undefined) e.zOrder = formData.effectZIndex;
-                    if (formData.effectBlendMode !== undefined) e.blendMode = formData.effectBlendMode;
+                    const eScale = get("effectScale");
+                    const eOpac = get("effectOpacity");
+                    const eRot = get("effectRotation");
+                    const eRotRand = get("effectRotationRandom");
+                    const eZ = get("effectZIndex");
+                    const eBlend = get("effectBlendMode");
+
+                    if (eScale !== undefined) e.scale = (parseFloat(eScale) || 100) / 100;
+                    if (eOpac !== undefined) e.opacity = parseFloat(eOpac) || 1.0;
+                    if (eRot !== undefined) e.rotation = parseFloat(eRot) || 0;
+                    if (eRotRand !== undefined) e.rotationRandom = eRotRand || false;
+                    if (eZ !== undefined) e.zOrder = eZ;
+                    if (eBlend !== undefined) e.blendMode = eBlend;
                 }
                 
                 if (e.type === "audio") {
-                     if (formData.effectVolume !== undefined) e.opacity = parseFloat(formData.effectVolume) || 0.8;
+                     const eVol = get("effectVolume");
+                     if (eVol !== undefined) e.opacity = parseFloat(eVol) || 0.8;
                 }
 
-                // Live DOM Update for Sidebar List Item (avoid full re-render)
+                // Live DOM Update
                 const card = el.querySelector(`.effect-card[data-id="${e.id}"]`);
                 if (card) {
                     const nameEl = card.querySelector(".effect-name");
@@ -558,73 +678,77 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // Helper for safely extracting values based on checkbox state
+        // Helper for safely extracting checkbox/value pairs
         const getVal = (key, type = String) => {
-            const isActive = formData[`${key}_active`];
+            const isActive = get(`${key}_active`);
             if (!isActive) return undefined;
-            const raw = formData[key];
+            const raw = get(key);
             if (type === Number) return parseFloat(raw);
             if (type === Boolean) return !!raw;
             return (typeof raw === "string") ? raw.trim() : raw;
         };
 
-        // 2. Extract & Calculate Token Values
-        const isScaleActive = formData.scale_active;
-        const isFlipXActive = formData.isFlippedX !== "";
-        const isFlipYActive = formData.isFlippedY !== "";
+        // 4. Extract Token Values
+        const isScaleActive = get("scale_active");
+        const isFlipXActive = get("isFlippedX") !== "";
+        const isFlipYActive = get("isFlippedY") !== "";
         const imgSrc = getVal("img"); 
 
-        const rawScale = isScaleActive ? (parseFloat(formData.scale) / 100) : 1.0;
-        const flipX = isFlipXActive ? (formData.isFlippedX === "true") : false;
-        const flipY = isFlipYActive ? (formData.isFlippedY === "true") : false;
+        const rawScale = isScaleActive ? (parseFloat(get("scale")) / 100) : 1.0;
+        const flipX = isFlipXActive ? (get("isFlippedX") === "true") : false;
+        const flipY = isFlipYActive ? (get("isFlippedY") === "true") : false;
 
-        const isAlphaActive = formData.alpha_active;
-        const rawAlpha = isAlphaActive ? (parseFloat(formData.alpha) / 100) : 1.0;
-        const lockVal = formData.lockRotation;
+        const isAlphaActive = get("alpha_active");
+        const rawAlpha = isAlphaActive ? (parseFloat(get("alpha")) / 100) : 1.0;
+        const lockVal = get("lockRotation");
         const rawLock = (lockVal === "true");
 
         const width = getVal("width", Number) || 1;
         const height = getVal("height", Number) || 1;
 
-        // 3. Update Grid Dimensions Variable
+        // 5. Update Grid Variable
         const content = el.querySelector('.visage-preview-content.stage-mode');
         if (content) {
             content.style.setProperty('--visage-dim-w', width);
             content.style.setProperty('--visage-dim-h', height);
         }
 
-        // 4. Build Texture Object
+        // 6. Build Texture
         let texture = {};
-        if (imgSrc) {
-            texture.src = imgSrc;
-        }
+        if (imgSrc) texture.src = imgSrc;
         if (isScaleActive || isFlipXActive || isFlipYActive) {
             texture.scaleX = rawScale * (flipX ? -1 : 1);
             texture.scaleY = rawScale * (flipY ? -1 : 1);
         }
         if (Object.keys(texture).length === 0) texture = undefined;
 
-        // 5. Build Ring Object
+        // 7. Build Ring
         let ring = null;
-        if (formData["ring.enabled"]) {
+        if (get("ring.enabled")) {
             let effectsMask = 0;
-            for (const [k, v] of Object.entries(formData)) {
-                if (k.startsWith("effect_") && v === true) effectsMask |= parseInt(k.split("_")[1]);
+            // Iterate all entries to find effect flags
+            // Flatten first if needed, but manual check is safer for known keys
+            const knownEffects = {
+                "effect_2": 2, "effect_4": 4, "effect_8": 8, "effect_16": 16
+            };
+            for (const [key, mask] of Object.entries(knownEffects)) {
+                if (get(key) === true) effectsMask |= mask;
             }
+            
             ring = {
                 enabled: true,
-                colors: { ring: formData.ringColor, background: formData.ringBackgroundColor },
-                subject: { texture: formData.ringSubjectTexture, scale: formData.ringSubjectScale },
+                colors: { ring: get("ringColor"), background: get("ringBackgroundColor") },
+                subject: { texture: get("ringSubjectTexture"), scale: get("ringSubjectScale") },
                 effects: effectsMask
             };
         }
 
-        // 6. Prepare Visual Effects (Styles & Paths)
+        // 8. Prepare Visual Effects
         const activeVisuals = (this._effects || []).filter(e => !e.disabled && e.type === "visual" && e.path);
         const effectsBelow = activeVisuals.filter(e => e.zOrder === "below").map(e => this._prepareEffectStyle(e));
         const effectsAbove = activeVisuals.filter(e => e.zOrder === "above").map(e => this._prepareEffectStyle(e));
 
-        // 7. Construct Mock Data for Presentation
+        // 9. Mock Data
         const mockData = {
             changes: {
                 name: getVal("nameOverride"),
@@ -640,26 +764,55 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 ring: ring,
                 effects: this._effects
             },
-            tags: (formData.tags || "").split(",").map(t => t.trim()).filter(t => t)
+            tags: (get("tags") || "").split(",").map(t => t.trim()).filter(t => t)
         };
 
-        // 8. Resolve Image Paths
-        const ringEnabled = formData["ring.enabled"];
-        const subjectTexture = formData.ringSubjectTexture;
+        // 10. Resolve Paths
+        const ringEnabled = get("ring.enabled");
+        const subjectTexture = get("ringSubjectTexture");
         const mainImage = mockData.changes.texture?.src || "";
         const rawPath = (ringEnabled && subjectTexture) ? subjectTexture : mainImage;
-        
         const resolved = await VisageUtilities.resolvePath(rawPath);
-        const resolvedPath = resolved || rawPath;
-
-        // 9. Generate Presentation Context (Meta badges)
-        const context = VisageData.toPresentation(mockData, {
-            isWildcard: rawPath.includes('*')
-        });
-
+        const context = VisageData.toPresentation(mockData, { isWildcard: rawPath.includes('*') });
         const meta = context.meta;
 
-        // 10. RE-RENDER PREVIEW TEMPLATE
+        // 11. Light Calculations
+        const gridDist = canvas.scene?.grid?.distance || 5;
+        const currentWidth = getVal("width", Number) || 1; 
+
+        const lData = this._lightData || {};
+        const lDim = lData.dim || 0;
+        const lBright = lData.bright || 0;
+        const lColor = lData.color || "#ffffff";
+        const lAlpha = lData.alpha !== undefined ? lData.alpha : 0.5;
+        const lAngle = lData.angle !== undefined ? lData.angle : 360;
+        const lLumin = lData.luminosity !== undefined ? lData.luminosity : 0.5;
+        const lAnim = lData.animation || {};
+        
+        const lMax = Math.max(lDim, lBright);
+        const sizeRatio = lMax > 0 ? ((lMax * 2) / gridDist) / currentWidth : 1;
+        const brightPct = lMax > 0 ? (lBright / lMax) * 100 : 0;
+        
+        // Luminosity color logic
+        const isDarkness = lLumin < 0;
+        const effectiveColor = isDarkness ? "#000000" : lColor;
+        
+        // Scaling Preview Intensity by Luminosity Magnitude
+        const previewOpacity = lAlpha * (Math.abs(lLumin) * 2);
+
+        // Rotation logic
+        // If Flipped Y (North), offset by 0deg. If Default (South), offset by 180deg.
+        const rotationOffset = flipY ? 0 : 180; 
+
+        // Animation
+        const animType = lAnim.type || "";
+        const speed = lAnim.speed || 5;
+        const intensity = lAnim.intensity || 5;
+        
+        const animDuration = Math.max(0.5, (11 - speed) * 0.35) + "s";
+        const animIntensityVal = intensity / 10;
+
+        // 12. Re-render Preview
         const previewData = {
             resolvedPath: resolved || rawPath,
             name: mockData.changes.name,
@@ -677,6 +830,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             forceFlipY: context.isFlippedY,
             wrapperClass: "visage-preview-content stage-mode",
             
+            // Light Props (Uses Persistent Data)
+            hasLight: lData.active,
+            lightColor: effectiveColor,
+            lightAlpha: Math.min(1, previewOpacity),
+            lightDim: lDim,
+            lightBright: lBright,
+            lightSizePct: sizeRatio * 100,
+            lightBrightPct: brightPct,
+            lightAngle: lAngle,
+            lightRotation: rotationOffset,
+            lightAnimType: animType,
+            lightAnimDuration: animDuration,
+            lightAnimIntensity: animIntensityVal,
+            
             effectsBelow: effectsBelow,
             effectsAbove: effectsAbove
         };
@@ -685,7 +852,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         
         const stage = el.querySelector(".visage-live-preview-stage");
         if (stage) {
-            // Preserve UI controls while replacing content
             const controls = stage.querySelector(".visage-zoom-controls");
             const hint = stage.querySelector(".visage-stage-hint");
             const overlay = stage.querySelector(".stage-overlay-name");
@@ -696,11 +862,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (hint) stage.appendChild(hint);
             if (overlay) stage.appendChild(overlay);
 
-            // Calculate Stage Transform (Scale + Flip)
             let visualScale = rawScale; 
-            if (meta.hasRing && formData.ringSubjectTexture) {
-                 visualScale = parseFloat(formData.ringSubjectScale) || 1.0;
-            }
+            if (meta.hasRing && get("ringSubjectTexture")) visualScale = parseFloat(get("ringSubjectScale")) || 1.0;
             this._currentVisualScale = visualScale; 
 
             const scaleX = visualScale * (context.isFlippedX ? -1 : 1);
@@ -723,10 +886,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // 11. Sync Audio Previews (Starts/Stops playback)
         this._syncAudioPreviews();
-
-        // 12. Update UI Slots (Badges)
+        
+        // Update UI Badges
         const findItem = (iconClass) => {
             const icon = el.querySelector(`.metadata-grid i.${iconClass}`) || el.querySelector(`.metadata-grid img[src*="${iconClass}"]`);
             return icon ? icon.closest('.meta-item') : null;
@@ -782,7 +944,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (meta.slots.flipH) updateMirrorSlot('horizontal', meta.slots.flipH);
         if (meta.slots.flipV) updateMirrorSlot('vertical', meta.slots.flipV);
 
-        // Update Labels
         const nameEl = el.querySelector(".token-name-label");
         if (nameEl) {
             nameEl.textContent = mockData.changes.name || "";
@@ -887,8 +1048,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         let isVideo = false;
 
         if (resolvedPath) {
-            const ext = resolvedPath.split('.').pop().toLowerCase();
-            isVideo = ["webm", "mp4", "m4v"].includes(ext);
+            isVideo = VisageUtilities.isVideo(resolvedPath);
         }
 
         return {
@@ -1000,21 +1160,43 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * Triggers the Foundry FilePicker for a specific input field.
      * @private
      */
-    _onOpenFilePicker(event, target) {
+    async _onOpenFilePicker(event, target) {
         const input = target.previousElementSibling?.tagName === "BUTTON" 
             ? target.parentElement.querySelector("input") 
             : target.previousElementSibling;
-            
-        const fp = new foundry.applications.apps.FilePicker({
+
+        let source = "data";
+        const browseOptions = {};
+
+        if (typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge) {
+            browseOptions.cookieKey = true;
+
+            if (!window.ForgeAPI?.lastStatus) {
+                try {
+                    await window.ForgeAPI.status();
+                } catch (err) {
+                    console.warn("Visage | ForgeAPI.status() failed", err);
+                }
+            }
+
+            if (foundry.applications.apps.FilePicker.sources?.forgevtt) {
+                source = "forgevtt";
+            }
+        }
+
+        const fp = new foundry.applications.apps.FilePicker.implementation({
             type: "imagevideo",
             current: input.value,
+            activeSource: source,
+            browseOptions,
             callback: (path) => {
                 input.value = path;
                 this._markDirty();
-                input.dispatchEvent(new Event('change', { bubbles: true }));
+                input.dispatchEvent(new Event("change", { bubbles: true }));
             }
         });
-        fp.browse();
+
+        fp.render(true);
     }
 
     /**
@@ -1087,6 +1269,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onEditEffect(event, target) {
         const card = target.closest('.effect-card');
         this._activeEffectId = card.dataset.id;
+        this._editingLight = false; // <--- SAFETY FIX
         this.render();
     }
 
@@ -1096,8 +1279,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     async _onCloseEffectInspector(event, target) {
         const container = this.element.querySelector('.effects-tab-container');
-        if(container) container.classList.remove('editing');
+        if (container) container.classList.remove('editing');
+        
         this._activeEffectId = null;
+        this._editingLight = false; // <--- CRITICAL FIX
+        
         await this.render();
     }
 
@@ -1175,10 +1361,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onRender(context, options) {
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
+        // 1. Define Debounce for Sliders (50ms)
+        const debouncedSliderUpdate = foundry.utils.debounce(() => this._updatePreview(), 50);
+
+        // 2. Change Listener (Immediate updates for non-typing inputs)
         this.element.addEventListener("change", (event) => {
             this._markDirty();
             
-            // Trigger preview update immediately for Select/File picker/checkbox elements
             if (event.target.matches("select") || 
                 event.target.matches("input[type='text']") || 
                 event.target.matches("input[type='checkbox']")) {
@@ -1187,11 +1376,48 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         });
         
+        // 3. Slider Listeners (Debounced Input + Double-Click Reset)
+        const sliders = this.element.querySelectorAll('input[type="range"]');
+        sliders.forEach(slider => {
+            // Live Update listener
+            slider.addEventListener('input', () => {
+                this._markDirty();
+                debouncedSliderUpdate();
+            });
+            
+            // Reset listener
+            slider.addEventListener('dblclick', (ev) => {
+                let def = 0;
+                const name = ev.target.name;
+                
+                // --- Step 1: General Defaults ---
+                if (name.includes('scale')) def = 100;
+                if (name.includes('alpha') || name.includes('luminosity')) def = 0.5;
+                if (name.includes('speed') || name.includes('intensity')) def = 5;
+                if (name.includes('angle')) def = 360;
+
+                // --- Step 2: Specific Overrides ---
+                if (name.includes('Volume')) def = 1;
+                if (name.includes('Opacity')) def = 1;
+                if (name.includes('ringSubjectScale')) def = 1;
+                
+                ev.target.value = def;
+                
+                // Update display sibling
+                const display = ev.target.nextElementSibling;
+                if (display && display.tagName === 'OUTPUT') display.value = def;
+
+                this._markDirty();
+                this._updatePreview(); // Immediate update on reset
+            });
+        });
+
+        // 4. Generic Input Listeners
         this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
         this._bindDragDrop(this.element);
-        
-        // Debounce text inputs to avoid rapid Preview re-renders
+
+        // 5. Text Input Debounce
         let debounceTimer;
         this.element.addEventListener("input", (event) => {
             this._markDirty();
@@ -1203,7 +1429,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         });
 
-        // Tab Navigation
+        // 6. Tab Navigation
         const tabs = this.element.querySelectorAll(".visage-tabs .item");
         tabs.forEach(t => {
             t.addEventListener("click", (e) => {
@@ -1214,11 +1440,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         if (this._activeTab) this._activateTab(this._activeTab);
 
-        if (this._activeEffectId) {
+        if (this._activeEffectId || this._editingLight) { 
             const container = this.element.querySelector('.effects-tab-container');
             if (container) container.classList.add('editing');
         }
         
+        // 7. Final Initialization
         this._updatePreview();
         this._bindStaticListeners();
         this._bindDynamicListeners();
@@ -1565,6 +1792,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 height: formData.height_active ? getVal("height", Number) : null,
                 lockRotation: formData.lockRotation === "" ? null : (formData.lockRotation === "true"),
                 disposition: formData.disposition_active ? getVal("disposition", Number) : null,
+                portrait: formData.portrait_active ? formData.portrait : null,
+                light: this._lightData.active ? this._lightData : null,
+                delay: this._delayData,
                 ring: null,
                 effects: this._effects // Use the memory state for effects
             }
@@ -1621,5 +1851,35 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             ui.notifications.error(game.i18n.localize("VISAGE.Notifications.SaveFailed"));
             console.error(err);
         }
+    }
+
+    _onToggleLight(event, target) {
+        if (!this._lightData) return;
+        this._lightData.active = !this._lightData.active;
+        this._markDirty();
+        this._updatePreview();
+        this.render();
+    }
+
+    _onEditLight(event, target) {
+        this._editingLight = true;
+        this._activeEffectId = null; // Deselect any active effect
+        this.render();
+    }
+
+    _onToggleDelayDirection(event, target) {
+        const val = target.dataset.value;
+        // Visual toggle update
+        const btns = this.element.querySelectorAll('.delay-direction-toggle button');
+        btns.forEach(b => b.classList.remove('active'));
+        target.classList.add('active');
+        
+        // Update data immediately
+        const secondsInput = this.element.querySelector('range-picker[name="delayValue"]');
+        const seconds = parseFloat(secondsInput.value) || 0;
+        const direction = val === "after" ? 1 : -1; // 'after' = Effects Lead (Positive)
+        this._delayData = Math.round(seconds * 1000) * direction;
+        
+        this._markDirty();
     }
 }

@@ -1,9 +1,9 @@
-/* visage-selector.js */
 import { Visage } from "./visage.js";
 import { VisageGallery } from "./visage-gallery.js"; 
 import { VisageComposer } from "./visage-composer.js";
 import { VisageData } from "./visage-data.js";
 import { VisageUtilities } from "./visage-utilities.js";
+import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -56,9 +56,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token) return;
 
-        const ns = Visage.DATA_NAMESPACE;
-        const currentFormKey = token.document.getFlag(ns, "identity") || "default";
-        const currentStack = token.document.getFlag(ns, "activeStack") || [];
+        const currentFormKey = token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
+        const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
         // Filter stack to keep only the active Identity layer
         const newStack = currentStack.filter(layer => layer.id === currentFormKey);
@@ -74,8 +73,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!token || !token.actor) return { identities: [], overlays: [] };
         
         const actor = token.actor; 
-        const ns = Visage.DATA_NAMESPACE;
-        const currentFormKey = token.document.getFlag(ns, "identity") || "default";
+        const currentFormKey = token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
 
         // 1. Prepare Default Identity (Base Token State)
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
@@ -95,10 +93,18 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
         for (const item of localItems) {
             const rawPath = VisageData.getRepresentativeImage(item.changes);
+
+            let resolvedPortrait = undefined;
+            if (item.changes.portrait) {
+                resolvedPortrait = await Visage.resolvePath(item.changes.portrait);
+            }
+
             const form = VisageData.toPresentation(item, {
                 isActive: item.id === currentFormKey,
-                isWildcard: (rawPath || "").includes('*') 
+                isWildcard: (rawPath || "").includes('*'),
+                resolvedPortrait: resolvedPortrait
             });
+
             form.key = item.id;
             form.resolvedPath = await Visage.resolvePath(form.path);
 
@@ -119,7 +125,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // 4. Prepare Active Stack Display (Bottom Bar)
         // Shows currently active overlays so they can be dismissed individually.
-        const flags = token.document.flags[Visage.MODULE_ID] || {};
+        const flags = token.document.flags[MODULE_ID] || {};
         const activeStack = flags.activeStack || flags.stack || [];
         const visibleStack = activeStack.filter(layer => layer.id !== currentFormKey);
 
@@ -150,7 +156,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         if (formKey) {
             if (formKey === "default") {
                 const token = canvas.tokens.get(this.tokenId);
-                const currentIdentity = token.document.getFlag(Visage.MODULE_ID, "identity");
+                const currentIdentity = token.document.getFlag(MODULE_ID, "identity");
                 if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
             } else {
                 // Visage.apply handles mode logic (Identity Swap vs Overlay Stack) automatically

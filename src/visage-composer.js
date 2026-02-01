@@ -5,8 +5,8 @@
  * @module visage
  */
 
-import { Visage } from "./visage.js";
 import { VisageUtilities } from "./visage-utilities.js";
+import { MODULE_ID } from "./visage-constants.js";
 
 /**
  * The VisageComposer class handles the mathematical composition of token data.
@@ -34,7 +34,7 @@ export class VisageComposer {
 
         // 1. Retrieve Context
         // Determine which stack to process: the one currently on the token, or a temporary override.
-        const allFlags = token.document.flags[Visage.MODULE_ID] || {};
+        const allFlags = token.document.flags[MODULE_ID] || {};
         const currentStack = stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
         
         // 2. Revert Condition
@@ -127,6 +127,9 @@ export class VisageComposer {
 
             // I. Rotation Lock
             if (c.lockRotation !== undefined && c.lockRotation !== null) finalData.lockRotation = c.lockRotation;
+
+            // J. Light Source (V3.2)
+            if (c.light) finalData.light = c.light;
         }
 
         // 5. Reconstruction Phase
@@ -141,9 +144,13 @@ export class VisageComposer {
         // to prevent database desynchronization.
         const updateData = {
             ...finalData,
-            [`flags.${Visage.MODULE_ID}.activeStack`]: currentStack,
-            [`flags.${Visage.MODULE_ID}.originalState`]: base
+            [`flags.${MODULE_ID}.activeStack`]: currentStack,
+            [`flags.${MODULE_ID}.originalState`]: base
         };
+
+        // Ensure light is passed correctly (if it exists)
+        // This is crucial because light is not part of the standard 'texture' object
+        if (finalData.light) updateData.light = finalData.light;
 
         // pass 'visageUpdate: true' to prevent infinite recursion in update hooks
         await token.document.update(updateData, { visageUpdate: true });
@@ -157,7 +164,7 @@ export class VisageComposer {
      */
     static async revertToDefault(tokenDoc) {
         if (!tokenDoc) return;
-        const flags = tokenDoc.flags[Visage.MODULE_ID] || {};
+        const flags = tokenDoc.flags[MODULE_ID] || {};
         return this._revert(tokenDoc, flags);
     }
 
@@ -173,8 +180,8 @@ export class VisageComposer {
         // We just remove the flags to ensure the token is marked as "clean".
         if (!flags.originalState) {
             const clearFlags = {
-                [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
-                [`flags.${Visage.MODULE_ID}.-=originalState`]: null
+                [`flags.${MODULE_ID}.-=activeStack`]: null,
+                [`flags.${MODULE_ID}.-=originalState`]: null
             };
             return tokenDoc.update(clearFlags, { visageUpdate: true });
         }
@@ -183,11 +190,37 @@ export class VisageComposer {
         // Restore the original visual data from the snapshot AND wipe the flags in a single update.
         const updateData = {
             ...flags.originalState,
-            [`flags.${Visage.MODULE_ID}.-=activeStack`]: null,
-            [`flags.${Visage.MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
-            [`flags.${Visage.MODULE_ID}.-=originalState`]: null
+            [`flags.${MODULE_ID}.-=activeStack`]: null,
+            [`flags.${MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
+            [`flags.${MODULE_ID}.-=originalState`]: null
         };
 
         await tokenDoc.update(updateData, { visageUpdate: true });
+    }
+
+    /**
+     * Calculates the "Effective Portrait" based on the current stack priority.
+     * Iterates from the top of the stack (Overlays) down to the bottom (Identity).
+     * @param {Array<Object>} stack - The active Visage stack.
+     * @param {Object} [originalState] - The snapshot of the token/actor before Visage was applied.
+     * @param {string} [currentActorImage] - The current Actor image (used as a fallback if no original state exists).
+     * @returns {string|null} The resolved image path to display on the Actor sheet.
+     */
+    static resolvePortrait(stack, originalState, currentActorImage) {
+        // 1. Search Stack from Top to Bottom
+        // The first layer (highest priority) with a portrait defined "wins".
+        for (let i = stack.length - 1; i >= 0; i--) {
+            if (stack[i].changes?.portrait) {
+                return stack[i].changes.portrait;
+            }
+        }
+
+        // 2. Fallback to Original State (if we are reverting to base)
+        if (originalState?.portrait) {
+            return originalState.portrait;
+        }
+
+        // 3. Fallback to Current Image (Safety catch for first-time application)
+        return currentActorImage;
     }
 }

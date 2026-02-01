@@ -10,7 +10,7 @@
  * @module visage
  */
 
-import { Visage } from "./visage.js";
+import { MODULE_ID } from "./visage-constants.js";
 
 /**
  * Intercepts the Token Config application render to inject original state data.
@@ -25,9 +25,9 @@ export function handleGhostEdit(app, html, data) {
     
     // 1. Safety Checks
     // Only proceed if this token is actually under Visage control and has a snapshot.
-    if (!doc || !doc.flags?.[Visage.MODULE_ID]) return;
+    if (!doc || !doc.flags?.[MODULE_ID]) return;
     
-    const originalState = doc.flags[Visage.MODULE_ID].originalState;
+    const originalState = doc.flags[MODULE_ID].originalState;
     if (!originalState) return; 
 
     // 2. UI Notification
@@ -59,6 +59,7 @@ export function handleGhostEdit(app, html, data) {
 
     // 4. Invisibly Swap Form Values
     // Flatten the original state object to map easily to form input names (e.g., "texture.src")
+    // NOTE: This includes light.* keys because extractVisualState (visage-utilities.js) now includes the light object.
     const flatData = foundry.utils.flattenObject(originalState);
 
     /**
@@ -71,7 +72,7 @@ export function handleGhostEdit(app, html, data) {
         const input = form.querySelector(`[name="${name}"]`);
         if (!input) return;
 
-        // --- SPECIAL CASE: Multi-Checkbox (V12 Ring Effects) ---
+        // --- SPECIAL CASE: Multi-Checkbox (Ring Effects) ---
         // Foundry's <multi-checkbox> custom element expects an array of keys.
         // However, the stored data might be a bitmask number (integer).
         if (input.tagName === "MULTI-CHECKBOX") {

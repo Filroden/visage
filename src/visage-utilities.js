@@ -1,3 +1,5 @@
+import { MODULE_ID } from "./visage-constants.js";
+
 /**
  * @file Shared utility functions for the Visage module.
  * Centralizes logging, path resolution, token state extraction, and theme management.
@@ -5,11 +7,6 @@
  */
 
 export class VisageUtilities {
-    /**
-     * The module ID used for scoping settings and flags.
-     * @type {string}
-     */
-    static MODULE_ID = "visage";
 
     /**
      * Centralized logging helper.
@@ -19,14 +16,55 @@ export class VisageUtilities {
      */
     static log(message, force = false) {
         // Integrate with _dev-mode module if available for standard debug toggling
-        const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(this.MODULE_ID);
-        if (shouldLog) console.log(`${this.MODULE_ID} | ${message}`);
+        const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(MODULE_ID);
+        if (shouldLog) console.log(`${MODULE_ID} | ${message}`);
+    }
+
+    /**
+     * Removes query strings (cache busters) from a file path safely.
+     * * **Strategy:**
+     * 1. Find the last period (.) denoting the file extension.
+     * 2. If a '?' appears *after* that period, it is a cache buster -> Strip it.
+     * 3. If a '?' appears *before* that period (or no period exists), it is a wildcard -> Keep it.
+     * @param {string} path - The raw file path.
+     * @returns {string} The clean path.
+     */
+    static cleanPath(path) {
+        if (!path || typeof path !== "string") return "";
+        
+        const lastDot = path.lastIndexOf(".");
+        
+        // If no extension is found, fallback to standard splitting (unlikely for valid assets)
+        if (lastDot === -1) return path.split("?")[0];
+
+        // Search for a '?' only occurring AFTER the extension dot
+        const queryIndex = path.indexOf("?", lastDot);
+        
+        if (queryIndex !== -1) {
+            // Found a cache buster after the extension
+            return path.substring(0, queryIndex);
+        }
+        
+        // No cache buster found (any '?' present must be before the dot, i.e., a wildcard)
+        return path;
+    }
+
+    /**
+     * Determines if a given file path points to a video file based on extension.
+     * Handles cleaning query strings before checking to ensuring accurate detection.
+     * @param {string} path - The file path to check.
+     * @returns {boolean} True if the file is a video.
+     */
+    static isVideo(path) {
+        if (!path) return false;
+        const clean = this.cleanPath(path);
+        return foundry.helpers.media.VideoHelper.hasVideoExtension(clean);
     }
 
     /**
      * Resolves wildcard paths or S3 bucket URLs into a concrete file path.
      * Filters the directory contents to ensure only files matching the wildcard pattern are selected.
-     * * Handles both local storage ("data") and S3 buckets ("s3").
+     * * Handles local storage ("data") and S3 buckets ("s3").
      * * Decodes URL components to handle spaces and special characters.
      * @param {string} path - The image path (e.g., "tokens/guards/bear-*.png").
      * @returns {Promise<string|null>} The resolved single file path, or null if resolution fails.
@@ -34,13 +72,19 @@ export class VisageUtilities {
     static async resolvePath(path) {
         if (!path) return path;
         
-        // Optimization: If no wildcard characters, return the path as is without filesystem lookup.
-        if (!path.includes('*') && !path.includes('?')) return path;
+        // 1. Clean the path to determine if it truly contains wildcards
+        // We ignore query strings (like Tokenizer's cache busters) for this check.
+        const clean = this.cleanPath(path);
 
-        // Decode URL components (e.g. %20 -> space) before processing
-        // This ensures 'tokens/my%20images/*.png' becomes 'tokens/my images/*.png' for the browser file picker
+        // Optimization: If the CLEAN path has no wildcards, return the ORIGINAL path.
+        // This preserves query strings (cache busters) for the token update, 
+        // while preventing them from breaking the file system lookup below.
+        if (!clean.includes('*') && !clean.includes('?')) return path;
+
+        // 2. Prepare the clean path for FileSystem browsing
+        let processingPath = clean;
         try {
-            path = decodeURIComponent(path);
+            processingPath = decodeURIComponent(processingPath);
         } catch (e) {
             // Ignore decode errors, rely on raw path if decoding fails
         }
@@ -54,9 +98,9 @@ export class VisageUtilities {
             const FilePickerClass = foundry.applications?.apps?.FilePicker;
 
             // Handle S3 Bucket parsing logic
-            if (/\.s3\./i.test(path)) {
+            if (/\.s3\./i.test(processingPath)) {
                 source = "s3";
-                const { bucket, keyPrefix } = FilePickerClass.parseS3URL(path);
+                const { bucket, keyPrefix } = FilePickerClass.parseS3URL(processingPath);
                 if (!bucket) return null; 
                 browseOptions.bucket = bucket;
 
@@ -64,22 +108,42 @@ export class VisageUtilities {
                 directory = lastSlash >= 0 ? keyPrefix.slice(0, lastSlash + 1) : "";
                 pattern   = lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
             }
+            // Handle Core Icons (Public)
+            else if (processingPath.startsWith("icons/") || processingPath.startsWith("systems/") || processingPath.startsWith("modules/")) {
+                 if (processingPath.startsWith("icons/")) source = "public";
+                 const lastSlash = processingPath.lastIndexOf('/');
+                 directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
+                 pattern   = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
+            }
             else {
-                // Non-S3 paths (Data/Public)
-                if (path.startsWith("icons/")) source = "public";
+                const lastSlash = processingPath.lastIndexOf('/');
+                directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
+                pattern   = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
+            }
 
-                const lastSlash = path.lastIndexOf('/');
-                directory = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : "";
-                pattern   = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
+            // Forge initialisation
+            if (typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge) {
+                browseOptions.cookieKey = true;
+
+                // Ensure API is ready
+                if (!window.ForgeAPI?.lastStatus) {
+                    try {
+                        await window.ForgeAPI.status();
+                    } catch (err) {
+                        console.warn("Visage | ForgeAPI.status() failed", err);
+                    }
+                }
+
+                source = "forgevtt";
             }
 
             // Convert wildcard pattern to a strict RegExp
-            // We escape standard regex chars (like . or +) but convert * to .* and ? to .
             const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
             const regex = new RegExp(`^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
 
             // Perform the browse call to get file list
             const content = await FilePickerClass.browse(source, directory, browseOptions);
+            if (!content?.files?.length) return null;
 
             // Filter files returned by the server against our wildcard pattern
             const matches = content.files.filter(file => {
@@ -98,7 +162,6 @@ export class VisageUtilities {
                 const choice = matches[Math.floor(Math.random() * matches.length)];
                 return choice;
             } else {
-                // Warn specifically if the pattern was valid but no files matched it
                 console.warn(`Visage | Wildcard Resolution Failed: No files matched pattern '${pattern}' in directory '${directory}' (Source: ${source})`);
             }
         }
@@ -121,8 +184,6 @@ export class VisageUtilities {
         if (!data) return {};
         
         // Helper: Prefer raw source data (if Document) to avoid temporary flags/mods.
-        // For example, Foundry modifies `document.alpha` automatically when hidden; 
-        // we want the true user setting from `_source` to avoid capturing temporary states.
         const source = data._source || data;
         
         // Fallback helper for nested properties which might not be in _source if they haven't been updated yet
@@ -131,7 +192,18 @@ export class VisageUtilities {
         // Safely extract Ring data (Foundry V12+ Dynamic Token Rings)
         const ringData = source.ring?.toObject?.() ?? source.ring ?? {};
         
-        // Standardize texture properties
+        // Capture Light Source
+        const lightData = source.light?.toObject?.() ?? source.light ?? {};
+
+        // Capture Portrait (Actor Image)
+        let portrait = null;
+        if (data.actor) portrait = data.actor.img;
+        else if (data.document?.actor) portrait = data.document.actor.img;
+        else if (source.actorId && canvas.tokens?.placeables) {
+            const actor = game.actors?.get(source.actorId);
+            if (actor) portrait = actor.img;
+        }
+
         const textureSrc = get("texture.src");
         const scaleX = get("texture.scaleX") ?? 1.0;
         const scaleY = get("texture.scaleY") ?? 1.0;
@@ -151,17 +223,15 @@ export class VisageUtilities {
                 scaleX: scaleX,
                 scaleY: scaleY
             },
-            ring: ringData
+            ring: ringData,
+            light: lightData,
+            portrait: portrait,
+            delay: 0
         };
     }
 
     /**
      * Helper to resolve the Target Actor and Token from a set of IDs.
-     * Supports resolving from Canvas (Linked), Scene (Unlinked/Synthetic), or Actor directory.
-     * * Priority order:
-     * 1. Specific Token on Canvas (active scene)
-     * 2. Specific Token on a Scene (inactive scene)
-     * 3. Actor Document (Sidebar)
      * @param {Object} ids - { actorId, tokenId, sceneId }
      * @returns {Object} { actor, token } - The resolved documents (or null).
      */
@@ -187,7 +257,6 @@ export class VisageUtilities {
 
     /**
      * Applies standard Visage theme classes and RTL settings to an application element.
-     * Used by all UI windows (Editor, Gallery, HUD) to ensure consistent styling.
      * @param {HTMLElement} element - The application's root element.
      * @param {boolean} isLocal - Whether to apply the 'Local' (Gold) or 'Global' (Blue) theme.
      */
@@ -200,7 +269,6 @@ export class VisageUtilities {
         }
 
         // 2. Theme Classes
-        // Ensure we don't have conflicting classes before adding the new one
         element.classList.remove("visage-theme-local", "visage-theme-global");
         
         if (isLocal) {
@@ -212,7 +280,6 @@ export class VisageUtilities {
 
     /**
      * Helper property to check availability of the Sequencer module.
-     * Sequencer is required for advanced visual effects (holograms, glitches, etc).
      * @returns {boolean} True if Sequencer is active.
      */
     static get hasSequencer() { return game.modules.get("sequencer")?.active; }
