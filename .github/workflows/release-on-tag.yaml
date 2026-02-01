@@ -12,7 +12,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      MODULE_ZIP_NAME: visage.zip
+      MODULE_ZIP_NAME: ${{ github.event.repository.name }}.zip
 
     steps:
       - name: Checkout code
@@ -32,51 +32,55 @@ jobs:
       - name: Run pack command
         run: npm run pack
 
-      - name: Update Manifest Details
+      - name: Validate and Update Manifest Details
         run: |
-          echo "Updating module.json details..."
+          # Capture the tag from GitHub context into a bash variable
+          TAG_VERSION="${{ github.ref_name }}"
           
-          # 1. Get the version number without the 'v' (e.g. "3.2.0-beta1")
-          # This assumes your tag is like "v3.2.0-beta1"
-          TAG_VERSION=${{ github.ref_name }}
+          # Strip the 'v' prefix using native Bash syntax
           CLEAN_VERSION=${TAG_VERSION#v}
           
-          # 2. Update the Download Link (as discussed)
-          sed -i -E "s|releases/download/[^/]*/visage.zip|releases/download/${{ github.ref_name }}/visage.zip|g" dist/module.json
+          echo "Validating version $CLEAN_VERSION across files..."
           
-          # 3. Temporarily update the "version" field in the JSON so testers see the right number
-          # This replaces "version": "3.1.1" with "version": "3.2.0-beta1" inside the zip only
-          sed -i -E "s|\"version\": \"[^\"]*\"|\"version\": \"$CLEAN_VERSION\"|g" dist/module.json
+          # Check module.json version
+          JSON_VERSION=$(jq -r '.version' dist/module.json)
+          if [ "$JSON_VERSION" != "$CLEAN_VERSION" ]; then
+            echo "::error::Version mismatch! Tag is $CLEAN_VERSION but module.json is $JSON_VERSION"
+            exit 1
+          fi
+
+          # Check if VERSION.md has the entry
+          if ! grep -q "| **Version $CLEAN_VERSION** |" VERSION.md; then
+            echo "::error::No entry found for Version $CLEAN_VERSION in VERSION.md"
+            exit 1
+          fi
+
+          echo "Validation successful. Updating download links..."
+          
+          # Update the Download Link dynamically using the repo name
+          sed -i -E "s|releases/download/[^/]*/[^/]*\.zip|releases/download/${TAG_VERSION}/${{ env.MODULE_ZIP_NAME }}|g" dist/module.json
 
       - name: Create zip of all dist files
         run: |
           cd dist
           zip -r ../${{ env.MODULE_ZIP_NAME }} .
 
-      - name: Generate Changelog
+      - name: Generate Changelog from VERSION.md
         run: |
-          PREVIOUS_TAG=$(git tag --sort=-v:refname | grep "^v" | sed -n '2p')
-          
           echo "## Release ${{ github.ref_name }}" > changelog.md
           echo "" >> changelog.md
-          echo "**Build Details:**" >> changelog.md
-          echo "- **Commit:** ${{ github.sha }}" >> changelog.md
-          echo "- **Author:** ${{ github.actor }}" >> changelog.md
-          echo "" >> changelog.md
-          echo "---" >> changelog.md
-          echo "" >> changelog.md
-          echo "## Changelog" >> changelog.md
 
-          if [ -z "$PREVIOUS_TAG" ]; then
-            echo "No previous v* tag found. Creating changelog from the current commit." >> changelog.md
-            git log -n 1 --pretty=format:"* %s (%h)" >> changelog.md
+          # Define the clean version here in bash
+          TAG_VERSION="${{ github.ref_name }}"
+          CLEAN_VERSION=${TAG_VERSION#v}
+
+          # Now use the bash variable $CLEAN_VERSION
+          CHANGELOG_CONTENT=$(sed -n "/| \*\*Version $CLEAN_VERSION\*\*/,/| \*\*/p" VERSION.md | sed '1d;$d' | sed 's/^| //;s/ |$//' | sed 's/<br>/\n/g')
+          
+          if [ -z "$CHANGELOG_CONTENT" ]; then
+            git log -n 5 --pretty=format:"* %s (%h)" >> changelog.md
           else
-            echo "Changes since $PREVIOUS_TAG" >> changelog.md
-            if git rev-list $PREVIOUS_TAG..${{ github.ref_name }} | grep -q '.'; then
-              git log --pretty=format:"* %s (%h)" $PREVIOUS_TAG..${{ github.ref_name }} | { grep -E -i '^\* (feat|fix):' || true; } >> changelog.md
-            else
-              echo "* No conventional commits found since last release." >> changelog.md
-            fi
+            echo "$CHANGELOG_CONTENT" >> changelog.md
           fi
 
       - name: Create Release
@@ -87,9 +91,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           body_path: "changelog.md"
-          draft: false
-          # --- UPDATED: Dynamic Prerelease Flag ---
-          # If the tag contains a hyphen (e.g. v3.1.0-beta1), mark as prerelease.
+          draft: true 
           prerelease: ${{ contains(github.ref, '-') }}
           generate_release_notes: false
           files: |

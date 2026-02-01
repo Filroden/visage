@@ -1,3 +1,5 @@
+import { MODULE_ID } from "./visage-constants.js";
+
 /**
  * @file Shared utility functions for the Visage module.
  * Centralizes logging, path resolution, token state extraction, and theme management.
@@ -5,7 +7,6 @@
  */
 
 export class VisageUtilities {
-    static MODULE_ID = "visage";
 
     /**
      * Centralized logging helper.
@@ -15,8 +16,8 @@ export class VisageUtilities {
      */
     static log(message, force = false) {
         // Integrate with _dev-mode module if available for standard debug toggling
-        const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(this.MODULE_ID);
-        if (shouldLog) console.log(`${this.MODULE_ID} | ${message}`);
+        const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(MODULE_ID);
+        if (shouldLog) console.log(`${MODULE_ID} | ${message}`);
     }
 
     /**

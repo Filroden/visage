@@ -29,9 +29,14 @@ export default [
         Macro: "readonly",
         Roll: "readonly",
         Config: "readonly",
+        Handlebars: "readonly",
+        jQuery: "readonly",
+        renderTemplate: "readonly",
+        CONFIG: "readonly",
         // Hosting & Module Globals
         ForgeVTT: "readonly",
         Sequencer: "readonly",
+        Sequence: "readonly",
         Trowel: "readonly"
       }
     },

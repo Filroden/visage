@@ -1,4 +1,5 @@
 import { VisageUtilities } from "./visage-utilities.js";
+import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
 
 /**
  * The primary data controller class for Visage.
@@ -6,8 +7,6 @@ import { VisageUtilities } from "./visage-utilities.js";
  * Handles data normalization, presentation formatting, and state extraction.
  */
 export class VisageData {
-    static MODULE_ID = "visage";
-    static DATA_NAMESPACE = "visage";
     
     /** Flag key for storing local visages on an Actor. */
     static ALTERNATE_FLAG_KEY = "alternateVisages";
@@ -20,7 +19,7 @@ export class VisageData {
      * Sets up the global dictionary object and change listeners.
      */
     static registerSettings() {
-        game.settings.register(this.MODULE_ID, this.SETTING_KEY, {
+        game.settings.register(MODULE_ID, this.SETTING_KEY, {
             name: "Global Visage Library",
             scope: "world",
             config: false,
@@ -136,6 +135,11 @@ export class VisageData {
             layer.changes.texture.src = resolved || layer.changes.texture.src;
         }
 
+        if (layer.changes?.portrait) {
+            const resolvedPortrait = await VisageUtilities.resolvePath(layer.changes.portrait);
+            if (resolvedPortrait) layer.changes.portrait = resolvedPortrait;
+        }
+
         // 4. Handle Ring Data Structure
         if (layer.changes?.ring) {
             if (layer.changes.ring.enabled === true) {
@@ -165,14 +169,9 @@ export class VisageData {
         if (!tokenDoc) return null;
 
         // Retrieve the cached original state if one exists (Visage active), otherwise snapshot now.
-        let sourceData = tokenDoc.flags?.[this.MODULE_ID]?.originalState;
+        let sourceData = tokenDoc.flags?.[MODULE_ID]?.originalState;
         if (!sourceData) {
-            // If linked, use prototype token to bypass temporary canvas effects
-            if (tokenDoc.isLinked && tokenDoc.actor) {
-                sourceData = tokenDoc.actor.prototypeToken.toObject();
-            } else {
-                sourceData = VisageUtilities.extractVisualState(tokenDoc);
-            }
+            sourceData = VisageUtilities.extractVisualState(tokenDoc);
         }
         const src = sourceData.texture?.src || tokenDoc.texture.src;
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
@@ -185,12 +184,12 @@ export class VisageData {
             ? (sourceData.ring.toObject ? sourceData.ring.toObject() : sourceData.ring) 
             : {};
         
-        // NEW: Capture Light Configuration
+        // Capture Light Configuration
         const lightData = sourceData.light
             ? (sourceData.light.toObject ? sourceData.light.toObject() : sourceData.light)
             : (tokenDoc.light.toObject ? tokenDoc.light.toObject() : tokenDoc.light);
 
-        // NEW: Capture Portrait (Actor Image)
+        // Capture Portrait (Actor Image)
         const portrait = sourceData.portrait || tokenDoc.actor?.img || null;
 
         // Check for flipped state in scale
@@ -214,12 +213,9 @@ export class VisageData {
                 width: width,
                 height: height,
                 disposition: disposition,
-                
-                // V3.2 Properties
                 light: lightData,
                 portrait: portrait,
                 delay: 0,
-                
                 ring: ringData
             }
         };
@@ -236,11 +232,11 @@ export class VisageData {
         const c = data.changes || {};
         const tx = c.texture || {};
         
-        // 1. Resolve Main Texture
+        // Resolve Main Texture
         const rawPath = c.texture?.src || "";
         const resolvedPath = options.resolvedPath || rawPath; 
 
-        // 2. Identify Media Type (Use clean path for check)
+        // Identify Media Type (Use clean path for check)
         const cleanPath = VisageUtilities.cleanPath(resolvedPath);
         const isVideo = options.isVideo ?? VisageUtilities.isVideo(cleanPath);
 
@@ -302,7 +298,7 @@ export class VisageData {
         const activeEffects = rawEffects.filter(e => !e.disabled);
         const hasEffects = activeEffects.length > 0;
         
-        // FIX: A light is only "Active" if it exists AND has a radius > 0.
+        // A light is only "Active" if it exists AND has a radius > 0.
         // This prevents default tokens (0/0) from showing the icon.
         const hasLight = c.light && (c.light.dim > 0 || c.light.bright > 0);
         const hasDelay = (c.delay !== undefined && c.delay !== 0);
@@ -317,7 +313,7 @@ export class VisageData {
             // A. Light (Top)
             if (hasLight) {
                 const l = c.light;
-                // V3.2: Resolve Animation Label
+                // Resolve Animation Label
                 let animLabel = "";
                 if (l.animation && l.animation.type) {
                     // Try to localize "VISAGE.LightAnim.Type", fallback to raw type if missing
@@ -385,8 +381,9 @@ export class VisageData {
         const hasPortrait = !!(c.portrait);
         let portraitTooltip = "";
         if (hasPortrait) {
-            // Embed the image directly in the tooltip
-            const cleanPortrait = VisageUtilities.cleanPath(c.portrait);
+            // Use the resolved path passed in options, or fallback to the raw path
+            const displayPortrait = options.resolvedPortrait || c.portrait;
+            const cleanPortrait = VisageUtilities.cleanPath(displayPortrait);
             portraitTooltip = `<img src='${cleanPortrait}' class='visage-tooltip-image' alt='Portrait' />`;
         }
 
@@ -414,18 +411,14 @@ export class VisageData {
                 hasInvisibility: ringCtx.hasInvisibility,
                 ringColor: ringCtx.colors.ring,
                 ringBkg: ringCtx.colors.background,
-                
                 showDataChip: isScaleActive || isDimActive,
                 showFlipBadge: hActive || vActive,
                 showDispositionChip: dispClass !== "none",
                 tokenName: c.name || null,
-                
-                // V3.2 Badges
                 showEffectsBadge: showEffectsBadge,
                 effectsTooltip: effectsTooltip,
                 hasPortrait: hasPortrait,
                 portraitTooltip: portraitTooltip,
-
                 slots: {
                     scale: { active: isScaleActive, val: scaleLabel },
                     dim: { active: isDimActive, val: sizeLabel },
@@ -444,7 +437,7 @@ export class VisageData {
      * Retrieves the raw settings object for global visages.
      * @private
      */
-    static _getRawGlobal() { return game.settings.get(this.MODULE_ID, this.SETTING_KEY); }
+    static _getRawGlobal() { return game.settings.get(MODULE_ID, this.SETTING_KEY); }
 
     /**
      * @returns {Array} List of all active global visages, sorted by creation date.
@@ -479,8 +472,7 @@ export class VisageData {
      */
     static getLocal(actor) {
         if (!actor) return [];
-        const ns = this.DATA_NAMESPACE; 
-        const sourceData = actor.flags?.[ns]?.[this.ALTERNATE_FLAG_KEY] || {};
+        const sourceData = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY] || {};
         const results = [];
 
         for (const [key, data] of Object.entries(sourceData)) {
@@ -572,8 +564,6 @@ export class VisageData {
         if (newDefaultData.height !== undefined) updatePayload.height = newDefaultData.height;
         if (newDefaultData.disposition !== undefined) updatePayload.disposition = newDefaultData.disposition;
         if (newDefaultData.ring) updatePayload.ring = newDefaultData.ring;
-        
-        // V3.2 Properties
         if (newDefaultData.light) updatePayload.light = newDefaultData.light;
 
         // Clean undefined keys
@@ -595,10 +585,10 @@ export class VisageData {
             ...foundry.utils.expandObject(updatePayload) 
         });
 
-        await token.document.update({ [`flags.${this.DATA_NAMESPACE}.originalState`]: newOriginalState });
+        await token.document.update({ [`flags.${DATA_NAMESPACE}.originalState`]: newOriginalState });
 
         // 6. Remove the active mask (since it is now the base)
-        const VisageApi = game.modules.get(this.MODULE_ID).api;
+        const VisageApi = game.modules.get(MODULE_ID).api;
         if (VisageApi) await VisageApi.remove(token.id, visageId);
         
         ui.notifications.info(game.i18n.format("VISAGE.Notifications.DefaultSwapped", { label: targetVisage.label }));
@@ -620,7 +610,7 @@ export class VisageData {
      * @param {Actor|null} [actor=null] - The target actor (null implies Global).
      */
     static async delete(id, actor = null) {
-        if (actor) return actor.update({ [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true });
+        if (actor) return actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true });
         return this.updateGlobal(id, { deleted: true, deletedAt: Date.now() });
     }
 
@@ -630,7 +620,7 @@ export class VisageData {
      * @param {Actor|null} [actor=null] - The target actor.
      */
     static async restore(id, actor = null) {
-        if (actor) return actor.update({ [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false });
+        if (actor) return actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false });
         return this.updateGlobal(id, { deleted: false, deletedAt: null });
     }
 
@@ -640,11 +630,11 @@ export class VisageData {
      * @param {Actor|null} [actor=null] - The target actor.
      */
     static async destroy(id, actor = null) {
-        if (actor) return actor.update({ [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null });
+        if (actor) return actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null });
         const all = this._getRawGlobal();
         if (all[id]) {
             delete all[id];
-            await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
+            await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
         }
     }
 
@@ -670,7 +660,7 @@ export class VisageData {
         };
 
         all[id] = entry;
-        await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
+        await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
         return entry;
     }
 
@@ -680,7 +670,7 @@ export class VisageData {
         const merged = foundry.utils.mergeObject(all[id], updates, { inplace: false });
         merged.updated = Date.now();
         all[id] = merged;
-        await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
+        await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
     }
 
     static async _saveLocal(data, actor) {
@@ -696,7 +686,7 @@ export class VisageData {
         };
 
         await actor.update({
-            [`flags.${this.DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry
+            [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry
         });
         console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
     }
@@ -719,6 +709,6 @@ export class VisageData {
             }
         }
         
-        if (dirty) await game.settings.set(this.MODULE_ID, this.SETTING_KEY, all);
+        if (dirty) await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
     }
 }

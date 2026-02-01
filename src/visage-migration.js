@@ -6,7 +6,8 @@
  */
 
 import { Visage } from "./visage.js";
-import { VisageData } from "./visage-data.js"; 
+import { VisageData } from "./visage-data.js";
+import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
 
 /**
  * Main Migration Routine.
@@ -15,15 +16,13 @@ import { VisageData } from "./visage-data.js";
  * @returns {Promise<void>}
  */
 export async function migrateWorldData() {
-    const ns = Visage.DATA_NAMESPACE;
-    
     // Step 1: Run Legacy v2.2 Migrations (Cleanup old image paths, baked scales)
     // Ensures data is clean before adding new v3 properties.
-    await _migrateV2(ns);
+    await _migrateV2(DATA_NAMESPACE);
 
     // Step 2: Run v3.0 Migration (Add 'mode' field for Identity vs Overlay)
     // This is the critical step for the v3.0 "Unified Model" update.
-    await _migrateV3(ns);
+    await _migrateV3(DATA_NAMESPACE);
 }
 
 /**
@@ -32,17 +31,17 @@ export async function migrateWorldData() {
  * * **Logic:**
  * - Local Visages (Actors) -> Default to 'identity' (preserves classic Visage behavior).
  * - Global Masks (Settings) -> Default to 'overlay' (preserves classic Mask behavior).
- * @param {string} ns - The data namespace.
+ * @param {string} DATA_NAMESPACE - The data namespace.
  * @private
  */
-async function _migrateV3(ns) {
+async function _migrateV3(DATA_NAMESPACE) {
     ui.notifications.info("Visage: Verifying Data Schema (v3.0)...");
     console.groupCollapsed("Visage | Schema Migration v3.0");
 
     // 1. Migrate Local Visages (Flags on Actors)
     let actorsMigrated = 0;
     for (const actor of game.actors) {
-        const flagData = actor.flags[ns] || {};
+        const flagData = actor.flags[DATA_NAMESPACE] || {};
         const alternates = flagData.alternateVisages || {};
         
         let updates = {};
@@ -51,7 +50,7 @@ async function _migrateV3(ns) {
         for (const [key, data] of Object.entries(alternates)) {
             // If missing 'mode', default to 'identity' (classic Visage behavior)
             if (!data.mode) {
-                updates[`flags.${ns}.alternateVisages.${key}.mode`] = "identity";
+                updates[`flags.${DATA_NAMESPACE}.alternateVisages.${key}.mode`] = "identity";
                 hasUpdates = true;
             }
         }
@@ -68,7 +67,7 @@ async function _migrateV3(ns) {
     }
 
     // 2. Migrate Global Library (World Settings)
-    const globals = game.settings.get(Visage.MODULE_ID, VisageData.SETTING_KEY);
+    const globals = game.settings.get(MODULE_ID, VisageData.SETTING_KEY);
     let globalUpdates = false;
     let globalsMigrated = 0;
 
@@ -82,7 +81,7 @@ async function _migrateV3(ns) {
     }
 
     if (globalUpdates) {
-        await game.settings.set(Visage.MODULE_ID, VisageData.SETTING_KEY, globals);
+        await game.settings.set(MODULE_ID, VisageData.SETTING_KEY, globals);
         console.log(`Migrated ${globalsMigrated} Global Entries.`);
     }
 
@@ -94,10 +93,10 @@ async function _migrateV3(ns) {
  * Legacy v2.2 Migration Logic.
  * Kept for compatibility with older worlds upgrading directly to v3.
  * Handles moving data from `visages` (v1) to `alternateVisages` (v2) and cleaning image paths.
- * @param {string} ns - The data namespace.
+ * @param {string} DATA_NAMESPACE - The data namespace.
  * @private
  */
-async function _migrateV2(ns) {
+async function _migrateV2(DATA_NAMESPACE) {
     const legacyKey = Visage.LEGACY_FLAG_KEY || "visages"; 
     const newKey = Visage.ALTERNATE_FLAG_KEY || "alternateVisages";
 
@@ -118,7 +117,7 @@ async function _migrateV2(ns) {
 
     // 2. Iterate and Migrate
     for (const actor of allActors) {
-        const flags = actor.flags[ns];
+        const flags = actor.flags[DATA_NAMESPACE];
         if (!flags) continue;
 
         let updates = {};
@@ -126,19 +125,19 @@ async function _migrateV2(ns) {
 
         // A. Move Legacy 'visages' -> 'alternateVisages'
         if (flags[legacyKey] && !flags[newKey]) {
-            updates[`flags.${ns}.${newKey}`] = flags[legacyKey];
-            updates[`flags.${ns}.-=${legacyKey}`] = null;
+            updates[`flags.${DATA_NAMESPACE}.${newKey}`] = flags[legacyKey];
+            updates[`flags.${DATA_NAMESPACE}.-=${legacyKey}`] = null;
             hasUpdates = true;
         }
 
         // B. Clean Data Structure inside 'alternateVisages'
-        const targetContainer = updates[`flags.${ns}.${newKey}`] || flags[newKey];
+        const targetContainer = updates[`flags.${DATA_NAMESPACE}.${newKey}`] || flags[newKey];
         if (targetContainer) {
             for (const [id, entry] of Object.entries(targetContainer)) {
                 const cleaned = cleanVisageData(entry);
                 // Simple diff check (stringified) to avoid unnecessary database writes
                 if (JSON.stringify(cleaned) !== JSON.stringify(entry)) {
-                    updates[`flags.${ns}.${newKey}.${id}`] = cleaned;
+                    updates[`flags.${DATA_NAMESPACE}.${newKey}.${id}`] = cleaned;
                     hasUpdates = true;
                 }
             }

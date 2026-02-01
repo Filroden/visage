@@ -2,6 +2,7 @@ import { VisageComposer } from "./visage-composer.js";
 import { VisageData } from "./visage-data.js"; 
 import { VisageUtilities } from "./visage-utilities.js";
 import { VisageSequencer } from "./visage-sequencer.js"; 
+import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
 
 /**
  * The core API class for the Visage module.
@@ -9,36 +10,9 @@ import { VisageSequencer } from "./visage-sequencer.js";
  * Acts as the central controller orchestrating Data, Composer, and Sequencer components.
  */
 export class Visage {
-    /**
-     * The module ID used for scoping settings and flags.
-     * @type {string}
-     */
-    static MODULE_ID = "visage";
-
-    /**
-     * The namespace used for document flags.
-     * @type {string}
-     */
-    static DATA_NAMESPACE = "visage";
-
-    /**
-     * Tracks whether the Sequencer module (dependency) is fully ready.
-     * @type {boolean}
-     */
     static sequencerReady = false;
 
-    /**
-     * Logs a message to the console with the module prefix.
-     * @param {string} message - The message to log.
-     * @param {boolean} [force=false] - If true, logs even if debug mode is off.
-     */
     static log(message, force = false) { VisageUtilities.log(message, force); }
-
-    /**
-     * Resolves a file path, handling wildcards or relative paths via Utilities.
-     * @param {string} path - The file path to resolve.
-     * @returns {Promise<string>} The resolved path.
-     */
     static async resolvePath(path) { return VisageUtilities.resolvePath(path); }
 
     /**
@@ -49,7 +23,7 @@ export class Visage {
         this.log("Initializing Visage API (v3)");
         
         // Expose public API methods
-        game.modules.get(this.MODULE_ID).api = {
+        game.modules.get(MODULE_ID).api = {
             apply: this.apply.bind(this),
             remove: this.remove.bind(this),
             revert: this.revert.bind(this),
@@ -74,11 +48,6 @@ export class Visage {
             if (tokenDoc.object && Visage.sequencerReady) {
                 setTimeout(() => VisageSequencer.restore(tokenDoc.object), 250);
             }
-        });
-
-        // Clean up effects when a token is deleted
-        Hooks.on("deleteToken", (tokenDoc) => {
-            if (tokenDoc.object) VisageSequencer.revert(tokenDoc.object);
         });
     }
 
@@ -121,35 +90,43 @@ export class Visage {
 
         const layer = await VisageData.toLayer(data, source);
         const changes = layer.changes || {};
-        const delay = changes.delay || 0; // ms
+        const delay = changes.delay || 0; 
 
         // 2. Prepare Stack Updates
-        const ns = this.DATA_NAMESPACE;
-        let stack = foundry.utils.deepClone(token.document.getFlag(ns, "activeStack") || []);
+        let stack = foundry.utils.deepClone(token.document.getFlag(DATA_NAMESPACE, "activeStack") || []);
         const updateFlags = {};
 
         if (clearStack) {
             if (Visage.sequencerReady) await VisageSequencer.revert(token);
             stack = [];
-            updateFlags[`flags.${ns}.identity`] = layer.id;
+            updateFlags[`flags.${DATA_NAMESPACE}.identity`] = layer.id;
         } else if (switchIdentity) {
-            const currentIdentity = token.document.getFlag(ns, "identity");
+            const currentIdentity = token.document.getFlag(DATA_NAMESPACE, "identity");
             if (currentIdentity) {
                 stack = stack.filter(l => l.id !== currentIdentity);
                 if (Visage.sequencerReady) await VisageSequencer.remove(token, currentIdentity, true);
             }
-            updateFlags[`flags.${ns}.identity`] = layer.id;
+            updateFlags[`flags.${DATA_NAMESPACE}.identity`] = layer.id;
         }
 
+        // Add the new layer to the stack
         stack = stack.filter(l => l.id !== layer.id);
         if (switchIdentity) stack.unshift(layer);
         else stack.push(layer);
         
-        updateFlags[`flags.${ns}.activeStack`] = stack;
+        updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
+
+        // Calculate Effective Portrait using Composer
+        const originalState = token.document.getFlag(DATA_NAMESPACE, "originalState");
+        const targetPortrait = VisageComposer.resolvePortrait(
+            stack, 
+            originalState, 
+            token.actor.img
+        );
 
         // 3. Define Orchestration Tasks
         
-        // Task A: Visual Effects
+        // Task A: Visual Effects (Keep existing)
         const runVisualFX = async () => {
             if (VisageUtilities.hasSequencer && changes.effects) {
                 const isBase = switchIdentity || clearStack;
@@ -157,31 +134,27 @@ export class Visage {
             }
         };
 
-        // Task B: Data Update (Appearance + Light + Portrait)
+        // Task B: Data Update (Simplified)
         const runDataUpdate = async () => {
-            // Commit Stack & Visage Data
             await token.document.update(updateFlags);
             await VisageComposer.compose(token);
 
-            // Update Actor Portrait (if exists)
-            if (changes.portrait && token.actor) {
-                if (token.actor.img !== changes.portrait) {
-                    await token.actor.update({ img: changes.portrait });
+            // Update Actor Portrait
+            if (targetPortrait && token.actor) {
+                if (token.actor.img !== targetPortrait) {
+                    await token.actor.update({ img: targetPortrait });
                 }
             }
         };
 
         // 4. Execute with Transition Timing
         if (delay > 0) {
-            // Effects Lead (Positive): FX -> Wait -> Data
             runVisualFX();
             setTimeout(runDataUpdate, delay);
         } else if (delay < 0) {
-            // Token Leads (Negative): Data -> Wait -> FX
             await runDataUpdate();
             setTimeout(runVisualFX, Math.abs(delay));
         } else {
-            // Instant
             runVisualFX();
             await runDataUpdate();
         }
@@ -199,27 +172,25 @@ export class Visage {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
 
-        const ns = this.DATA_NAMESPACE;
-        let stack = foundry.utils.deepClone(token.document.getFlag(ns, "activeStack") || []);
+        const currentIdentity = token.document.getFlag(DATA_NAMESPACE, "identity");
+
+        let stack = foundry.utils.deepClone(token.document.getFlag(DATA_NAMESPACE, "activeStack") || []);
         
         const initialLength = stack.length;
         stack = stack.filter(l => l.id !== maskId);
         if (stack.length === initialLength) return false;
 
-        // CACHE PORTRAIT BEFORE UPDATE (Critical Fix)
+        // Cache Portrait Before Update
         // We grab the original state now because compose() might wipe the flags if the stack is empty.
-        const originalState = token.document.getFlag(ns, "originalState");
-        const originalPortrait = originalState?.portrait;
-
+        const originalState = token.document.getFlag(DATA_NAMESPACE, "originalState");
         const updateFlags = {};
-        const currentIdentity = token.document.getFlag(ns, "identity");
         
         if (currentIdentity === maskId) {
-            updateFlags[`flags.${ns}.-=identity`] = null;
+            updateFlags[`flags.${DATA_NAMESPACE}.-=identity`] = null;
         }
 
-        if (stack.length === 0) updateFlags[`flags.${ns}.-=activeStack`] = null;
-        else updateFlags[`flags.${ns}.activeStack`] = stack;
+        if (stack.length === 0) updateFlags[`flags.${DATA_NAMESPACE}.-=activeStack`] = null;
+        else updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
 
         await token.document.update(updateFlags);
         await VisageComposer.compose(token);
@@ -228,21 +199,14 @@ export class Visage {
         const isBase = (currentIdentity === maskId);
         if (Visage.sequencerReady) await VisageSequencer.remove(token, maskId, isBase);
 
-        // Revert Actor Portrait
+        // Revert Actor Portrait using Composer
         if (token.actor) {
-            let targetPortrait = null;
-            // Iterate remaining stack to find a new portrait
-            for (let i = stack.length - 1; i >= 0; i--) {
-                if (stack[i].changes?.portrait) {
-                    targetPortrait = stack[i].changes.portrait;
-                    break;
-                }
-            }
-            // Fallback to the cached original state
-            if (!targetPortrait) {
-                targetPortrait = originalPortrait;
-            }
-            // Apply if needed
+            const targetPortrait = VisageComposer.resolvePortrait(
+                stack, 
+                originalState, 
+                originalState?.portrait // Fallback to original
+            );
+            
             if (targetPortrait && token.actor.img !== targetPortrait) {
                 await token.actor.update({ img: targetPortrait });
             }
@@ -262,7 +226,7 @@ export class Visage {
         if (!token) return;
 
         // CACHE PORTRAIT BEFORE WIPE (Critical Fix)
-        const flags = token.document.flags[this.MODULE_ID] || {};
+        const flags = token.document.flags[MODULE_ID] || {};
         const originalPortrait = flags.originalState?.portrait;
 
         // 1. Remove all Sequencer effects
@@ -286,7 +250,7 @@ export class Visage {
     static isActive(tokenOrId, maskId) {
         const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
-        const stack = token.document.getFlag(this.DATA_NAMESPACE, "activeStack") || [];
+        const stack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
         return stack.some(l => l.id === maskId);
     }
 
@@ -337,7 +301,7 @@ export class Visage {
 
         if (!isRelevant) return;
 
-        const flags = tokenDocument.flags[this.MODULE_ID] || {};
+        const flags = tokenDocument.flags[MODULE_ID] || {};
         const stack = flags.activeStack || flags.stack || [];
 
         // If Visage is active, capture the change into the "Original State" instead of the visual surface

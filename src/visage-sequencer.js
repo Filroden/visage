@@ -240,7 +240,9 @@ export class VisageSequencer {
                 const randomKey = children[Math.floor(Math.random() * children.length)];
                 return this._resolveSequencerRecursively(randomKey, depth + 1);
             }
-        } catch(e) { }
+        } catch(e) { 
+            /* The path might not have children; ignore and return null */
+        }
         return null;
     }
 }
