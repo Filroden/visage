@@ -67,17 +67,33 @@ jobs:
 
       - name: Generate Changelog from VERSION.md
         run: |
-          echo "## Release ${{ github.ref_name }}" > changelog.md
+          # 1. Create the Header (Build Details)
+          echo "Build Details:" > changelog.md
+          echo "Commit: ${{ github.sha }}" >> changelog.md
+          echo "Author: ${{ github.actor }}" >> changelog.md
+          echo "Changelog" >> changelog.md
+          echo "Changes since previous version" >> changelog.md
           echo "" >> changelog.md
 
-          # Define the clean version here in bash
+          # 2. Define Version Variables
           TAG_VERSION="${{ github.ref_name }}"
           CLEAN_VERSION=${TAG_VERSION#v}
 
-          # Now use the bash variable $CLEAN_VERSION
-          CHANGELOG_CONTENT=$(sed -n "/| \*\*Version $CLEAN_VERSION\*\*/,/| \*\*/p" VERSION.md | sed '1d;$d' | sed 's/^| //;s/ |$//' | sed 's/<br>/\n/g')
+          # 3. Extract the Table Cell
+          # Logic: 
+          # A. Grep the specific line for this version (using -F for safety)
+          # B. Use 'cut' to grab the 3rd column (everything after the second pipe |)
+          # C. Trim leading/trailing whitespace
+          # D. Convert <br> tags to actual newlines (\n)
           
+          CHANGELOG_CONTENT=$(grep -F "| **Version $CLEAN_VERSION** |" VERSION.md | \
+            cut -d'|' -f3 | \
+            sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | \
+            sed 's/<br>/\n/g')
+          
+          # 4. Check results
           if [ -z "$CHANGELOG_CONTENT" ]; then
+            echo "Manual changelog entry not found. Falling back to git log." >> changelog.md
             git log -n 5 --pretty=format:"* %s (%h)" >> changelog.md
           else
             echo "$CHANGELOG_CONTENT" >> changelog.md
