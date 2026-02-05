@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Rychlost",
     "VISAGE.Editor.Light.Intensity": "Intenzita",
     "VISAGE.Light.Meta.Dim": "Tlumené",
-    "VISAGE.Light.Meta.Bright": "Jasné"
+    "VISAGE.Light.Meta.Bright": "Jasné",
+    "VISAGE.Selector.DragToReorder": "Tažením Přeuspořádat",
+    "VISAGE.Selector.Show": "Zobrazit",
+    "VISAGE.Selector.Hide": "Skrýt"
 }

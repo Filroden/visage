@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Скорость",
     "VISAGE.Editor.Light.Intensity": "Интенсивность",
     "VISAGE.Light.Meta.Dim": "Тусклый",
-    "VISAGE.Light.Meta.Bright": "Яркий"
+    "VISAGE.Light.Meta.Bright": "Яркий",
+    "VISAGE.Selector.DragToReorder": "Перетащите для Сортировки",
+    "VISAGE.Selector.Show": "Показать",
+    "VISAGE.Selector.Hide": "Скрыть"
 }

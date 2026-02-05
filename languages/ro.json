@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Viteză",
     "VISAGE.Editor.Light.Intensity": "Intensitate",
     "VISAGE.Light.Meta.Dim": "Obscur",
-    "VISAGE.Light.Meta.Bright": "Strălucitor"
+    "VISAGE.Light.Meta.Bright": "Strălucitor",
+    "VISAGE.Selector.DragToReorder": "Trage pentru a Reordona",
+    "VISAGE.Selector.Show": "Arată",
+    "VISAGE.Selector.Hide": "Ascunde"
 }

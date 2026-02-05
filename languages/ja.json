@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "速度",
     "VISAGE.Editor.Light.Intensity": "強度",
     "VISAGE.Light.Meta.Dim": "薄暗い",
-    "VISAGE.Light.Meta.Bright": "明るい"
+    "VISAGE.Light.Meta.Bright": "明るい",
+    "VISAGE.Selector.DragToReorder": "ドラッグして並べ替え",
+    "VISAGE.Selector.Show": "表示",
+    "VISAGE.Selector.Hide": "非表示"
 }

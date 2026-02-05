@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Snelheid",
     "VISAGE.Editor.Light.Intensity": "Intensiteit",
     "VISAGE.Light.Meta.Dim": "Dim",
-    "VISAGE.Light.Meta.Bright": "Helder"
+    "VISAGE.Light.Meta.Bright": "Helder",
+    "VISAGE.Selector.DragToReorder": "Sleep om te Rangschikken",
+    "VISAGE.Selector.Show": "Tonen",
+    "VISAGE.Selector.Hide": "Verbergen"
 }

@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Hastighet",
     "VISAGE.Editor.Light.Intensity": "Intensitet",
     "VISAGE.Light.Meta.Dim": "Dimmig",
-    "VISAGE.Light.Meta.Bright": "Klar"
+    "VISAGE.Light.Meta.Bright": "Klar",
+    "VISAGE.Selector.DragToReorder": "Dra för att Sortera",
+    "VISAGE.Selector.Show": "Visa",
+    "VISAGE.Selector.Hide": "Dölj"
 }

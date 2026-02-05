@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "速度",
     "VISAGE.Editor.Light.Intensity": "强度",
     "VISAGE.Light.Meta.Dim": "昏暗",
-    "VISAGE.Light.Meta.Bright": "明亮"
+    "VISAGE.Light.Meta.Bright": "明亮",
+    "VISAGE.Selector.DragToReorder": "拖动以重新排序",
+    "VISAGE.Selector.Show": "显示",
+    "VISAGE.Selector.Hide": "隐藏"
 }

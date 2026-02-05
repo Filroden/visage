@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Velocitat",
     "VISAGE.Editor.Light.Intensity": "Intensitat",
     "VISAGE.Light.Meta.Dim": "Tènue",
-    "VISAGE.Light.Meta.Bright": "Brillant"
+    "VISAGE.Light.Meta.Bright": "Brillant",
+    "VISAGE.Selector.DragToReorder": "Arrossegar per Reordenar",
+    "VISAGE.Selector.Show": "Mostra",
+    "VISAGE.Selector.Hide": "Amaga"
 }
