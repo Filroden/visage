@@ -1039,6 +1039,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.light     { -webkit-mask-image: url('../icons/lightbulb.svg'); mask-image: url('../icons/lightbulb.svg'); }
 .visage-icon.portrait      { -webkit-mask-image: url('../icons/account_box.svg'); mask-image: url('../icons/account_box.svg'); }
 .visage-icon.timer      { -webkit-mask-image: url('../icons/timer.svg'); mask-image: url('../icons/timer.svg'); }
+.visage-icon.flip      { -webkit-mask-image: url('../icons/flip.svg'); mask-image: url('../icons/flip.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -3346,4 +3347,118 @@ button.visage-tool-icon {
     /* Special Mappings */
     --visage-color-header: var(--filroden-color2-bg-darkest);
     --visage-color-border: var(--filroden-color2-text-accent);
+}
+
+
+/* TEST CSS */
+
+/* 1. Widen the HUD to fit the wider tiles */
+.visage.visage-selector-app {
+    width: 22rem !important;
+    max-height: 50vh !important;
+}
+
+.visage .visage-selector {
+    gap: max(24px, 1.5rem) var(--filroden-space-l);
+}
+
+/* 2. The Main Tile Frame */
+.visage .visage-tile {
+    display: flex;
+    flex-direction: column; /* Stack Dashboard on top of Label */
+    position: relative; /* Anchor for absolute badges */
+    padding: var(--filroden-space-l) var(--filroden-space-s);
+    /* Remove old center alignment so flex works */
+    align-items: stretch; 
+}
+
+/* 3. The Dashboard Wrapper (Holds Sidebar + Image) */
+.visage-dashboard {
+    display: flex;
+    flex-direction: row; /* Side-by-side layout */
+    gap: var(--filroden-space-xs);
+    margin-bottom: var(--filroden-space-xs);
+}
+
+/* 4. The Sidebar (Left Gutter) */
+.visage-dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-s);
+    width: 1.5rem; /* Fixed width for glyphs */
+    flex-shrink: 0;
+    padding-top: var(--filroden-space-xs);
+    align-items: center;
+}
+
+/* 5. The Glyph Style */
+.visage-sidebar-glyph {
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--visage-color-text-muted);
+    transition: all 0.2s;
+}
+
+.visage-sidebar-glyph:hover {
+    color: var(--visage-color-text-main-solid);
+    transform: scale(1.1);
+}
+
+/* 6. The Image Container (Right Side) */
+.visage-dashboard-preview {
+    flex: 1; /* Takes remaining space */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* Ensure the image wrapper doesn't fight the flex layout */
+.visage-image-wrapper {
+    width: 6rem; 
+    height: 6rem;
+}
+
+/* 7. Label (Footer) */
+.visage .visage-tile-name {
+    text-align: center;
+    width: 100%;
+    margin-bottom: var(--filroden-space-s);
+    font-size: var(--filroden-font-size-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- BADGE POSITIONING TWEAKS --- */
+
+/* Center Chips (Scale/Dim) - Center relative to TILE */
+.visage .visage-data-chip {
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    /* Ensure z-index is higher than dashboard */
+    z-index: 20; 
+}
+
+/* Bottom Chip (Disposition) */
+.visage .visage-tile .visage-disposition-chip {
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    font-size: var(--filroden-font-size-xs);
+}
+
+.visage .visage-data-chip span {
+    font-size: var(--filroden-font-size-xs);
+}
+
+/* Corner Badges - Keep as is, they anchor to .visage-tile corners */
+.visage .visage-chip { top: -8px; right: -8px; } /* Active */
+.visage .visage-default-indicator { top: -8px; left: -8px; } /* Default */
+
+.visage .visage-selector-grid-wrapper {
+    max-height: 500px;
 }

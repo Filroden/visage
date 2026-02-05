@@ -55,20 +55,34 @@ export async function handleTokenHUD(app, html, data) {
             }
 
             // --- Position Calculation ---
-            // The HUD needs to appear floating next to the button.
-            // We calculate coordinates based on the button's screen position
-            // and the document's root font size to ensure it respects UI scaling.
             const buttonRect = button.getBoundingClientRect();
             const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
             
-            // Hardcoded width matches CSS (14rem) to ensure alignment before rendering.
-            // This prevents the window from "jumping" after it loads.
-            const selectorWidth = 14 * rootFontSize; 
-            const gap = 16; 
-            
-            const top = buttonRect.top; 
-            // Position to the left of the HUD
+            // Width Calculation
+            const selectorWidth = 22 * rootFontSize; 
+            const gap = 32; 
             const left = buttonRect.left - selectorWidth - gap; 
+
+            // --- Height / Floor Collision Logic --- 
+            let top = buttonRect.top; 
+            
+            // 1. Calculate the MAX height allowed by your CSS (50vh)
+            //    We use 0.5 to match the '50vh' in your CSS
+            const maxCssHeight = window.innerHeight * 0.5;
+
+            // 2. Define the 'Collision Box' height
+            //    It is the SMALLER of your content size (approx 550px) or the CSS limit.
+            //    This ensures we don't reserve space we can't use.
+            const hudMaxHeight = Math.min(550, maxCssHeight);
+
+            const viewportHeight = window.innerHeight;
+            const bottomPadding = 32;
+
+            // 3. Check Collision: Does the HUD extend past the screen bottom?
+            if (top + hudMaxHeight > viewportHeight) {
+                // Shift Up: Align bottom of HUD with bottom of screen (minus padding)
+                top = viewportHeight - hudMaxHeight - bottomPadding;
+            }
 
             const selectorApp = new VisageSelector({
                 actorId: actor.id, 
