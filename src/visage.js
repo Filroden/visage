@@ -29,7 +29,9 @@ export class Visage {
             revert: this.revert.bind(this),
             getAvailable: this.getAvailable.bind(this),
             isActive: this.isActive.bind(this),
-            resolvePath: VisageUtilities.resolvePath.bind(VisageUtilities)
+            resolvePath: VisageUtilities.resolvePath.bind(VisageUtilities),
+            toggleLayer: this.toggleLayer.bind(this),
+            reorderStack: this.reorderStack.bind(this)
         };
 
         // Hook into Sequencer to ensure effects are restored when the scene loads
@@ -319,6 +321,84 @@ export class Visage {
             // Sanitize and re-compose the token to maintain the illusion over the new base
             const cleanBase = VisageUtilities.extractVisualState(dirtyBase);
             await VisageComposer.compose(tokenDocument.object, null, cleanBase);
+        }
+    }
+
+    // [Add these methods to the Visage class]
+
+    /**
+     * Toggles the visibility of a specific layer in the stack.
+     * This triggers a "Loud Update" (plays effects if turning ON).
+     * @param {Token|string} tokenOrId 
+     * @param {string} layerId 
+     */
+    static async toggleLayer(tokenOrId, layerId) {
+        const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
+        if (!token) return;
+
+        const stack = foundry.utils.deepClone(token.document.getFlag(DATA_NAMESPACE, "activeStack") || []);
+        const layer = stack.find(l => l.id === layerId);
+        if (!layer) return;
+
+        // 1. Toggle State
+        layer.disabled = !layer.disabled;
+        const isVisible = !layer.disabled;
+
+        // 2. Update Data (Silent Flag Update)
+        await token.document.update({
+            [`flags.${DATA_NAMESPACE}.activeStack`]: stack
+        });
+
+        // 3. Update Composer (Visual Data)
+        await VisageComposer.compose(token);
+
+        // 4. Update Sequencer (Effects)
+        // If turning ON: Treat as fresh apply (Play One-Shots)
+        // If turning OFF: Remove effects
+        if (Visage.sequencerReady) {
+            if (isVisible) {
+                // We pass 'false' for isBase to treat it as an overlay add
+                await VisageSequencer.apply(token, layer, false);
+            } else {
+                await VisageSequencer.remove(token, layerId, false);
+            }
+        }
+    }
+
+    /**
+     * Reorders the active stack based on a list of IDs.
+     * This triggers a "Silent Update" (updates data/Z-index, skips One-Shots).
+     * @param {Token|string} tokenOrId 
+     * @param {Array<string>} newOrderIds - Array of Layer IDs in the desired order (Bottom to Top).
+     */
+    static async reorderStack(tokenOrId, newOrderIds) {
+        const token = (typeof tokenOrId === "string") ? canvas.tokens.get(tokenOrId) : tokenOrId;
+        if (!token) return;
+
+        const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
+        
+        // Sort the stack to match the new ID order
+        // Layers not in newOrderIds (shouldn't happen) are moved to the bottom
+        const newStack = currentStack.sort((a, b) => {
+            const indexA = newOrderIds.indexOf(a.id);
+            const indexB = newOrderIds.indexOf(b.id);
+            return (indexA === -1 ? 0 : indexA) - (indexB === -1 ? 0 : indexB);
+        });
+
+        // 1. Update Data
+        await token.document.update({
+            [`flags.${DATA_NAMESPACE}.activeStack`]: newStack
+        });
+
+        // 2. Update Composer (Recalculate Stacking Rules)
+        await VisageComposer.compose(token);
+
+        // 3. Update Sequencer (Z-Index Only)
+        // We do NOT call apply() here to avoid replaying explosions.
+        // Assuming VisageSequencer has a method to just refresh Z-sorting. 
+        // If not, this is where you'd implement a 'softRefresh' method.
+        if (Visage.sequencerReady && VisageSequencer.updateStackOrder) {
+             await VisageSequencer.updateStackOrder(token);
         }
     }
 }
