@@ -56,32 +56,39 @@ export async function handleTokenHUD(app, html, data) {
 
             // --- Position Calculation ---
             const buttonRect = button.getBoundingClientRect();
-            const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-            
-            // Width Calculation
-            const selectorWidth = 22 * rootFontSize; 
-            const gap = 32; 
-            const left = buttonRect.left - selectorWidth - gap; 
-
-            // --- Height / Floor Collision Logic --- 
-            let top = buttonRect.top; 
-            
-            // 1. Calculate the MAX height allowed by your CSS (50vh)
-            //    We use 0.5 to match the '50vh' in your CSS
-            const maxCssHeight = window.innerHeight * 0.5;
-
-            // 2. Define the 'Collision Box' height
-            //    It is the SMALLER of your content size (approx 550px) or the CSS limit.
-            //    This ensures we don't reserve space we can't use.
-            const hudMaxHeight = Math.min(550, maxCssHeight);
-
+            const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
-            const bottomPadding = 32;
+            
+            // GAP LOGIC (Horizontal)
+            // We want the HUD's Right Edge to be exactly 32px to the left of the button.
+            // Formula: Distance from Screen Right = (Screen Width - Button Left) + Gap
+            const gap = 32;
+            const rightPos = (viewportWidth - buttonRect.left) + gap;
 
-            // 3. Check Collision: Does the HUD extend past the screen bottom?
-            if (top + hudMaxHeight > viewportHeight) {
-                // Shift Up: Align bottom of HUD with bottom of screen (minus padding)
-                top = viewportHeight - hudMaxHeight - bottomPadding;
+            // ANCHOR LOGIC (Vertical)
+            // If space is tight (< 500px), anchor to BOTTOM (grow up).
+            // Otherwise, anchor to TOP (grow down).
+            let uiPosition = { right: rightPos };
+            
+            const minComfortableSpace = 500; 
+            const spaceBelow = viewportHeight - buttonRect.top;
+
+            if (spaceBelow < minComfortableSpace) {
+                // [CASE A] Low on screen: Anchor BOTTOM (grow upwards)
+                // Logic: Align the bottom of the UI with the bottom of the button.
+                // CSS 'bottom' is the distance from the viewport bottom edge.
+                // We use buttonRect.bottom to capture the exact bottom edge of the button (including its 35px height).
+                uiPosition.bottom = viewportHeight - buttonRect.bottom;
+            } else {
+                // [CASE B] High on screen: Anchor TOP (grow downwards)
+                // Logic: Align the top of the UI with the top of the button.
+                uiPosition.top = buttonRect.top;
+            }
+
+            // Close existing if open
+            if (Visage.apps[selectorId]) {
+                Visage.apps[selectorId].close();
+                return;
             }
 
             const selectorApp = new VisageSelector({
@@ -89,7 +96,7 @@ export async function handleTokenHUD(app, html, data) {
                 tokenId: token.id, 
                 sceneId: sceneId,
                 id: selectorId, 
-                position: { left, top }
+                uiPosition: uiPosition // Pass our safe custom object
             });
             
             selectorApp.render(true);

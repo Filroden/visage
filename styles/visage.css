@@ -614,7 +614,7 @@ li.context-item .visage-icon-domino {
     position: fixed; 
     display: block;
     width: 22rem !important; /* Hardcoded to match JS calculation */
-    max-height: 50vh !important; 
+    max-height: 80vh !important; 
 }
 
 .visage.visage-selector-app .window-header {
@@ -625,6 +625,9 @@ li.context-item .visage-icon-domino {
     box-shadow: var(--filroden-shadow-window);
     z-index: 20;
     transition: all 0.2s ease-out;
+    overflow-y: auto !important; 
+    max-height: 100%;
+    flex-wrap: nowrap;
 }
 
 .visage .visage-selector-header {
@@ -3386,4 +3389,68 @@ button.visage-tool-icon {
     /* Special Mappings */
     --visage-color-header: var(--filroden-color2-bg-darkest);
     --visage-color-border: var(--filroden-color2-text-accent);
+}
+
+/* TEST CSS *.
+
+/* Stack List Items */
+.visage .stack-item {
+    /* ... existing styles ... */
+    cursor: default; /* Default cursor for the row */
+    transition: background-color 0.2s, opacity 0.2s, transform 0.2s;
+}
+
+.visage .stack-item.visage-disabled {
+    opacity: 0.5;
+    background: var(--visage-color-bg-darkest);
+    border-style: dashed;
+}
+
+/* Drag & Drop States */
+.visage .stack-item[draggable="true"] .drag-handle {
+    cursor: grab;
+    color: var(--visage-color-text-muted);
+    padding-right: var(--filroden-space-xs);
+    display: flex;
+    align-items: center;
+}
+
+.visage .stack-item[draggable="true"] .drag-handle:hover {
+    color: var(--visage-color-text-main);
+}
+
+.visage .stack-item.dragging {
+    opacity: 0.4;
+    border: 1px dashed var(--visage-color-accent);
+}
+
+.visage .stack-item.over {
+    border-top: 2px solid var(--visage-color-accent);
+    transform: translateY(2px);
+}
+
+/* Visibility Button */
+.visage .stack-item .visibility-btn {
+    width: 1.5rem;
+    height: 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--visage-color-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--filroden-space-xs);
+    padding: 0;
+}
+
+.visage .stack-item .visibility-btn:hover {
+    color: var(--visage-color-text-main);
+}
+
+.visage .stack-item .stack-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    object-fit: contain;
+    border-radius: 2px;
 }

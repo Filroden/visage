@@ -70,6 +70,8 @@ export class VisageComposer {
         if (!finalData.texture) finalData.texture = {};
 
         for (const layer of currentStack) {
+            if (layer.disabled) continue;
+
             const c = layer.changes || {}; 
 
             // A. Texture Source
@@ -108,7 +110,7 @@ export class VisageComposer {
             if (c.mirrorY !== undefined && c.mirrorY !== null) currentMirrorY = c.mirrorY;
 
             // D. Dynamic Ring
-            if (c.ring) { finalData.ring = c.ring; }
+            if (c.ring && c.ring.enabled) { finalData.ring = c.ring; }
 
             // E. Disposition
             if (c.disposition !== undefined && c.disposition !== null) {
