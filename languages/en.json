@@ -305,5 +305,10 @@
     "VISAGE.Editor.Light.Speed": "Speed",
     "VISAGE.Editor.Light.Intensity": "Intensity",
     "VISAGE.Light.Meta.Dim": "Dim",
-    "VISAGE.Light.Meta.Bright": "Bright"
+    "VISAGE.Light.Meta.Bright": "Bright",
+
+    "_comment_V3_3_KEYS": "--- V3.3 KEYS ---",
+    "VISAGE.Selector.DragToReorder": "Drag to Reorder",
+    "VISAGE.Selector.Show": "Show",
+    "VISAGE.Selector.Hide": "Hide"
 }

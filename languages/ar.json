@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "\u200Fسرعة",
     "VISAGE.Editor.Light.Intensity": "\u200Fكثافة",
     "VISAGE.Light.Meta.Dim": "\u200Fخافت",
-    "VISAGE.Light.Meta.Bright": "\u200Fساطع"
+    "VISAGE.Light.Meta.Bright": "\u200Fساطع",
+    "VISAGE.Selector.DragToReorder": "\u200Fاسحب لإعادة الترتيب",
+    "VISAGE.Selector.Show": "\u200Fإظهار",
+    "VISAGE.Selector.Hide": "\u200Fإخفاء"
 }

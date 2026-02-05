@@ -55,27 +55,48 @@ export async function handleTokenHUD(app, html, data) {
             }
 
             // --- Position Calculation ---
-            // The HUD needs to appear floating next to the button.
-            // We calculate coordinates based on the button's screen position
-            // and the document's root font size to ensure it respects UI scaling.
             const buttonRect = button.getBoundingClientRect();
-            const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
             
-            // Hardcoded width matches CSS (14rem) to ensure alignment before rendering.
-            // This prevents the window from "jumping" after it loads.
-            const selectorWidth = 14 * rootFontSize; 
-            const gap = 16; 
+            // GAP LOGIC (Horizontal)
+            // We want the HUD's Right Edge to be exactly 32px to the left of the button.
+            // Formula: Distance from Screen Right = (Screen Width - Button Left) + Gap
+            const gap = 32;
+            const rightPos = (viewportWidth - buttonRect.left) + gap;
+
+            // ANCHOR LOGIC (Vertical)
+            // If space is tight (< 500px), anchor to BOTTOM (grow up).
+            // Otherwise, anchor to TOP (grow down).
+            let uiPosition = { right: rightPos };
             
-            const top = buttonRect.top; 
-            // Position to the left of the HUD
-            const left = buttonRect.left - selectorWidth - gap; 
+            const minComfortableSpace = 500; 
+            const spaceBelow = viewportHeight - buttonRect.top;
+
+            if (spaceBelow < minComfortableSpace) {
+                // [CASE A] Low on screen: Anchor BOTTOM (grow upwards)
+                // Logic: Align the bottom of the UI with the bottom of the button.
+                // CSS 'bottom' is the distance from the viewport bottom edge.
+                // We use buttonRect.bottom to capture the exact bottom edge of the button (including its 35px height).
+                uiPosition.bottom = viewportHeight - buttonRect.bottom;
+            } else {
+                // [CASE B] High on screen: Anchor TOP (grow downwards)
+                // Logic: Align the top of the UI with the top of the button.
+                uiPosition.top = buttonRect.top;
+            }
+
+            // Close existing if open
+            if (Visage.apps[selectorId]) {
+                Visage.apps[selectorId].close();
+                return;
+            }
 
             const selectorApp = new VisageSelector({
                 actorId: actor.id, 
                 tokenId: token.id, 
                 sceneId: sceneId,
                 id: selectorId, 
-                position: { left, top }
+                uiPosition: uiPosition // Pass our safe custom object
             });
             
             selectorApp.render(true);

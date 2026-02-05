@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Швидкість",
     "VISAGE.Editor.Light.Intensity": "Інтенсивність",
     "VISAGE.Light.Meta.Dim": "Тьмяне",
-    "VISAGE.Light.Meta.Bright": "Яскраве"
+    "VISAGE.Light.Meta.Bright": "Яскраве",
+    "VISAGE.Selector.DragToReorder": "Перетягніть для Сортування",
+    "VISAGE.Selector.Show": "Показати",
+    "VISAGE.Selector.Hide": "Приховати"
 }

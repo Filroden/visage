@@ -25,14 +25,14 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         this.actorId = options.actorId;
         this.tokenId = options.tokenId;
         this.sceneId = options.sceneId;
+        this.uiPosition = options.uiPosition;
     }
 
     static DEFAULT_OPTIONS = {
         tag: "div",
         id: "visage-selector",
         classes: ["visage", "visage-selector-app", "borderless"],
-        position: { width: "auto", height: "auto" },
-        window: { frame: false, positioned: true },
+        window: { frame: false, positioned: false },
         actions: {
             selectVisage: VisageSelector.prototype._onSelectVisage,
             openConfig: VisageSelector.prototype._onOpenConfig,
@@ -136,7 +136,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 id: layer.id,
                 label: layer.label,
                 icon: img,
-                themeClass: themeClass
+                themeClass: themeClass,
+                disabled: layer.disabled
             };
         }).reverse();
 
@@ -192,17 +193,125 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         else if (action === "openConfig") this._onOpenConfig(event, target);
         else if (action === "revertGlobal") this._onRevertGlobal(event, target);
         else if (action === "removeLayer") this._onRemoveLayer(event, target);
+        else if (action === "toggleVisibility") this._onToggleVisibility(event, target);
+    }
+
+    async _onToggleVisibility(event, target) {
+        const layerId = target.dataset.layerId;
+        // Call the new API method
+        await Visage.toggleLayer(this.tokenId, layerId);
+        this.render();
     }
 
     _onRender(context, options) {
+        // Ensure standard theme/listeners are bound
         VisageUtilities.applyVisageTheme(this.element, true);
         this._unbindDismissListeners();
         this._bindDismissListeners();
+        this._bindDragDrop();
+
+        // Manual Position Application
+        if (this.uiPosition) {
+            const el = this.element;
+            
+            // 1. Enforce Fixed Positioning (Overrides any centering defaults)
+            el.style.position = "fixed";
+            
+            // 2. Clear potential conflicting styles
+            el.style.left = "auto"; 
+            el.style.top = "auto";
+            el.style.bottom = "auto";
+            el.style.right = "auto";
+
+            // 3. Apply Horizontal Anchor (The Right-Side Gap)
+            if (this.uiPosition.right) {
+                el.style.right = `${this.uiPosition.right}px`;
+            }
+
+            // 4. Apply Vertical Anchor (Drop-up vs Drop-down)
+            if (this.uiPosition.bottom) {
+                el.style.bottom = `${this.uiPosition.bottom}px`;
+            } else if (this.uiPosition.top) {
+                el.style.top = `${this.uiPosition.top}px`;
+            }
+        }
     }
 
     async close(options) {
         this._unbindDismissListeners();
         return super.close(options);
+    }
+
+    /**
+     * Handles Drag and Drop reordering for the stack list.
+     */
+    _bindDragDrop() {
+        const list = this.element.querySelector('.visage-sortable-list');
+        if (!list) return;
+
+        let dragSrcEl = null;
+
+        const items = list.querySelectorAll('li.stack-item');
+        items.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                dragSrcEl = item;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', item.outerHTML);
+                item.classList.add('dragging');
+            });
+
+            item.addEventListener('dragover', (e) => {
+                if (e.preventDefault) e.preventDefault();
+                return false;
+            });
+
+            item.addEventListener('dragenter', (e) => {
+                item.classList.add('over');
+            });
+
+            item.addEventListener('dragleave', (e) => {
+                item.classList.remove('over');
+            });
+
+            item.addEventListener('dragend', (e) => {
+                item.classList.remove('dragging');
+                items.forEach(i => i.classList.remove('over'));
+            });
+
+            item.addEventListener('drop', async (e) => {
+                e.stopPropagation();
+                if (dragSrcEl !== item) {
+                    // 1. Visual Swap (Immediate Feedback)
+                    // Note: The stack list is visually REVERSED (Top layer at Top of list).
+                    // But the array is Bottom-to-Top.
+                    
+                    // Get all IDs in the visual order (Top to Bottom)
+                    const allItems = [...list.querySelectorAll('li.stack-item')];
+                    const srcIndex = allItems.indexOf(dragSrcEl);
+                    const targetIndex = allItems.indexOf(item);
+                    
+                    // Move in DOM
+                    if (srcIndex < targetIndex) {
+                        item.after(dragSrcEl);
+                    } else {
+                        item.before(dragSrcEl);
+                    }
+
+                    // 2. Calculate New Logic Order (Bottom to Top)
+                    // We grab the DOM order again, map to IDs, then REVERSE it to match logic stack
+                    const newVisualOrder = [...list.querySelectorAll('li.stack-item')].map(li => li.dataset.layerId);
+                    const newLogicOrder = newVisualOrder.reverse();
+                    
+                    // 3. Save
+                    await Visage.reorderStack(this.tokenId, newLogicOrder);
+                    
+                    // Render is optional if the DOM swap looked correct, 
+                    // but safer to re-render to ensure state is clean
+                    this.render(); 
+                }
+                return false;
+            });
+        });
     }
 
     /**

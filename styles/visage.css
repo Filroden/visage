@@ -555,7 +555,7 @@ li.context-item .visage-icon-domino {
 
 .visage .visage-data-chip span {
     margin-top: 0;
-    font-size: var(--filroden-font-size-xxs);
+    font-size: var(--filroden-font-size-xs);
 }
 
 .visage .visage-data-chip .visage-status-icon {
@@ -613,8 +613,8 @@ li.context-item .visage-icon-domino {
 .visage.visage-selector-app {
     position: fixed; 
     display: block;
-    width: 14rem !important; /* Hardcoded to match JS calculation */
-    max-height: 460px; 
+    width: 22rem !important; /* Hardcoded to match JS calculation */
+    max-height: 80vh !important; 
 }
 
 .visage.visage-selector-app .window-header {
@@ -625,6 +625,9 @@ li.context-item .visage-icon-domino {
     box-shadow: var(--filroden-shadow-window);
     z-index: 20;
     transition: all 0.2s ease-out;
+    overflow-y: auto !important; 
+    max-height: 100%;
+    flex-wrap: nowrap;
 }
 
 .visage .visage-selector-header {
@@ -743,6 +746,8 @@ li.context-item .visage-icon-domino {
     border-radius: var(--filroden-radius-small);
     padding: var(--filroden-space-xs) var(--filroden-space-s);
     min-height: 2rem;
+    cursor: default;
+    transition: background-color 0.2s, opacity 0.2s, transform 0.2s;
 }
 
 .visage .stack-item .effect-label {
@@ -800,6 +805,62 @@ li.context-item .visage-icon-domino {
     background: inherit;
 }
 
+.visage .stack-item.visage-disabled {
+    opacity: 0.5;
+    background: var(--visage-color-bg-darkest);
+    border-style: dashed;
+}
+
+.visage .stack-item[draggable="true"] .drag-handle {
+    cursor: grab;
+    color: var(--visage-color-text-muted);
+    padding-right: var(--filroden-space-xs);
+    display: flex;
+    align-items: center;
+}
+
+.visage .stack-item[draggable="true"] .drag-handle:hover {
+    color: var(--visage-color-text-main);
+}
+
+.visage .stack-item.dragging {
+    opacity: 0.4;
+    border: 1px dashed var(--visage-color-accent);
+}
+
+.visage .stack-item.over {
+    border-top: 2px solid var(--visage-color-accent);
+    transform: translateY(2px);
+}
+
+.visage .stack-item .visibility-btn {
+    width: 1.5rem;
+    height: 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--visage-color-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--filroden-space-xs);
+    padding: 0;
+}
+
+.visage .stack-item .visibility-btn:hover {
+    color: var(--visage-color-text-main);
+    background: var(--visage-color-bg-hover-solid);
+    border-color: var(--visage-color-accent);
+    box-shadow: none;
+}
+
+.visage .stack-item .stack-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    object-fit: contain;
+    border-radius: 2px;
+}
+
 /* --- Grid Display --- */
 
 .visage .visage-selector-grid-wrapper {
@@ -808,13 +869,13 @@ li.context-item .visage-icon-domino {
     flex-grow: 1;
     padding-block: var(--filroden-space-m) var(--filroden-space-l);
     padding-inline: var(--filroden-space-s);
-    max-height: 400px;
+    max-height: 500px;
 }
 
 .visage .visage-selector {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: max(24px, 1.5rem) var(--filroden-space-l); 
+    gap: max(24px, 1.5rem) var(--filroden-space-l);
     width: 100%;
     margin-top: var(--filroden-space-l);
 }
@@ -823,11 +884,10 @@ li.context-item .visage-icon-domino {
     position: relative; 
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     border: 2px solid var(--visage-color-accent);
     border-radius: var(--filroden-radius-medium);
-    padding-block: var(--filroden-space-xs) var(--filroden-space-l);
-    padding-inline: var(--filroden-space-xs); 
+    padding: var(--filroden-space-l) var(--filroden-space-s);
     cursor: pointer;
     background: var(--visage-color-bg-medium-solid);
     transition: background-color 0.1s, border-color 0.1s;
@@ -843,6 +903,45 @@ li.context-item .visage-icon-domino {
     border-color: var(--filroden-color-success);
 }
 
+.visage-dashboard {
+    display: flex;
+    flex-direction: row;
+    gap: var(--filroden-space-xs);
+    margin-bottom: var(--filroden-space-xs);
+}
+
+.visage-dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-s);
+    width: 1.5rem;
+    flex-shrink: 0;
+    padding-top: var(--filroden-space-xs);
+    align-items: center;
+}
+
+.visage-sidebar-glyph {
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--visage-color-text-muted);
+    transition: all 0.2s;
+}
+
+.visage-sidebar-glyph:hover {
+    color: var(--visage-color-text-main-solid);
+    transform: scale(1.1);
+}
+
+.visage-dashboard-preview {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .visage .visage-tile-name {
     font-size: var(--filroden-font-size-xs);
     text-align: center;
@@ -851,13 +950,14 @@ li.context-item .visage-icon-domino {
     text-overflow: ellipsis;
     width: 100%;
     margin-top: var(--filroden-space-xs);
+    margin-bottom: var(--filroden-space-s);
     color: var(--visage-color-text-main-solid);
 }
 
 .visage-image-wrapper {
     position: relative;
-    width: 4rem;
-    height: 4rem;
+    width: 6rem;
+    height: 6rem;
     flex: 0 0 auto;
     display: flex;
     align-items: center;
@@ -909,7 +1009,7 @@ li.context-item .visage-icon-domino {
     padding-inline: var(--filroden-space-xs);
     border-radius: var(--filroden-radius-large);
     background-color: var(--filroden-color-bg-medium-solid); 
-    font-size: var(--filroden-font-size-xxs);
+    font-size: var(--filroden-font-size-xs);
     font-weight: var(--filroden-font-weight-bold);
     color: var(--filroden-color-text-main-solid);
     border: 1px solid #000; /* Base border */
@@ -1039,6 +1139,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.light     { -webkit-mask-image: url('../icons/lightbulb.svg'); mask-image: url('../icons/lightbulb.svg'); }
 .visage-icon.portrait      { -webkit-mask-image: url('../icons/account_box.svg'); mask-image: url('../icons/account_box.svg'); }
 .visage-icon.timer      { -webkit-mask-image: url('../icons/timer.svg'); mask-image: url('../icons/timer.svg'); }
+.visage-icon.flip      { -webkit-mask-image: url('../icons/flip.svg'); mask-image: url('../icons/flip.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {

@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Hız",
     "VISAGE.Editor.Light.Intensity": "Yoğunluk",
     "VISAGE.Light.Meta.Dim": "Loş",
-    "VISAGE.Light.Meta.Bright": "Parlak"
+    "VISAGE.Light.Meta.Bright": "Parlak",
+    "VISAGE.Selector.DragToReorder": "Sıralamak için Sürükle",
+    "VISAGE.Selector.Show": "Göster",
+    "VISAGE.Selector.Hide": "Gizle"
 }

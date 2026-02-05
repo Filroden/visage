@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Nopeus",
     "VISAGE.Editor.Light.Intensity": "Voimakkuus",
     "VISAGE.Light.Meta.Dim": "Himmeä",
-    "VISAGE.Light.Meta.Bright": "Kirkas"
+    "VISAGE.Light.Meta.Bright": "Kirkas",
+    "VISAGE.Selector.DragToReorder": "Vedä Järjestääksesi",
+    "VISAGE.Selector.Show": "Näytä",
+    "VISAGE.Selector.Hide": "Piilota"
 }
