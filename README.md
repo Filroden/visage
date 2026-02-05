@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-3.2.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-3.3.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -65,6 +65,8 @@ Access the token's entire Visage library directly from the Token HUD to quickly 
 
 * **Grid Layout:** Quickly browse all available Visages.
 * **Active Stack:** See exactly what **Overlays** are active on the token.
+* **Stack Sorting:** You can drag and drop Overlays to re-arrange their stacking order.
+* **Show/Hide Overlays:** Show/hide an Overlay by toggling the icon inside the Selector HUD. Showing an Overlay that includes one-time effects will replay those effects.
 * **Quick Revert:** Revert the **Identity** to its default or remove **Overlays** with one click.
 
   ![Visage Selector HUD](https://github.com/Filroden/visage/blob/main/images/v3/visage_selector_hud_identities.png?raw=true)
@@ -114,7 +116,7 @@ Key Features:
 
 ### 4. The Token Previewer: Live Visualisation
 
-* **Thumbnails in the Selector HUD and Libraries** provide a quick approximation of your Visages, including Dynamic Ring effects and subject textures. Since these cards cannot display changes to scale or dimensions, they include "Chips" and "Badges" to list the specific data changes.
+* **Thumbnails in the Selector HUD and Libraries** provide a quick approximation of your Visages, including Dynamic Ring effects and subject textures. Critical data (like Scale, dimensions or Disposition) are displayed clearly, while status icons are organised into a dedicated sidebar to keep the preview image unobscured. Most icons offer a tooltip providing more information.
 * **The Editor Stage:** The Editor features a fully rendered Live Stage that also accurately displays scale, dimensions, and active effects. You can pan and zoom the viewport, and enable a grid overlay to visualise the token's exact footprint on the canvas.
 
 ## Ideas for how to use the module
@@ -158,8 +160,7 @@ Software and associated documentation files in this repository are covered by an
 ### Short term
 
 * **Improved APIs:** Improve ability to find and apply Visages
-* **Selector HUD and Gallery UI improvements:** Try to simplify the tiles in the Selector HUD so it is still easy to see what settings are applied but reduce the clutter of badges/chips around the border. Also add some differentiation between Identities and Overlays in both Selector HUD and Libraries.
-* **Re-order Overlay Stacks:** Allow the Overlay stack to be re-ordered in the Selector HUD.
+* **Gallery UI improvements:** Add some differentiation between Identities and Overlays in both Selector HUD and Libraries.
 * **Pre-made Overlays:** Add a small library of pre-made Overlays that can be imported or enabled by the GM via Game Settings.
 * **Add Public/Private flags to global Visages:** GMs can tag their globally stored Visages (both Identities and Overlays) as either Public or Private. Players can see public Visages inside their token's Selector HUD and apply them to their own tokens.
 

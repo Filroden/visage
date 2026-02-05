@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "속도",
     "VISAGE.Editor.Light.Intensity": "강도",
     "VISAGE.Light.Meta.Dim": "희미함",
-    "VISAGE.Light.Meta.Bright": "밝음"
+    "VISAGE.Light.Meta.Bright": "밝음",
+    "VISAGE.Selector.DragToReorder": "드래그하여 순서 변경",
+    "VISAGE.Selector.Show": "표시",
+    "VISAGE.Selector.Hide": "숨기기"
 }

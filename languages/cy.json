@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Cyflymder",
     "VISAGE.Editor.Light.Intensity": "Dwysedd",
     "VISAGE.Light.Meta.Dim": "Pwl",
-    "VISAGE.Light.Meta.Bright": "Disglair"
+    "VISAGE.Light.Meta.Bright": "Disglair",
+    "VISAGE.Selector.DragToReorder": "Llusgo i Aildrefnu",
+    "VISAGE.Selector.Show": "Dangos",
+    "VISAGE.Selector.Hide": "Cuddio"
 }

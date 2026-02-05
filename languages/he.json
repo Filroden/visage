@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "\u200Fמהירות",
     "VISAGE.Editor.Light.Intensity": "\u200Fעוצמה",
     "VISAGE.Light.Meta.Dim": "\u200Fעמום",
-    "VISAGE.Light.Meta.Bright": "\u200Fבהיר"
+    "VISAGE.Light.Meta.Bright": "\u200Fבהיר",
+    "VISAGE.Selector.DragToReorder": "\u200Fגרור לסידור מחדש",
+    "VISAGE.Selector.Show": "\u200Fהצג",
+    "VISAGE.Selector.Hide": "\u200Fהסתר"
 }

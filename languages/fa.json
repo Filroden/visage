@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "\u200Fسرعت",
     "VISAGE.Editor.Light.Intensity": "\u200Fشدت",
     "VISAGE.Light.Meta.Dim": "\u200Fکم‌نور",
-    "VISAGE.Light.Meta.Bright": "\u200Fپرنور"
+    "VISAGE.Light.Meta.Bright": "\u200Fپرنور",
+    "VISAGE.Selector.DragToReorder": "\u200Fکشیدن برای مرتب‌سازی",
+    "VISAGE.Selector.Show": "\u200Fنمایش",
+    "VISAGE.Selector.Hide": "\u200Fپنهان"
 }

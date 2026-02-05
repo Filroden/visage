@@ -259,5 +259,8 @@
     "VISAGE.Editor.Light.Speed": "Vitesse",
     "VISAGE.Editor.Light.Intensity": "Intensité",
     "VISAGE.Light.Meta.Dim": "Faible",
-    "VISAGE.Light.Meta.Bright": "Vif"
+    "VISAGE.Light.Meta.Bright": "Vif",
+    "VISAGE.Selector.DragToReorder": "Glisser pour Réorganiser",
+    "VISAGE.Selector.Show": "Afficher",
+    "VISAGE.Selector.Hide": "Masquer"
 }

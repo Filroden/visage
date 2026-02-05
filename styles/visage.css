@@ -849,6 +849,9 @@ li.context-item .visage-icon-domino {
 
 .visage .stack-item .visibility-btn:hover {
     color: var(--visage-color-text-main);
+    background: var(--visage-color-bg-hover-solid);
+    border-color: var(--visage-color-accent);
+    box-shadow: none;
 }
 
 .visage .stack-item .stack-icon {
