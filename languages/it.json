@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Intenso",
     "VISAGE.Selector.DragToReorder": "Trascina per Riordinare",
     "VISAGE.Selector.Show": "Mostra",
-    "VISAGE.Selector.Hide": "Nascondi"
+    "VISAGE.Selector.Hide": "Nascondi",
+    "VISAGE.Settings.DisableWelcome.Name": "Disabilita Messaggio di Benvenuto",
+    "VISAGE.Settings.DisableWelcome.Hint": "Impedisce la pubblicazione della scheda chat 'Benvenuto in Visage' all'avvio."
 }

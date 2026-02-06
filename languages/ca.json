@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Brillant",
     "VISAGE.Selector.DragToReorder": "Arrossegar per Reordenar",
     "VISAGE.Selector.Show": "Mostra",
-    "VISAGE.Selector.Hide": "Amaga"
+    "VISAGE.Selector.Hide": "Amaga",
+    "VISAGE.Settings.DisableWelcome.Name": "Desactivar Missatge de Benvinguda",
+    "VISAGE.Settings.DisableWelcome.Hint": "Atura la publicació de la targeta de xat 'Benvingut a Visage' a l'inici."
 }

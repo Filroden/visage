@@ -258,6 +258,16 @@ Hooks.on("getSceneControlButtons", (controls) => {
  * Includes debugging tools, cleanup utilities, and migration triggers.
  */
 function registerSettings() {
+    
+    game.settings.register(MODULE_ID, "disableWelcome", {
+        name: "VISAGE.Settings.DisableWelcome.Name",
+        hint: "VISAGE.Settings.DisableWelcome.Hint",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: false
+    });
+
     game.settings.register(MODULE_ID, "cleanseScene", {
         name: "VISAGE.Settings.CleanseScene.Name",
         hint: "VISAGE.Settings.CleanseScene.Hint",
@@ -331,6 +341,8 @@ Hooks.once("ready", async () => {
 
     const lastVersion = game.settings.get(MODULE_ID, "worldVersion");
     const currentVersion = game.modules.get(MODULE_ID).version;
+
+    const disableWelcome = game.settings.get(MODULE_ID, "disableWelcome");
         
     // RECENT MESSAGE GUARD
     // Look at the last 5 messages in the chat log
@@ -339,7 +351,7 @@ Hooks.once("ready", async () => {
         m.content.includes("visage-chat-card") && m.content.includes("https://foundryvtt.com/packages/visage")
     );
 
-    if (!alreadyPosted) {
+    if (!disableWelcome && !alreadyPosted) {
 
         const visageHtml = await renderTemplate("modules/visage/templates/parts/visage-chat-welcome.hbs", {
             version: currentVersion

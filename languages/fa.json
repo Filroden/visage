@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "\u200Fپرنور",
     "VISAGE.Selector.DragToReorder": "\u200Fکشیدن برای مرتب‌سازی",
     "VISAGE.Selector.Show": "\u200Fنمایش",
-    "VISAGE.Selector.Hide": "\u200Fپنهان"
+    "VISAGE.Selector.Hide": "\u200Fپنهان",
+    "VISAGE.Settings.DisableWelcome.Name": "\u200Fغیرفعال کردن پیام خوش‌آمد",
+    "VISAGE.Settings.DisableWelcome.Hint": "\u200Fاز ارسال کارت چت '\u2068به Visage خوش آمدید\u2069' در هنگام راه‌اندازی جلوگیری می‌کند."
 }

@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Яркий",
     "VISAGE.Selector.DragToReorder": "Перетащите для Сортировки",
     "VISAGE.Selector.Show": "Показать",
-    "VISAGE.Selector.Hide": "Скрыть"
+    "VISAGE.Selector.Hide": "Скрыть",
+    "VISAGE.Settings.DisableWelcome.Name": "Отключить Приветствие",
+    "VISAGE.Settings.DisableWelcome.Hint": "Блокирует появление карточки чата 'Добро пожаловать в Visage' при запуске."
 }

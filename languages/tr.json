@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Parlak",
     "VISAGE.Selector.DragToReorder": "Sıralamak için Sürükle",
     "VISAGE.Selector.Show": "Göster",
-    "VISAGE.Selector.Hide": "Gizle"
+    "VISAGE.Selector.Hide": "Gizle",
+    "VISAGE.Settings.DisableWelcome.Name": "Hoş Geldiniz Mesajını Devre Dışı Bırak",
+    "VISAGE.Settings.DisableWelcome.Hint": "Başlangıçta 'Visage'a Hoş Geldiniz' sohbet kartının gönderilmesini durdurur."
 }

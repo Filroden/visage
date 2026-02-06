@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Helder",
     "VISAGE.Selector.DragToReorder": "Sleep om te Rangschikken",
     "VISAGE.Selector.Show": "Tonen",
-    "VISAGE.Selector.Hide": "Verbergen"
+    "VISAGE.Selector.Hide": "Verbergen",
+    "VISAGE.Settings.DisableWelcome.Name": "Welkomstbericht Uitschakelen",
+    "VISAGE.Settings.DisableWelcome.Hint": "Voorkomt dat de 'Welkom bij Visage' chatkaart wordt geplaatst bij het opstarten."
 }

@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Élénk",
     "VISAGE.Selector.DragToReorder": "Húzza az Átrendezéshez",
     "VISAGE.Selector.Show": "Megjelenít",
-    "VISAGE.Selector.Hide": "Elrejt"
+    "VISAGE.Selector.Hide": "Elrejt",
+    "VISAGE.Settings.DisableWelcome.Name": "Üdvözlő Üzenet Letiltása",
+    "VISAGE.Settings.DisableWelcome.Hint": "Megakadályozza az 'Üdvözöljük a Visage-ban' csevegőkártya közzétételét indításkor."
 }

@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Disglair",
     "VISAGE.Selector.DragToReorder": "Llusgo i Aildrefnu",
     "VISAGE.Selector.Show": "Dangos",
-    "VISAGE.Selector.Hide": "Cuddio"
+    "VISAGE.Selector.Hide": "Cuddio",
+    "VISAGE.Settings.DisableWelcome.Name": "Analluogi Neges Groeso",
+    "VISAGE.Settings.DisableWelcome.Hint": "Atal y cerdyn sgwrs 'Croeso i Visage' rhag cael ei bostio wrth gychwyn."
 }

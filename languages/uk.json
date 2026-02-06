@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Яскраве",
     "VISAGE.Selector.DragToReorder": "Перетягніть для Сортування",
     "VISAGE.Selector.Show": "Показати",
-    "VISAGE.Selector.Hide": "Приховати"
+    "VISAGE.Selector.Hide": "Приховати",
+    "VISAGE.Settings.DisableWelcome.Name": "Вимкнути Привітання",
+    "VISAGE.Settings.DisableWelcome.Hint": "Блокує появу картки чату 'Ласкаво просимо до Visage' під час запуску."
 }

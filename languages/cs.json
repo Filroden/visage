@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Jasné",
     "VISAGE.Selector.DragToReorder": "Tažením Přeuspořádat",
     "VISAGE.Selector.Show": "Zobrazit",
-    "VISAGE.Selector.Hide": "Skrýt"
+    "VISAGE.Selector.Hide": "Skrýt",
+    "VISAGE.Settings.DisableWelcome.Name": "Zakázat Uvítací Zprávu",
+    "VISAGE.Settings.DisableWelcome.Hint": "Zabrání odeslání chatové karty 'Vítejte ve Visage' při spuštění."
 }

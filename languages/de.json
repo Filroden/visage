@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Hell",
     "VISAGE.Selector.DragToReorder": "Ziehen zum Sortieren",
     "VISAGE.Selector.Show": "Anzeigen",
-    "VISAGE.Selector.Hide": "Verbergen"
+    "VISAGE.Selector.Hide": "Verbergen",
+    "VISAGE.Settings.DisableWelcome.Name": "Willkommensnachricht deaktivieren",
+    "VISAGE.Settings.DisableWelcome.Hint": "Verhindert, dass die 'Willkommen bei Visage'-Chat-Karte beim Start gepostet wird."
 }

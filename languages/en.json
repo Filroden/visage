@@ -310,5 +310,9 @@
     "_comment_V3_3_KEYS": "--- V3.3 KEYS ---",
     "VISAGE.Selector.DragToReorder": "Drag to Reorder",
     "VISAGE.Selector.Show": "Show",
-    "VISAGE.Selector.Hide": "Hide"
+    "VISAGE.Selector.Hide": "Hide",
+
+    "_comment_V3_3_1_KEYS": "--- V3.3.1 KEYS ---",
+    "VISAGE.Settings.DisableWelcome.Name": "Disable Welcome Message",
+    "VISAGE.Settings.DisableWelcome.Hint": "Stop the 'Welcome to Visage' chat card being posted on startup."
 }

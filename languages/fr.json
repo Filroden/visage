@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Vif",
     "VISAGE.Selector.DragToReorder": "Glisser pour Réorganiser",
     "VISAGE.Selector.Show": "Afficher",
-    "VISAGE.Selector.Hide": "Masquer"
+    "VISAGE.Selector.Hide": "Masquer",
+    "VISAGE.Settings.DisableWelcome.Name": "Désactiver le Message de Bienvenue",
+    "VISAGE.Settings.DisableWelcome.Hint": "Empêche l'affichage de la carte de chat 'Bienvenue sur Visage' au démarrage."
 }
