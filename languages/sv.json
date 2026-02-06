@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Klar",
     "VISAGE.Selector.DragToReorder": "Dra för att Sortera",
     "VISAGE.Selector.Show": "Visa",
-    "VISAGE.Selector.Hide": "Dölj"
+    "VISAGE.Selector.Hide": "Dölj",
+    "VISAGE.Settings.DisableWelcome.Name": "Inaktivera Välkomstmeddelande",
+    "VISAGE.Settings.DisableWelcome.Hint": "Stoppar 'Välkommen till Visage'-chatkortet från att postas vid uppstart."   
 }

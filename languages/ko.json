@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "밝음",
     "VISAGE.Selector.DragToReorder": "드래그하여 순서 변경",
     "VISAGE.Selector.Show": "표시",
-    "VISAGE.Selector.Hide": "숨기기"
+    "VISAGE.Selector.Hide": "숨기기",
+    "VISAGE.Settings.DisableWelcome.Name": "환영 메시지 비활성화",
+    "VISAGE.Settings.DisableWelcome.Hint": "시작 시 'Visage에 오신 것을 환영합니다' 채팅 카드가 게시되지 않도록 합니다."
 }

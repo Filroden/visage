@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "明るい",
     "VISAGE.Selector.DragToReorder": "ドラッグして並べ替え",
     "VISAGE.Selector.Show": "表示",
-    "VISAGE.Selector.Hide": "非表示"
+    "VISAGE.Selector.Hide": "非表示",
+    "VISAGE.Settings.DisableWelcome.Name": "ウェルカムメッセージを無効化",
+    "VISAGE.Settings.DisableWelcome.Hint": "起動時に「Visage へようこそ」チャットカードが表示されないようにします。"
 }

@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Jasne",
     "VISAGE.Selector.DragToReorder": "Przeciągnij, aby Zmienić Kolejność",
     "VISAGE.Selector.Show": "Pokaż",
-    "VISAGE.Selector.Hide": "Ukryj"
+    "VISAGE.Selector.Hide": "Ukryj",
+    "VISAGE.Settings.DisableWelcome.Name": "Wyłącz Wiadomość Powitalną",
+    "VISAGE.Settings.DisableWelcome.Hint": "Zatrzymaj wysyłanie karty czatu 'Witamy w Visage' podczas uruchamiania."
 }

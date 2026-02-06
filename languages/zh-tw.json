@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "明亮",
     "VISAGE.Selector.DragToReorder": "拖曳以重新排序",
     "VISAGE.Selector.Show": "顯示",
-    "VISAGE.Selector.Hide": "隱藏"
+    "VISAGE.Selector.Hide": "隱藏",
+    "VISAGE.Settings.DisableWelcome.Name": "停用歡迎訊息",
+    "VISAGE.Settings.DisableWelcome.Hint": "停止在啟動時發佈「歡迎使用 Visage」聊天卡。"
 }

@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Brilhante",
     "VISAGE.Selector.DragToReorder": "Arrastar para Reordenar",
     "VISAGE.Selector.Show": "Mostrar",
-    "VISAGE.Selector.Hide": "Ocultar"
+    "VISAGE.Selector.Hide": "Ocultar",
+    "VISAGE.Settings.DisableWelcome.Name": "Desativar Mensagem de Boas-vindas",
+    "VISAGE.Settings.DisableWelcome.Hint": "Impede que o cartão de chat 'Bem-vindo ao Visage' seja publicado no arranque."
 }

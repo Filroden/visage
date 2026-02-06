@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "Strălucitor",
     "VISAGE.Selector.DragToReorder": "Trage pentru a Reordona",
     "VISAGE.Selector.Show": "Arată",
-    "VISAGE.Selector.Hide": "Ascunde"
+    "VISAGE.Selector.Hide": "Ascunde",
+    "VISAGE.Settings.DisableWelcome.Name": "Dezactivează Mesajul de Bun Venit",
+    "VISAGE.Settings.DisableWelcome.Hint": "Oprește postarea cardului de chat 'Bun venit la Visage' la pornire."
 }

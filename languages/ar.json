@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "\u200Fساطع",
     "VISAGE.Selector.DragToReorder": "\u200Fاسحب لإعادة الترتيب",
     "VISAGE.Selector.Show": "\u200Fإظهار",
-    "VISAGE.Selector.Hide": "\u200Fإخفاء"
+    "VISAGE.Selector.Hide": "\u200Fإخفاء",
+    "VISAGE.Settings.DisableWelcome.Name": "\u200Fتعطيل رسالة الترحيب",
+    "VISAGE.Settings.DisableWelcome.Hint": "\u200Fيمنع نشر بطاقة دردشة '\u2068مرحباً بك في Visage\u2069' عند بدء التشغيل."
 }

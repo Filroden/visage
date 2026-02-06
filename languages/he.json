@@ -262,5 +262,7 @@
     "VISAGE.Light.Meta.Bright": "\u200Fבהיר",
     "VISAGE.Selector.DragToReorder": "\u200Fגרור לסידור מחדש",
     "VISAGE.Selector.Show": "\u200Fהצג",
-    "VISAGE.Selector.Hide": "\u200Fהסתר"
+    "VISAGE.Selector.Hide": "\u200Fהסתר",
+    "VISAGE.Settings.DisableWelcome.Name": "\u200Fبטל הודעת ברוכים הבאים",
+    "VISAGE.Settings.DisableWelcome.Hint": "\u200Fמונע את פרסום כרטיס הצ'אט '\u2068ברוכים הבאים ל-Visage\u2069' בעת ההפעלה."
 }
