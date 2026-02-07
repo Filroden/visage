@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-3.3.1-blue)
+![Latest Version](https://img.shields.io/badge/Version-3.4.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -79,7 +79,7 @@ Manage your visual assets in a beautiful, card-based interface with a detailed s
 
   ![Visage Local Library](https://github.com/Filroden/visage/blob/main/images/v3/visage_local_library.png?raw=true)
 
-* **Visage Global Library (for GMs):** Accessed via Scene Controls. Create **Identities** and **Overlays** usable by the GM on any token. Apply them to one or more selected tokens, or even **drag and drop** them onto tokens, to take immediate effect.
+* **Visage Global Library (for GMs):** Accessed via Scene Controls. Create **Identities** and **Overlays** usable by the GM on any token. Apply them to one or more selected tokens, or even **drag and drop** them onto tokens, to take immediate effect. There is a game setting to import one or more preset packs of Visage Overlays into the Global Library which allow you to easily set specific changes to your tokens including: Light Sources, Token Sizes, Image Scaling, Image Orientation, Dispositions, Rotation Locks.
 
   ![Visage Global Library](https://github.com/Filroden/visage/blob/main/images/v3/visage_global_library.png?raw=true)
 

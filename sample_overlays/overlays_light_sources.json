@@ -1,0 +1,302 @@
+[
+  {
+    "id": "94WkCyfQ3fU1suxM",
+    "label": "VISAGE.Samples.Items.Torch",
+    "category": "VISAGE.Samples.Category.LightSources",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770465086889,
+    "updated": 1770465109812,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": null,
+      "height": null,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": {
+        "active": true,
+        "dim": 40,
+        "bright": 20,
+        "color": "#fff700",
+        "alpha": 0.25,
+        "angle": 360,
+        "luminosity": 0.5,
+        "priority": 0,
+        "animation": {
+          "type": "torch",
+          "speed": 5,
+          "intensity": 5
+        }
+      },
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  },
+  {
+    "id": "XyN2m3rmLPJLemaf",
+    "label": "VISAGE.Samples.Items.Candle",
+    "category": "VISAGE.Samples.Category.LightSources",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770465001645,
+    "updated": 1770465121361,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": null,
+      "height": null,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": {
+        "active": true,
+        "dim": 10,
+        "bright": 5,
+        "color": "#fff700",
+        "alpha": 0.25,
+        "angle": 360,
+        "luminosity": 0.5,
+        "priority": 0,
+        "animation": {
+          "type": "torch",
+          "speed": 5,
+          "intensity": 8
+        }
+      },
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  },
+  {
+    "id": "dvHNqVcYtHrx9nnV",
+    "label": "VISAGE.Samples.Items.LanternHooded",
+    "category": "VISAGE.Samples.Category.LightSources",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770464936830,
+    "updated": 1770464951379,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": null,
+      "height": null,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": {
+        "active": true,
+        "dim": 5,
+        "bright": 0,
+        "color": "#fff700",
+        "alpha": 1,
+        "angle": 360,
+        "luminosity": 0.5,
+        "priority": 0,
+        "animation": {
+          "type": "torch",
+          "speed": 1,
+          "intensity": 2
+        }
+      },
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  },
+  {
+    "id": "rt4ItgexJ5Yj3OGH",
+    "label": "VISAGE.Samples.Items.LanternUnhooded",
+    "category": "VISAGE.Samples.Category.LightSources",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770464851093,
+    "updated": 1770464927340,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": null,
+      "height": null,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": {
+        "active": true,
+        "dim": 60,
+        "bright": 30,
+        "color": "#fff700",
+        "alpha": 1,
+        "angle": 360,
+        "luminosity": 0.5,
+        "priority": 0,
+        "animation": {
+          "type": "torch",
+          "speed": 1,
+          "intensity": 2
+        }
+      },
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  },
+  {
+    "id": "paro9Nd5z3f4762L",
+    "label": "VISAGE.Samples.Items.LanternBullseye",
+    "category": "VISAGE.Samples.Category.LightSources",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770464743835,
+    "updated": 1770464813903,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": null,
+      "height": null,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": {
+        "active": true,
+        "dim": 120,
+        "bright": 60,
+        "color": "#fff700",
+        "alpha": 0.25,
+        "angle": 60,
+        "luminosity": 0.5,
+        "priority": 0,
+        "animation": {
+          "type": "torch",
+          "speed": 1,
+          "intensity": 2
+        }
+      },
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  },
+  {
+    "id": "xs0W2eNQULqG0PrW",
+    "label": "VISAGE.Samples.Items.Lamp",
+    "category": "VISAGE.Samples.Category.LightSources",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770464618151,
+    "updated": 1770464696380,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": null,
+      "height": null,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": {
+        "active": true,
+        "dim": 45,
+        "bright": 15,
+        "color": "#fff700",
+        "alpha": 0.25,
+        "angle": 360,
+        "luminosity": 0.5,
+        "priority": 0,
+        "animation": {
+          "type": "torch",
+          "speed": 1,
+          "intensity": 2
+        }
+      },
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  }
+]
