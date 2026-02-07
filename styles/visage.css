@@ -13,7 +13,8 @@
  * 8. Popout Menu
  * 9. Scene Control Integration
  * 10. Welcome Chat Card
- * 11. Theme Definitions (The Engine)
+ * 11. Game Settings
+ * 12. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
@@ -3349,9 +3350,29 @@ button.visage-tool-icon {
     opacity: 0.6;
 }
 
+/* ==========================================================================
+   11. GAME SETTINGS
+   ========================================================================== */
+
+.visage.visage-settings {
+    width: 40rem;
+}
+
+.visage.visage-settings .form-group {
+    display: grid;
+    gap: var(--filroden-space-m);
+    grid-template-columns: auto 1fr 3fr;
+    align-items: center;
+}
+
+.visage.visage-settings .visage-notes {
+    font-size: var(--filroden-font-size-s);
+    font-weight: normal;
+    color: var(--visage-color-text-main-solid) !important;
+}
 
 /* ==========================================================================
-   11. THEME DEFINITIONS (The Engine)
+   12. THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
 /* --- 1. Universal Defaults --- */

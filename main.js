@@ -16,6 +16,7 @@ import { migrateWorldData } from "./src/visage-migration.js";
 import { handleGhostEdit } from "./src/visage-ghost.js";
 import { MODULE_ID } from "./src/visage-constants.js";
 import { VisageSequencer } from "./src/visage-sequencer.js";
+import { VisageSamples } from "./src/visage-samples.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -259,6 +260,15 @@ Hooks.on("getSceneControlButtons", (controls) => {
  */
 function registerSettings() {
     
+    game.settings.registerMenu(MODULE_ID, "sampleManager", {
+        name: "VISAGE.Settings.SampleManager.Name",
+        label: "VISAGE.Settings.SampleManager.Label",
+        hint: "VISAGE.Settings.SampleManager.Hint",
+        icon: "visage-icon open",
+        type: VisageSamples,
+        restricted: true
+    });
+
     game.settings.register(MODULE_ID, "disableWelcome", {
         name: "VISAGE.Settings.DisableWelcome.Name",
         hint: "VISAGE.Settings.DisableWelcome.Hint",

@@ -1,0 +1,218 @@
+[
+  {
+    "id": "mOMjC741TElCKDhj",
+    "label": "VISAGE.Samples.Items.TokenSize4x4",
+    "category": "VISAGE.Samples.Category.TokenSize",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770465971041,
+    "updated": 1770465983884,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": 4,
+      "height": 4,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": null,
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  },
+  {
+    "id": "etSk4r8McnAMdVgE",
+    "label": "VISAGE.Samples.Items.TokenSize1_5x1_5",
+    "category": "VISAGE.Samples.Category.TokenSize",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770465956756,
+    "updated": 1770465994149,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": 1.5,
+      "height": 1.5,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": null,
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  },
+  {
+    "id": "9w5NOOUXa3Im7LAI",
+    "label": "VISAGE.Samples.Items.TokenSize3x3",
+    "category": "VISAGE.Samples.Category.TokenSize",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770465939927,
+    "updated": 1770465953024,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": 3,
+      "height": 3,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": null,
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  },
+  {
+    "id": "i6aZ3stnFg8BOVvZ",
+    "label": "VISAGE.Samples.Items.TokenSize2x2",
+    "category": "VISAGE.Samples.Category.TokenSize",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770465925640,
+    "updated": 1770465936857,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": 2,
+      "height": 2,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": null,
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  },
+  {
+    "id": "k3thdSrJMy1vWHVt",
+    "label": "VISAGE.Samples.Items.TokenSize0_5x0_5",
+    "category": "VISAGE.Samples.Category.TokenSize",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770465905237,
+    "updated": 1770465921617,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": 0.5,
+      "height": 0.5,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": null,
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  },
+  {
+    "id": "sIqsr7iYXkfIy3iN",
+    "label": "VISAGE.Samples.Items.TokenSize1x1",
+    "category": "VISAGE.Samples.Category.TokenSize",
+    "tags": [],
+    "mode": "overlay",
+    "created": 1770465901358,
+    "updated": 1770465901358,
+    "deleted": false,
+    "deletedAt": null,
+    "changes": {
+      "name": null,
+      "texture": {
+        "src": null,
+        "scaleX": null,
+        "scaleY": null
+      },
+      "scale": null,
+      "mirrorX": null,
+      "mirrorY": null,
+      "alpha": null,
+      "rotation": null,
+      "tint": null,
+      "width": 1,
+      "height": 1,
+      "lockRotation": null,
+      "disposition": null,
+      "portrait": null,
+      "light": null,
+      "delay": 0,
+      "ring": {
+        "enabled": false
+      },
+      "effects": []
+    }
+  }
+]
