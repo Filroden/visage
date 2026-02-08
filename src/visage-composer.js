@@ -6,6 +6,7 @@
  */
 
 import { VisageUtilities } from "./visage-utilities.js";
+import { VisageSystems } from "./visage-systems.js";
 import { MODULE_ID } from "./visage-constants.js";
 
 /**
@@ -155,9 +156,15 @@ export class VisageComposer {
         finalData.texture.anchorX = currentAnchorX;
         finalData.texture.anchorY = currentAnchorY;
 
-        // 6. Atomic Update
+        // 6. System Specific Processing
+        VisageSystems.process(finalData, base, {
+            scaleX: finalData.texture.scaleX,
+            scaleY: finalData.texture.scaleY
+        });
+
+        // 7. Atomic Update
         // We update the visual data and the state flags in a single operation 
-        // to prevent database desynchronization.
+        // to prevent database desynchronisation.
         const updateData = {
             ...finalData,
             [`flags.${MODULE_ID}.activeStack`]: currentStack,
@@ -192,7 +199,7 @@ export class VisageComposer {
      * @param {Object} flags - The current flags on the document.
      */
     static async _revert(tokenDoc, flags) {
-        // Scenario A: No snapshot exists (e.g. data cleaned manually or never initialized).
+        // Scenario A: No snapshot exists (e.g. data cleaned manually or never initialised).
         // We just remove the flags to ensure the token is marked as "clean".
         if (!flags.originalState) {
             const clearFlags = {
@@ -204,12 +211,22 @@ export class VisageComposer {
 
         // Scenario B: Snapshot exists.
         // Restore the original visual data from the snapshot AND wipe the flags in a single update.
+        const original = flags.originalState;
+        
         const updateData = {
-            ...flags.originalState,
+            ...original,
             [`flags.${MODULE_ID}.-=activeStack`]: null,
             [`flags.${MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
             [`flags.${MODULE_ID}.-=originalState`]: null
         };
+
+        // Enforce System Integrity
+        const context = {
+            scaleX: original.texture?.scaleX ?? 1,
+            scaleY: original.texture?.scaleY ?? 1
+        };
+        
+        VisageSystems.process(updateData, original, context);
 
         await tokenDoc.update(updateData, { visageUpdate: true });
     }

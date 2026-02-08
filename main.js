@@ -269,6 +269,15 @@ function registerSettings() {
         restricted: true
     });
 
+    game.settings.register(MODULE_ID, "allowSystemOverrides", {
+            name: "VISAGE.Settings.AllowSystemOverrides.Name",
+            hint: "VISAGE.Settings.AllowSystemOverrides.Hint",
+            scope: "world",
+            config: true,
+            type: Boolean,
+            default: true
+        });
+
     game.settings.register(MODULE_ID, "disableWelcome", {
         name: "VISAGE.Settings.DisableWelcome.Name",
         hint: "VISAGE.Settings.DisableWelcome.Hint",
