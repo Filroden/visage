@@ -1,7 +1,7 @@
 [
   {
     "id": "3KFnbyG5oW2DWO3D",
-    "label": "VISAGE.Samples.Category.RotationOn",
+    "label": "VISAGE.Samples.Items.RotationOn",
     "category": "VISAGE.Samples.Category.Rotation",
     "tags": [],
     "mode": "overlay",
@@ -37,7 +37,7 @@
   },
   {
     "id": "4H98FMK9dgJtc5tA",
-    "label": "VISAGE.Samples.Category.RotationOff",
+    "label": "VISAGE.Samples.Items.RotationOff",
     "category": "VISAGE.Samples.Category.Rotation",
     "tags": [],
     "mode": "overlay",

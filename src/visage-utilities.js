@@ -207,6 +207,9 @@ export class VisageUtilities {
         const textureSrc = get("texture.src");
         const scaleX = get("texture.scaleX") ?? 1.0;
         const scaleY = get("texture.scaleY") ?? 1.0;
+        const anchorX = get("texture.anchorX") ?? 0.5;
+        const anchorY = get("texture.anchorY") ?? 0.5;
+
         const alpha = get("alpha") ?? 1.0;
         const lockRotation = get("lockRotation") ?? false;
 
@@ -221,7 +224,9 @@ export class VisageUtilities {
             texture: {
                 src: textureSrc,
                 scaleX: scaleX,
-                scaleY: scaleY
+                scaleY: scaleY,
+                anchorX: anchorX,
+                anchorY: anchorY
             },
             ring: ringData,
             light: lightData,

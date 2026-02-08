@@ -153,7 +153,7 @@ export function handleGhostEdit(app, html, data) {
         setInput(key, value);
     }
     
-    // B. SPECIAL HANDLING: Mirror & Scale
+    // B. SPECIAL HANDLING: Mirror & Scale & Anchors
     // Token Config uses virtual inputs 'mirrorX', 'mirrorY', and 'scale' 
     // which don't strictly exist in the data model (they are derived from texture.scaleX/Y).
     // We must manually derive and set these to ensure the UI controls match the data.
@@ -165,9 +165,13 @@ export function handleGhostEdit(app, html, data) {
     const isMirrorX = scaleX < 0;
     const isMirrorY = scaleY < 0;
     const absScale = Math.abs(scaleX); // Assuming uniform scaling for the main slider
+    const anchorX = tex.anchorX ?? 0.5;
+    const anchorY = tex.anchorY ?? 0.5;
 
     // 2. Inject into UI
     setInput("mirrorX", isMirrorX);
     setInput("mirrorY", isMirrorY);
     setInput("scale", absScale); 
+    setInput("texture.anchorX", anchorX);
+    setInput("texture.anchorY", anchorY);
 }

@@ -143,6 +143,13 @@ li.context-item .visage-icon-domino {
     line-height: normal;
 }
 
+/* --- Pickers --- */
+
+.visage color-picker,
+.visage file-picker {
+    gap: var(--filroden-space-m);
+}
+
 /* --- Inputs and Selects --- */
 
 .visage input[type="text"],
@@ -233,7 +240,7 @@ li.context-item .visage-icon-domino {
     flex-wrap: nowrap;
     align-items: center;
     justify-content: flex-end;
-    gap: var(--filroden-space-xs);
+    gap: var(--filroden-space-m);
     width: 100%;
 }
 
@@ -914,16 +921,16 @@ li.context-item .visage-icon-domino {
 .visage-dashboard-sidebar {
     display: flex;
     flex-direction: column;
-    gap: var(--filroden-space-s);
-    width: 1.5rem;
+    gap: var(--filroden-space-xs);
+    width: 1rem;
     flex-shrink: 0;
     padding-top: var(--filroden-space-xs);
     align-items: center;
 }
 
 .visage-sidebar-glyph {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1rem;
+    height: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1141,6 +1148,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.portrait      { -webkit-mask-image: url('../icons/account_box.svg'); mask-image: url('../icons/account_box.svg'); }
 .visage-icon.timer      { -webkit-mask-image: url('../icons/timer.svg'); mask-image: url('../icons/timer.svg'); }
 .visage-icon.flip      { -webkit-mask-image: url('../icons/flip.svg'); mask-image: url('../icons/flip.svg'); }
+.visage-icon.anchor      { -webkit-mask-image: url('../icons/transform.svg'); mask-image: url('../icons/transform.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -1552,6 +1560,24 @@ li.context-item .visage-icon-domino {
     object-fit: contain;
 }
 
+.visage-preview-content.stage-mode .visage-preview-img, 
+.visage-preview-content.stage-mode .visage-preview-video,
+.visage-preview-content.stage-mode .fallback-icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    transform-origin: center center;
+    transition: transform 0.2s ease, left 0.2s ease, top 0.2s ease;
+}
+
+.visage-preview-img, 
+.visage-preview-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 /* Ensure effects don't get clipped by the token container */
 .visage-preview-content.stage-mode .visage-effect-layer {
     position: absolute;
@@ -1830,7 +1856,7 @@ li.context-item .visage-icon-domino {
 
 /* Ensure form groups in inspector have spacing */
 .visage-tab-content .form-group {
-    margin-bottom: var(--filroden-space-m);
+    margin-bottom: var(--filroden-space-xs);
 }
 
 /* Clean up fieldsets inside inspector */
@@ -2796,6 +2822,16 @@ li.context-item .visage-icon-domino {
     width: 100%;
     justify-content: center;
     height: auto;
+}
+
+.visage .metadata-slot .sub-inactive {
+    opacity: 0.4;
+    filter: grayscale(100%);
+}
+
+.visage .metadata-slot .visage-separator {
+    opacity: 0.5;
+    margin: 0 var(--filroden-space-xs);
 }
 
 /* Mirroring Icons */
