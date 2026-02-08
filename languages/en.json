@@ -373,5 +373,7 @@
     "VISAGE.Samples.Items.TokenSize2x2": "Token Size (2 x 2)",
     "VISAGE.Samples.Items.TokenSize0_5x0_5": "Token Size (0.5 x 0.5)",
     "VISAGE.Samples.Items.TokenSize1x1": "Token Size (1 x 1)",
-    "VISAGE.Config.List.Anchor": "Anchor Point (X / Y)"
+    "VISAGE.Config.List.Anchor": "Anchor Point (X / Y)",
+    "VISAGE.Settings.AllowSystemOverrides.Name": "Specific System Overrides",
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "If enabled, Visage will be allowed to temporarily unlock system-specific rules (like PF2E Token Size linking) to apply dimension or scale changes. If disabled, Visage will not be able to change token's size or scale settings."
 }
