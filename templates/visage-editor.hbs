@@ -280,18 +280,30 @@
                             </div>
                         </div>
 
+                        {{!-- Anchors --}}
+                        <div class="form-group checkbox-input-group">
+                            <input class="visage-checkbox" type="checkbox" name="anchor_active" data-action="toggleField" data-target="anchor" {{checked anchor.active}}>
+                            <label>{{localize "VISAGE.Config.List.Anchor"}}</label>
+                            <div class="visage-form-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                <div class="visage-input-wrapper" data-tooltip="X">
+                                    <input type="number" name="anchorX" value="{{anchor.x}}" step="0.1" placeholder="0.5" {{disabled (not anchor.active)}}>
+                                </div>
+                                <div class="visage-input-wrapper" data-tooltip="Y">
+                                    <input type="number" name="anchorY" value="{{anchor.y}}" step="0.1" placeholder="0.5" {{disabled (not anchor.active)}}>
+                                </div>
+                            </div>
+                        </div>
+
                         <hr class="visage-divider">
 
-                        {{!-- Rotation Lock --}}
-                        <div class="form-group stacked">
-                             <label>{{localize "VISAGE.RotationLock.Label"}}</label>
-                             <div class="visage-form-fields">
-                                <select name="lockRotation">
-                                    <option value="" {{visageSelected (eq lockRotation.value "")}}>{{localize "VISAGE.RotationLock.Unset"}}</option>
-                                    <option value="false" {{visageSelected (eq lockRotation.value "false")}}>{{localize "VISAGE.RotationLock.Off"}}</option>
-                                    <option value="true" {{visageSelected (eq lockRotation.value "true")}}>{{localize "VISAGE.RotationLock.On"}}</option>
-                                </select>
-                             </div>
+                        {{!-- Rotation Lock --}}                             
+                        <div class="visage-form-fields" style="display:grid; grid-template-columns: auto 1fr;">
+                            <label>{{localize "VISAGE.RotationLock.Label"}}</label>
+                            <select name="lockRotation">
+                                <option value="" {{visageSelected (eq lockRotation.value "")}}>{{localize "VISAGE.RotationLock.Unset"}}</option>
+                                <option value="false" {{visageSelected (eq lockRotation.value "false")}}>{{localize "VISAGE.RotationLock.Off"}}</option>
+                                <option value="true" {{visageSelected (eq lockRotation.value "true")}}>{{localize "VISAGE.RotationLock.On"}}</option>
+                            </select>
                         </div>
 
                         <hr class="visage-divider">

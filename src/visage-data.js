@@ -176,6 +176,8 @@ export class VisageData {
         const src = sourceData.texture?.src || tokenDoc.texture.src;
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1.0; 
+        const anchorX = sourceData.texture?.anchorX ?? 0.5;
+        const anchorY = sourceData.texture?.anchorY ?? 0.5;
         const width = sourceData.width ?? 1;
         const height = sourceData.height ?? 1;
         const disposition = sourceData.disposition ?? 0;
@@ -208,7 +210,9 @@ export class VisageData {
                 texture: {
                     src: src,
                     scaleX: Math.abs(scaleX) * (flipX ? -1 : 1),
-                    scaleY: Math.abs(scaleY) * (flipY ? -1 : 1)
+                    scaleY: Math.abs(scaleY) * (flipY ? -1 : 1),
+                    anchorX: anchorX,
+                    anchorY: anchorY
                 },
                 width: width,
                 height: height,
@@ -244,6 +248,10 @@ export class VisageData {
         const atomicScale = c.scale;
         const bakedScaleX = tx.scaleX ?? 1.0;
         const bakedScaleY = tx.scaleY ?? 1.0;
+
+        // Extract Anchor Values (Default to 0.5)
+        const anchorXVal = (c.texture?.anchorX !== undefined && c.texture?.anchorX !== null) ? c.texture.anchorX : 0.5;
+        const anchorYVal = (c.texture?.anchorY !== undefined && c.texture?.anchorY !== null) ? c.texture.anchorY : 0.5;
 
         // Determine Mirroring (Flip) state
         const isFlippedX = (c.mirrorX !== undefined && c.mirrorX !== null) ? c.mirrorX : (bakedScaleX < 0);
@@ -387,6 +395,12 @@ export class VisageData {
             portraitTooltip = `<img src='${cleanPortrait}' class='visage-tooltip-image' alt='Portrait' />`;
         }
 
+        // 8. Anchor Badge
+        // Check if values deviate from default (0.5) to determine 'active' state
+        const isAnchorActive = (anchorXVal !== 0.5) || (anchorYVal !== 0.5);
+        const anchorLabel = `${anchorXVal} / ${anchorYVal}`;
+        const showDataChip = isScaleActive || (c.width || c.height) || isAnchorActive;
+
         return {
             ...data,
             isActive: options.isActive ?? false,
@@ -411,7 +425,7 @@ export class VisageData {
                 hasInvisibility: ringCtx.hasInvisibility,
                 ringColor: ringCtx.colors.ring,
                 ringBkg: ringCtx.colors.background,
-                showDataChip: isScaleActive || isDimActive,
+                showDataChip: showDataChip,
                 showFlipBadge: hActive || vActive,
                 showDispositionChip: dispClass !== "none",
                 tokenName: c.name || null,
@@ -422,6 +436,7 @@ export class VisageData {
                 slots: {
                     scale: { active: isScaleActive, val: scaleLabel },
                     dim: { active: isDimActive, val: sizeLabel },
+                    anchor: { active: isAnchorActive, val: anchorLabel },
                     alpha: { active: (c.alpha !== undefined && c.alpha !== null) && c.alpha !== 1.0, val: `${Math.round(alpha * 100)}%` },
                     lock: { active: (c.lockRotation !== undefined && c.lockRotation !== null), val: c.lockRotation ? game.i18n.localize("VISAGE.RotationLock.Locked") : game.i18n.localize("VISAGE.RotationLock.Unlocked") },
                     flipH: { active: hActive, src: pathIcon, cls: hRot, val: hLabel },

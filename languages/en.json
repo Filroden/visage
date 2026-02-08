@@ -339,7 +339,6 @@
     "VISAGE.Notifications.Samples.Start": "Visage | Starting Import...",
     "VISAGE.Notifications.Samples.Error": "Visage | Failed to import {label}. Check console.",
     "VISAGE.Notifications.Samples.Complete": "Visage | Import Complete: Added {added} new entries. Skipped {skipped} duplicates.",
-
     "VISAGE.Samples.Category.Dispositions": "Dispositions",
     "VISAGE.Samples.Items.DispositionSecret": "Disposition (Secret)",
     "VISAGE.Samples.Items.DispositionHostile": "Disposition (Hostile)",
@@ -373,5 +372,6 @@
     "VISAGE.Samples.Items.TokenSize3x3": "Token Size (3 x 3)",
     "VISAGE.Samples.Items.TokenSize2x2": "Token Size (2 x 2)",
     "VISAGE.Samples.Items.TokenSize0_5x0_5": "Token Size (0.5 x 0.5)",
-    "VISAGE.Samples.Items.TokenSize1x1": "Token Size (1 x 1)"
+    "VISAGE.Samples.Items.TokenSize1x1": "Token Size (1 x 1)",
+    "VISAGE.Config.List.Anchor": "Anchor Point (X / Y)"
 }

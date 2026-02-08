@@ -69,6 +69,10 @@ export class VisageComposer {
         const finalData = foundry.utils.deepClone(base);
         if (!finalData.texture) finalData.texture = {};
 
+        // Initialise Base Anchors
+        let currentAnchorX = base.texture?.anchorX ?? 0.5;
+        let currentAnchorY = base.texture?.anchorY ?? 0.5;
+
         for (const layer of currentStack) {
             if (layer.disabled) continue;
 
@@ -79,6 +83,14 @@ export class VisageComposer {
 
             // B. Scale (Magnitude Override)
             let handledScale = false;
+
+            // Anchor Override (Atomic)
+            if (c.texture?.anchorX !== undefined && c.texture.anchorX !== null) {
+                currentAnchorX = c.texture.anchorX;
+            }
+            if (c.texture?.anchorY !== undefined && c.texture.anchorY !== null) {
+                currentAnchorY = c.texture.anchorY;
+            }
 
             // Priority 1: Atomic Scale (Modern Schema)
             // Checks for the explicit 'scale' property. This overrides individual X/Y scaling.
@@ -140,6 +152,8 @@ export class VisageComposer {
         finalData.texture.src = currentSrc;
         finalData.texture.scaleX = currentScaleX * (currentMirrorX ? -1 : 1);
         finalData.texture.scaleY = currentScaleY * (currentMirrorY ? -1 : 1);
+        finalData.texture.anchorX = currentAnchorX;
+        finalData.texture.anchorY = currentAnchorY;
 
         // 6. Atomic Update
         // We update the visual data and the state flags in a single operation 

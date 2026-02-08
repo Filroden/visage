@@ -17,13 +17,18 @@
                 <img src="modules/visage/icons/aspect_ratio.svg" class="visage-icon-nav"/>
                 <span class="slot-value">{{this.meta.slots.dim.val}}</span>
             </div>
-            <div class="metadata-slot {{#unless this.meta.slots.flipH.active}}inactive{{/unless}}" data-tooltip="{{localize 'VISAGE.Mirror.Label.Horizontal'}}">
-                <img src="{{this.meta.slots.flipH.src}}" class="visage-icon-nav {{this.meta.slots.flipH.cls}}"/>
-                <span class="slot-value">{{this.meta.slots.flipH.val}}</span>
+            <div class="metadata-slot {{#unless this.meta.slots.anchor.active}}inactive{{/unless}}" data-tooltip="{{localize 'VISAGE.Config.List.Anchor'}}">
+                <img src="modules/visage/icons/transform.svg" class="visage-icon-nav"/>
+                <span class="slot-value">{{this.meta.slots.anchor.val}}</span>
             </div>
-            <div class="metadata-slot {{#unless this.meta.slots.flipV.active}}inactive{{/unless}}" data-tooltip="{{localize 'VISAGE.Mirror.Label.Vertical'}}">
-                <img src="{{this.meta.slots.flipV.src}}" class="visage-icon-nav {{this.meta.slots.flipV.cls}}"/>
-                <span class="slot-value">{{this.meta.slots.flipV.val}}</span>
+            <div class="metadata-slot" style="justify-content: start;" data-tooltip="{{localize 'VISAGE.Mirror.Label.Horizontal'}} / {{localize 'VISAGE.Mirror.Label.Vertical'}}">
+                <span class="{{#unless this.meta.slots.flipH.active}}sub-inactive{{/unless}}">
+                    <img src="{{this.meta.slots.flipH.src}}" class="visage-icon-nav {{this.meta.slots.flipH.cls}}"/>
+                </span>
+                <span class="visage-separator">/</span>
+                <span class="{{#unless this.meta.slots.flipV.active}}sub-inactive{{/unless}}">
+                    <img src="{{this.meta.slots.flipV.src}}" class="visage-icon-nav {{this.meta.slots.flipV.cls}}"/>
+                </span>
             </div>
             <div class="metadata-slot {{#unless this.meta.slots.wildcard.active}}inactive{{/unless}}" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Wildcard'}}">
                 <img src="modules/visage/icons/shuffle.svg" class="visage-icon-nav"/>
