@@ -224,7 +224,7 @@
     "VISAGE.Settings.CleanseAll.Name": "Cleanse World Tokens",
     "VISAGE.Settings.CleanseAll.Hint": "Removes all Visage data from every token in the world. Use with caution!",
     "VISAGE.Settings.ManualMigration.Name": "Migrate Data ",
-    "VISAGE.Settings.ManualMigration.Hint": "Manually trigger the data migration script. Use this if you have imported old Actors or if your Visages or Masks are not displaying correctly.",
+    "VISAGE.Settings.ManualMigration.Hint": "Manually trigger the data migration script. Use this if you have imported old Actors or if your Visages are not displaying correctly.",
 
     "_comment_ADDITIONAL_KEYS": "--- ADDITIONAL KEYS ---",
     "VISAGE.Selector.RemoveEffect": "Remove Effect",
