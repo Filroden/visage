@@ -145,7 +145,7 @@ In the PF2E system, a token's dimensions and image scale are strictly locked to 
 
 If the "Specific System Overrides" game setting is enabled by the GM, then the module handles this lock for you:
 
-* **Automatic Unlock**: If you apply a Visage that modifies the **Dimensions**(Width/Height) or **Scale**, Visage will temporarily unlock the token to allow the transformation.
+* **Automatic Unlock**: If you apply a Visage that modifies the **Dimensions** (Width/Height) or **Scale**, Visage will temporarily unlock the token to allow the transformation.
 * **Automatic Restoration**: If you remove that Visage, or edit the stack so that no active layers are modifying the size, Visage will **re-enable the lock**.
   * *Note*: This immediately returns control to the PF2E system, which will snap the token back to the correct size for the Actor.
 
