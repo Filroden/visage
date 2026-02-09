@@ -171,9 +171,7 @@ Software and associated documentation files in this repository are covered by an
 
 ### Short term
 
-* **Improved APIs:** Improve ability to find and apply Visages
-* **Gallery UI improvements:** Add some differentiation between Identities and Overlays in both Selector HUD and Libraries.
-* **Pre-made Overlays:** Add a small library of pre-made Overlays that can be imported or enabled by the GM via Game Settings.
+* **Improved APIs:** Improve ability to find and apply Visages.
 * **Add Public/Private flags to global Visages:** GMs can tag their globally stored Visages (both Identities and Overlays) as either Public or Private. Players can see public Visages inside their token's Selector HUD and apply them to their own tokens.
 
 ### Long term (no promises!)
