@@ -22,15 +22,26 @@
     </div>
     {{/if}}
 
-    {{!-- Top Center: Data Chip (Scale/Dim) --}}
+    {{!-- Top Center: Data Chip (Scale/Dimensions/Anchors) --}}
     {{#if this.meta.showDataChip}}
-    <div class="visage-data-chip">
+    {{!-- Apply tooltip to the container if Anchor is active --}}
+    <div class="visage-data-chip" {{#if this.meta.slots.anchor.active}}data-tooltip="{{localize 'VISAGE.Config.List.Anchor'}}: {{this.meta.slots.anchor.val}}"{{/if}}>
+        
+        {{!-- Dimensions --}}
         {{#if this.meta.slots.dim.active}}
         <span class="visage-size-value" style="font-weight: bold;">{{this.meta.slots.dim.val}}</span>
         {{/if}}
+
+        {{!-- Scale --}}
         {{#if this.meta.slots.scale.active}}
         <span class="visage-scale-value">{{this.meta.slots.scale.val}}</span>
         {{/if}}
+
+        {{!-- Anchor Icon --}}
+        {{#if this.meta.slots.anchor.active}}
+        <span><i class="visage-icon anchor" style="width: var(--filroden-font-size-xs); height: var(--filroden-font-size-xs);"></i></span>
+        {{/if}}
+
     </div>
     {{/if}}
 

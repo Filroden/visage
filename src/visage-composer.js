@@ -6,6 +6,7 @@
  */
 
 import { VisageUtilities } from "./visage-utilities.js";
+import { VisageSystems } from "./visage-systems.js";
 import { MODULE_ID } from "./visage-constants.js";
 
 /**
@@ -69,6 +70,10 @@ export class VisageComposer {
         const finalData = foundry.utils.deepClone(base);
         if (!finalData.texture) finalData.texture = {};
 
+        // Initialise Base Anchors
+        let currentAnchorX = base.texture?.anchorX ?? 0.5;
+        let currentAnchorY = base.texture?.anchorY ?? 0.5;
+
         for (const layer of currentStack) {
             if (layer.disabled) continue;
 
@@ -79,6 +84,14 @@ export class VisageComposer {
 
             // B. Scale (Magnitude Override)
             let handledScale = false;
+
+            // Anchor Override (Atomic)
+            if (c.texture?.anchorX !== undefined && c.texture.anchorX !== null) {
+                currentAnchorX = c.texture.anchorX;
+            }
+            if (c.texture?.anchorY !== undefined && c.texture.anchorY !== null) {
+                currentAnchorY = c.texture.anchorY;
+            }
 
             // Priority 1: Atomic Scale (Modern Schema)
             // Checks for the explicit 'scale' property. This overrides individual X/Y scaling.
@@ -140,10 +153,18 @@ export class VisageComposer {
         finalData.texture.src = currentSrc;
         finalData.texture.scaleX = currentScaleX * (currentMirrorX ? -1 : 1);
         finalData.texture.scaleY = currentScaleY * (currentMirrorY ? -1 : 1);
+        finalData.texture.anchorX = currentAnchorX;
+        finalData.texture.anchorY = currentAnchorY;
 
-        // 6. Atomic Update
+        // 6. System Specific Processing
+        VisageSystems.process(finalData, base, {
+            scaleX: finalData.texture.scaleX,
+            scaleY: finalData.texture.scaleY
+        });
+
+        // 7. Atomic Update
         // We update the visual data and the state flags in a single operation 
-        // to prevent database desynchronization.
+        // to prevent database desynchronisation.
         const updateData = {
             ...finalData,
             [`flags.${MODULE_ID}.activeStack`]: currentStack,
@@ -178,7 +199,7 @@ export class VisageComposer {
      * @param {Object} flags - The current flags on the document.
      */
     static async _revert(tokenDoc, flags) {
-        // Scenario A: No snapshot exists (e.g. data cleaned manually or never initialized).
+        // Scenario A: No snapshot exists (e.g. data cleaned manually or never initialised).
         // We just remove the flags to ensure the token is marked as "clean".
         if (!flags.originalState) {
             const clearFlags = {
@@ -190,12 +211,22 @@ export class VisageComposer {
 
         // Scenario B: Snapshot exists.
         // Restore the original visual data from the snapshot AND wipe the flags in a single update.
+        const original = flags.originalState;
+        
         const updateData = {
-            ...flags.originalState,
+            ...original,
             [`flags.${MODULE_ID}.-=activeStack`]: null,
             [`flags.${MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
             [`flags.${MODULE_ID}.-=originalState`]: null
         };
+
+        // Enforce System Integrity
+        const context = {
+            scaleX: original.texture?.scaleX ?? 1,
+            scaleY: original.texture?.scaleY ?? 1
+        };
+        
+        VisageSystems.process(updateData, original, context);
 
         await tokenDoc.update(updateData, { visageUpdate: true });
     }

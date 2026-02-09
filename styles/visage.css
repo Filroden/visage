@@ -13,7 +13,8 @@
  * 8. Popout Menu
  * 9. Scene Control Integration
  * 10. Welcome Chat Card
- * 11. Theme Definitions (The Engine)
+ * 11. Game Settings
+ * 12. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
@@ -142,6 +143,13 @@ li.context-item .visage-icon-domino {
     line-height: normal;
 }
 
+/* --- Pickers --- */
+
+.visage color-picker,
+.visage file-picker {
+    gap: var(--filroden-space-m);
+}
+
 /* --- Inputs and Selects --- */
 
 .visage input[type="text"],
@@ -232,7 +240,7 @@ li.context-item .visage-icon-domino {
     flex-wrap: nowrap;
     align-items: center;
     justify-content: flex-end;
-    gap: var(--filroden-space-xs);
+    gap: var(--filroden-space-m);
     width: 100%;
 }
 
@@ -285,6 +293,7 @@ li.context-item .visage-icon-domino {
     -webkit-mask-position: center;
     mask-position: center;
     margin: 0;
+    transform: scaleX(var(--filroden-dir-flip));
 }
 
 .visage-icon-action.domino {
@@ -335,7 +344,7 @@ li.context-item .visage-icon-domino {
 .visage-effect-layer {
     position: absolute;
     top: 50%;
-    left: 50%;
+    inset-inline-start: 50%;
     max-width: none; /* Allow effects to exceed token bounds */
     max-height: none;
     pointer-events: none;
@@ -814,7 +823,7 @@ li.context-item .visage-icon-domino {
 .visage .stack-item[draggable="true"] .drag-handle {
     cursor: grab;
     color: var(--visage-color-text-muted);
-    padding-right: var(--filroden-space-xs);
+    padding-inline-end: var(--filroden-space-xs);
     display: flex;
     align-items: center;
 }
@@ -843,7 +852,7 @@ li.context-item .visage-icon-domino {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: var(--filroden-space-xs);
+    margin-inline-end: var(--filroden-space-xs);
     padding: 0;
 }
 
@@ -913,16 +922,16 @@ li.context-item .visage-icon-domino {
 .visage-dashboard-sidebar {
     display: flex;
     flex-direction: column;
-    gap: var(--filroden-space-s);
-    width: 1.5rem;
+    gap: var(--filroden-space-xs);
+    width: 1rem;
     flex-shrink: 0;
     padding-top: var(--filroden-space-xs);
     align-items: center;
 }
 
 .visage-sidebar-glyph {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1rem;
+    height: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1140,6 +1149,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.portrait      { -webkit-mask-image: url('../icons/account_box.svg'); mask-image: url('../icons/account_box.svg'); }
 .visage-icon.timer      { -webkit-mask-image: url('../icons/timer.svg'); mask-image: url('../icons/timer.svg'); }
 .visage-icon.flip      { -webkit-mask-image: url('../icons/flip.svg'); mask-image: url('../icons/flip.svg'); }
+.visage-icon.anchor      { -webkit-mask-image: url('../icons/transform.svg'); mask-image: url('../icons/transform.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -1488,6 +1498,8 @@ li.context-item .visage-icon-domino {
     justify-content: center;
     overflow: hidden;
     min-height: 25rem;
+
+    direction: inherit;
     
     /* Define this as a query container for size relative units */
     container-type: size;
@@ -1525,6 +1537,7 @@ li.context-item .visage-icon-domino {
     display: block;    
     position: relative;
     z-index: 1;
+    direction: ltr !important;
     transform-origin: center center;
     overflow: visible;    
     cursor: grab;
@@ -1551,11 +1564,29 @@ li.context-item .visage-icon-domino {
     object-fit: contain;
 }
 
+.visage-preview-content.stage-mode .visage-preview-img,
+.visage-preview-content.stage-mode .visage-preview-video,
+.visage-preview-content.stage-mode .fallback-icon {
+    position: absolute;
+    inset-inline-start: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    transform-origin: center center;
+    transition: transform 0.2s ease, left 0.2s ease, top 0.2s ease;
+}
+
+.visage-preview-img, 
+.visage-preview-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 /* Ensure effects don't get clipped by the token container */
 .visage-preview-content.stage-mode .visage-effect-layer {
     position: absolute;
     top: 50%;
-    left: 50%;
+    inset-inline-start: 50%;
     transform-origin: center center;
     width: 100%;
     height: auto;
@@ -1566,8 +1597,8 @@ li.context-item .visage-icon-domino {
 .visage .stage-overlay-name {
     position: absolute;
     top: var(--filroden-space-m);
-    left: 0; 
-    right: 0;
+    inset-inline-start: 0; 
+    inset-inline-end: 0;
     text-align: center;
     color: var(--visage-color-text-main-solid);
     font-weight: bold;
@@ -1829,7 +1860,7 @@ li.context-item .visage-icon-domino {
 
 /* Ensure form groups in inspector have spacing */
 .visage-tab-content .form-group {
-    margin-bottom: var(--filroden-space-m);
+    margin-bottom: var(--filroden-space-xs);
 }
 
 /* Clean up fieldsets inside inspector */
@@ -2140,7 +2171,7 @@ li.context-item .visage-icon-domino {
     cursor: grab;
     display: flex;
     align-items: center;
-    padding-right: var(--filroden-space-xs);
+    padding-inline-end: var(--filroden-space-xs);
     opacity: 0.5;
     transition: opacity 0.2s;
 }
@@ -2304,7 +2335,7 @@ li.context-item .visage-icon-domino {
 .visage-light-overlay {
     position: absolute;
     top: 50%;
-    left: 50%;
+    inset-inline-start: 50%;
     transform: translate(-50%, -50%); 
     pointer-events: none;
     z-index: 0;
@@ -2332,7 +2363,7 @@ li.context-item .visage-icon-domino {
     height: 12px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    margin-left: 6px;
+    margin-inline-start: 6px;
     vertical-align: middle;
     box-shadow: 0 0 4px rgba(0,0,0,0.5);
 }
@@ -2735,6 +2766,24 @@ li.context-item .visage-icon-domino {
     z-index: 200; 
 }
 
+.visage-card.mode-identity .card-zone-left,
+.visage-card.mode-identity .card-zone-right {
+    background: var(--visage-color-bg-medium-solid);
+}
+
+.visage-card.mode-overlay .card-zone-left,
+.visage-card.mode-overlay .card-zone-right {
+    /* Create a subtle diagonal pinstripe */
+    background-color: var(--visage-color-bg-medium-solid);
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(0, 0, 0, 0.2) 10px,
+        rgba(0, 0, 0, 0.2) 20px
+    );
+}
+
 .visage .card-body {
     flex: 1;
     display: flex;
@@ -2795,6 +2844,16 @@ li.context-item .visage-icon-domino {
     width: 100%;
     justify-content: center;
     height: auto;
+}
+
+.visage .metadata-slot .sub-inactive {
+    opacity: 0.4;
+    filter: grayscale(100%);
+}
+
+.visage .metadata-slot .visage-separator {
+    opacity: 0.5;
+    margin: 0 var(--filroden-space-xs);
 }
 
 /* Mirroring Icons */
@@ -3170,7 +3229,7 @@ li.context-item .visage-icon-domino {
     
     /* Animation */
     opacity: 0;
-    transform: translateX(10px);
+    transform: translateX(calc(10px * var(--filroden-dir-flip)));
     pointer-events: none;
     transition: opacity 0.15s ease, transform 0.15s ease;
 }
@@ -3345,13 +3404,33 @@ button.visage-tool-icon {
     background: var(--filroden-color-bg-medium-solid);
     font-size: var(--filroden-font-size-xxs);
     color: var(--filroden-color-text-muted);
-    text-align: right;
+    text-align: end;
     opacity: 0.6;
 }
 
+/* ==========================================================================
+   11. GAME SETTINGS
+   ========================================================================== */
+
+.visage.visage-settings {
+    width: 40rem;
+}
+
+.visage.visage-settings .form-group {
+    display: grid;
+    gap: var(--filroden-space-m);
+    grid-template-columns: auto 1fr 3fr;
+    align-items: center;
+}
+
+.visage.visage-settings .visage-notes {
+    font-size: var(--filroden-font-size-s);
+    font-weight: normal;
+    color: var(--visage-color-text-main-solid) !important;
+}
 
 /* ==========================================================================
-   11. THEME DEFINITIONS (The Engine)
+   12. THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
 /* --- 1. Universal Defaults --- */

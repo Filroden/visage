@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-3.3.1-blue)
+![Latest Version](https://img.shields.io/badge/Version-3.4.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -79,7 +79,7 @@ Manage your visual assets in a beautiful, card-based interface with a detailed s
 
   ![Visage Local Library](https://github.com/Filroden/visage/blob/main/images/v3/visage_local_library.png?raw=true)
 
-* **Visage Global Library (for GMs):** Accessed via Scene Controls. Create **Identities** and **Overlays** usable by the GM on any token. Apply them to one or more selected tokens, or even **drag and drop** them onto tokens, to take immediate effect.
+* **Visage Global Library (for GMs):** Accessed via Scene Controls. Create **Identities** and **Overlays** usable by the GM on any token. Apply them to one or more selected tokens, or even **drag and drop** them onto tokens, to take immediate effect. There is a game setting to import one or more preset packs of Visage Overlays into the Global Library which allow you to easily set specific changes to your tokens including: Light Sources, Token Sizes, Image Scaling, Image Orientation, Dispositions, Rotation Locks.
 
   ![Visage Global Library](https://github.com/Filroden/visage/blob/main/images/v3/visage_global_library.png?raw=true)
 
@@ -137,6 +137,18 @@ Key Features:
 * **Ghost Edit Protection:** Visage detects if you try to edit a token while effects are active and warns you, preventing accidental data loss.
 * **Languages:** Currently supports Arabic, Catalan, Chinese (Simplified and Traditional), Czech, Dutch, English (UK and US), Finnish, French, German, Hebrew, Hungarian, Italian, Japanese, Korean, Persian, Polish, Portuguese (Brazil and Portugal), Romanian, Russian, Spanish (Latin America and Spain), Swedish, Turkish, Ukrainian and Welsh.
 
+## System specific notes
+
+### Pathfinder 2e (PF2E) Compatibility
+
+In the PF2E system, a token's dimensions and image scale are strictly locked to the Actor's statistics to ensure game rules (like reach, flanking, and emanations) work correctly.
+
+If the "Specific System Overrides" game setting is enabled by the GM, then the module handles this lock for you:
+
+* **Automatic Unlock**: If you apply a Visage that modifies the **Dimensions**(Width/Height) or **Scale**, Visage will temporarily unlock the token to allow the transformation.
+* **Automatic Restoration**: If you remove that Visage, or edit the stack so that no active layers are modifying the size, Visage will **re-enable the lock**.
+  * *Note*: This immediately returns control to the PF2E system, which will snap the token back to the correct size for the Actor.
+
 ## Soft Dependencies
 
 * **[Sequencer](https://foundryvtt.com/packages/sequencer)**: Sequencer is required to use visual and audio effects. Visage works without it, but the Effects tab will be disabled.
@@ -159,9 +171,7 @@ Software and associated documentation files in this repository are covered by an
 
 ### Short term
 
-* **Improved APIs:** Improve ability to find and apply Visages
-* **Gallery UI improvements:** Add some differentiation between Identities and Overlays in both Selector HUD and Libraries.
-* **Pre-made Overlays:** Add a small library of pre-made Overlays that can be imported or enabled by the GM via Game Settings.
+* **Improved APIs:** Improve ability to find and apply Visages.
 * **Add Public/Private flags to global Visages:** GMs can tag their globally stored Visages (both Identities and Overlays) as either Public or Private. Players can see public Visages inside their token's Selector HUD and apply them to their own tokens.
 
 ### Long term (no promises!)

@@ -497,6 +497,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const speed = this._lightData.animation?.speed ?? 5;
         const animDuration = Math.max(0.5, (11 - speed) * 0.35) + "s";
 
+        // Prepare Anchor Values
+        // Check atomic inputs first, then fallback to texture object
+        const anchorXVal = (c.texture?.anchorX !== undefined && c.texture?.anchorX !== null) ? c.texture.anchorX : 0.5;
+        const anchorYVal = (c.texture?.anchorY !== undefined && c.texture?.anchorY !== null) ? c.texture.anchorY : 0.5;
+        const isAnchorActive = (c.texture?.anchorX !== undefined && c.texture?.anchorX !== null) || 
+                               (c.texture?.anchorY !== undefined && c.texture?.anchorY !== null);
+
         return {
             ...context, 
             isEdit: !!this.visageId,
@@ -523,6 +530,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             scale: { 
                 value: (c.scale !== undefined && c.scale !== null) ? Math.round(c.scale * 100) : 100, 
                 active: c.scale !== undefined && c.scale !== null 
+            },
+            anchor: {
+                active: isAnchorActive,
+                x: anchorXVal,
+                y: anchorYVal
             },
             isFlippedX: {  value: c.mirrorX, active: c.mirrorX !== undefined && c.mirrorX !== null },
             isFlippedY: {  value: c.mirrorY, active: c.mirrorY !== undefined && c.mirrorY !== null },
@@ -563,12 +575,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
         const el = this.element;
 
-        // Helper to safely get nested properties from formData
-        // e.g. get("light.animation.speed")
+        // Define helpers immediately
         const get = (path) => foundry.utils.getProperty(formData, path);
+        const getVal = (key, type = String) => {
+            const isActive = get(`${key}_active`);
+            if (!isActive) return undefined;
+            const raw = get(key);
+            if (type === Number) return parseFloat(raw);
+            if (type === Boolean) return !!raw;
+            return (typeof raw === "string") ? raw.trim() : raw;
+        };
 
         // 1. Sync Light Data
-        // We now use 'get()' to retrieve the nested values correctly
         if (this._editingLight && this._lightData) {
             const dim = get("light.dim");
             const bright = get("light.bright");
@@ -612,7 +630,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // 2. Sync Delay Data
-        // 'delayValue' is a top-level input, so we can access it directly or via get()
         const delayVal = get("delayValue");
         if (delayVal !== undefined) {
             const seconds = parseFloat(delayVal) || 0;
@@ -625,8 +642,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // 3. Sync Active Effect Data
-        // Effects use flat names (e.g. "effectPath"), so direct access is fine, 
-        // but get() works too for consistency.
         if (this._activeEffectId && this._effects) {
             const effectIndex = this._effects.findIndex(e => e.id === this._activeEffectId);
             if (effectIndex > -1) {
@@ -678,30 +693,39 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // Helper for safely extracting checkbox/value pairs
-        const getVal = (key, type = String) => {
-            const isActive = get(`${key}_active`);
-            if (!isActive) return undefined;
-            const raw = get(key);
-            if (type === Number) return parseFloat(raw);
-            if (type === Boolean) return !!raw;
-            return (typeof raw === "string") ? raw.trim() : raw;
-        };
-
         // 4. Extract Token Values
         const isScaleActive = get("scale_active");
         const isFlipXActive = get("isFlippedX") !== "";
         const isFlipYActive = get("isFlippedY") !== "";
-        const imgSrc = getVal("img"); 
+        const imgSrc = getVal("img");
 
-        const rawScale = isScaleActive ? (parseFloat(get("scale")) / 100) : 1.0;
+        // Anchors
+        const isAnchorActive = get("anchor_active");
+
+        const valAnchorX = parseFloat(get("anchorX"));
+        const valAnchorY = parseFloat(get("anchorY"));
+        
+        const rawAnchorX = isAnchorActive ? (!isNaN(valAnchorX) ? valAnchorX : 0.5) : 0.5;
+        const rawAnchorY = isAnchorActive ? (!isNaN(valAnchorY) ? valAnchorY : 0.5) : 0.5;
+
+        // --- SCALING LOGIC (Decoupled) ---
+        // 1. Global Scale (Applies to Token + Ring)
+        const globalScale = isScaleActive ? (parseFloat(get("scale")) / 100) : 1.0;
+        
+        // 2. Subject Scale (Applies ONLY to the internal image if Ring is active)
+        let subjectScale = 1.0;
+        const ringEnabled = get("ring.enabled");
+        if (ringEnabled && get("ringSubjectTexture")) {
+            subjectScale = parseFloat(get("ringSubjectScale")) || 1.0;
+        }
+
+        // 3. Flips
         const flipX = isFlipXActive ? (get("isFlippedX") === "true") : false;
         const flipY = isFlipYActive ? (get("isFlippedY") === "true") : false;
 
         const isAlphaActive = get("alpha_active");
         const rawAlpha = isAlphaActive ? (parseFloat(get("alpha")) / 100) : 1.0;
         const lockVal = get("lockRotation");
-        const rawLock = (lockVal === "true");
 
         const width = getVal("width", Number) || 1;
         const height = getVal("height", Number) || 1;
@@ -716,9 +740,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // 6. Build Texture
         let texture = {};
         if (imgSrc) texture.src = imgSrc;
-        if (isScaleActive || isFlipXActive || isFlipYActive) {
+        if (isScaleActive || isFlipXActive || isFlipYActive || isAnchorActive) {
+            const rawScale = isScaleActive ? (parseFloat(get("scale")) / 100) : 1.0;
+            const flipX = isFlipXActive ? (get("isFlippedX") === "true") : false;
+            const flipY = isFlipYActive ? (get("isFlippedY") === "true") : false;
+
             texture.scaleX = rawScale * (flipX ? -1 : 1);
             texture.scaleY = rawScale * (flipY ? -1 : 1);
+            
+            if (isAnchorActive) {
+                 texture.anchorX = rawAnchorX;
+                 texture.anchorY = rawAnchorY;
+             }
         }
         if (Object.keys(texture).length === 0) texture = undefined;
 
@@ -726,8 +759,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         let ring = null;
         if (get("ring.enabled")) {
             let effectsMask = 0;
-            // Iterate all entries to find effect flags
-            // Flatten first if needed, but manual check is safer for known keys
             const knownEffects = {
                 "effect_2": 2, "effect_4": 4, "effect_8": 8, "effect_16": 16
             };
@@ -753,11 +784,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             changes: {
                 name: getVal("nameOverride"),
                 texture: texture, 
-                scale: isScaleActive ? rawScale : null,
+                scale: isScaleActive ? globalScale : null,
                 mirrorX: isFlipXActive ? flipX : null,
                 mirrorY: isFlipYActive ? flipY : null,
-                alpha: isAlphaActive ? rawAlpha : null,
-                lockRotation: (lockVal !== "") ? rawLock : null,
+                alpha: isAlphaActive ? (parseFloat(get("alpha")) / 100) : null,
+                lockRotation: (lockVal !== "") ? (lockVal === "true") : null,
                 width: getVal("width", Number),
                 height: getVal("height", Number),
                 disposition: getVal("disposition", Number),
@@ -768,7 +799,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
 
         // 10. Resolve Paths
-        const ringEnabled = get("ring.enabled");
         const subjectTexture = get("ringSubjectTexture");
         const mainImage = mockData.changes.texture?.src || "";
         const rawPath = (ringEnabled && subjectTexture) ? subjectTexture : mainImage;
@@ -793,18 +823,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const sizeRatio = lMax > 0 ? ((lMax * 2) / gridDist) / currentWidth : 1;
         const brightPct = lMax > 0 ? (lBright / lMax) * 100 : 0;
         
-        // Luminosity color logic
         const isDarkness = lLumin < 0;
         const effectiveColor = isDarkness ? "#000000" : lColor;
         
-        // Scaling Preview Intensity by Luminosity Magnitude
         const previewOpacity = lAlpha * (Math.abs(lLumin) * 2);
-
-        // Rotation logic
-        // If Flipped Y (North), offset by 0deg. If Default (South), offset by 180deg.
         const rotationOffset = flipY ? 0 : 180; 
 
-        // Animation
         const animType = lAnim.type || "";
         const speed = lAnim.speed || 5;
         const intensity = lAnim.intensity || 5;
@@ -812,7 +836,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const animDuration = Math.max(0.5, (11 - speed) * 0.35) + "s";
         const animIntensityVal = intensity / 10;
 
-        // 12. Re-render Preview
+        // --- 12. Calculate Transforms ---
+        
+        // A. Image Transform (Global Scale * Subject Scale)
+        const imgScaleX = globalScale * subjectScale * (flipX ? -1 : 1);
+        const imgScaleY = globalScale * subjectScale * (flipY ? -1 : 1);
+
+        // B. Ring Transform (Global Scale Only) applying a 0.75 visual scale factor to align preview with canvas results
+        const ringScaleTotal = globalScale * 0.75;
+
+        // C. Anchor Translation
+        const translateX = rawAnchorX * 100;
+        const translateY = rawAnchorY * 100;
+        
+        const originStyle = `${translateX}% ${translateY}%`;
+
+        // Image Styles
+        const imgTransform = `translate(-${translateX}%, -${translateY}%) scale(${imgScaleX}, ${imgScaleY})`;
+        
+        // Ring Styles (Move with Anchor, Scale with Global)
+        const ringTransform = `translate(-${translateX}%, -${translateY}%) scale(${ringScaleTotal})`;
+
+        // 13. Re-render Preview
         const previewData = {
             resolvedPath: resolved || rawPath,
             name: mockData.changes.name,
@@ -830,7 +875,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             forceFlipY: context.isFlippedY,
             wrapperClass: "visage-preview-content stage-mode",
             
-            // Light Props (Uses Persistent Data)
             hasLight: lData.active,
             lightColor: effectiveColor,
             lightAlpha: Math.min(1, previewOpacity),
@@ -862,19 +906,34 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (hint) stage.appendChild(hint);
             if (overlay) stage.appendChild(overlay);
 
-            let visualScale = rawScale; 
-            if (meta.hasRing && get("ringSubjectTexture")) visualScale = parseFloat(get("ringSubjectScale")) || 1.0;
-            this._currentVisualScale = visualScale; 
+            // --- APPLY TRANSFORMS ---
 
-            const scaleX = visualScale * (context.isFlippedX ? -1 : 1);
-            const scaleY = visualScale * (context.isFlippedY ? -1 : 1);
-            const transform = `scale(${scaleX}, ${scaleY})`;
-
+            // 1. Target the Token Image (Subject)
             const newImg = stage.querySelector(".visage-preview-img");
             const newVid = stage.querySelector(".visage-preview-video");
-            
-            if (newImg) newImg.style.transform = transform;
-            if (newVid) newVid.style.transform = transform;
+            const fallback = stage.querySelector(".fallback-icon");
+            const target = newImg || newVid || fallback;
+
+            if (target) {
+                target.style.transform = imgTransform;
+                target.style.transformOrigin = originStyle;
+                target.style.left = "50%";
+                target.style.top = "50%";
+            }
+
+            // 2. Target the Ring (Disposition)
+            const ringEl = stage.querySelector(".visage-ring-preview");
+            if (ringEl) {
+                ringEl.style.width = "100%";
+                ringEl.style.height = "100%";
+
+                ringEl.style.transform = ringTransform;
+                ringEl.style.transformOrigin = originStyle;
+                
+                ringEl.style.left = "50%";
+                ringEl.style.top = "50%";
+                ringEl.style.position = "absolute";
+            }
 
             this._applyStageTransform();
             this._bindDynamicListeners();
@@ -1206,7 +1265,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onToggleField(event, target) {
         const fieldName = target.dataset.target;
         const group = target.closest('.form-group');
-        const inputs = group.querySelectorAll(`[name="${fieldName}"]`); 
+
+        let inputs;
+        if (fieldName === "anchor") {
+            inputs = group.querySelectorAll('[name="anchorX"], [name="anchorY"]');
+        } else {
+            inputs = group.querySelectorAll(`[name="${fieldName}"]`); 
+        }
+        
         inputs.forEach(input => input.disabled = !target.checked);
         
         const button = group.querySelector('button.file-picker-button');
@@ -1746,6 +1812,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const lockInput = this.element.querySelector('input[name="lockRotation"]');
         if (lockInput) lockInput.checked = false;
 
+        const anchorX = this.element.querySelector('input[name="anchorX"]');
+        const anchorY = this.element.querySelector('input[name="anchorY"]');
+        if (anchorX) anchorX.value = 0.5;
+        if (anchorY) anchorY.value = 0.5;
+
         this._effects = [];
         this._activeEffectId = null;
 
@@ -1780,7 +1851,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 texture: {
                     src: formData.img_active ? formData.img : null,
                     scaleX: null, 
-                    scaleY: null 
+                    scaleY: null,
+                    anchorX: formData.anchor_active ? parseFloat(formData.anchorX) : null,
+                    anchorY: formData.anchor_active ? parseFloat(formData.anchorY) : null
                 },
                 scale: formData.scale_active ? getVal("scale", Number) / 100 : null,
                 mirrorX: formData.isFlippedX === "" ? null : (formData.isFlippedX === "true"),

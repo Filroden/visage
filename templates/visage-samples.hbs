@@ -1,0 +1,20 @@
+<div class="standard-form">
+    <p class="visage-notes">{{localize "VISAGE.Samples.Instruction"}}</p>
+    
+    <div class="visage-samples-list">
+        {{#each packs}}
+        <div class="form-group checkbox-input-group">
+            <input class="visage-checkbox" type="checkbox" name="{{id}}" checked>
+            <p class="visage-notes"><strong>{{localize label}}</strong></p>
+            <p class="visage-notes">{{localize desc}}</p>
+        </div>
+        {{/each}}
+    </div>
+
+  
+    <footer class="sheet-footer flexrow">
+        <button type="submit" name="submit">
+            <i class="visage-icon open"></i> {{localize "VISAGE.Samples.Action.Import"}}
+        </button>
+    </footer>
+</div>
