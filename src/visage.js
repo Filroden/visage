@@ -51,7 +51,9 @@ export class Visage {
         });
 
         // Restore effects on newly created tokens (e.g., drag-and-drop)
-        Hooks.on("createToken", (tokenDoc) => {
+        Hooks.on("createToken", (tokenDoc, options, userId) => {
+            if (game.user.id !== userId) return;
+
             if (tokenDoc.object && Visage.sequencerReady) {
                 setTimeout(() => VisageSequencer.restore(tokenDoc.object), 250);
             }
