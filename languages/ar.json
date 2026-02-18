@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "\u200Fخاص",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "\u200Fيمكن تطبيق هذا الـ \u2068Visage\u2069 من قبل جميع اللاعبين عبر \u2068HUD\u2069 الاختيار الخاص برموزهم.",
     "VISAGE.GlobalEditor.Public": "\u200Fعام",
-    "VISAGE.Selector.TogglePublic": "\u200Fتبديل ظهور \u2068Visages\u2069 العالمية العامة"
+    "VISAGE.Selector.TogglePublic": "\u200Fتبديل ظهور \u2068Visages\u2069 العالمية العامة",
+    "VISAGE.GlobalEditor.RingDisabled": "\u200Fالحلقة الديناميكية معطلة"
 }

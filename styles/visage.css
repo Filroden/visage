@@ -1156,6 +1156,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.private      { -webkit-mask-image: url('../icons/person_off.svg'); mask-image: url('../icons/person_off.svg'); }
 .visage-icon.toggle_on      { -webkit-mask-image: url('../icons/toggle_on.svg'); mask-image: url('../icons/toggle_on.svg'); }
 .visage-icon.toggle_off      { -webkit-mask-image: url('../icons/toggle_off.svg'); mask-image: url('../icons/toggle_off.svg'); }
+.visage-icon.ring      { -webkit-mask-image: url('../icons/orbit.svg'); mask-image: url('../icons/orbit.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {

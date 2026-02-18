@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Privát",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Ezt a Visage-t minden játékos alkalmazhatja a bábu Választó felületén keresztül.",
     "VISAGE.GlobalEditor.Public": "Nyilvános",
-    "VISAGE.Selector.TogglePublic": "Nyilvános Globális Visage-ok láthatóságának váltása"
+    "VISAGE.Selector.TogglePublic": "Nyilvános Globális Visage-ok láthatóságának váltása",
+    "VISAGE.GlobalEditor.RingDisabled": "Dinamikus Gyűrű Kikapcsolva"
 }

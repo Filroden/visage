@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "\u200Fخصوصی",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "\u200Fاین \u2068Visage\u2069 توسط تمام بازیکنان از طریق \u2068HUD\u2069 انتخابگر مهره قابل اعمال است.",
     "VISAGE.GlobalEditor.Public": "\u200Fعمومی",
-    "VISAGE.Selector.TogglePublic": "\u200Fتغییر وضعیت نمایش \u2068Visage\u2069های جهانی عمومی"
+    "VISAGE.Selector.TogglePublic": "\u200Fتغییر وضعیت نمایش \u2068Visage\u2069های جهانی عمومی",
+    "VISAGE.GlobalEditor.RingDisabled": "\u200Fحلقه پویا غیرفعال شد"
 }

@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Приватний",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Цей Visage можуть застосовувати всі гравці через HUD вибору токена.",
     "VISAGE.GlobalEditor.Public": "Публічний",
-    "VISAGE.Selector.TogglePublic": "Перемкнути видимість Публічних Глобальних Visage"
+    "VISAGE.Selector.TogglePublic": "Перемкнути видимість Публічних Глобальних Visage",
+    "VISAGE.GlobalEditor.RingDisabled": "Динамічне Кільце Вимкнено"
 }

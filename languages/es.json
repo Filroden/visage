@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Privado",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Este Visage puede ser aplicado por todos los jugadores a través del HUD de selección de su ficha.",
     "VISAGE.GlobalEditor.Public": "Público",
-    "VISAGE.Selector.TogglePublic": "Alternar visibilidad de Visages Globales Públicos"
+    "VISAGE.Selector.TogglePublic": "Alternar visibilidad de Visages Globales Públicos",
+    "VISAGE.GlobalEditor.RingDisabled": "Anillo Dinámico Desactivado"
 }

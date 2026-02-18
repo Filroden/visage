@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "非公開",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "この Visage は、すべてのプレイヤーがトークンのセレクターHUDを通じて適用できます。",
     "VISAGE.GlobalEditor.Public": "公開",
-    "VISAGE.Selector.TogglePublic": "公開 Global Visage の表示切替"
+    "VISAGE.Selector.TogglePublic": "公開 Global Visage の表示切替",
+    "VISAGE.GlobalEditor.RingDisabled": "ダイナミックリング無効"
 }

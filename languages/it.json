@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Privato",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Questo Visage può essere applicato da tutti i giocatori tramite l'HUD di selezione della loro pedina.",
     "VISAGE.GlobalEditor.Public": "Pubblico",
-    "VISAGE.Selector.TogglePublic": "Alterna visibilità dei Visage Globali Pubblici"
+    "VISAGE.Selector.TogglePublic": "Alterna visibilità dei Visage Globali Pubblici",
+    "VISAGE.GlobalEditor.RingDisabled": "Anello Dinamico Disabilitato"
 }

@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "私人",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "所有玩家都可以透過其指示物的選擇器 HUD 套用此 Visage。",
     "VISAGE.GlobalEditor.Public": "公開",
-    "VISAGE.Selector.TogglePublic": "切換公開全域 Visage 的可見性"
+    "VISAGE.Selector.TogglePublic": "切換公開全域 Visage 的可見性",
+    "VISAGE.GlobalEditor.RingDisabled": "動態圓環已停用"
 }
