@@ -323,5 +323,12 @@
     "VISAGE.Samples.Items.TokenSize1x1": "\u200Fגודל טוקן (\u20681 × 1\u2069)",
     "VISAGE.Config.List.Anchor": "\u200Fנקודת עיגון (\u2068X / Y\u2069)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "\u200Fדריסות מערכת ספציפיות",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "\u200Fאם מופעל, \u2068Visage\u2069 יורשה לשחרר זמנית חוקים ספציפיים למערכת (כמו קישור גודל טוקן ב-\u2068PF2E\u2069) כדי להחיל שינויי ממדים או קנה מידה. אם כבוי, \u2068Visage\u2069 לא יוכל לשנות את הגדרות הגודל או קנה המידה של הטוקן."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "\u200Fאם מופעל, \u2068Visage\u2069 יורשה לשחרר זמנית חוקים ספציפיים למערכת (כמו קישור גודל טוקן ב-\u2068PF2E\u2069) כדי להחיל שינויי ממדים או קנה מידה. אם כבוי, \u2068Visage\u2069 לא יוכל לשנות את הגדרות הגודל או קנה המידה של הטוקן.",
+    "VISAGE.Notifications.Error.PermissionDenied": "\u200Fרק \u2068GM\u2069 יכול ליצור, לערוך או למחוק \u2068Visages\u2069 גלובליים.",
+    "VISAGE.GlobalEditor.Visibility": "\u200Fשיתוף",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "\u200Fרק ה-\u2068GM\u2069 יכול להחיל את ה-\u2068Visage\u2069 הזה.",
+    "VISAGE.GlobalEditor.Private": "\u200Fפרטי",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "\u200Fכל השחקנים יכולים להחיל את ה-\u2068Visage\u2069 הזה דרך ה-\u2068HUD\u2069 של הטוקן שלהם.",
+    "VISAGE.GlobalEditor.Public": "\u200Fציבורי",
+    "VISAGE.Selector.TogglePublic": "\u200Fהצג/הסתר \u2068Visages\u2069 גלובליים ציבוריים"
 }

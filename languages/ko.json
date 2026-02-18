@@ -323,5 +323,12 @@
     "VISAGE.Samples.Items.TokenSize1x1": "토큰 크기 (1 x 1)",
     "VISAGE.Config.List.Anchor": "앵커 포인트 (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "특정 시스템 재정의",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "활성화하면 Visage가 크기 또는 비율 변경을 적용하기 위해 시스템별 규칙(예: PF2E 토큰 크기 연결)을 일시적으로 잠금 해제할 수 있습니다. 비활성화하면 Visage가 토큰의 크기 또는 비율 설정을 변경할 수 없습니다."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "활성화하면 Visage가 크기 또는 비율 변경을 적용하기 위해 시스템별 규칙(예: PF2E 토큰 크기 연결)을 일시적으로 잠금 해제할 수 있습니다. 비활성화하면 Visage가 토큰의 크기 또는 비율 설정을 변경할 수 없습니다.",
+    "VISAGE.Notifications.Error.PermissionDenied": "GM만이 전역 Visage를 생성, 편집 또는 삭제할 수 있습니다.",
+    "VISAGE.GlobalEditor.Visibility": "공유",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "이 Visage는 GM만 적용할 수 있습니다.",
+    "VISAGE.GlobalEditor.Private": "비공개",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "이 Visage는 모든 플레이어가 토큰 선택기 HUD를 통해 적용할 수 있습니다.",
+    "VISAGE.GlobalEditor.Public": "공개",
+    "VISAGE.Selector.TogglePublic": "공개 전역 Visage 표시 전환"
 }

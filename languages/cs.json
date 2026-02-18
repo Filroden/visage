@@ -323,5 +323,12 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Velikost Tokenu (1 x 1)",
     "VISAGE.Config.List.Anchor": "Kotevní Bod (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Specifická Přepsání Systému",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Pokud je povoleno, Visage bude moci dočasně odemknout pravidla specifická pro systém (např. vazbu Velikosti Tokenu v PF2E), aby bylo možné aplikovat změny rozměrů nebo měřítka. Pokud je zakázáno, Visage nebude moci měnit nastavení velikosti nebo měřítka tokenu."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Pokud je povoleno, Visage bude moci dočasně odemknout pravidla specifická pro systém (např. vazbu Velikosti Tokenu v PF2E), aby bylo možné aplikovat změny rozměrů nebo měřítka. Pokud je zakázáno, Visage nebude moci měnit nastavení velikosti nebo měřítka tokenu.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Pouze GM může vytvářet, upravovat nebo mazat Globální Visage.",
+    "VISAGE.GlobalEditor.Visibility": "Sdílení",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Tento Visage může aplikovat pouze GM.",
+    "VISAGE.GlobalEditor.Private": "Soukromé",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Tento Visage mohou aplikovat všichni hráči přes HUD výběru tokenu.",
+    "VISAGE.GlobalEditor.Public": "Veřejné",
+    "VISAGE.Selector.TogglePublic": "Přepnout viditelnost Veřejných Globálních Visage"
 }

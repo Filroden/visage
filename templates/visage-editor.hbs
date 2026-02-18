@@ -9,6 +9,26 @@
             <input type="text" name="label" value="{{label}}" placeholder="{{localize 'VISAGE.GlobalEditor.DefaultLabel'}}" required>
         </div>
 
+        {{!-- Visibility Group (Global Only) --}}
+        {{#unless isLocal}}
+        <div class="header-form-group visibility-group">
+            <label>{{localize "VISAGE.GlobalEditor.Visibility"}}</label>
+            <div class="visage-mode-toggle">
+                {{!-- Private Option --}}
+                <input type="radio" name="public" id="visibility-private-{{appId}}" value="false" {{checked (not isPublic)}}>
+                <label for="visibility-private-{{appId}}" data-tooltip="VISAGE.GlobalEditor.VisibilityPrivateHint">
+                    {{localize "VISAGE.GlobalEditor.Private"}}
+                </label>
+
+                {{!-- Public Option --}}
+                <input type="radio" name="public" id="visibility-public-{{appId}}" value="true" {{checked isPublic}}>
+                <label for="visibility-public-{{appId}}" data-tooltip="VISAGE.GlobalEditor.VisibilityPublicHint">
+                    {{localize "VISAGE.GlobalEditor.Public"}}
+                </label>
+            </div>
+        </div>
+        {{/unless}}
+
         {{!-- Mode Group --}}
         <div class="header-form-group mode-group">
             <label>{{localize "VISAGE.GlobalEditor.Mode"}}</label>
@@ -16,13 +36,13 @@
                 {{!-- Identity Option --}}
                 <input type="radio" name="mode" id="mode-identity-{{appId}}" value="identity" {{checked (visageEq mode "identity")}}>
                 <label for="mode-identity-{{appId}}" data-tooltip="VISAGE.Mode.IdentityHint">
-                    <i class="visage-icon domino"></i> {{localize "VISAGE.Mode.Identity"}}
+                    {{localize "VISAGE.Mode.Identity"}}
                 </label>
 
                 {{!-- Overlay Option --}}
                 <input type="radio" name="mode" id="mode-overlay-{{appId}}" value="overlay" {{checked (visageEq mode "overlay")}}>
                 <label for="mode-overlay-{{appId}}" data-tooltip="VISAGE.Mode.OverlayHint">
-                    <i class="visage-icon domino"></i> {{localize "VISAGE.Mode.Overlay"}}
+                    {{localize "VISAGE.Mode.Overlay"}}
                 </label>
             </div>
         </div>
