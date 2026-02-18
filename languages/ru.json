@@ -323,5 +323,12 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Размер Токена (1 x 1)",
     "VISAGE.Config.List.Anchor": "Точка Привязки (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Системные Переопределения",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Если включено, Visage сможет временно разблокировать специфичные для системы правила (например, связь размера токена в PF2E) для применения изменений размеров или масштаба. Если выключено, Visage не сможет изменить настройки размера или масштаба токена."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Если включено, Visage сможет временно разблокировать специфичные для системы правила (например, связь размера токена в PF2E) для применения изменений размеров или масштаба. Если выключено, Visage не сможет изменить настройки размера или масштаба токена.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Только ГМ может создавать, редактировать или удалять Глобальные Visage.",
+    "VISAGE.GlobalEditor.Visibility": "Доступ",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Этот Visage может применить только ГМ.",
+    "VISAGE.GlobalEditor.Private": "Приватный",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Этот Visage могут применять все игроки через HUD выбора токена.",
+    "VISAGE.GlobalEditor.Public": "Публичный",
+    "VISAGE.Selector.TogglePublic": "Переключить видимость Публичных Глобальных Visage"
 }

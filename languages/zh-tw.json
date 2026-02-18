@@ -323,5 +323,12 @@
     "VISAGE.Samples.Items.TokenSize1x1": "指示物尺寸 (1 x 1)",
     "VISAGE.Config.List.Anchor": "錨點 (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "特定系統覆蓋",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "如果啟用，Visage 將被允許暫時解鎖特定於系統的規則（如 PF2E 指示物尺寸連結）以套用尺寸或縮放變更。如果禁用，Visage 將無法變更指示物的尺寸或縮放設定。"
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "如果啟用，Visage 將被允許暫時解鎖特定於系統的規則（如 PF2E 指示物尺寸連結）以套用尺寸或縮放變更。如果禁用，Visage 將無法變更指示物的尺寸或縮放設定。",
+    "VISAGE.Notifications.Error.PermissionDenied": "只有 GM 可以建立、編輯或刪除全域 Visage。",
+    "VISAGE.GlobalEditor.Visibility": "分享",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "此 Visage 只能由 GM 套用。",
+    "VISAGE.GlobalEditor.Private": "私人",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "所有玩家都可以透過其指示物的選擇器 HUD 套用此 Visage。",
+    "VISAGE.GlobalEditor.Public": "公開",
+    "VISAGE.Selector.TogglePublic": "切換公開全域 Visage 的可見性"
 }

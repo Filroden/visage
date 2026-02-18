@@ -323,5 +323,12 @@
     "VISAGE.Samples.Items.TokenSize1x1": "トークンサイズ (1 x 1)",
     "VISAGE.Config.List.Anchor": "アンカーポイント (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "特定のシステム上書き",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "有効にすると、Visage はサイズやスケールの変更を適用するために、システム固有のルール（PF2E トークンサイズ連携など）を一時的にロック解除できます。無効の場合、Visage はトークンのサイズやスケール設定を変更できません。"
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "有効にすると、Visage はサイズやスケールの変更を適用するために、システム固有のルール（PF2E トークンサイズ連携など）を一時的にロック解除できます。無効の場合、Visage はトークンのサイズやスケール設定を変更できません。",
+    "VISAGE.Notifications.Error.PermissionDenied": "Global Visage を作成、編集、削除できるのはGMのみです。",
+    "VISAGE.GlobalEditor.Visibility": "共有設定",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "この Visage はGMのみが適用できます。",
+    "VISAGE.GlobalEditor.Private": "非公開",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "この Visage は、すべてのプレイヤーがトークンのセレクターHUDを通じて適用できます。",
+    "VISAGE.GlobalEditor.Public": "公開",
+    "VISAGE.Selector.TogglePublic": "公開 Global Visage の表示切替"
 }

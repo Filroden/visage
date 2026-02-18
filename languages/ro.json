@@ -323,5 +323,12 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Mărime Jeton (1 x 1)",
     "VISAGE.Config.List.Anchor": "Punct de Ancorare (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Suprascrieri Sistem Specifice",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Dacă este activat, Visage va putea debloca temporar reguli specifice sistemului (cum ar fi legătura Mărime Jeton PF2E) pentru a aplica modificări de dimensiune sau scară. Dacă este dezactivat, Visage nu va putea modifica setările de mărime sau scară ale jetonului."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Dacă este activat, Visage va putea debloca temporar reguli specifice sistemului (cum ar fi legătura Mărime Jeton PF2E) pentru a aplica modificări de dimensiune sau scară. Dacă este dezactivat, Visage nu va putea modifica setările de mărime sau scară ale jetonului.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Doar un GM poate crea, edita sau șterge Visage-uri Globale.",
+    "VISAGE.GlobalEditor.Visibility": "Partajare",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Acest Visage poate fi aplicat doar de către GM.",
+    "VISAGE.GlobalEditor.Private": "Privat",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Acest Visage poate fi aplicat de toți jucătorii prin HUD-ul de selecție al jetonului lor.",
+    "VISAGE.GlobalEditor.Public": "Public",
+    "VISAGE.Selector.TogglePublic": "Comută vizibilitatea Visage-urilor Globale Publice"
 }

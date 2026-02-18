@@ -8,11 +8,10 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
  * Handles the logic for toggling fields (Intent), live preview updates,
  * effect management (Visuals/Audio), and constructing the final data payload.
  * * * **Architecture Note:**
- * This application uses a "Snapshot" strategy (`_preservedData`) to persist unsaved 
+ * This application uses a "Snapshot" strategy (`_preservedData`) to persist unsaved
  * form input across re-renders (e.g., when adding an effect row re-renders the DOM).
  */
 export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
-    
     /**
      * @param {Object} options - Editor options.
      * @param {string} [options.visageId] - ID of the visage to edit. If null, creates new.
@@ -21,7 +20,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     constructor(options = {}) {
         super(options);
-        
+
         this.visageId = options.visageId || null;
         this.actorId = options.actorId || null;
         this.tokenId = options.tokenId || null;
@@ -34,7 +33,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             y: 0,
             isDragging: false,
             lastX: 0,
-            lastY: 0
+            lastY: 0,
         };
 
         this._effects = null;
@@ -42,11 +41,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._audioPreviews = new Map();
         this._editingLight = false;
         this._lightData = null; // Stores { active, dim, bright, color, animation... }
-        this._delayData = 0;    // Stores ms (positive = effects lead, negative = token leads)
+        this._delayData = 0; // Stores ms (positive = effects lead, negative = token leads)
     }
 
-    get isLocal() { return !!this.actorId; }
-    get actor() { return VisageUtilities.resolveTarget(this.options).actor; }
+    get isLocal() {
+        return !!this.actorId;
+    }
+    get actor() {
+        return VisageUtilities.resolveTarget(this.options).actor;
+    }
 
     static DEFAULT_OPTIONS = {
         tag: "form",
@@ -54,10 +57,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         classes: ["visage", "visage-editor", "visage-dark-theme"],
         window: {
             title: "VISAGE.GlobalEditor.TitleNew.Global",
-            icon: "visage-icon-domino", 
+            icon: "visage-icon-domino",
             resizable: true,
             minimizable: true,
-            contentClasses: ["standard-form"]
+            contentClasses: ["standard-form"],
         },
         position: { width: 960, height: "auto" },
         actions: {
@@ -66,44 +69,51 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleField: VisageEditor.prototype._onToggleField,
             openFilePicker: VisageEditor.prototype._onOpenFilePicker,
             resetSettings: VisageEditor.prototype._onResetSettings,
-            
+
             // Stage / Viewport Controls
             zoomIn: VisageEditor.prototype._onZoomIn,
             zoomOut: VisageEditor.prototype._onZoomOut,
             resetZoom: VisageEditor.prototype._onResetZoom,
             toggleGrid: VisageEditor.prototype._onToggleGrid,
-            
+
             // Effects Management
             addVisual: VisageEditor.prototype._onAddVisual,
             addAudio: VisageEditor.prototype._onAddAudio,
             editEffect: VisageEditor.prototype._onEditEffect,
-            closeEffectInspector: VisageEditor.prototype._onCloseEffectInspector,
+            closeEffectInspector:
+                VisageEditor.prototype._onCloseEffectInspector,
             deleteEffect: VisageEditor.prototype._onDeleteEffect,
             toggleEffect: VisageEditor.prototype._onToggleEffect,
             toggleLoop: VisageEditor.prototype._onToggleLoop,
             replayPreview: VisageEditor.prototype._onReplayPreview,
-            openSequencerDatabase: VisageEditor.prototype._onOpenSequencerDatabase,
+            openSequencerDatabase:
+                VisageEditor.prototype._onOpenSequencerDatabase,
             toggleLight: VisageEditor.prototype._onToggleLight,
             editLight: VisageEditor.prototype._onEditLight,
-            toggleDelayDirection: VisageEditor.prototype._onToggleDelayDirection,
-        }
+            toggleDelayDirection:
+                VisageEditor.prototype._onToggleDelayDirection,
+        },
     };
 
     static PARTS = {
         form: {
             template: "modules/visage/templates/visage-editor.hbs",
-            scrollable: [".visage-editor-grid"]
-        }
+            scrollable: [".visage-editor-grid"],
+        },
     };
 
     get title() {
         if (this.isLocal) {
-            return this.visageId 
-                ? game.i18n.format("VISAGE.GlobalEditor.Title.Local", { name: this._currentLabel || "Visage" })
+            return this.visageId
+                ? game.i18n.format("VISAGE.GlobalEditor.Title.Local", {
+                      name: this._currentLabel || "Visage",
+                  })
                 : game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Local");
         }
-        return this.visageId 
-            ? game.i18n.format("VISAGE.GlobalEditor.TitleEdit", { name: this._currentLabel || "Visage" })
+        return this.visageId
+            ? game.i18n.format("VISAGE.GlobalEditor.TitleEdit", {
+                  name: this._currentLabel || "Visage",
+              })
             : game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global");
     }
 
@@ -117,52 +127,60 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         let dragSource = null;
 
         // 1. Drag Start (Card)
-        const cards = html.querySelectorAll('.effect-card');
-        cards.forEach(card => {
-            card.addEventListener('dragstart', (ev) => {
+        const cards = html.querySelectorAll(".effect-card");
+        cards.forEach((card) => {
+            card.addEventListener("dragstart", (ev) => {
                 dragSource = card;
                 ev.dataTransfer.effectAllowed = "move";
                 ev.dataTransfer.setData("text/plain", card.dataset.id);
                 ev.dataTransfer.setData("type", card.dataset.type);
-                card.classList.add('dragging');
+                card.classList.add("dragging");
             });
 
-            card.addEventListener('dragend', (ev) => {
-                card.classList.remove('dragging');
+            card.addEventListener("dragend", (ev) => {
+                card.classList.remove("dragging");
                 dragSource = null;
                 // Cleanup highlights
-                html.querySelectorAll('.drag-over, .group-drag-over').forEach(el => {
-                    el.classList.remove('drag-over', 'group-drag-over');
-                });
+                html.querySelectorAll(".drag-over, .group-drag-over").forEach(
+                    (el) => {
+                        el.classList.remove("drag-over", "group-drag-over");
+                    },
+                );
             });
-            
+
             // Allow dropping onto other cards (for reordering)
-            card.addEventListener('dragenter', (ev) => ev.preventDefault());
-            card.addEventListener('dragover', (ev) => {
+            card.addEventListener("dragenter", (ev) => ev.preventDefault());
+            card.addEventListener("dragover", (ev) => {
                 ev.preventDefault();
                 // Only allow if types match (Visual <-> Visual, Audio <-> Audio)
                 const sourceType = dragSource?.dataset.type;
                 const targetType = card.dataset.type;
-                
+
                 // Allow Visuals to mix (above/below), but strictly separate Audio
                 const isSourceVisual = sourceType === "visual";
                 const isTargetVisual = targetType === "visual";
-                
+
                 if (isSourceVisual !== isTargetVisual) return;
 
-                card.classList.add('drag-over');
+                card.classList.add("drag-over");
             });
-            card.addEventListener('dragleave', (ev) => {
-                card.classList.remove('drag-over');
+            card.addEventListener("dragleave", (ev) => {
+                card.classList.remove("drag-over");
             });
-            card.addEventListener('drop', (ev) => this._onDrop(ev, card.closest('.effect-group').dataset.group, card.dataset.id));
+            card.addEventListener("drop", (ev) =>
+                this._onDrop(
+                    ev,
+                    card.closest(".effect-group").dataset.group,
+                    card.dataset.id,
+                ),
+            );
         });
 
         // 2. Drop Zones (Groups) - Handling drops into empty areas or at end of lists
-        const groups = html.querySelectorAll('.effect-group');
-        groups.forEach(group => {
-            group.addEventListener('dragenter', (ev) => ev.preventDefault());
-            group.addEventListener('dragover', (ev) => {
+        const groups = html.querySelectorAll(".effect-group");
+        groups.forEach((group) => {
+            group.addEventListener("dragenter", (ev) => ev.preventDefault());
+            group.addEventListener("dragover", (ev) => {
                 ev.preventDefault();
                 const sourceType = dragSource?.dataset.type;
                 const targetGroup = group.dataset.group;
@@ -171,24 +189,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (sourceType === "audio" && targetGroup !== "audio") return;
                 if (sourceType === "visual" && targetGroup === "audio") return;
 
-                group.classList.add('group-drag-over');
+                group.classList.add("group-drag-over");
             });
-            group.addEventListener('dragleave', (ev) => {
-                group.classList.remove('group-drag-over');
+            group.addEventListener("dragleave", (ev) => {
+                group.classList.remove("group-drag-over");
             });
-            group.addEventListener('drop', (ev) => {
+            group.addEventListener("drop", (ev) => {
                 // If we dropped on a card, the card's listener handles it (stopPropagation).
                 // If we bubble up here, it means we dropped in the empty space/container.
-                this._onDrop(ev, group.dataset.group, null); 
+                this._onDrop(ev, group.dataset.group, null);
             });
         });
     }
 
     /**
      * Primary drop handler for effect reordering.
-     * Performs index calculations and updates the internal `_effects` array 
+     * Performs index calculations and updates the internal `_effects` array
      * based on the relative position of the drop target.
-     * * @param {DragEvent} ev 
+     * * @param {DragEvent} ev
      * @param {string} targetGroup - The target group identifier ('above', 'below', or 'audio').
      * @param {string|null} targetId - ID of the card dropped onto, or null if dropped in a container.
      * @private
@@ -201,9 +219,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!draggedId || draggedId === targetId) return;
 
         // 1. Get Original Indices
-        const draggedIndex = this._effects.findIndex(e => e.id === draggedId);
-        const originalTargetIndex = targetId ? this._effects.findIndex(e => e.id === targetId) : -1;
-        
+        const draggedIndex = this._effects.findIndex((e) => e.id === draggedId);
+        const originalTargetIndex = targetId
+            ? this._effects.findIndex((e) => e.id === targetId)
+            : -1;
+
         if (draggedIndex === -1) return;
         const draggedEffect = this._effects[draggedIndex];
 
@@ -224,48 +244,54 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (targetId) {
             // Case A: Dropped onto another card
             // We need to find the *new* index of the target (since the array shifted)
-            const newTargetIndex = this._effects.findIndex(e => e.id === targetId);
-            
+            const newTargetIndex = this._effects.findIndex(
+                (e) => e.id === targetId,
+            );
+
             if (newTargetIndex !== -1) {
                 // Directional Logic:
                 // If we dragged an item from "above" (lower index) to "below" (higher index),
                 // the logical expectation is to place it AFTER the target.
                 // If we dragged "up", we place it BEFORE.
-                
+
                 if (draggedIndex < originalTargetIndex) {
-                     // Moving Down: Insert AFTER the target
-                     this._effects.splice(newTargetIndex + 1, 0, draggedEffect);
+                    // Moving Down: Insert AFTER the target
+                    this._effects.splice(newTargetIndex + 1, 0, draggedEffect);
                 } else {
-                     // Moving Up: Insert BEFORE the target
-                     this._effects.splice(newTargetIndex, 0, draggedEffect);
+                    // Moving Up: Insert BEFORE the target
+                    this._effects.splice(newTargetIndex, 0, draggedEffect);
                 }
             } else {
                 this._effects.push(draggedEffect); // Fallback
             }
         } else {
             // Case B: Dropped into the container (Empty Space) -> Append to end of that group
-            let insertIndex = this._effects.length; 
-            
+            let insertIndex = this._effects.length;
+
             if (targetGroup === "above" || targetGroup === "below") {
                 // Find last visual effect of this specific zOrder
-                const lastOfGroupIndex = this._effects.findLastIndex(e => e.type === "visual" && e.zOrder === targetGroup);
+                const lastOfGroupIndex = this._effects.findLastIndex(
+                    (e) => e.type === "visual" && e.zOrder === targetGroup,
+                );
                 if (lastOfGroupIndex !== -1) insertIndex = lastOfGroupIndex + 1;
             } else if (targetGroup === "audio") {
-                const lastAudioIndex = this._effects.findLastIndex(e => e.type === "audio");
+                const lastAudioIndex = this._effects.findLastIndex(
+                    (e) => e.type === "audio",
+                );
                 if (lastAudioIndex !== -1) insertIndex = lastAudioIndex + 1;
             }
-            
+
             this._effects.splice(insertIndex, 0, draggedEffect);
         }
 
         this._markDirty();
-        this._updatePreview(); 
+        this._updatePreview();
         await this.render();
     }
 
     /**
      * Extends ApplicationV2 render to capture current form state.
-     * Utilizes a preservation strategy to ensure that transient UI states 
+     * Utilizes a preservation strategy to ensure that transient UI states
      * (like partial text input) are maintained during Handlebars partial updates.
      * @override
      */
@@ -283,13 +309,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     async _prepareContext(options) {
         let data;
-        
+
         // A. Resolve Source Data
         if (this.visageId) {
             // EDIT MODE: Fetch existing data from World Settings or Actor Flags
             if (this.isLocal) {
                 const visages = VisageData.getLocal(this.actor);
-                data = visages.find(v => v.id === this.visageId);
+                data = visages.find((v) => v.id === this.visageId);
                 if (!data) return this.close();
             } else {
                 data = VisageData.getGlobal(this.visageId);
@@ -300,18 +326,23 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             // CREATE MODE: Generate a fresh skeleton
             if (this.isLocal) {
                 // For Local, try to pre-fill with the token's current look
-                const token = canvas.tokens.get(this.tokenId) || this.actor.prototypeToken;
-                const tokenDoc = token.document || token; 
+                const token =
+                    canvas.tokens.get(this.tokenId) ||
+                    this.actor.prototypeToken;
+                const tokenDoc = token.document || token;
                 data = VisageData.getDefaultAsVisage(tokenDoc);
-                data.label = "New Visage"; 
+                data.label = "New Visage";
                 data.id = null;
             } else {
                 // For Global, start blank
                 data = {
-                    label: game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global"),
+                    label: game.i18n.localize(
+                        "VISAGE.GlobalEditor.TitleNew.Global",
+                    ),
                     category: "",
                     tags: [],
-                    changes: {} 
+                    changes: {},
+                    public: false,
                 };
             }
             this._currentLabel = "";
@@ -319,7 +350,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Merge unsaved inputs on top of the source data
         if (this._preservedData) {
-            data = foundry.utils.mergeObject(data, this._preservedData, { inplace: false });
+            data = foundry.utils.mergeObject(data, this._preservedData, {
+                inplace: false,
+            });
         }
 
         // Determine Mode Default (Local=Identity, Global=Overlay)
@@ -328,12 +361,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             currentMode = this.isLocal ? "identity" : "overlay";
         }
 
+        // Determine Visibility Default
+        const isPublic = data.public !== undefined ? data.public : false;
+
         // B. Extract Raw Data
         const c = data.changes || {};
-        
+
         // Initialize Local Effects Memory (Once)
         // We clone this array to detach it from the database until saved.
-        if (this._effects === null) { this._effects = c.effects ? foundry.utils.deepClone(c.effects) : []; }
+        if (this._effects === null) {
+            this._effects = c.effects ? foundry.utils.deepClone(c.effects) : [];
+        }
 
         // Initialize Light Memory
         if (this._lightData === null) {
@@ -343,9 +381,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 // Default Light Template
                 this._lightData = {
                     active: false,
-                    dim: 0, bright: 0, color: "#ffffff", alpha: 0.5, 
-                    angle: 360, luminosity: 0.5, priority: 0,
-                    animation: { type: "", speed: 5, intensity: 5 }
+                    dim: 0,
+                    bright: 0,
+                    color: "#ffffff",
+                    alpha: 0.5,
+                    angle: 360,
+                    luminosity: 0.5,
+                    priority: 0,
+                    animation: { type: "", speed: 5, intensity: 5 },
                 };
             }
         }
@@ -361,61 +404,65 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // C. Generate Preview Context
         // Formats the data for the "Card" view used in the stage preview.
         const context = VisageData.toPresentation(data, {
-            isWildcard: rawImg.includes('*'),
-            isActive: false
+            isWildcard: rawImg.includes("*"),
+            isActive: false,
         });
 
         // D. Prepare Autocomplete Lists (Categories/Tags)
-        const allVisages = VisageData.globals; 
+        const allVisages = VisageData.globals;
         const categorySet = new Set();
         const tagSet = new Set();
-        allVisages.forEach(v => {
+        allVisages.forEach((v) => {
             if (v.category) categorySet.add(v.category);
-            if (v.tags && Array.isArray(v.tags)) v.tags.forEach(t => tagSet.add(t));
+            if (v.tags && Array.isArray(v.tags))
+                v.tags.forEach((t) => tagSet.add(t));
         });
 
         // Helper: Format values for UI Inputs (value + active state)
         const prep = (val, def) => {
             const isDefined = val !== null && val !== undefined;
             const isNotEmpty = typeof val === "string" ? val !== "" : true;
-            return { 
-                value: val ?? def, 
-                active: isDefined && isNotEmpty
+            return {
+                value: val ?? def,
+                active: isDefined && isNotEmpty,
             };
         };
 
         const ringActive = !!(c.ring && c.ring.enabled);
-        const ringContext = VisageData.prepareRingContext(c.ring); 
+        const ringContext = VisageData.prepareRingContext(c.ring);
 
         const lightAnimationOptions = {
             "": game.i18n.localize("VISAGE.LightAnim.None"),
-            "torch": game.i18n.localize("VISAGE.LightAnim.Torch"),
-            "pulse": game.i18n.localize("VISAGE.LightAnim.Pulse"),
-            "chroma": game.i18n.localize("VISAGE.LightAnim.Chroma"),
-            "wave": game.i18n.localize("VISAGE.LightAnim.Wave"),
-            "fog": game.i18n.localize("VISAGE.LightAnim.Fog"),
-            "sunburst": game.i18n.localize("VISAGE.LightAnim.Sunburst"),
-            "dome": game.i18n.localize("VISAGE.LightAnim.Dome"),
-            "emanation": game.i18n.localize("VISAGE.LightAnim.Emanation"),
-            "hexa": game.i18n.localize("VISAGE.LightAnim.Hexa"),
-            "ghost": game.i18n.localize("VISAGE.LightAnim.Ghost"),
-            "energy": game.i18n.localize("VISAGE.LightAnim.Energy"),
-            "hole": game.i18n.localize("VISAGE.LightAnim.Hole"),
-            "vortex": game.i18n.localize("VISAGE.LightAnim.Vortex"),
-            "witchwave": game.i18n.localize("VISAGE.LightAnim.Witchwave"),
-            "rainbowswirl": game.i18n.localize("VISAGE.LightAnim.RainbowSwirl"),
-            "radialrainbow": game.i18n.localize("VISAGE.LightAnim.RadialRainbow"),
-            "fairy": game.i18n.localize("VISAGE.LightAnim.Fairy"),
-            "grid": game.i18n.localize("VISAGE.LightAnim.Grid"),
-            "starlight": game.i18n.localize("VISAGE.LightAnim.Starlight"),
-            "revolving": game.i18n.localize("VISAGE.LightAnim.Revolving"),
-            "siren": game.i18n.localize("VISAGE.LightAnim.Siren"),
-            "smokepatch": game.i18n.localize("VISAGE.LightAnim.SmokePatch")
+            torch: game.i18n.localize("VISAGE.LightAnim.Torch"),
+            pulse: game.i18n.localize("VISAGE.LightAnim.Pulse"),
+            chroma: game.i18n.localize("VISAGE.LightAnim.Chroma"),
+            wave: game.i18n.localize("VISAGE.LightAnim.Wave"),
+            fog: game.i18n.localize("VISAGE.LightAnim.Fog"),
+            sunburst: game.i18n.localize("VISAGE.LightAnim.Sunburst"),
+            dome: game.i18n.localize("VISAGE.LightAnim.Dome"),
+            emanation: game.i18n.localize("VISAGE.LightAnim.Emanation"),
+            hexa: game.i18n.localize("VISAGE.LightAnim.Hexa"),
+            ghost: game.i18n.localize("VISAGE.LightAnim.Ghost"),
+            energy: game.i18n.localize("VISAGE.LightAnim.Energy"),
+            hole: game.i18n.localize("VISAGE.LightAnim.Hole"),
+            vortex: game.i18n.localize("VISAGE.LightAnim.Vortex"),
+            witchwave: game.i18n.localize("VISAGE.LightAnim.Witchwave"),
+            rainbowswirl: game.i18n.localize("VISAGE.LightAnim.RainbowSwirl"),
+            radialrainbow: game.i18n.localize("VISAGE.LightAnim.RadialRainbow"),
+            fairy: game.i18n.localize("VISAGE.LightAnim.Fairy"),
+            grid: game.i18n.localize("VISAGE.LightAnim.Grid"),
+            starlight: game.i18n.localize("VISAGE.LightAnim.Starlight"),
+            revolving: game.i18n.localize("VISAGE.LightAnim.Revolving"),
+            siren: game.i18n.localize("VISAGE.LightAnim.Siren"),
+            smokepatch: game.i18n.localize("VISAGE.LightAnim.SmokePatch"),
         };
 
         // Input Value conversions (0-1 -> 0-100)
-        const alphaVal = (c.alpha !== undefined && c.alpha !== null) ? Math.round(c.alpha * 100) : 100;
-        
+        const alphaVal =
+            c.alpha !== undefined && c.alpha !== null
+                ? Math.round(c.alpha * 100)
+                : 100;
+
         let lockVal = "";
         if (c.lockRotation === true) lockVal = "true";
         if (c.lockRotation === false) lockVal = "false";
@@ -427,16 +474,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Effect Formatting
         const formatEffect = (e) => ({
             ...e,
-            icon: e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
-            metaLabel: e.type === "audio" 
-                ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%` 
-                : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`
+            icon:
+                e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
+            metaLabel:
+                e.type === "audio"
+                    ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%`
+                    : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`,
         });
 
         // 1. Filter and Map into Groups
-        const effectsAbove = this._effects.filter(e => e.type === "visual" && e.zOrder === "above").map(formatEffect);
-        const effectsBelow = this._effects.filter(e => e.type === "visual" && e.zOrder === "below").map(formatEffect);
-        const effectsAudio = this._effects.filter(e => e.type === "audio").map(formatEffect);
+        const effectsAbove = this._effects
+            .filter((e) => e.type === "visual" && e.zOrder === "above")
+            .map(formatEffect);
+        const effectsBelow = this._effects
+            .filter((e) => e.type === "visual" && e.zOrder === "below")
+            .map(formatEffect);
+        const effectsAudio = this._effects
+            .filter((e) => e.type === "audio")
+            .map(formatEffect);
 
         // 2. Build Base Inspector Object with these Groups
         let inspectorData = {
@@ -444,7 +499,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             effectsAbove: effectsAbove,
             effectsBelow: effectsBelow,
             effectsAudio: effectsAudio,
-            type: null 
+            type: null,
         };
 
         // 3. If an effect is selected, merge its editable properties into the inspector object
@@ -455,10 +510,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 bright: this._lightData.bright,
                 color: this._lightData.color,
                 alpha: this._lightData.alpha,
-                animation: this._lightData.animation
+                animation: this._lightData.animation,
             });
         } else if (this._activeEffectId) {
-            const effect = this._effects.find(e => e.id === this._activeEffectId);
+            const effect = this._effects.find(
+                (e) => e.id === this._activeEffectId,
+            );
             if (effect) {
                 foundry.utils.mergeObject(inspectorData, {
                     id: effect.id,
@@ -471,74 +528,105 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     zOrder: effect.zOrder ?? "above",
                     blendMode: effect.blendMode || "normal",
                     type: effect.type,
-                    loop: effect.loop ?? true
+                    loop: effect.loop ?? true,
                 });
             }
         }
 
         // Light Geometry Calculation (For Scaled Preview)
-        const gridDist = canvas.scene?.grid?.distance || 5; 
+        const gridDist = canvas.scene?.grid?.distance || 5;
         const tokenWidthUnits = c.width || 1;
         const lDim = this._lightData?.dim || 0;
         const lBright = this._lightData?.bright || 0;
         const lMax = Math.max(lDim, lBright);
-        const sizeRatio = lMax > 0 
-            ? ((lMax * 2) / gridDist) / tokenWidthUnits 
-            : 1;
+        const sizeRatio =
+            lMax > 0 ? (lMax * 2) / gridDist / tokenWidthUnits : 1;
         const brightPct = lMax > 0 ? (lBright / lMax) * 100 : 0;
 
         const animType = this._lightData.animation?.type || "";
         const animKey = `VISAGE.LightAnim.${animType.charAt(0).toUpperCase() + animType.slice(1)}`;
-        let localizedAnim = (animType && game.i18n.has(animKey)) ? game.i18n.localize(animKey) : animType;
+        let localizedAnim =
+            animType && game.i18n.has(animKey)
+                ? game.i18n.localize(animKey)
+                : animType;
         if (localizedAnim.endsWith(" (*)")) {
             localizedAnim = localizedAnim.replace(" (*)", "");
         }
-        
+
         const speed = this._lightData.animation?.speed ?? 5;
         const animDuration = Math.max(0.5, (11 - speed) * 0.35) + "s";
 
         // Prepare Anchor Values
         // Check atomic inputs first, then fallback to texture object
-        const anchorXVal = (c.texture?.anchorX !== undefined && c.texture?.anchorX !== null) ? c.texture.anchorX : 0.5;
-        const anchorYVal = (c.texture?.anchorY !== undefined && c.texture?.anchorY !== null) ? c.texture.anchorY : 0.5;
-        const isAnchorActive = (c.texture?.anchorX !== undefined && c.texture?.anchorX !== null) || 
-                               (c.texture?.anchorY !== undefined && c.texture?.anchorY !== null);
+        const anchorXVal =
+            c.texture?.anchorX !== undefined && c.texture?.anchorX !== null
+                ? c.texture.anchorX
+                : 0.5;
+        const anchorYVal =
+            c.texture?.anchorY !== undefined && c.texture?.anchorY !== null
+                ? c.texture.anchorY
+                : 0.5;
+        const isAnchorActive =
+            (c.texture?.anchorX !== undefined && c.texture?.anchorX !== null) ||
+            (c.texture?.anchorY !== undefined && c.texture?.anchorY !== null);
 
         return {
-            ...context, 
+            ...context,
             isEdit: !!this.visageId,
             isLocal: this.isLocal,
             isDirty: this.isDirty,
+            isPublic: isPublic,
             categories: Array.from(categorySet).sort(),
             allTags: Array.from(tagSet).sort(),
-            tagsString: (data.tags || []).join(","), 
+            tagsString: (data.tags || []).join(","),
             mode: currentMode,
             appId: this.id,
             tabs: {
-                appearance: { active: this._activeTab === "appearance", cssClass: this._activeTab === "appearance" ? "active" : "" },
-                ring: { active: this._activeTab === "ring", cssClass: this._activeTab === "ring" ? "active" : "" },
-                effects: { active: this._activeTab === "effects", cssClass: this._activeTab === "effects" ? "active" : "" }
+                appearance: {
+                    active: this._activeTab === "appearance",
+                    cssClass: this._activeTab === "appearance" ? "active" : "",
+                },
+                ring: {
+                    active: this._activeTab === "ring",
+                    cssClass: this._activeTab === "ring" ? "active" : "",
+                },
+                effects: {
+                    active: this._activeTab === "effects",
+                    cssClass: this._activeTab === "effects" ? "active" : "",
+                },
             },
             img: prep(rawImg, ""),
             portrait: prep(c.portrait, ""),
             light: {
                 ...this._lightData,
-                localizedAnimation: localizedAnim
+                localizedAnimation: localizedAnim,
             },
             lightAnimationOptions: lightAnimationOptions,
             delay: { value: delaySeconds, direction: delayDirection },
-            scale: { 
-                value: (c.scale !== undefined && c.scale !== null) ? Math.round(c.scale * 100) : 100, 
-                active: c.scale !== undefined && c.scale !== null 
+            scale: {
+                value:
+                    c.scale !== undefined && c.scale !== null
+                        ? Math.round(c.scale * 100)
+                        : 100,
+                active: c.scale !== undefined && c.scale !== null,
             },
             anchor: {
                 active: isAnchorActive,
                 x: anchorXVal,
-                y: anchorYVal
+                y: anchorYVal,
             },
-            isFlippedX: {  value: c.mirrorX, active: c.mirrorX !== undefined && c.mirrorX !== null },
-            isFlippedY: {  value: c.mirrorY, active: c.mirrorY !== undefined && c.mirrorY !== null },
-            alpha: { value: alphaVal, active: (c.alpha !== undefined && c.alpha !== null) },
+            isFlippedX: {
+                value: c.mirrorX,
+                active: c.mirrorX !== undefined && c.mirrorX !== null,
+            },
+            isFlippedY: {
+                value: c.mirrorY,
+                active: c.mirrorY !== undefined && c.mirrorY !== null,
+            },
+            alpha: {
+                value: alphaVal,
+                active: c.alpha !== undefined && c.alpha !== null,
+            },
             lockRotation: { value: lockVal, active: true },
             width: prep(c.width, 1),
             height: prep(c.height, 1),
@@ -548,13 +636,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             hasSequencer: VisageUtilities.hasSequencer,
             inspector: inspectorData,
             preview: {
-                ...context.meta, 
-                img: resolvedImg || rawImg, 
+                ...context.meta,
+                img: resolvedImg || rawImg,
                 isVideo: context.isVideo,
                 flipX: context.isFlippedX,
                 flipY: context.isFlippedY,
                 tagList: data.tags || [],
-                alpha: (c.alpha !== undefined && c.alpha !== null) ? c.alpha : 1.0 ,
+                alpha:
+                    c.alpha !== undefined && c.alpha !== null ? c.alpha : 1.0,
                 hasLight: this._lightData.active,
                 lightColor: this._lightData.color,
                 lightAlpha: this._lightData.alpha ?? 0.5,
@@ -563,8 +652,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 lightSizePct: sizeRatio * 100,
                 lightBrightPct: brightPct,
                 lightAnimType: animType,
-                lightAnimDuration: animDuration
-            }
+                lightAnimDuration: animDuration,
+            },
         };
     }
 
@@ -572,7 +661,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * Updates the Live Preview pane based on current form values.
      */
     async _updatePreview() {
-        const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
+        const formData = new foundry.applications.ux.FormDataExtended(
+            this.element,
+        ).object;
         const el = this.element;
 
         // Define helpers immediately
@@ -583,7 +674,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             const raw = get(key);
             if (type === Number) return parseFloat(raw);
             if (type === Boolean) return !!raw;
-            return (typeof raw === "string") ? raw.trim() : raw;
+            return typeof raw === "string" ? raw.trim() : raw;
         };
 
         // 1. Sync Light Data
@@ -601,31 +692,35 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             const prio = get("light.priority");
 
             if (dim !== undefined) this._lightData.dim = parseFloat(dim) || 0;
-            if (bright !== undefined) this._lightData.bright = parseFloat(bright) || 0;
+            if (bright !== undefined)
+                this._lightData.bright = parseFloat(bright) || 0;
             if (color !== undefined) this._lightData.color = color;
             if (alpha !== undefined) this._lightData.alpha = parseFloat(alpha);
 
-            if (angle !== undefined) this._lightData.angle = parseInt(angle) || 360;
+            if (angle !== undefined)
+                this._lightData.angle = parseInt(angle) || 360;
 
             if (lumin !== undefined) {
                 const lVal = parseFloat(lumin);
                 this._lightData.luminosity = isNaN(lVal) ? 0.5 : lVal;
             }
-            
-            if (prio !== undefined) this._lightData.priority = parseInt(prio) || 0;
-            
+
+            if (prio !== undefined)
+                this._lightData.priority = parseInt(prio) || 0;
+
             if (animType !== undefined) {
                 if (!this._lightData.animation) this._lightData.animation = {};
                 this._lightData.animation.type = animType;
                 this._lightData.animation.speed = parseInt(animSpeed) || 5;
                 this._lightData.animation.intensity = parseInt(animInt) || 5;
             }
-            
+
             // Live update the Light Card text in the list
-            const lightCard = el.querySelector('.effect-card.pinned-light');
+            const lightCard = el.querySelector(".effect-card.pinned-light");
             if (lightCard) {
-                const meta = lightCard.querySelector('.effect-meta');
-                if (meta) meta.textContent = `${this._lightData.dim} / ${this._lightData.bright} • ${this._lightData.color}`;
+                const meta = lightCard.querySelector(".effect-meta");
+                if (meta)
+                    meta.textContent = `${this._lightData.dim} / ${this._lightData.bright} • ${this._lightData.color}`;
             }
         }
 
@@ -633,20 +728,29 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const delayVal = get("delayValue");
         if (delayVal !== undefined) {
             const seconds = parseFloat(delayVal) || 0;
-            const directionBtn = this.element.querySelector('.delay-btn[data-value="after"]');
-            const direction = (directionBtn && directionBtn.classList.contains('active')) ? 1 : -1;
+            const directionBtn = this.element.querySelector(
+                '.delay-btn[data-value="after"]',
+            );
+            const direction =
+                directionBtn && directionBtn.classList.contains("active")
+                    ? 1
+                    : -1;
             this._delayData = Math.round(seconds * 1000) * direction;
-            
-            const display = el.querySelector('.delay-slider-wrapper .value-display');
+
+            const display = el.querySelector(
+                ".delay-slider-wrapper .value-display",
+            );
             if (display) display.textContent = `${seconds}s`;
         }
 
         // 3. Sync Active Effect Data
         if (this._activeEffectId && this._effects) {
-            const effectIndex = this._effects.findIndex(e => e.id === this._activeEffectId);
+            const effectIndex = this._effects.findIndex(
+                (e) => e.id === this._activeEffectId,
+            );
             if (effectIndex > -1) {
                 const e = this._effects[effectIndex];
-                
+
                 const ePath = get("effectPath");
                 const eLabel = get("effectLabel");
                 const eLoop = get("effectLoop");
@@ -654,7 +758,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (ePath !== undefined) e.path = ePath;
                 if (eLabel !== undefined) e.label = eLabel || "New Visual";
                 if (eLoop !== undefined) e.loop = eLoop;
-                
+
                 if (e.type === "visual") {
                     const eScale = get("effectScale");
                     const eOpac = get("effectOpacity");
@@ -663,30 +767,36 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     const eZ = get("effectZIndex");
                     const eBlend = get("effectBlendMode");
 
-                    if (eScale !== undefined) e.scale = (parseFloat(eScale) || 100) / 100;
-                    if (eOpac !== undefined) e.opacity = parseFloat(eOpac) || 1.0;
+                    if (eScale !== undefined)
+                        e.scale = (parseFloat(eScale) || 100) / 100;
+                    if (eOpac !== undefined)
+                        e.opacity = parseFloat(eOpac) || 1.0;
                     if (eRot !== undefined) e.rotation = parseFloat(eRot) || 0;
-                    if (eRotRand !== undefined) e.rotationRandom = eRotRand || false;
+                    if (eRotRand !== undefined)
+                        e.rotationRandom = eRotRand || false;
                     if (eZ !== undefined) e.zOrder = eZ;
                     if (eBlend !== undefined) e.blendMode = eBlend;
                 }
-                
+
                 if (e.type === "audio") {
-                     const eVol = get("effectVolume");
-                     if (eVol !== undefined) e.opacity = parseFloat(eVol) || 0.8;
+                    const eVol = get("effectVolume");
+                    if (eVol !== undefined) e.opacity = parseFloat(eVol) || 0.8;
                 }
 
                 // Live DOM Update
-                const card = el.querySelector(`.effect-card[data-id="${e.id}"]`);
+                const card = el.querySelector(
+                    `.effect-card[data-id="${e.id}"]`,
+                );
                 if (card) {
                     const nameEl = card.querySelector(".effect-name");
                     if (nameEl) nameEl.textContent = e.label;
-                    
+
                     const metaEl = card.querySelector(".effect-meta");
                     if (metaEl) {
-                        const metaLabel = e.type === "audio" 
-                            ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%` 
-                            : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`;
+                        const metaLabel =
+                            e.type === "audio"
+                                ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%`
+                                : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`;
                         metaEl.textContent = metaLabel;
                     }
                 }
@@ -704,14 +814,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const valAnchorX = parseFloat(get("anchorX"));
         const valAnchorY = parseFloat(get("anchorY"));
-        
-        const rawAnchorX = isAnchorActive ? (!isNaN(valAnchorX) ? valAnchorX : 0.5) : 0.5;
-        const rawAnchorY = isAnchorActive ? (!isNaN(valAnchorY) ? valAnchorY : 0.5) : 0.5;
+
+        const rawAnchorX = isAnchorActive
+            ? !isNaN(valAnchorX)
+                ? valAnchorX
+                : 0.5
+            : 0.5;
+        const rawAnchorY = isAnchorActive
+            ? !isNaN(valAnchorY)
+                ? valAnchorY
+                : 0.5
+            : 0.5;
 
         // --- SCALING LOGIC (Decoupled) ---
         // 1. Global Scale (Applies to Token + Ring)
-        const globalScale = isScaleActive ? (parseFloat(get("scale")) / 100) : 1.0;
-        
+        const globalScale = isScaleActive
+            ? parseFloat(get("scale")) / 100
+            : 1.0;
+
         // 2. Subject Scale (Applies ONLY to the internal image if Ring is active)
         let subjectScale = 1.0;
         const ringEnabled = get("ring.enabled");
@@ -720,38 +840,40 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // 3. Flips
-        const flipX = isFlipXActive ? (get("isFlippedX") === "true") : false;
-        const flipY = isFlipYActive ? (get("isFlippedY") === "true") : false;
+        const flipX = isFlipXActive ? get("isFlippedX") === "true" : false;
+        const flipY = isFlipYActive ? get("isFlippedY") === "true" : false;
 
         const isAlphaActive = get("alpha_active");
-        const rawAlpha = isAlphaActive ? (parseFloat(get("alpha")) / 100) : 1.0;
+        const rawAlpha = isAlphaActive ? parseFloat(get("alpha")) / 100 : 1.0;
         const lockVal = get("lockRotation");
 
         const width = getVal("width", Number) || 1;
         const height = getVal("height", Number) || 1;
 
         // 5. Update Grid Variable
-        const content = el.querySelector('.visage-preview-content.stage-mode');
+        const content = el.querySelector(".visage-preview-content.stage-mode");
         if (content) {
-            content.style.setProperty('--visage-dim-w', width);
-            content.style.setProperty('--visage-dim-h', height);
+            content.style.setProperty("--visage-dim-w", width);
+            content.style.setProperty("--visage-dim-h", height);
         }
 
         // 6. Build Texture
         let texture = {};
         if (imgSrc) texture.src = imgSrc;
         if (isScaleActive || isFlipXActive || isFlipYActive || isAnchorActive) {
-            const rawScale = isScaleActive ? (parseFloat(get("scale")) / 100) : 1.0;
-            const flipX = isFlipXActive ? (get("isFlippedX") === "true") : false;
-            const flipY = isFlipYActive ? (get("isFlippedY") === "true") : false;
+            const rawScale = isScaleActive
+                ? parseFloat(get("scale")) / 100
+                : 1.0;
+            const flipX = isFlipXActive ? get("isFlippedX") === "true" : false;
+            const flipY = isFlipYActive ? get("isFlippedY") === "true" : false;
 
             texture.scaleX = rawScale * (flipX ? -1 : 1);
             texture.scaleY = rawScale * (flipY ? -1 : 1);
-            
+
             if (isAnchorActive) {
-                 texture.anchorX = rawAnchorX;
-                 texture.anchorY = rawAnchorY;
-             }
+                texture.anchorX = rawAnchorX;
+                texture.anchorY = rawAnchorY;
+            }
         }
         if (Object.keys(texture).length === 0) texture = undefined;
 
@@ -760,55 +882,76 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (get("ring.enabled")) {
             let effectsMask = 0;
             const knownEffects = {
-                "effect_2": 2, "effect_4": 4, "effect_8": 8, "effect_16": 16
+                effect_2: 2,
+                effect_4: 4,
+                effect_8: 8,
+                effect_16: 16,
             };
             for (const [key, mask] of Object.entries(knownEffects)) {
                 if (get(key) === true) effectsMask |= mask;
             }
-            
+
             ring = {
                 enabled: true,
-                colors: { ring: get("ringColor"), background: get("ringBackgroundColor") },
-                subject: { texture: get("ringSubjectTexture"), scale: get("ringSubjectScale") },
-                effects: effectsMask
+                colors: {
+                    ring: get("ringColor"),
+                    background: get("ringBackgroundColor"),
+                },
+                subject: {
+                    texture: get("ringSubjectTexture"),
+                    scale: get("ringSubjectScale"),
+                },
+                effects: effectsMask,
             };
         }
 
         // 8. Prepare Visual Effects
-        const activeVisuals = (this._effects || []).filter(e => !e.disabled && e.type === "visual" && e.path);
-        const effectsBelow = activeVisuals.filter(e => e.zOrder === "below").map(e => this._prepareEffectStyle(e));
-        const effectsAbove = activeVisuals.filter(e => e.zOrder === "above").map(e => this._prepareEffectStyle(e));
+        const activeVisuals = (this._effects || []).filter(
+            (e) => !e.disabled && e.type === "visual" && e.path,
+        );
+        const effectsBelow = activeVisuals
+            .filter((e) => e.zOrder === "below")
+            .map((e) => this._prepareEffectStyle(e));
+        const effectsAbove = activeVisuals
+            .filter((e) => e.zOrder === "above")
+            .map((e) => this._prepareEffectStyle(e));
 
         // 9. Mock Data
         const mockData = {
             changes: {
                 name: getVal("nameOverride"),
-                texture: texture, 
+                texture: texture,
                 scale: isScaleActive ? globalScale : null,
                 mirrorX: isFlipXActive ? flipX : null,
                 mirrorY: isFlipYActive ? flipY : null,
-                alpha: isAlphaActive ? (parseFloat(get("alpha")) / 100) : null,
-                lockRotation: (lockVal !== "") ? (lockVal === "true") : null,
+                alpha: isAlphaActive ? parseFloat(get("alpha")) / 100 : null,
+                lockRotation: lockVal !== "" ? lockVal === "true" : null,
                 width: getVal("width", Number),
                 height: getVal("height", Number),
                 disposition: getVal("disposition", Number),
                 ring: ring,
-                effects: this._effects
+                effects: this._effects,
             },
-            tags: (get("tags") || "").split(",").map(t => t.trim()).filter(t => t)
+            tags: (get("tags") || "")
+                .split(",")
+                .map((t) => t.trim())
+                .filter((t) => t),
         };
 
         // 10. Resolve Paths
         const subjectTexture = get("ringSubjectTexture");
         const mainImage = mockData.changes.texture?.src || "";
-        const rawPath = (ringEnabled && subjectTexture) ? subjectTexture : mainImage;
+        const rawPath =
+            ringEnabled && subjectTexture ? subjectTexture : mainImage;
         const resolved = await VisageUtilities.resolvePath(rawPath);
-        const context = VisageData.toPresentation(mockData, { isWildcard: rawPath.includes('*') });
+        const context = VisageData.toPresentation(mockData, {
+            isWildcard: rawPath.includes("*"),
+        });
         const meta = context.meta;
 
         // 11. Light Calculations
         const gridDist = canvas.scene?.grid?.distance || 5;
-        const currentWidth = getVal("width", Number) || 1; 
+        const currentWidth = getVal("width", Number) || 1;
 
         const lData = this._lightData || {};
         const lDim = lData.dim || 0;
@@ -818,26 +961,26 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const lAngle = lData.angle !== undefined ? lData.angle : 360;
         const lLumin = lData.luminosity !== undefined ? lData.luminosity : 0.5;
         const lAnim = lData.animation || {};
-        
+
         const lMax = Math.max(lDim, lBright);
-        const sizeRatio = lMax > 0 ? ((lMax * 2) / gridDist) / currentWidth : 1;
+        const sizeRatio = lMax > 0 ? (lMax * 2) / gridDist / currentWidth : 1;
         const brightPct = lMax > 0 ? (lBright / lMax) * 100 : 0;
-        
+
         const isDarkness = lLumin < 0;
         const effectiveColor = isDarkness ? "#000000" : lColor;
-        
+
         const previewOpacity = lAlpha * (Math.abs(lLumin) * 2);
-        const rotationOffset = flipY ? 0 : 180; 
+        const rotationOffset = flipY ? 0 : 180;
 
         const animType = lAnim.type || "";
         const speed = lAnim.speed || 5;
         const intensity = lAnim.intensity || 5;
-        
+
         const animDuration = Math.max(0.5, (11 - speed) * 0.35) + "s";
         const animIntensityVal = intensity / 10;
 
         // --- 12. Calculate Transforms ---
-        
+
         // A. Image Transform (Global Scale * Subject Scale)
         const imgScaleX = globalScale * subjectScale * (flipX ? -1 : 1);
         const imgScaleY = globalScale * subjectScale * (flipY ? -1 : 1);
@@ -848,12 +991,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // C. Anchor Translation
         const translateX = rawAnchorX * 100;
         const translateY = rawAnchorY * 100;
-        
+
         const originStyle = `${translateX}% ${translateY}%`;
 
         // Image Styles
         const imgTransform = `translate(-${translateX}%, -${translateY}%) scale(${imgScaleX}, ${imgScaleY})`;
-        
+
         // Ring Styles (Move with Anchor, Scale with Global)
         const ringTransform = `translate(-${translateX}%, -${translateY}%) scale(${ringScaleTotal})`;
 
@@ -862,7 +1005,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             resolvedPath: resolved || rawPath,
             name: mockData.changes.name,
             hasCheckerboard: true,
-            alpha: rawAlpha, 
+            alpha: rawAlpha,
             isVideo: context.isVideo,
             hasRing: meta.hasRing,
             hasInvisibility: meta.hasInvisibility,
@@ -874,7 +1017,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             forceFlipX: context.isFlippedX,
             forceFlipY: context.isFlippedY,
             wrapperClass: "visage-preview-content stage-mode",
-            
+
             hasLight: lData.active,
             lightColor: effectiveColor,
             lightAlpha: Math.min(1, previewOpacity),
@@ -887,21 +1030,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             lightAnimType: animType,
             lightAnimDuration: animDuration,
             lightAnimIntensity: animIntensityVal,
-            
+
             effectsBelow: effectsBelow,
-            effectsAbove: effectsAbove
+            effectsAbove: effectsAbove,
         };
-        
-        const html = await foundry.applications.handlebars.renderTemplate("modules/visage/templates/parts/visage-preview.hbs", previewData);
-        
+
+        const html = await foundry.applications.handlebars.renderTemplate(
+            "modules/visage/templates/parts/visage-preview.hbs",
+            previewData,
+        );
+
         const stage = el.querySelector(".visage-live-preview-stage");
         if (stage) {
             const controls = stage.querySelector(".visage-zoom-controls");
             const hint = stage.querySelector(".visage-stage-hint");
             const overlay = stage.querySelector(".stage-overlay-name");
-            
+
             stage.innerHTML = html;
-            
+
             if (controls) stage.appendChild(controls);
             if (hint) stage.appendChild(hint);
             if (overlay) stage.appendChild(overlay);
@@ -929,7 +1075,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
                 ringEl.style.transform = ringTransform;
                 ringEl.style.transformOrigin = originStyle;
-                
+
                 ringEl.style.left = "50%";
                 ringEl.style.top = "50%";
                 ringEl.style.position = "absolute";
@@ -937,49 +1083,62 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
             this._applyStageTransform();
             this._bindDynamicListeners();
-            
-            const newContent = stage.querySelector('.visage-preview-content.stage-mode');
+
+            const newContent = stage.querySelector(
+                ".visage-preview-content.stage-mode",
+            );
             if (newContent) {
-                newContent.style.setProperty('--visage-dim-w', width);
-                newContent.style.setProperty('--visage-dim-h', height);
+                newContent.style.setProperty("--visage-dim-w", width);
+                newContent.style.setProperty("--visage-dim-h", height);
             }
         }
 
         this._syncAudioPreviews();
-        
+
         // Update UI Badges
         const findItem = (iconClass) => {
-            const icon = el.querySelector(`.metadata-grid i.${iconClass}`) || el.querySelector(`.metadata-grid img[src*="${iconClass}"]`);
-            return icon ? icon.closest('.meta-item') : null;
+            const icon =
+                el.querySelector(`.metadata-grid i.${iconClass}`) ||
+                el.querySelector(`.metadata-grid img[src*="${iconClass}"]`);
+            return icon ? icon.closest(".meta-item") : null;
         };
 
-        const scaleItem = findItem('scale'); 
+        const scaleItem = findItem("scale");
         if (scaleItem && meta.slots.scale) {
-            scaleItem.querySelector('.meta-value').textContent = meta.slots.scale.val;
-            if(meta.slots.scale.active) scaleItem.classList.remove('inactive'); else scaleItem.classList.add('inactive');
+            scaleItem.querySelector(".meta-value").textContent =
+                meta.slots.scale.val;
+            if (meta.slots.scale.active) scaleItem.classList.remove("inactive");
+            else scaleItem.classList.add("inactive");
         }
 
-        const dimItem = findItem('dimensions');
+        const dimItem = findItem("dimensions");
         if (dimItem && meta.slots.dim) {
-            dimItem.querySelector('.meta-value').textContent = meta.slots.dim.val;
-            if(meta.slots.dim.active) dimItem.classList.remove('inactive'); else dimItem.classList.add('inactive');
+            dimItem.querySelector(".meta-value").textContent =
+                meta.slots.dim.val;
+            if (meta.slots.dim.active) dimItem.classList.remove("inactive");
+            else dimItem.classList.add("inactive");
         }
 
-        const lockItem = findItem('lock'); 
+        const lockItem = findItem("lock");
         if (lockItem && meta.slots.lock) {
-            lockItem.querySelector('.meta-value').textContent = meta.slots.lock.val;
-            if(meta.slots.lock.active) lockItem.classList.remove('inactive'); else lockItem.classList.add('inactive');
+            lockItem.querySelector(".meta-value").textContent =
+                meta.slots.lock.val;
+            if (meta.slots.lock.active) lockItem.classList.remove("inactive");
+            else lockItem.classList.add("inactive");
         }
 
-        const wildItem = findItem('wildcard');
+        const wildItem = findItem("wildcard");
         if (wildItem && meta.slots.wildcard) {
-            wildItem.querySelector('.meta-value').textContent = meta.slots.wildcard.val;
-            if(meta.slots.wildcard.active) wildItem.classList.remove('inactive'); else wildItem.classList.add('inactive');
+            wildItem.querySelector(".meta-value").textContent =
+                meta.slots.wildcard.val;
+            if (meta.slots.wildcard.active)
+                wildItem.classList.remove("inactive");
+            else wildItem.classList.add("inactive");
         }
 
-        const dispItem = el.querySelector('.disposition-item');
+        const dispItem = el.querySelector(".disposition-item");
         if (dispItem && meta.slots.disposition) {
-            const valSpan = dispItem.querySelector('.visage-disposition-text');
+            const valSpan = dispItem.querySelector(".visage-disposition-text");
             if (valSpan) {
                 valSpan.textContent = meta.slots.disposition.val;
                 valSpan.className = `visage-disposition-text ${meta.slots.disposition.class}`;
@@ -989,19 +1148,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const updateMirrorSlot = (type, slotData) => {
             const slot = el.querySelector(`.mirror-sub-slot.${type}`);
             if (!slot) return;
-            const img = slot.querySelector('img');
-            
-            if (slotData.active) slot.classList.remove('inactive');
-            else slot.classList.add('inactive');
+            const img = slot.querySelector("img");
+
+            if (slotData.active) slot.classList.remove("inactive");
+            else slot.classList.add("inactive");
 
             if (img) {
-                img.classList.remove('visage-rotate-0', 'visage-rotate-90', 'visage-rotate-180', 'visage-rotate-270');
+                img.classList.remove(
+                    "visage-rotate-0",
+                    "visage-rotate-90",
+                    "visage-rotate-180",
+                    "visage-rotate-270",
+                );
                 img.classList.add(slotData.cls);
             }
         };
 
-        if (meta.slots.flipH) updateMirrorSlot('horizontal', meta.slots.flipH);
-        if (meta.slots.flipV) updateMirrorSlot('vertical', meta.slots.flipV);
+        if (meta.slots.flipH) updateMirrorSlot("horizontal", meta.slots.flipH);
+        if (meta.slots.flipV) updateMirrorSlot("vertical", meta.slots.flipV);
 
         const nameEl = el.querySelector(".token-name-label");
         if (nameEl) {
@@ -1011,12 +1175,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         const titleEl = el.querySelector(".card-title");
-        if (titleEl) titleEl.textContent = formData.label || game.i18n.localize("VISAGE.GlobalEditor.TitleNew");
-        
+        if (titleEl)
+            titleEl.textContent =
+                formData.label ||
+                game.i18n.localize("VISAGE.GlobalEditor.TitleNew");
+
         const tagsEl = el.querySelector(".card-tags");
         if (tagsEl) {
             tagsEl.innerHTML = "";
-            mockData.tags.forEach(t => {
+            mockData.tags.forEach((t) => {
                 const span = document.createElement("span");
                 span.className = "tag";
                 span.textContent = t;
@@ -1045,8 +1212,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 let file;
                 // Handle Array (Randomized)
                 if (Array.isArray(entry)) {
-                     file = entry[Math.floor(Math.random() * entry.length)];
-                } 
+                    file = entry[Math.floor(Math.random() * entry.length)];
+                }
                 // Handle Object
                 else {
                     file = entry.file;
@@ -1059,7 +1226,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (file && typeof file === "object" && file.file) {
                     file = file.file;
                 }
-                
+
                 if (typeof file === "string") return file;
             }
             // If failed to resolve DB key, return null to avoid 404s
@@ -1088,10 +1255,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         try {
             const children = Sequencer.Database.getEntriesUnder(path);
             if (children && children.length > 0) {
-                const randomKey = children[Math.floor(Math.random() * children.length)];
+                const randomKey =
+                    children[Math.floor(Math.random() * children.length)];
                 return this._resolveSequencerRecursively(randomKey, depth + 1);
             }
-        } catch(e) { /* Ignore */ }
+        } catch (e) {
+            /* Ignore */
+        }
 
         return null;
     }
@@ -1117,21 +1287,23 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             style: `
                 transform: translate(-50%, -50%) scale(${effect.scale}) rotate(${effect.rotation}deg);
                 opacity: ${effect.opacity};
-                mix-blend-mode: ${effect.blendMode || 'normal'};
-                filter: ${effect.tint ? `drop-shadow(0 0 0 ${effect.tint})` : 'none'};
-            `
+                mix-blend-mode: ${effect.blendMode || "normal"};
+                filter: ${effect.tint ? `drop-shadow(0 0 0 ${effect.tint})` : "none"};
+            `,
         };
     }
 
     /**
      * Manages the audio lifecycle for the effects editor.
-     * Synchronizes playing sounds with the current buffer, handling 
+     * Synchronizes playing sounds with the current buffer, handling
      * volume updates and restart-on-change logic.
      * @private
      */
     _syncAudioPreviews() {
-        const activeAudioEffects = (this._effects || []).filter(e => !e.disabled && e.type === "audio" && e.path);
-        const activeIds = new Set(activeAudioEffects.map(e => e.id));
+        const activeAudioEffects = (this._effects || []).filter(
+            (e) => !e.disabled && e.type === "audio" && e.path,
+        );
+        const activeIds = new Set(activeAudioEffects.map((e) => e.id));
 
         // 1. Clean up removed/disabled sounds
         for (const [id, sound] of this._audioPreviews) {
@@ -1146,13 +1318,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // 2. Update or Create active sounds
-        activeAudioEffects.forEach(e => {
+        activeAudioEffects.forEach((e) => {
             const vol = e.opacity ?? 0.8;
-            
+
             // A. Update Existing Playing Sound
             if (this._audioPreviews.has(e.id)) {
                 const sound = this._audioPreviews.get(e.id);
-                
+
                 // Skip if it's still a Promise (loading)
                 if (sound instanceof Promise) return;
 
@@ -1160,7 +1332,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (sound.volume !== vol) {
                     sound.volume = vol;
                 }
-                
+
                 // If path changed, stop and restart
                 if (sound._visageSrc !== e.path) {
                     sound.stop();
@@ -1174,20 +1346,26 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             // B. Create New Sound
             if (!this._audioPreviews.has(e.id)) {
                 const resolvedPath = this._resolveEffectPath(e.path);
-                if (!resolvedPath) return; 
+                if (!resolvedPath) return;
 
                 // Use the effect's loop setting (default to true)
                 const isLoop = e.loop ?? true;
 
                 // Store Promise immediately to prevent duplicate play calls
-                const playPromise = foundry.audio.AudioHelper.play({
-                    src: resolvedPath,
-                    volume: vol,
-                    loop: isLoop
-                }, false).then(sound => {
+                const playPromise = foundry.audio.AudioHelper.play(
+                    {
+                        src: resolvedPath,
+                        volume: vol,
+                        loop: isLoop,
+                    },
+                    false,
+                ).then((sound) => {
                     // Race Condition Check: Ensure it wasn't deleted while loading
-                    const currentEffect = (this._effects || []).find(fx => fx.id === e.id);
-                    const isStillActive = currentEffect && !currentEffect.disabled;
+                    const currentEffect = (this._effects || []).find(
+                        (fx) => fx.id === e.id,
+                    );
+                    const isStillActive =
+                        currentEffect && !currentEffect.disabled;
 
                     if (!isStillActive || !sound) {
                         if (sound) sound.stop();
@@ -1220,9 +1398,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * @private
      */
     async _onOpenFilePicker(event, target) {
-        const input = target.previousElementSibling?.tagName === "BUTTON" 
-            ? target.parentElement.querySelector("input") 
-            : target.previousElementSibling;
+        const input =
+            target.previousElementSibling?.tagName === "BUTTON"
+                ? target.parentElement.querySelector("input")
+                : target.previousElementSibling;
 
         let source = "data";
         const browseOptions = {};
@@ -1252,7 +1431,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 input.value = path;
                 this._markDirty();
                 input.dispatchEvent(new Event("change", { bubbles: true }));
-            }
+            },
         });
 
         fp.render(true);
@@ -1264,22 +1443,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     _onToggleField(event, target) {
         const fieldName = target.dataset.target;
-        const group = target.closest('.form-group');
+        const group = target.closest(".form-group");
 
         let inputs;
         if (fieldName === "anchor") {
-            inputs = group.querySelectorAll('[name="anchorX"], [name="anchorY"]');
+            inputs = group.querySelectorAll(
+                '[name="anchorX"], [name="anchorY"]',
+            );
         } else {
-            inputs = group.querySelectorAll(`[name="${fieldName}"]`); 
+            inputs = group.querySelectorAll(`[name="${fieldName}"]`);
         }
-        
-        inputs.forEach(input => input.disabled = !target.checked);
-        
-        const button = group.querySelector('button.file-picker-button');
+
+        inputs.forEach((input) => (input.disabled = !target.checked));
+
+        const button = group.querySelector("button.file-picker-button");
         if (button) button.disabled = !target.checked;
-        
+
         this._markDirty();
-        this._updatePreview(); 
+        this._updatePreview();
     }
 
     /**
@@ -1298,13 +1479,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             rotationRandom: false,
             zOrder: "above",
             loop: true,
-            disabled: false
+            disabled: false,
         };
-        
+
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;
         this._markDirty();
-        await this.render(); 
+        await this.render();
     }
 
     /**
@@ -1319,9 +1500,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             path: "",
             opacity: 0.8,
             loop: true,
-            disabled: false
+            disabled: false,
         };
-        
+
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;
         this._markDirty();
@@ -1333,7 +1514,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * @private
      */
     _onEditEffect(event, target) {
-        const card = target.closest('.effect-card');
+        const card = target.closest(".effect-card");
         this._activeEffectId = card.dataset.id;
         this._editingLight = false; // <--- SAFETY FIX
         this.render();
@@ -1344,12 +1525,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * @private
      */
     async _onCloseEffectInspector(event, target) {
-        const container = this.element.querySelector('.effects-tab-container');
-        if (container) container.classList.remove('editing');
-        
+        const container = this.element.querySelector(".effects-tab-container");
+        if (container) container.classList.remove("editing");
+
         this._activeEffectId = null;
         this._editingLight = false; // <--- CRITICAL FIX
-        
+
         await this.render();
     }
 
@@ -1358,20 +1539,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * @private
      */
     async _onDeleteEffect(event, target) {
-        const card = target.closest('.effect-card');
+        const card = target.closest(".effect-card");
         const id = card.dataset.id;
-        
+
         const confirm = await foundry.applications.api.DialogV2.confirm({
-            window: { title: game.i18n.localize("VISAGE.Dialog.Destroy.Title") },
+            window: {
+                title: game.i18n.localize("VISAGE.Dialog.Destroy.Title"),
+            },
             content: `<p>${game.i18n.localize("VISAGE.Dialog.Destroy.Content")}</p>`,
-            modal: true
+            modal: true,
         });
 
         if (!confirm) return;
 
-        this._effects = this._effects.filter(e => e.id !== id);
+        this._effects = this._effects.filter((e) => e.id !== id);
         if (this._activeEffectId === id) this._activeEffectId = null;
-        
+
         // Stop audio if it was an audio effect
         if (this._audioPreviews.has(id)) {
             const sound = this._audioPreviews.get(id);
@@ -1388,14 +1571,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * @private
      */
     _onToggleEffect(event, target) {
-        const card = target.closest('.effect-card');
+        const card = target.closest(".effect-card");
         const id = card.dataset.id;
-        const effect = this._effects.find(e => e.id === id);
-        
+        const effect = this._effects.find((e) => e.id === id);
+
         if (effect) {
             effect.disabled = !effect.disabled;
             this._markDirty();
-            this.render(); 
+            this.render();
         }
     }
 
@@ -1406,9 +1589,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onOpenSequencerDatabase(event, target) {
         if (VisageUtilities.hasSequencer) {
             new Sequencer.DatabaseViewer().render(true);
-            ui.notifications.info(game.i18n.localize("VISAGE.Editor.Effects.DatabaseInstructions"));
+            ui.notifications.info(
+                game.i18n.localize(
+                    "VISAGE.Editor.Effects.DatabaseInstructions",
+                ),
+            );
         } else {
-            ui.notifications.warn(game.i18n.localize("VISAGE.Editor.Effects.DependencyTitle"));
+            ui.notifications.warn(
+                game.i18n.localize("VISAGE.Editor.Effects.DependencyTitle"),
+            );
         }
     }
 
@@ -1428,50 +1617,58 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
         // 1. Define Debounce for Sliders (50ms)
-        const debouncedSliderUpdate = foundry.utils.debounce(() => this._updatePreview(), 50);
+        const debouncedSliderUpdate = foundry.utils.debounce(
+            () => this._updatePreview(),
+            50,
+        );
 
         // 2. Change Listener (Immediate updates for non-typing inputs)
         this.element.addEventListener("change", (event) => {
             this._markDirty();
-            
-            if (event.target.matches("select") || 
-                event.target.matches("input[type='text']") || 
-                event.target.matches("input[type='checkbox']")) {
-                
+
+            if (
+                event.target.matches("select") ||
+                event.target.matches("input[type='text']") ||
+                event.target.matches("input[type='checkbox']") ||
+                event.target.matches("input[type='radio']")
+            ) {
                 this._updatePreview();
             }
         });
-        
+
         // 3. Slider Listeners (Debounced Input + Double-Click Reset)
         const sliders = this.element.querySelectorAll('input[type="range"]');
-        sliders.forEach(slider => {
+        sliders.forEach((slider) => {
             // Live Update listener
-            slider.addEventListener('input', () => {
+            slider.addEventListener("input", () => {
                 this._markDirty();
                 debouncedSliderUpdate();
             });
-            
+
             // Reset listener
-            slider.addEventListener('dblclick', (ev) => {
+            slider.addEventListener("dblclick", (ev) => {
                 let def = 0;
                 const name = ev.target.name;
-                
+
                 // --- Step 1: General Defaults ---
-                if (name.includes('scale')) def = 100;
-                if (name.includes('alpha') || name.includes('luminosity')) def = 0.5;
-                if (name.includes('speed') || name.includes('intensity')) def = 5;
-                if (name.includes('angle')) def = 360;
+                if (name.includes("scale")) def = 100;
+                if (name.includes("alpha") || name.includes("luminosity"))
+                    def = 0.5;
+                if (name.includes("speed") || name.includes("intensity"))
+                    def = 5;
+                if (name.includes("angle")) def = 360;
 
                 // --- Step 2: Specific Overrides ---
-                if (name.includes('Volume')) def = 1;
-                if (name.includes('Opacity')) def = 1;
-                if (name.includes('ringSubjectScale')) def = 1;
-                
+                if (name.includes("Volume")) def = 1;
+                if (name.includes("Opacity")) def = 1;
+                if (name.includes("ringSubjectScale")) def = 1;
+
                 ev.target.value = def;
-                
+
                 // Update display sibling
                 const display = ev.target.nextElementSibling;
-                if (display && display.tagName === 'OUTPUT') display.value = def;
+                if (display && display.tagName === "OUTPUT")
+                    display.value = def;
 
                 this._markDirty();
                 this._updatePreview(); // Immediate update on reset
@@ -1487,17 +1684,21 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         let debounceTimer;
         this.element.addEventListener("input", (event) => {
             this._markDirty();
-            if (event.target.matches("input[type='text'], input[type='number'], color-picker, range-picker")) {
-                 clearTimeout(debounceTimer);
-                 debounceTimer = setTimeout(() => {
-                     this._updatePreview();
-                 }, 200); 
+            if (
+                event.target.matches(
+                    "input[type='text'], input[type='number'], color-picker, range-picker",
+                )
+            ) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    this._updatePreview();
+                }, 200);
             }
         });
 
         // 6. Tab Navigation
         const tabs = this.element.querySelectorAll(".visage-tabs .item");
-        tabs.forEach(t => {
+        tabs.forEach((t) => {
             t.addEventListener("click", (e) => {
                 const target = e.currentTarget.dataset.tab;
                 this._activateTab(target);
@@ -1506,11 +1707,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         if (this._activeTab) this._activateTab(this._activeTab);
 
-        if (this._activeEffectId || this._editingLight) { 
-            const container = this.element.querySelector('.effects-tab-container');
-            if (container) container.classList.add('editing');
+        if (this._activeEffectId || this._editingLight) {
+            const container = this.element.querySelector(
+                ".effects-tab-container",
+            );
+            if (container) container.classList.add("editing");
         }
-        
+
         // 7. Final Initialization
         this._updatePreview();
         this._bindStaticListeners();
@@ -1519,12 +1722,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Grid Toggle State Check
         if (this._showGrid) {
-            const stage = this.element.querySelector('.visage-live-preview-stage');
-            const btn = this.element.querySelector('[data-action="toggleGrid"] i');
-            if (stage) stage.classList.add('show-grid');
+            const stage = this.element.querySelector(
+                ".visage-live-preview-stage",
+            );
+            const btn = this.element.querySelector(
+                '[data-action="toggleGrid"] i',
+            );
+            if (stage) stage.classList.add("show-grid");
             if (btn) {
-                btn.classList.remove('grid-on');
-                btn.classList.add('grid-off');
+                btn.classList.remove("grid-on");
+                btn.classList.add("grid-off");
             }
         }
     }
@@ -1535,17 +1742,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     _onToggleGrid(event, target) {
         this._showGrid = !this._showGrid;
-        const stage = this.element.querySelector('.visage-live-preview-stage');
-        const icon = target.querySelector('i');
+        const stage = this.element.querySelector(".visage-live-preview-stage");
+        const icon = target.querySelector("i");
 
-        if (stage) stage.classList.toggle('show-grid', this._showGrid);
+        if (stage) stage.classList.toggle("show-grid", this._showGrid);
         if (icon) {
             if (this._showGrid) {
-                icon.classList.remove('grid-on');
-                icon.classList.add('grid-off');
+                icon.classList.remove("grid-on");
+                icon.classList.add("grid-off");
             } else {
-                icon.classList.remove('grid-off');
-                icon.classList.add('grid-on');
+                icon.classList.remove("grid-off");
+                icon.classList.add("grid-on");
             }
         }
     }
@@ -1555,18 +1762,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * @private
      */
     _bindStaticListeners() {
-        const stage = this.element.querySelector('.visage-live-preview-stage');
+        const stage = this.element.querySelector(".visage-live-preview-stage");
         if (!stage) return;
 
         // Zoom via Wheel
-        stage.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const direction = Math.sign(e.deltaY);
-            const step = 0.1;
-            let newScale = this._viewState.scale - (direction * step);
-            this._viewState.scale = Math.min(Math.max(newScale, 0.1), 5.0);
-            this._applyStageTransform();
-        }, { passive: false });
+        stage.addEventListener(
+            "wheel",
+            (e) => {
+                e.preventDefault();
+                const direction = Math.sign(e.deltaY);
+                const step = 0.1;
+                let newScale = this._viewState.scale - direction * step;
+                this._viewState.scale = Math.min(Math.max(newScale, 0.1), 5.0);
+                this._applyStageTransform();
+            },
+            { passive: false },
+        );
     }
 
     /**
@@ -1575,38 +1786,42 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * @private
      */
     _bindDynamicListeners() {
-        const content = this.element.querySelector('.visage-preview-content.stage-mode');
+        const content = this.element.querySelector(
+            ".visage-preview-content.stage-mode",
+        );
         if (!content) return;
 
         // Pan Drag Logic
-        content.onmousedown = (e) => { 
+        content.onmousedown = (e) => {
             if (e.button !== 0 && e.button !== 1) return;
-            e.preventDefault(); 
+            e.preventDefault();
             this._viewState.isDragging = true;
             this._viewState.lastX = e.clientX;
             this._viewState.lastY = e.clientY;
-            content.style.cursor = 'grabbing';
+            content.style.cursor = "grabbing";
         };
 
         if (!this._dragBound) {
-            window.addEventListener('mousemove', (e) => {
+            window.addEventListener("mousemove", (e) => {
                 if (!this._viewState.isDragging) return;
                 const dx = e.clientX - this._viewState.lastX;
                 const dy = e.clientY - this._viewState.lastY;
-                
+
                 this._viewState.x += dx;
                 this._viewState.y += dy;
                 this._viewState.lastX = e.clientX;
                 this._viewState.lastY = e.clientY;
-                
+
                 this._applyStageTransform();
             });
 
-            window.addEventListener('mouseup', () => {
+            window.addEventListener("mouseup", () => {
                 if (this._viewState.isDragging) {
                     this._viewState.isDragging = false;
-                    const c = this.element.querySelector('.visage-preview-content.stage-mode');
-                    if (c) c.style.cursor = 'grab';
+                    const c = this.element.querySelector(
+                        ".visage-preview-content.stage-mode",
+                    );
+                    if (c) c.style.cursor = "grab";
                 }
             });
             this._dragBound = true;
@@ -1618,7 +1833,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * @private
      */
     _applyStageTransform() {
-        const content = this.element.querySelector('.visage-preview-content.stage-mode');
+        const content = this.element.querySelector(
+            ".visage-preview-content.stage-mode",
+        );
         if (content) {
             content.style.transform = `translate(${this._viewState.x}px, ${this._viewState.y}px) scale(${this._viewState.scale})`;
         }
@@ -1650,28 +1867,34 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._viewState.y = 0;
         this._applyStageTransform();
     }
-    
+
     /**
      * Manages UI tab switching logic.
-     * @param {string} tabName 
+     * @param {string} tabName
      * @private
      */
     _activateTab(tabName) {
         this._activeTab = tabName;
         const navItems = this.element.querySelectorAll(".visage-tabs .item");
-        navItems.forEach(n => {
+        navItems.forEach((n) => {
             if (n.dataset.tab === tabName) n.classList.add("active");
             else n.classList.remove("active");
         });
-        const contentItems = this.element.querySelectorAll(".visage-tab-content .tab");
-        contentItems.forEach(c => {
+        const contentItems = this.element.querySelectorAll(
+            ".visage-tab-content .tab",
+        );
+        contentItems.forEach((c) => {
             if (c.dataset.tab === tabName) c.classList.add("active");
             else c.classList.remove("active");
-            
+
             if (tabName === "effects" && c.dataset.tab === "effects") {
-                 c.querySelector(".effects-tab-container")?.classList.add("active");
+                c.querySelector(".effects-tab-container")?.classList.add(
+                    "active",
+                );
             } else if (c.dataset.tab === "effects") {
-                 c.querySelector(".effects-tab-container")?.classList.remove("active");
+                c.querySelector(".effects-tab-container")?.classList.remove(
+                    "active",
+                );
             }
         });
     }
@@ -1681,17 +1904,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * Updates the internal state and re-renders to reflect the active/inactive icon style.
      */
     _onToggleLoop(event, target) {
-        const card = target.closest('.effect-card');
+        const card = target.closest(".effect-card");
         const id = card.dataset.id;
-        const effect = this._effects.find(e => e.id === id);
-        
+        const effect = this._effects.find((e) => e.id === id);
+
         if (effect) {
             // Toggle boolean (defaulting to true if undefined)
             effect.loop = !(effect.loop ?? true);
             this._markDirty();
-            
+
             // Update the card UI directly (optional optimization) or just re-render
-            this.render(); 
+            this.render();
         }
     }
 
@@ -1701,12 +1924,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     _onReplayPreview(event, target) {
         // Optional: Animate the icon to give feedback
-        const icon = target.querySelector('i');
+        const icon = target.querySelector("i");
         if (icon) {
-            icon.animate([
-                { transform: 'rotate(0deg)' },
-                { transform: 'rotate(360deg)' }
-            ], { duration: 500 });
+            icon.animate(
+                [
+                    { transform: "rotate(0deg)" },
+                    { transform: "rotate(360deg)" },
+                ],
+                { duration: 500 },
+            );
         }
 
         // Force stop and clear all audio previews so they restart
@@ -1714,7 +1940,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (sound && typeof sound.stop === "function") sound.stop();
         }
         this._audioPreviews.clear();
-        
+
         // Force update the preview stage
         this._updatePreview();
     }
@@ -1730,10 +1956,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const input = container.querySelector(".visage-tag-input");
         const hidden = container.querySelector("input[name='tags']");
         const pillsDiv = container.querySelector(".visage-tag-pills");
-        
+
         const updateHidden = () => {
-            const tags = Array.from(pillsDiv.querySelectorAll(".visage-tag-pill"))
-                .map(p => p.dataset.tag);
+            const tags = Array.from(
+                pillsDiv.querySelectorAll(".visage-tag-pill"),
+            ).map((p) => p.dataset.tag);
             hidden.value = tags.join(",");
             this._markDirty();
             this._updatePreview();
@@ -1742,8 +1969,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const addPill = (text) => {
             const clean = text.trim();
             if (!clean) return;
-            const existing = Array.from(pillsDiv.querySelectorAll(".visage-tag-pill"))
-                .map(p => p.dataset.tag.toLowerCase());
+            const existing = Array.from(
+                pillsDiv.querySelectorAll(".visage-tag-pill"),
+            ).map((p) => p.dataset.tag.toLowerCase());
             if (existing.includes(clean.toLowerCase())) return;
 
             const pill = document.createElement("span");
@@ -1759,7 +1987,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
 
         if (hidden.value) {
-            hidden.value.split(",").forEach(t => addPill(t));
+            hidden.value.split(",").forEach((t) => addPill(t));
         }
 
         input.addEventListener("keydown", (ev) => {
@@ -1775,8 +2003,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 }
             }
         });
-        
-        input.addEventListener("focus", () => container.classList.add("focused"));
+
+        input.addEventListener("focus", () =>
+            container.classList.add("focused"),
+        );
         input.addEventListener("blur", () => {
             if (input.value.trim()) {
                 addPill(input.value);
@@ -1785,7 +2015,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             container.classList.remove("focused");
         });
         container.addEventListener("click", (e) => {
-            if(e.target === container || e.target === pillsDiv) input.focus();
+            if (e.target === container || e.target === pillsDiv) input.focus();
         });
     }
 
@@ -1794,22 +2024,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * @private
      */
     _onResetSettings(event, target) {
-        const checkboxes = this.element.querySelectorAll('input[type="checkbox"][name$="_active"]');
-        checkboxes.forEach(cb => {
+        const checkboxes = this.element.querySelectorAll(
+            'input[type="checkbox"][name$="_active"]',
+        );
+        checkboxes.forEach((cb) => {
             cb.checked = false;
-            this._onToggleField(null, cb); 
+            this._onToggleField(null, cb);
         });
 
-        const ringCheck = this.element.querySelector('input[name="ring.enabled"]');
+        const ringCheck = this.element.querySelector(
+            'input[name="ring.enabled"]',
+        );
         if (ringCheck) ringCheck.checked = false;
 
-        const selects = this.element.querySelectorAll('select');
-        selects.forEach(s => s.value = "");
-        
+        const selects = this.element.querySelectorAll("select");
+        selects.forEach((s) => (s.value = ""));
+
         const alphaInput = this.element.querySelector('input[name="alpha"]');
         if (alphaInput) alphaInput.value = 100;
-        
-        const lockInput = this.element.querySelector('input[name="lockRotation"]');
+
+        const lockInput = this.element.querySelector(
+            'input[name="lockRotation"]',
+        );
         if (lockInput) lockInput.checked = false;
 
         const anchorX = this.element.querySelector('input[name="anchorX"]');
@@ -1822,7 +2058,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this._markDirty();
         this._updatePreview();
-        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.SettingsReset"));
+        ui.notifications.info(
+            game.i18n.localize("VISAGE.Notifications.SettingsReset"),
+        );
     }
 
     /**
@@ -1831,8 +2069,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      * @returns {Object} The complete visage data object.
      */
     _prepareSaveData() {
-        const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
-        
+        const formData = new foundry.applications.ux.FormDataExtended(
+            this.element,
+        ).object;
+
         // Helper to safely parse numbers
         const getVal = (key, type = String) => {
             const val = foundry.utils.getProperty(formData, key);
@@ -1841,36 +2081,62 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
 
         const payload = {
-            id: this.visageId, 
+            id: this.visageId,
             label: formData.label,
             category: formData.category,
-            tags: formData.tags ? formData.tags.split(",").filter(t => t.trim()) : [],
+            tags: formData.tags
+                ? formData.tags.split(",").filter((t) => t.trim())
+                : [],
             mode: formData.mode,
+            public: formData.public === "true",
             changes: {
-                name: formData.nameOverride_active ? formData.nameOverride : null,
+                name: formData.nameOverride_active
+                    ? formData.nameOverride
+                    : null,
                 texture: {
                     src: formData.img_active ? formData.img : null,
-                    scaleX: null, 
+                    scaleX: null,
                     scaleY: null,
-                    anchorX: formData.anchor_active ? parseFloat(formData.anchorX) : null,
-                    anchorY: formData.anchor_active ? parseFloat(formData.anchorY) : null
+                    anchorX: formData.anchor_active
+                        ? parseFloat(formData.anchorX)
+                        : null,
+                    anchorY: formData.anchor_active
+                        ? parseFloat(formData.anchorY)
+                        : null,
                 },
-                scale: formData.scale_active ? getVal("scale", Number) / 100 : null,
-                mirrorX: formData.isFlippedX === "" ? null : (formData.isFlippedX === "true"),
-                mirrorY: formData.isFlippedY === "" ? null : (formData.isFlippedY === "true"),
-                alpha: formData.alpha_active ? getVal("alpha", Number) / 100 : null,
-                rotation: null, 
+                scale: formData.scale_active
+                    ? getVal("scale", Number) / 100
+                    : null,
+                mirrorX:
+                    formData.isFlippedX === ""
+                        ? null
+                        : formData.isFlippedX === "true",
+                mirrorY:
+                    formData.isFlippedY === ""
+                        ? null
+                        : formData.isFlippedY === "true",
+                alpha: formData.alpha_active
+                    ? getVal("alpha", Number) / 100
+                    : null,
+                rotation: null,
                 tint: null,
                 width: formData.width_active ? getVal("width", Number) : null,
-                height: formData.height_active ? getVal("height", Number) : null,
-                lockRotation: formData.lockRotation === "" ? null : (formData.lockRotation === "true"),
-                disposition: formData.disposition_active ? getVal("disposition", Number) : null,
+                height: formData.height_active
+                    ? getVal("height", Number)
+                    : null,
+                lockRotation:
+                    formData.lockRotation === ""
+                        ? null
+                        : formData.lockRotation === "true",
+                disposition: formData.disposition_active
+                    ? getVal("disposition", Number)
+                    : null,
                 portrait: formData.portrait_active ? formData.portrait : null,
                 light: this._lightData.active ? this._lightData : null,
                 delay: this._delayData,
                 ring: null,
-                effects: this._effects // Use the memory state for effects
-            }
+                effects: this._effects, // Use the memory state for effects
+            },
         };
 
         // Construct Ring Data
@@ -1886,13 +2152,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 enabled: true,
                 colors: {
                     ring: formData.ringColor,
-                    background: formData.ringBackgroundColor
+                    background: formData.ringBackgroundColor,
                 },
                 subject: {
                     texture: formData.ringSubjectTexture,
-                    scale: formData.ringSubjectScale
+                    scale: formData.ringSubjectScale,
                 },
-                effects: effectsMask
+                effects: effectsMask,
             };
         } else {
             payload.changes.ring = { enabled: false };
@@ -1907,21 +2173,35 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     async _onSave(event, target) {
         event.preventDefault();
-        
+
         const payload = this._prepareSaveData();
 
         // Validation
         if (!payload.label) {
-            return ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.LabelRequired"));
+            return ui.notifications.warn(
+                game.i18n.localize("VISAGE.Notifications.LabelRequired"),
+            );
         }
 
         try {
             await VisageData.save(payload, this.isLocal ? this.actor : null);
-            if (this.visageId) ui.notifications.info(game.i18n.format("VISAGE.Notifications.Updated", { name: payload.label }));
-            else ui.notifications.info(game.i18n.format("VISAGE.Notifications.Created", { name: payload.label }));
+            if (this.visageId)
+                ui.notifications.info(
+                    game.i18n.format("VISAGE.Notifications.Updated", {
+                        name: payload.label,
+                    }),
+                );
+            else
+                ui.notifications.info(
+                    game.i18n.format("VISAGE.Notifications.Created", {
+                        name: payload.label,
+                    }),
+                );
             this.close();
         } catch (err) {
-            ui.notifications.error(game.i18n.localize("VISAGE.Notifications.SaveFailed"));
+            ui.notifications.error(
+                game.i18n.localize("VISAGE.Notifications.SaveFailed"),
+            );
             console.error(err);
         }
     }
@@ -1943,16 +2223,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onToggleDelayDirection(event, target) {
         const val = target.dataset.value;
         // Visual toggle update
-        const btns = this.element.querySelectorAll('.delay-direction-toggle button');
-        btns.forEach(b => b.classList.remove('active'));
-        target.classList.add('active');
-        
+        const btns = this.element.querySelectorAll(
+            ".delay-direction-toggle button",
+        );
+        btns.forEach((b) => b.classList.remove("active"));
+        target.classList.add("active");
+
         // Update data immediately
-        const secondsInput = this.element.querySelector('range-picker[name="delayValue"]');
+        const secondsInput = this.element.querySelector(
+            'range-picker[name="delayValue"]',
+        );
         const seconds = parseFloat(secondsInput.value) || 0;
         const direction = val === "after" ? 1 : -1; // 'after' = Effects Lead (Positive)
         this._delayData = Math.round(seconds * 1000) * direction;
-        
+
         this._markDirty();
     }
 }

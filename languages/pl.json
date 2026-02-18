@@ -323,5 +323,12 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Rozmiar Tokena (1 x 1)",
     "VISAGE.Config.List.Anchor": "Punkt Kotwiczenia (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Specyficzne Nadpisania Systemu",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Jeśli włączone, Visage będzie mógł tymczasowo odblokować zasady specyficzne dla systemu (np. powiązanie rozmiaru tokena w PF2E), aby zastosować zmiany wymiarów lub skali. Jeśli wyłączone, Visage nie będzie mógł zmienić ustawień rozmiaru ani skali tokena."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Jeśli włączone, Visage będzie mógł tymczasowo odblokować zasady specyficzne dla systemu (np. powiązanie rozmiaru tokena w PF2E), aby zastosować zmiany wymiarów lub skali. Jeśli wyłączone, Visage nie będzie mógł zmienić ustawień rozmiaru ani skali tokena.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Tylko Mistrz Gry może tworzyć, edytować lub usuwać Globalne Visage.",
+    "VISAGE.GlobalEditor.Visibility": "Udostępnianie",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Ten Visage może być nałożony tylko przez Mistrza Gry.",
+    "VISAGE.GlobalEditor.Private": "Prywatny",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Ten Visage może być nałożony przez wszystkich graczy poprzez HUD wyboru tokena.",
+    "VISAGE.GlobalEditor.Public": "Publiczny",
+    "VISAGE.Selector.TogglePublic": "Przełącz widoczność Publicznych Globalnych Visage"
 }

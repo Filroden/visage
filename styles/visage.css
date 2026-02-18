@@ -622,7 +622,7 @@ li.context-item .visage-icon-domino {
 .visage.visage-selector-app {
     position: fixed; 
     display: block;
-    width: 22rem !important; /* Hardcoded to match JS calculation */
+    width: 33rem !important;
     max-height: 80vh !important; 
 }
 
@@ -673,6 +673,9 @@ li.context-item .visage-icon-domino {
 
 .visage .visage-config-button:hover {
     opacity: 1;
+    background-color: inherit;
+    border: none;
+    outline: none;
 }
 
 /* --- Section Headers (Sticky) --- */
@@ -883,7 +886,7 @@ li.context-item .visage-icon-domino {
 
 .visage .visage-selector {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: max(24px, 1.5rem) var(--filroden-space-l);
     width: 100%;
     margin-top: var(--filroden-space-l);
@@ -1038,7 +1041,6 @@ li.context-item .visage-icon-domino {
 
 .visage-icon {
     display: inline-block;
-    /* Use em to scale with text, preventing huge icons in small buttons */
     width: var(--filroden-font-size-l); 
     height: var(--filroden-font-size-l);
     min-width: var(--filroden-font-size-l);
@@ -1150,6 +1152,10 @@ li.context-item .visage-icon-domino {
 .visage-icon.timer      { -webkit-mask-image: url('../icons/timer.svg'); mask-image: url('../icons/timer.svg'); }
 .visage-icon.flip      { -webkit-mask-image: url('../icons/flip.svg'); mask-image: url('../icons/flip.svg'); }
 .visage-icon.anchor      { -webkit-mask-image: url('../icons/transform.svg'); mask-image: url('../icons/transform.svg'); }
+.visage-icon.public      { -webkit-mask-image: url('../icons/person.svg'); mask-image: url('../icons/person.svg'); }
+.visage-icon.private      { -webkit-mask-image: url('../icons/person_off.svg'); mask-image: url('../icons/person_off.svg'); }
+.visage-icon.toggle_on      { -webkit-mask-image: url('../icons/toggle_on.svg'); mask-image: url('../icons/toggle_on.svg'); }
+.visage-icon.toggle_off      { -webkit-mask-image: url('../icons/toggle_off.svg'); mask-image: url('../icons/toggle_off.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
