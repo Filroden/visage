@@ -279,24 +279,27 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         if (this._lightData === null) {
+            const defaultLight = {
+                dim: 0,
+                bright: 0,
+                color: "#ffffff",
+                alpha: 0.5,
+                angle: 360,
+                luminosity: 0.5,
+                priority: 0,
+                animation: { type: "", speed: 5, intensity: 5 },
+            };
             if (c.light) {
-                this._lightData = { active: true, ...c.light };
-            } else {
                 this._lightData = {
-                    active: false,
-                    dim: 0,
-                    bright: 0,
-                    color: "#ffffff",
-                    alpha: 0.5,
-                    angle: 360,
-                    luminosity: 0.5,
-                    priority: 0,
-                    animation: { type: "", speed: 5, intensity: 5 },
+                    active: !!this.visageId,
+                    ...defaultLight,
+                    ...c.light,
                 };
+            } else {
+                this._lightData = { active: false, ...defaultLight };
             }
         }
 
-        // Initialize Ring Data Memory
         if (this._ringData === null) {
             const defaults = {
                 enabled: false,
@@ -344,9 +347,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 (typeof val !== "string" || val !== ""),
         });
 
-        // -- Ring Context --
         const ringContext = VisageData.prepareRingContext(this._ringData);
-
         const lightAnimationOptions = this._getLightAnimationOptions();
 
         const formatEffect = (e) => ({
@@ -466,9 +467,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             light: { ...this._lightData, localizedAnimation: localizedAnim },
             lightAnimationOptions,
 
-            // FIX: Apply _ringData FIRST, then overwrite with ringContext.
-            // This ensures ringContext.effects (Array) overwrites _ringData.effects (Int),
-            // making the checkboxes visible again.
             ring: {
                 ...this._ringData,
                 ...ringContext,
@@ -552,8 +550,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const fullState = this._prepareSaveData();
         const changes = fullState.changes;
         const el = this.element;
-
-        const get = (path) => foundry.utils.getProperty(fullState, path);
 
         if (changes.light) {
             this._lightData = { ...this._lightData, ...changes.light };
@@ -867,7 +863,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 try {
                     await window.ForgeAPI.status();
                 } catch (e) {
-                    /* Ignore */
+                    /* Ignore errors during Forge status check */
                 }
             }
             if (foundry.applications.apps.FilePicker.sources?.forgevtt)
@@ -894,9 +890,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         );
         const activeIds = new Set(activeAudioEffects.map((e) => e.id));
 
+        // Safely kill sounds that have been deleted or disabled
         for (const [id, sound] of this._audioPreviews) {
             if (!activeIds.has(id)) {
-                if (sound && typeof sound.stop === "function") sound.stop();
+                if (sound instanceof Promise) {
+                    sound.then((s) => {
+                        if (s) {
+                            try {
+                                s.volume = 0;
+                                if (typeof s.stop === "function") s.stop();
+                            } catch (e) {
+                                /* Ignore errors during sound stop */
+                            }
+                        }
+                    });
+                } else if (sound) {
+                    try {
+                        sound.volume = 0;
+                        if (typeof sound.stop === "function") sound.stop();
+                    } catch (e) {
+                        /* Ignore errors during sound stop */
+                    }
+                }
                 this._audioPreviews.delete(id);
             }
         }
@@ -905,10 +920,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             const vol = e.opacity ?? 0.8;
             if (this._audioPreviews.has(e.id)) {
                 const sound = this._audioPreviews.get(e.id);
-                if (sound instanceof Promise) return;
+                if (sound instanceof Promise) return; // Wait for it to finish loading
                 if (sound.volume !== vol) sound.volume = vol;
                 if (sound._visageSrc !== e.path) {
-                    sound.stop();
+                    try {
+                        sound.volume = 0;
+                        if (typeof sound.stop === "function") sound.stop();
+                    } catch (err) {
+                        /* Ignore errors during sound stop */
+                    }
                     this._audioPreviews.delete(e.id);
                 } else return;
             }
@@ -917,27 +937,49 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 const resolvedPath = this._resolveEffectPath(e.path);
                 if (!resolvedPath) return;
 
-                const playPromise = foundry.audio.AudioHelper.play(
+                const playResult = foundry.audio.AudioHelper.play(
                     {
                         src: resolvedPath,
                         volume: vol,
                         loop: e.loop ?? true,
                     },
                     false,
-                ).then((sound) => {
+                );
+
+                const handleSoundLoad = (sound) => {
                     const currentEffect = (this._effects || []).find(
                         (fx) => fx.id === e.id,
                     );
-                    if (!currentEffect || currentEffect.disabled || !sound) {
-                        if (sound) sound.stop();
+                    if (
+                        !currentEffect ||
+                        currentEffect.disabled ||
+                        !sound ||
+                        !this.rendered
+                    ) {
+                        if (sound) {
+                            try {
+                                sound.volume = 0;
+                                if (typeof sound.stop === "function")
+                                    sound.stop();
+                            } catch (err) {
+                                /* Ignore errors during sound stop */
+                            }
+                        }
                         this._audioPreviews.delete(e.id);
-                        return;
+                        return null;
                     }
                     sound._visageSrc = e.path;
                     this._audioPreviews.set(e.id, sound);
                     return sound;
-                });
-                this._audioPreviews.set(e.id, playPromise);
+                };
+
+                // Handle both Promise (V12) and immediate return (V11) architectures
+                if (playResult instanceof Promise) {
+                    this._audioPreviews.set(e.id, playResult);
+                    playResult.then(handleSoundLoad);
+                } else {
+                    handleSoundLoad(playResult);
+                }
             }
         });
     }
@@ -952,70 +994,85 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             return type(val);
         };
 
-        const payload = {
-            id: this.visageId,
-            label: formData.label,
-            category: formData.category,
-            tags: formData.tags
-                ? formData.tags.split(",").filter((t) => t.trim())
-                : [],
-            mode: formData.mode,
-            public: formData.public === "true",
-            changes: {
-                name: formData.nameOverride_active
-                    ? formData.nameOverride
-                    : null,
-                texture: {
-                    src: formData.img_active ? formData.img : null,
-                    scaleX: null,
-                    scaleY: null,
-                    anchorX: formData.anchor_active
-                        ? parseFloat(formData.anchorX)
-                        : null,
-                    anchorY: formData.anchor_active
-                        ? parseFloat(formData.anchorY)
-                        : null,
-                },
-                scale: formData.scale_active
-                    ? getVal("scale", Number) / 100
-                    : null,
-                mirrorX:
-                    formData.isFlippedX === ""
-                        ? null
-                        : formData.isFlippedX === "true",
-                mirrorY:
-                    formData.isFlippedY === ""
-                        ? null
-                        : formData.isFlippedY === "true",
-                alpha: formData.alpha_active
-                    ? getVal("alpha", Number) / 100
-                    : null,
-                rotation: null,
-                tint: null,
-                width: formData.width_active ? getVal("width", Number) : null,
-                height: formData.height_active
-                    ? getVal("height", Number)
-                    : null,
-                lockRotation:
-                    formData.lockRotation === ""
-                        ? null
-                        : formData.lockRotation === "true",
-                disposition: formData.disposition_active
-                    ? getVal("disposition", Number)
-                    : null,
-                portrait: formData.portrait_active ? formData.portrait : null,
-                light: this._lightData.active ? this._lightData : null,
-                delay: this._delayData,
-                effects: this._effects,
-                ring: null,
-            },
-        };
+        // --- 1. SYNC MEMORY FROM DOM BEFORE BUILDING PAYLOAD ---
 
-        // FIX: Start with internal memory state (Source of Truth)
+        const delayVal = getVal("delayValue", Number);
+        if (delayVal !== null && !isNaN(delayVal)) {
+            const delayDirection = this._delayData >= 0 ? 1 : -1;
+            this._delayData = Math.round(delayVal * 1000) * delayDirection;
+        }
+
+        if (this._editingLight) {
+            const dim = getVal("light.dim", Number);
+            if (dim !== null) this._lightData.dim = dim;
+
+            const bright = getVal("light.bright", Number);
+            if (bright !== null) this._lightData.bright = bright;
+
+            const color = getVal("light.color");
+            if (color !== null) this._lightData.color = color;
+
+            const alpha = getVal("light.alpha", Number);
+            if (alpha !== null) this._lightData.alpha = alpha;
+
+            const angle = getVal("light.angle", Number);
+            if (angle !== null) this._lightData.angle = angle;
+
+            const lumin = getVal("light.luminosity", Number);
+            if (lumin !== null) this._lightData.luminosity = lumin;
+
+            const prio = getVal("light.priority", Number);
+            if (prio !== null) this._lightData.priority = prio;
+
+            const animType = getVal("light.animation.type");
+            if (animType !== null) {
+                if (!this._lightData.animation) this._lightData.animation = {};
+                this._lightData.animation.type = animType;
+                this._lightData.animation.speed =
+                    getVal("light.animation.speed", Number) ?? 5;
+                this._lightData.animation.intensity =
+                    getVal("light.animation.intensity", Number) ?? 5;
+            }
+        }
+
+        if (this._activeEffectId) {
+            const activeEffect = this._effects.find(
+                (e) => e.id === this._activeEffectId,
+            );
+            if (activeEffect) {
+                activeEffect.label =
+                    getVal("effectLabel") ?? activeEffect.label;
+                activeEffect.path = getVal("effectPath") ?? activeEffect.path;
+
+                if (activeEffect.type === "visual") {
+                    const scaleVal = getVal("effectScale", Number);
+                    if (scaleVal !== null && !isNaN(scaleVal))
+                        activeEffect.scale = scaleVal / 100;
+
+                    const opacityVal = getVal("effectOpacity", Number);
+                    if (opacityVal !== null && !isNaN(opacityVal))
+                        activeEffect.opacity = opacityVal;
+
+                    activeEffect.blendMode =
+                        getVal("effectBlendMode") ?? activeEffect.blendMode;
+
+                    const rotationVal = getVal("effectRotation", Number);
+                    if (rotationVal !== null && !isNaN(rotationVal))
+                        activeEffect.rotation = rotationVal;
+
+                    activeEffect.rotationRandom =
+                        !!formData.effectRotationRandom;
+                    activeEffect.zOrder =
+                        getVal("effectZIndex") ?? activeEffect.zOrder;
+                } else if (activeEffect.type === "audio") {
+                    const volVal = getVal("effectVolume", Number);
+                    if (volVal !== null && !isNaN(volVal))
+                        activeEffect.opacity = volVal;
+                }
+            }
+        }
+
         let newRing = foundry.utils.deepClone(this._ringData);
-
-        // FIX: Only overwrite if we are currently editing AND the fields actually exist in the form.
-        // This prevents the "null overwrite" when opening the inspector for the first time.
         if (this._editingRing && formData.ringColor !== undefined) {
             let effectsMask = 0;
             for (const [k, v] of Object.entries(formData)) {
@@ -1029,11 +1086,57 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             newRing.subject.scale = formData.ringSubjectScale;
             newRing.effects = effectsMask;
 
-            // Persist DOM changes to memory
             this._ringData = newRing;
         }
 
-        payload.changes.ring = newRing;
+        // --- 2. CONSTRUCT PAYLOAD (Safe Null Omission) ---
+
+        const changes = {};
+
+        // A. Omit inactive token properties completely (Fixes the Portrait Bug)
+        if (formData.nameOverride_active) changes.name = formData.nameOverride;
+        if (formData.scale_active)
+            changes.scale = getVal("scale", Number) / 100;
+        if (formData.isFlippedX !== "")
+            changes.mirrorX = formData.isFlippedX === "true";
+        if (formData.isFlippedY !== "")
+            changes.mirrorY = formData.isFlippedY === "true";
+        if (formData.alpha_active)
+            changes.alpha = getVal("alpha", Number) / 100;
+        if (formData.width_active) changes.width = getVal("width", Number);
+        if (formData.height_active) changes.height = getVal("height", Number);
+        if (formData.lockRotation !== "")
+            changes.lockRotation = formData.lockRotation === "true";
+        if (formData.disposition_active)
+            changes.disposition = getVal("disposition", Number);
+        if (formData.portrait_active) changes.portrait = formData.portrait;
+
+        if (formData.img_active || formData.anchor_active) {
+            changes.texture = {};
+            if (formData.img_active) changes.texture.src = formData.img;
+            if (formData.anchor_active) {
+                changes.texture.anchorX = parseFloat(formData.anchorX);
+                changes.texture.anchorY = parseFloat(formData.anchorY);
+            }
+        }
+
+        // B. Ensure Component arrays/objects are ALWAYS sent so Core knows to clear them (Fixes the Audio Bug)
+        changes.light = this._lightData;
+        changes.ring = newRing;
+        changes.delay = this._delayData;
+        changes.effects = this._effects.filter((e) => !e.disabled);
+
+        const payload = {
+            id: this.visageId,
+            label: formData.label,
+            category: formData.category,
+            tags: formData.tags
+                ? formData.tags.split(",").filter((t) => t.trim())
+                : [],
+            mode: formData.mode,
+            public: formData.public === "true",
+            changes: changes,
+        };
 
         return payload;
     }
@@ -1116,7 +1219,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 return this._resolveSequencerRecursively(randomKey, depth + 1);
             }
         } catch (e) {
-            /* Ignore errors, likely due to invalid path */
+            /* Ignore errors during recursive resolution */
         }
         return null;
     }
@@ -1486,7 +1589,25 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this._activeEffectId === id) this._activeEffectId = null;
         if (this._audioPreviews.has(id)) {
             const sound = this._audioPreviews.get(id);
-            if (sound && typeof sound.stop === "function") sound.stop();
+            if (sound instanceof Promise) {
+                sound.then((s) => {
+                    if (s) {
+                        try {
+                            s.volume = 0;
+                            if (typeof s.stop === "function") s.stop();
+                        } catch (e) {
+                            /* Ignore */
+                        }
+                    }
+                });
+            } else if (sound) {
+                try {
+                    sound.volume = 0;
+                    if (typeof sound.stop === "function") sound.stop();
+                } catch (e) {
+                    /* Ignore */
+                }
+            }
             this._audioPreviews.delete(id);
         }
         this._markDirty();
@@ -1504,7 +1625,25 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 { duration: 500 },
             );
         for (const [id, sound] of this._audioPreviews) {
-            if (sound && typeof sound.stop === "function") sound.stop();
+            if (sound instanceof Promise) {
+                sound.then((s) => {
+                    if (s) {
+                        try {
+                            s.volume = 0;
+                            if (typeof s.stop === "function") s.stop();
+                        } catch (e) {
+                            /* Ignore */
+                        }
+                    }
+                });
+            } else if (sound) {
+                try {
+                    sound.volume = 0;
+                    if (typeof sound.stop === "function") sound.stop();
+                } catch (e) {
+                    /* Ignore */
+                }
+            }
         }
         this._audioPreviews.clear();
         this._updatePreview();
@@ -1582,7 +1721,26 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async close(options) {
         for (const [id, sound] of this._audioPreviews) {
-            if (sound && typeof sound.stop === "function") sound.stop();
+            // FIX: Gracefully stop loading sound previews on close
+            if (sound instanceof Promise) {
+                sound.then((s) => {
+                    if (s) {
+                        try {
+                            s.volume = 0;
+                            if (typeof s.stop === "function") s.stop();
+                        } catch (e) {
+                            /* Ignore */
+                        }
+                    }
+                });
+            } else if (sound) {
+                try {
+                    sound.volume = 0;
+                    if (typeof sound.stop === "function") sound.stop();
+                } catch (e) {
+                    /* Ignore */
+                }
+            }
         }
         this._audioPreviews.clear();
         return super.close(options);
