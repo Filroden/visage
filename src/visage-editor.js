@@ -1,18 +1,48 @@
+/**
+ * VISAGE EDITOR v3.5
+ * -------------------------------------------------------------------
+ * The central application for creating and modifying Visages.
+ *
+ * ARCHITECTURAL OVERVIEW:
+ * This class uses a "Snapshot & Merge" strategy to handle the UI.
+ * Because Handlebars re-renders the DOM frequently (e.g., when switching
+ * between the Light Inspector and the Ring Inspector), we cannot rely
+ * solely on the DOM to hold the state of the form.
+ *
+ * 1. _preservedData: Caches the full form state before every render.
+ * 2. _prepareSaveData: The "Single Source of Truth". It gathers data
+ * from the active DOM inputs and merges it with the preserved memory
+ * for inputs that are currently hidden. It also drops inactive properties
+ * to ensure Visages act non-destructively.
+ * 3. _updatePreview: Uses _prepareSaveData to generate a complete
+ * mock Visage object, ensuring the Live Preview always reflects
+ * the total state, not just what's currently visible in the form.
+ */
+
 import { VisageData } from "./visage-data.js";
 import { VisageUtilities } from "./visage-utilities.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
+    /**
+     * Initialize the Editor application and its internal state.
+     * @param {Object} options - Editor options.
+     * @param {string} [options.visageId] - ID of the visage to edit. If null, creates new.
+     * @param {string} [options.actorId] - ID of the actor (if editing a Local Visage).
+     * @param {string} [options.tokenId] - ID of the token (context for extracting defaults).
+     */
     constructor(options = {}) {
         super(options);
 
+        // Core Identity
         this.visageId = options.visageId || null;
         this.actorId = options.actorId || null;
         this.tokenId = options.tokenId || null;
         this.isDirty = false;
+
+        // Navigation & Viewport State
         this._activeTab = "appearance";
-        this._preservedData = null;
         this._viewState = {
             scale: 1.0,
             x: 0,
@@ -22,21 +52,37 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             lastY: 0,
         };
 
+        // Data Persistence & Inspector State
+        // _preservedData stores the form state between DOM re-renders.
+        this._preservedData = null;
+
+        // Effect Memory
         this._effects = null;
         this._activeEffectId = null;
         this._audioPreviews = new Map();
 
+        // Inspector Mode Flags (Only one should be true at a time)
         this._editingLight = false;
         this._editingRing = false;
 
+        // Sub-Data Containers for components that can be hidden in the UI
         this._lightData = null;
         this._ringData = null;
         this._delayData = 0;
     }
 
+    /**
+     * Determines if we are editing a Local Visage (Actor-specific) or Global (World).
+     * @type {boolean}
+     */
     get isLocal() {
         return !!this.actorId;
     }
+
+    /**
+     * Helper to retrieve the target Actor if in Local mode.
+     * @type {Actor|null}
+     */
     get actor() {
         return VisageUtilities.resolveTarget(this.options).actor;
     }
@@ -54,14 +100,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         },
         position: { width: 960, height: "auto" },
         actions: {
+            // Persistence Actions
             save: VisageEditor.prototype._onSave,
             toggleField: VisageEditor.prototype._onToggleField,
             openFilePicker: VisageEditor.prototype._onOpenFilePicker,
             resetSettings: VisageEditor.prototype._onResetSettings,
+            // Viewport Actions
             zoomIn: VisageEditor.prototype._onZoomIn,
             zoomOut: VisageEditor.prototype._onZoomOut,
             resetZoom: VisageEditor.prototype._onResetZoom,
             toggleGrid: VisageEditor.prototype._onToggleGrid,
+            // Effect Management
             addVisual: VisageEditor.prototype._onAddVisual,
             addAudio: VisageEditor.prototype._onAddAudio,
             editEffect: VisageEditor.prototype._onEditEffect,
@@ -73,6 +122,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             replayPreview: VisageEditor.prototype._onReplayPreview,
             openSequencerDatabase:
                 VisageEditor.prototype._onOpenSequencerDatabase,
+            // Sub-component Toggles
             toggleLight: VisageEditor.prototype._onToggleLight,
             editLight: VisageEditor.prototype._onEditLight,
             toggleRing: VisageEditor.prototype._onToggleRing,
@@ -89,6 +139,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         },
     };
 
+    /**
+     * Dynamic window title generation based on local/global state and edit vs create.
+     */
     get title() {
         if (this.isLocal) {
             return this.visageId
@@ -104,15 +157,25 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             : game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global");
     }
 
+    /**
+     * Binds HTML5 drag-and-drop listeners to Effect Cards and Groups.
+     * Handles visual feedback for reordering effects within the stack.
+     * @param {HTMLElement} html - The rendered application root.
+     * @private
+     */
     _bindDragDrop(html) {
         let dragSource = null;
+
+        // 1. Bind Cards (Draggables)
         const cards = html.querySelectorAll(".effect-card");
         cards.forEach((card) => {
+            // Prevent dragging of "Pinned" fixed cards (Light/Ring)
             if (
                 card.classList.contains("pinned-light") ||
                 card.dataset.action === "editRing"
             )
                 return;
+
             card.addEventListener("dragstart", (ev) => {
                 dragSource = card;
                 ev.dataTransfer.effectAllowed = "move";
@@ -129,11 +192,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     },
                 );
             });
+
+            // Allow dropping onto other cards for precise insertion reordering
             card.addEventListener("dragenter", (ev) => ev.preventDefault());
             card.addEventListener("dragover", (ev) => {
                 ev.preventDefault();
                 const sourceType = dragSource?.dataset.type;
                 const targetType = card.dataset.type;
+
+                // Type Safety: Only Visual->Visual or Audio->Audio
                 if (sourceType === "visual" && targetType === "visual")
                     card.classList.add("drag-over");
             });
@@ -149,6 +216,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             );
         });
 
+        // 2. Bind Groups (Drop Zones for appending to the end of a section)
         const groups = html.querySelectorAll(".effect-group");
         groups.forEach((group) => {
             if (
@@ -161,8 +229,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 ev.preventDefault();
                 const sourceType = dragSource?.dataset.type;
                 const targetGroup = group.dataset.group;
+
+                // Type Safety constraints across groups
                 if (sourceType === "audio" && targetGroup !== "audio") return;
                 if (sourceType === "visual" && targetGroup === "audio") return;
+
                 group.classList.add("group-drag-over");
             });
             group.addEventListener("dragleave", (ev) => {
@@ -174,6 +245,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         });
     }
 
+    /**
+     * Handles the logic when a drag-and-drop action completes.
+     * Updates the internal _effects array, modifying z-orders if moving between layer groups.
+     * @param {DragEvent} ev
+     * @param {string} targetGroup - 'above', 'below', or 'audio'
+     * @param {string|null} targetId - ID of card dropped onto, or null if dropped into the group space
+     * @private
+     */
     async _onDrop(ev, targetGroup, targetId) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -185,6 +264,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (draggedIndex === -1) return;
         const draggedEffect = this._effects[draggedIndex];
 
+        // Update zOrder if moving a visual effect between foreground/background
         if (targetGroup === "above" && draggedEffect.type === "visual") {
             draggedEffect.zOrder = "above";
         } else if (targetGroup === "below" && draggedEffect.type === "visual") {
@@ -193,14 +273,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             return;
         }
 
+        // Remove from old position
         this._effects.splice(draggedIndex, 1);
 
+        // Insert at new position
         if (targetId) {
+            // Case A: Dropped onto specific card -> Insert relative to it
             const originalTargetIndex = this._effects.findIndex(
                 (e) => e.id === targetId,
             );
             this._effects.splice(originalTargetIndex, 0, draggedEffect);
         } else {
+            // Case B: Dropped into empty space -> Append to end of that specific group
             let insertIndex = this._effects.length;
             if (targetGroup === "above" || targetGroup === "below") {
                 const lastOfGroupIndex = this._effects.findLastIndex(
@@ -221,6 +305,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render();
     }
 
+    /**
+     * Intercepts the render call to Snapshot the current form state into memory.
+     * This prevents data loss when handlebars re-renders and destroys the DOM.
+     * @override
+     */
     async render(options) {
         if (this.rendered) {
             this._preservedData = this._prepareSaveData();
@@ -228,9 +317,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.render(options);
     }
 
+    /**
+     * Prepares data for the Handlebars template.
+     * Merges Database data -> Preserved Memory -> Context Logic.
+     * @override
+     */
     async _prepareContext(options) {
         let data;
 
+        // 1. Load Initial Data (From Database or Token Defaults)
         if (this.visageId) {
             if (this.isLocal) {
                 const visages = VisageData.getLocal(this.actor);
@@ -264,6 +359,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._currentLabel = "";
         }
 
+        // 2. Merge with Preserved Data (Unsaved Changes from active session)
         if (this._preservedData) {
             data = foundry.utils.mergeObject(data, this._preservedData, {
                 inplace: false,
@@ -274,6 +370,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const isPublic = data.public ?? false;
         const c = data.changes || {};
 
+        // 3. Initialize Sub-Data Stores (if first run)
         if (this._effects === null) {
             this._effects = c.effects ? foundry.utils.deepClone(c.effects) : [];
         }
@@ -322,6 +419,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._delayData = c.delay;
         }
 
+        // 4. Prepare Context for UI Elements
         const rawImg = c.texture?.src || "";
         const resolvedImg = await VisageUtilities.resolvePath(rawImg);
 
@@ -370,6 +468,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             .filter((e) => e.type === "audio")
             .map(formatEffect);
 
+        // 5. Build Inspector Data
+        // Defines what is shown in the right-hand Inspector Panel based on active selection
         let inspectorData = {
             hasEffects:
                 this._effects.length > 0 ||
@@ -413,6 +513,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
+        // 6. Calculate Stage Preview values (Grid scale, Animation durations)
         const gridDist = canvas.scene?.grid?.distance || 5;
         const tokenWidthUnits = c.width || 1;
         const lMax = Math.max(
@@ -467,6 +568,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             light: { ...this._lightData, localizedAnimation: localizedAnim },
             lightAnimationOptions,
 
+            // Overlay _ringData onto ringContext to ensure the inspector loop (array)
+            // isn't squashed by the data memory (integer bitmask)
             ring: {
                 ...this._ringData,
                 ...ringContext,
@@ -518,6 +621,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
+    /**
+     * Localizes Foundry's default light animation options.
+     * @private
+     */
     _getLightAnimationOptions() {
         return {
             "": game.i18n.localize("VISAGE.LightAnim.None"),
@@ -546,6 +653,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
+    /**
+     * Fast-updates the Live Preview Stage without requiring a full Handlebars re-render of the app.
+     * Uses `_prepareSaveData` to act as the Single Source of Truth for the total state, then calculates
+     * complex transforms, visual stack sorting, and light approximations to inject into `visage-preview.hbs`.
+     */
     async _updatePreview() {
         const fullState = this._prepareSaveData();
         const changes = fullState.changes;
@@ -738,6 +850,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._updateUIBadges(meta, changes);
     }
 
+    /**
+     * Toggles the dynamic ring enabled state in memory and re-renders to update the UI.
+     */
     _onToggleRing(event, target) {
         if (!this._ringData) return;
         this._ringData.enabled = !this._ringData.enabled;
@@ -751,6 +866,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Activates the Ring Inspector mode.
+     */
     _onEditRing(event, target) {
         this._editingRing = true;
         this._editingLight = false;
@@ -758,6 +876,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
+    /**
+     * Toggles the light source enabled state in memory.
+     */
     _onToggleLight(event, target) {
         if (!this._lightData) return;
         this._lightData.active = !this._lightData.active;
@@ -766,6 +887,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
+    /**
+     * Activates the Light Inspector mode.
+     */
     _onEditLight(event, target) {
         this._editingLight = true;
         this._editingRing = false;
@@ -773,6 +897,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
+    /**
+     * Activates the Visual/Audio Effect Inspector mode for a specific ID.
+     */
     _onEditEffect(event, target) {
         const card = target.closest(".effect-card");
         this._activeEffectId = card.dataset.id;
@@ -781,6 +908,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
+    /**
+     * Closes the active inspector panel and returns to the general effects list.
+     */
     async _onCloseEffectInspector(event, target) {
         const container = this.element.querySelector(".effects-tab-container");
         if (container) container.classList.remove("editing");
@@ -790,6 +920,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render();
     }
 
+    /**
+     * Factory reset for the Visage being edited. Unchecks all intents and clears effects.
+     */
     _onResetSettings(event, target) {
         const checkboxes = this.element.querySelectorAll(
             'input[type="checkbox"][name$="_active"]',
@@ -827,6 +960,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         );
     }
 
+    /**
+     * Toggles an input field disabled state based on its "Intent" checkbox.
+     */
     _onToggleField(event, target) {
         const fieldName = target.dataset.target;
         const group = target.closest(".form-group");
@@ -848,6 +984,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._updatePreview();
     }
 
+    /**
+     * Intercepts the native Foundry FilePicker to allow ForgeVTT support and dispatch updates.
+     */
     async _onOpenFilePicker(event, target) {
         const input =
             target.previousElementSibling?.tagName === "BUTTON"
@@ -884,6 +1023,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         fp.render(true);
     }
 
+    /**
+     * Manages audio playback for effects in the editor.
+     * Keeps track of active instances and ensures sounds aren't orphaned if the user closes
+     * the window before the sound finishes loading (using Promise tracking).
+     */
     _syncAudioPreviews() {
         const activeAudioEffects = (this._effects || []).filter(
             (e) => !e.disabled && e.type === "audio" && e.path,
@@ -984,6 +1128,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         });
     }
 
+    /**
+     * Constructs the full data object for saving and previewing.
+     * Acting as the "Single Source of Truth", it:
+     * 1. Extracts basic fields (Labels, Tags) from DOM.
+     * 2. Overwrites in-memory states (_lightData, _ringData) with DOM values if their inspectors are open.
+     * 3. Drops un-checked intent properties completely to ensure non-destructive application.
+     * @returns {Object} The complete payload ready for saving to VisageData.
+     */
     _prepareSaveData() {
         const formData = new foundry.applications.ux.FormDataExtended(
             this.element,
@@ -996,12 +1148,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // --- 1. SYNC MEMORY FROM DOM BEFORE BUILDING PAYLOAD ---
 
+        // A. Delay Sync
         const delayVal = getVal("delayValue", Number);
         if (delayVal !== null && !isNaN(delayVal)) {
             const delayDirection = this._delayData >= 0 ? 1 : -1;
             this._delayData = Math.round(delayVal * 1000) * delayDirection;
         }
 
+        // B. Light Sync
         if (this._editingLight) {
             const dim = getVal("light.dim", Number);
             if (dim !== null) this._lightData.dim = dim;
@@ -1035,6 +1189,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
+        // C. Effect Sync
         if (this._activeEffectId) {
             const activeEffect = this._effects.find(
                 (e) => e.id === this._activeEffectId,
@@ -1072,6 +1227,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
+        // D. Ring Sync
         let newRing = foundry.utils.deepClone(this._ringData);
         if (this._editingRing && formData.ringColor !== undefined) {
             let effectsMask = 0;
@@ -1093,7 +1249,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const changes = {};
 
-        // A. Omit inactive token properties completely (Fixes the Portrait Bug)
+        // A. Omit inactive token properties completely to act as transparent overlays
         if (formData.nameOverride_active) changes.name = formData.nameOverride;
         if (formData.scale_active)
             changes.scale = getVal("scale", Number) / 100;
@@ -1120,7 +1276,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // B. Ensure Component arrays/objects are ALWAYS sent so Core knows to clear them (Fixes the Audio Bug)
+        // B. Component arrays/objects are ALWAYS sent so Core knows to clear them if disabled
         changes.light = this._lightData;
         changes.ring = newRing;
         changes.delay = this._delayData;
@@ -1141,6 +1297,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return payload;
     }
 
+    /**
+     * Executes the final save operation to VisageData logic and closes the app.
+     */
     async _onSave(event, target) {
         event.preventDefault();
 
@@ -1175,6 +1334,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Visually flags the Editor as holding unsaved changes.
+     */
     _markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
@@ -1183,6 +1345,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Core resolution logic to turn user input into file paths or module keys.
+     */
     _resolveEffectPath(rawPath) {
         if (!rawPath) return null;
         const isDbKey = VisageUtilities.hasSequencer && !rawPath.includes("/");
@@ -1224,6 +1389,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return null;
     }
 
+    /**
+     * Format an effect for CSS injection on the preview stage.
+     */
     _prepareEffectStyle(effect) {
         const resolvedPath = this._resolveEffectPath(effect.path);
         const isVideo = resolvedPath
@@ -1237,6 +1405,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
+    /**
+     * Changes the application sequence timing rule (Token first vs FX first).
+     */
     _onToggleDelayDirection(event, target) {
         const val = target.dataset.value;
         const btns = this.element.querySelectorAll(
@@ -1253,6 +1424,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
     }
 
+    /**
+     * Master hook for registering dynamic UI logic after DOM is rendered.
+     */
     _onRender(context, options) {
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
@@ -1428,6 +1602,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         });
     }
 
+    /**
+     * Mousewheel Zoom interaction for the Stage.
+     */
     _bindStaticListeners() {
         const stage = this.element.querySelector(".visage-live-preview-stage");
         if (!stage) return;
@@ -1448,6 +1625,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         );
     }
 
+    /**
+     * Mouse Drag (Pan) interaction for the Stage.
+     */
     _bindDynamicListeners() {
         const content = this.element.querySelector(
             ".visage-preview-content.stage-mode",
@@ -1483,6 +1663,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Applies internal Pan/Zoom state to DOM.
+     */
     _applyStageTransform() {
         const content = this.element.querySelector(
             ".visage-preview-content.stage-mode",
@@ -1664,6 +1847,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Fast-updates metadata badges below the stage without requiring a full re-render.
+     */
     _updateUIBadges(meta, changes) {
         if (!meta || !meta.slots) return;
         const el = this.element;
@@ -1719,9 +1905,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         updateMirrorBadge("vertical", meta.slots.flipV);
     }
 
+    /**
+     * Overrides window close to cleanly stop audio execution.
+     */
     async close(options) {
         for (const [id, sound] of this._audioPreviews) {
-            // FIX: Gracefully stop loading sound previews on close
+            // Gracefully stop loading sound previews on close
             if (sound instanceof Promise) {
                 sound.then((s) => {
                     if (s) {
