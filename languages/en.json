@@ -384,5 +384,7 @@
     "VISAGE.GlobalEditor.Private": "Private",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "This Visage can be applied by all players through their token's Selector HUD.",
     "VISAGE.GlobalEditor.Public": "Public",
-    "VISAGE.Selector.TogglePublic": "Toggle visibility of Public Global Visages"
+    "VISAGE.Selector.TogglePublic": "Toggle visibility of Public Global Visages",
+
+    "VISAGE.GlobalEditor.RingDisabled": "Dynamic Ring Disabled"
 }

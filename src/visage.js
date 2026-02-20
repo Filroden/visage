@@ -51,10 +51,22 @@ export class Visage {
         });
 
         // Restore effects on newly created tokens (e.g., drag-and-drop)
-        Hooks.on("createToken", (tokenDoc) => {
+        Hooks.on("createToken", (tokenDoc, options, userId) => {
+            if (game.user.id !== userId) return;
+
             if (tokenDoc.object && Visage.sequencerReady) {
                 setTimeout(() => VisageSequencer.restore(tokenDoc.object), 250);
             }
+        });
+
+        // Cleanup audio when a token is physically deleted from the canvas
+        Hooks.on("deleteToken", (tokenDoc) => {
+            if (Visage.sequencerReady) VisageSequencer.revert(tokenDoc.id);
+        });
+
+        // Terminate all audio gracefully when the scene unloads
+        Hooks.on("canvasTearDown", () => {
+            if (Visage.sequencerReady) VisageSequencer.stopAllAudio();
         });
     }
 

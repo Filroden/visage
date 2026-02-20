@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "\u200Fפרטי",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "\u200Fכל השחקנים יכולים להחיל את ה-\u2068Visage\u2069 הזה דרך ה-\u2068HUD\u2069 של הטוקן שלהם.",
     "VISAGE.GlobalEditor.Public": "\u200Fציבורי",
-    "VISAGE.Selector.TogglePublic": "\u200Fהצג/הסתר \u2068Visages\u2069 גלובליים ציבוריים"
+    "VISAGE.Selector.TogglePublic": "\u200Fהצג/הסתר \u2068Visages\u2069 גלובליים ציבוריים",
+    "VISAGE.GlobalEditor.RingDisabled": "\u200Fטבעת דינמית כבויה"
 }

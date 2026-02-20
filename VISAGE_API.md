@@ -64,53 +64,66 @@ When manipulating Visage data directly, the `changes` object defines the visual 
 Here is a complete example configuration illustrating a "Burning Ghost" appearance that uses Identity properties, Dynamic Ring, and Sequencer Effects.
 
 ```javascript
-// Example 'changes' object structure
-const changes = {
-  // Core Token Data
-  name: "Burning Ghost",         // Name override
-  disposition: 1,                // 1=Friendly, 0=Neutral, -1=Hostile, -2=Secret
-  width: 2,                      // Grid units (2x2)
-  height: 2,
+// Example Visage Data Structure (v3.5)
+const visageData = {
+  id: "x9z8y7",
+  label: "Burning Ghost",
+  mode: "identity",
   
-  // Visual Appearance
-  texture: {
-    src: "path/to/ghost_token.webp"
-  },
-  scale: 1.2,                    // Atomic Scale Override (120%)
-  mirrorX: true,                 // Horizontal Flip
-  alpha: 0.8,                    // Opacity
-  lockRotation: true,            // Face stays upright
-  
-  // Dynamic Token Ring
-  ring: {
-    enabled: true,
-    colors: {
-      ring: "#FF4400",           
-      background: "#000000"
-    },
-    effects: 2,                  // Bitmask: 2=Pulse, 4=Gradient, 8=Wave, 16=Invisibility
-    subject: {
-      texture: "path/to/ring_subject.webp",
-      scale: 1.0
-    }
-  },
+  // Sharing Flag (Only relevant for Global Visages)
+  // true = Visible to players in the Selector HUD
+  // false = Private (GM Only)
+  public: true, 
 
-  // Sequencer Effects (New in v3.0)
-  effects: [
-    {
-      id: "fire_aura",
-      type: "visual",
-      path: "jb2a.flames.01.orange",
-      scale: 1.5,
-      opacity: 0.8,
-      zOrder: "below",           // "above" or "below"
-      blendMode: "screen"
+  // The 'changes' payload
+  changes: {
+    // Core Token Data
+    name: "Burning Ghost",         // Name override
+    disposition: 1,                // 1=Friendly, 0=Neutral, -1=Hostile, -2=Secret
+    width: 2,                      // Grid units (2x2)
+    height: 2,
+    
+    // Visual Appearance
+    texture: {
+      src: "path/to/ghost_token.webp"
     },
-    {
-      id: "fire_sound",
-      type: "audio",
-      path: "sounds/fire_loop.ogg",
-      opacity: 0.5               // Volume
-    }
-  ]
+    scale: 1.2,                    // Atomic Scale Override (120%)
+    mirrorX: true,                 // Horizontal Flip
+    alpha: 0.8,                    // Opacity
+    lockRotation: true,            // Face stays upright
+    
+    // Dynamic Token Ring
+    ring: {
+      enabled: true,
+      colors: {
+        ring: "#FF4400",           
+        background: "#000000"
+      },
+      effects: 2,                  // Bitmask: 2=Pulse, 4=Gradient, 8=Wave, 16=Invisibility
+      subject: {
+        texture: "path/to/ring_subject.webp",
+        scale: 1.0
+      }
+    },
+
+    // Sequencer Effects
+    effects: [
+      {
+        id: "fire_aura",
+        type: "visual",
+        path: "jb2a.flames.01.orange",
+        scale: 1.5,
+        opacity: 0.8,
+        zOrder: "below",           // "above" or "below"
+        blendMode: "screen"
+      },
+      {
+        id: "fire_sound",
+        type: "audio",
+        path: "sounds/fire_loop.ogg",
+        opacity: 0.5               // Volume
+      }
+    ]
+  }
 };
+```

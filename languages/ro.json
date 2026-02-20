@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Privat",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Acest Visage poate fi aplicat de toți jucătorii prin HUD-ul de selecție al jetonului lor.",
     "VISAGE.GlobalEditor.Public": "Public",
-    "VISAGE.Selector.TogglePublic": "Comută vizibilitatea Visage-urilor Globale Publice"
+    "VISAGE.Selector.TogglePublic": "Comută vizibilitatea Visage-urilor Globale Publice",
+    "VISAGE.GlobalEditor.RingDisabled": "Inel Dinamic Dezactivat"
 }

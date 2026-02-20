@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Privé",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Ce Visage peut être appliqué par tous les joueurs via le HUD de sélection de leur pion.",
     "VISAGE.GlobalEditor.Public": "Public",
-    "VISAGE.Selector.TogglePublic": "Basculer la visibilité des Visages Globaux Publics"
+    "VISAGE.Selector.TogglePublic": "Basculer la visibilité des Visages Globaux Publics",
+    "VISAGE.GlobalEditor.RingDisabled": "Anneau Dynamique Désactivé"
 }

@@ -1,0 +1,311 @@
+<div class="tab active" data-tab="appearance" data-group="primary">
+    <fieldset class="visage-fieldset inspector-fieldset">
+
+        {{! Name Override }}
+        <div class="form-group checkbox-input-group">
+            <input
+                class="visage-checkbox"
+                type="checkbox"
+                name="nameOverride_active"
+                data-action="toggleField"
+                data-target="nameOverride"
+                {{checked nameOverride.active}}
+            />
+            <label>{{localize "VISAGE.GlobalEditor.NameOverride"}}</label>
+            <div class="visage-form-fields">
+                <input
+                    type="text"
+                    name="nameOverride"
+                    value="{{nameOverride.value}}"
+                    {{disabled (not nameOverride.active)}}
+                    placeholder="{{localize
+                        'VISAGE.GlobalEditor.NameOverride'
+                    }}"
+                />
+            </div>
+        </div>
+
+        {{! Image }}
+        <div class="form-group checkbox-input-group">
+            <input
+                class="visage-checkbox"
+                type="checkbox"
+                name="img_active"
+                data-action="toggleField"
+                data-target="img"
+                {{checked img.active}}
+            />
+            <label>{{localize "VISAGE.GlobalEditor.TokenImage"}}</label>
+            <div class="visage-form-fields">
+                <input
+                    type="text"
+                    name="img"
+                    value="{{this.img.value}}"
+                    {{disabled (not img.active)}}
+                    placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}"
+                />
+                <button
+                    type="button"
+                    class="file-picker-button"
+                    data-action="openFilePicker"
+                    {{disabled (not img.active)}}
+                ><i class="visage-icon image-search"></i></button>
+            </div>
+        </div>
+
+        {{! Actor Portrait }}
+        <div class="form-group checkbox-input-group">
+            <input
+                class="visage-checkbox"
+                type="checkbox"
+                name="portrait_active"
+                data-action="toggleField"
+                data-target="portrait"
+                {{checked portrait.active}}
+            />
+            <label>{{localize "VISAGE.GlobalEditor.ActorPortrait"}}</label>
+            <div class="visage-form-fields">
+                <input
+                    type="text"
+                    name="portrait"
+                    value="{{this.portrait.value}}"
+                    {{disabled (not portrait.active)}}
+                    placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}"
+                />
+                <button
+                    type="button"
+                    class="file-picker-button"
+                    data-action="openFilePicker"
+                    {{disabled (not portrait.active)}}
+                ><i class="visage-icon image-search"></i></button>
+            </div>
+        </div>
+
+        {{! Scale }}
+        <div class="form-group checkbox-input-group">
+            <input
+                class="visage-checkbox"
+                type="checkbox"
+                name="scale_active"
+                data-action="toggleField"
+                data-target="scale"
+                {{checked scale.active}}
+            />
+            <label>{{localize "VISAGE.Config.List.Scale"}}</label>
+            <div class="visage-form-fields">
+                <input
+                    type="number"
+                    name="scale"
+                    value="{{scale.value}}"
+                    step="1"
+                    {{disabled (not scale.active)}}
+                />
+            </div>
+        </div>
+
+        {{! Opacity }}
+        <div class="form-group checkbox-input-group">
+            <input
+                class="visage-checkbox"
+                type="checkbox"
+                name="alpha_active"
+                data-action="toggleField"
+                data-target="alpha"
+                {{checked alpha.active}}
+            />
+            <label>{{localize "VISAGE.Config.Opacity.LabelPercent"}}</label>
+            <div class="visage-form-fields">
+                <input
+                    type="number"
+                    name="alpha"
+                    value="{{alpha.value}}"
+                    min="0"
+                    max="100"
+                    step="1"
+                    {{disabled (not alpha.active)}}
+                />
+            </div>
+        </div>
+
+        {{! Disposition }}
+        <div class="form-group checkbox-input-group">
+            <input
+                class="visage-checkbox"
+                type="checkbox"
+                name="disposition_active"
+                data-action="toggleField"
+                data-target="disposition"
+                {{checked disposition.active}}
+            />
+            <label>{{localize "VISAGE.Disposition.Label"}}</label>
+            <div class="visage-form-fields">
+                <select
+                    name="disposition"
+                    {{disabled (not disposition.active)}}
+                >
+                    <option
+                        value="1"
+                        {{visageSelected (eq disposition.value 1)}}
+                    >{{localize "VISAGE.Disposition.Friendly"}}</option>
+                    <option
+                        value="0"
+                        {{visageSelected (eq disposition.value 0)}}
+                    >{{localize "VISAGE.Disposition.Neutral"}}</option>
+                    <option
+                        value="-1"
+                        {{visageSelected (eq disposition.value -1)}}
+                    >{{localize "VISAGE.Disposition.Hostile"}}</option>
+                    <option
+                        value="-2"
+                        {{visageSelected (eq disposition.value -2)}}
+                    >{{localize "VISAGE.Disposition.Secret"}}</option>
+                </select>
+            </div>
+        </div>
+
+        {{! Dimensions }}
+        <div class="form-group checkbox-input-group">
+            <input
+                class="visage-checkbox"
+                type="checkbox"
+                name="width_active"
+                data-action="toggleField"
+                data-target="width"
+                {{checked width.active}}
+            />
+            <label>{{localize "VISAGE.Config.List.Width"}}</label>
+            <div class="visage-form-fields">
+                <input
+                    type="number"
+                    name="width"
+                    value="{{width.value}}"
+                    {{disabled (not width.active)}}
+                />
+            </div>
+        </div>
+        <div class="form-group checkbox-input-group">
+            <input
+                class="visage-checkbox"
+                type="checkbox"
+                name="height_active"
+                data-action="toggleField"
+                data-target="height"
+                {{checked height.active}}
+            />
+            <label>{{localize "VISAGE.Config.List.Height"}}</label>
+            <div class="visage-form-fields">
+                <input
+                    type="number"
+                    name="height"
+                    value="{{height.value}}"
+                    {{disabled (not height.active)}}
+                />
+            </div>
+        </div>
+
+        {{! Anchors }}
+        <div class="form-group checkbox-input-group">
+            <input
+                class="visage-checkbox"
+                type="checkbox"
+                name="anchor_active"
+                data-action="toggleField"
+                data-target="anchor"
+                {{checked anchor.active}}
+            />
+            <label>{{localize "VISAGE.Config.List.Anchor"}}</label>
+            <div
+                class="visage-form-fields"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;"
+            >
+                <div class="visage-input-wrapper" data-tooltip="X">
+                    <input
+                        type="number"
+                        name="anchorX"
+                        value="{{anchor.x}}"
+                        step="0.1"
+                        placeholder="0.5"
+                        {{disabled (not anchor.active)}}
+                    />
+                </div>
+                <div class="visage-input-wrapper" data-tooltip="Y">
+                    <input
+                        type="number"
+                        name="anchorY"
+                        value="{{anchor.y}}"
+                        step="0.1"
+                        placeholder="0.5"
+                        {{disabled (not anchor.active)}}
+                    />
+                </div>
+            </div>
+        </div>
+
+        <hr class="visage-divider" />
+
+        {{! Rotation Lock }}
+        <div
+            class="visage-form-fields"
+            style="display:grid; grid-template-columns: auto 1fr;"
+        >
+            <label>{{localize "VISAGE.RotationLock.Label"}}</label>
+            <select name="lockRotation">
+                <option
+                    value=""
+                    {{visageSelected (eq lockRotation.value "")}}
+                >{{localize "VISAGE.RotationLock.Unset"}}</option>
+                <option
+                    value="false"
+                    {{visageSelected (eq lockRotation.value "false")}}
+                >{{localize "VISAGE.RotationLock.Off"}}</option>
+                <option
+                    value="true"
+                    {{visageSelected (eq lockRotation.value "true")}}
+                >{{localize "VISAGE.RotationLock.On"}}</option>
+            </select>
+        </div>
+
+        <hr class="visage-divider" />
+
+        {{! Mirroring }}
+        <div class="form-group stacked">
+            <label>{{localize "VISAGE.GlobalEditor.Mirroring"}}</label>
+            <div class="visage-form-fields mirroring-grid">
+                {{! Row 1: Horizontal }}
+                <label>{{localize "VISAGE.Mirror.Label.Horizontal"}}</label>
+                <select name="isFlippedX">
+                    <option
+                        value=""
+                        {{visageSelected (eq isFlippedX.value null)}}
+                    >{{localize "VISAGE.Mirror.Option.NoChange"}}</option>
+                    <option
+                        value="false"
+                        {{visageSelected (eq isFlippedX.value false)}}
+                    >{{localize "VISAGE.Mirror.Option.Standard"}}</option>
+                    <option
+                        value="true"
+                        {{visageSelected (eq isFlippedX.value true)}}
+                    >{{localize "VISAGE.Mirror.Option.Flipped"}}</option>
+                </select>
+
+                {{! Row 2: Vertical }}
+                <label>{{localize "VISAGE.Mirror.Label.Vertical"}}</label>
+                <select name="isFlippedY">
+                    <option
+                        value=""
+                        {{visageSelected (eq isFlippedY.value null)}}
+                    >{{localize "VISAGE.Mirror.Option.NoChange"}}</option>
+                    <option
+                        value="false"
+                        {{visageSelected (eq isFlippedY.value false)}}
+                    >{{localize "VISAGE.Mirror.Option.Standard"}}</option>
+                    <option
+                        value="true"
+                        {{visageSelected (eq isFlippedY.value true)}}
+                    >{{localize "VISAGE.Mirror.Option.Flipped"}}</option>
+                </select>
+            </div>
+        </div>
+
+    </fieldset>
+</div>

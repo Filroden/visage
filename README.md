@@ -42,7 +42,7 @@
 
 ### Global vs. Local
 
-🔵 **Global Visages** are stored in the World and are for the GM. Global Visages are themed blue. GMs can chose to make individual Global Visages public. Public Global Visages will then appear in the token's Selector HUD with the blue theme. Players can hide Public Global Visages in their Selector HUD if they don't need them.\
+🔵 **Global Visages** are stored in the World and are for the GM. Global Visages are themed blue. GMs can choose to make individual Global Visages public. Public Global Visages will then appear in the token's Selector HUD with the blue theme. Players can hide Public Global Visages in their Selector HUD if they don't need them.\
 🟡 **Local Visages** are stored on the token's actor and are for players. Local Visages are themed gold.
 
 ### Partial Overrides (Inheritance)
@@ -109,10 +109,12 @@ An editor that lets you build and **preview** your token's appearance before sav
 
 Key Features:
 
+* **Dynamic Ring:** Configure the standard Foundry Dynamic Ring for the token. This is added to the Effects tab, but is treated as part of the Visage's appearance. Toggle it on and click it to edit its properties.
 * **Light Source:** Configure the standard Foundry Light Source for the token. This is added to the Effects tab, but is treated as part of the Visage's appearance. Toggle it on and click it to edit its properties.
 * **Visual and Audio Effects**: Add and configure visual or audio effects to Identities and Overlays, using direct filepaths or Sequencer Database Keys. Effects can be place below or above the token. You can configure a delay between applying a Visage's appearance (image, scale, dynamic ring, light source, etc) and any visual and audio effects, and vice versa.
 * **Video Support:** Use `.webm` or `.mp4` files for animated transformations.
 * **Wildcard Support:** Point a Visage to a folder (e.g., `creatures/wolves/*`) or include wildcards (`*` or `?`) within the filename. Every time you apply it, a random image that matches is chosen.
+* **Public sharing of Global Visages:** Global Visages can be set to public or private. If they are public, they will appear inside players' Selector HUDs and they can apply them to their own tokens. Players have the option of hiding shared Global Visages in their Selector HUD.
 
 ### 4. The Token Previewer: Live Visualisation
 

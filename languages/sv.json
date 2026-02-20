@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Privat",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Detta Visage kan appliceras av alla spelare via deras tokens Väljare (HUD).",
     "VISAGE.GlobalEditor.Public": "Offentlig",
-    "VISAGE.Selector.TogglePublic": "Växla synlighet för Offentliga Globala Visages"
+    "VISAGE.Selector.TogglePublic": "Växla synlighet för Offentliga Globala Visages",
+    "VISAGE.GlobalEditor.RingDisabled": "Dynamisk Ring Inaktiverad"
 }

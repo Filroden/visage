@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Privat",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Aquest Visage pot ser aplicat per tots els jugadors a través del HUD de selecció de la seva fitxa.",
     "VISAGE.GlobalEditor.Public": "Públic",
-    "VISAGE.Selector.TogglePublic": "Alternar visibilitat de Visages Globals Públics"
+    "VISAGE.Selector.TogglePublic": "Alternar visibilitat de Visages Globals Públics",
+    "VISAGE.GlobalEditor.RingDisabled": "Anell Dinàmic Desactivat"
 }

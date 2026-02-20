@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Yksityinen",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Kaikki pelaajat voivat asettaa tämän Visagen nappulansa valitsimen kautta.",
     "VISAGE.GlobalEditor.Public": "Julkinen",
-    "VISAGE.Selector.TogglePublic": "Vaihda julkisten Globaalien Visagejen näkyvyyttä"
+    "VISAGE.Selector.TogglePublic": "Vaihda julkisten Globaalien Visagejen näkyvyyttä",
+    "VISAGE.GlobalEditor.RingDisabled": "Dynaaminen Kehä Pois Käytöstä"
 }

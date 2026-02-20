@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Prywatny",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Ten Visage może być nałożony przez wszystkich graczy poprzez HUD wyboru tokena.",
     "VISAGE.GlobalEditor.Public": "Publiczny",
-    "VISAGE.Selector.TogglePublic": "Przełącz widoczność Publicznych Globalnych Visage"
+    "VISAGE.Selector.TogglePublic": "Przełącz widoczność Publicznych Globalnych Visage",
+    "VISAGE.GlobalEditor.RingDisabled": "Dynamiczny Pierścień Wyłączony"
 }

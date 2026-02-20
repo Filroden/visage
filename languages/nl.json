@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Privé",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Deze Visage kan door alle spelers worden toegepast via de Selectie HUD van hun token.",
     "VISAGE.GlobalEditor.Public": "Openbaar",
-    "VISAGE.Selector.TogglePublic": "Wissel zichtbaarheid van Openbare Globale Visages"
+    "VISAGE.Selector.TogglePublic": "Wissel zichtbaarheid van Openbare Globale Visages",
+    "VISAGE.GlobalEditor.RingDisabled": "Dynamische Ring Uitgeschakeld"
 }

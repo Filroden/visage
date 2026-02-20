@@ -330,5 +330,6 @@
     "VISAGE.GlobalEditor.Private": "Özel",
     "VISAGE.GlobalEditor.VisibilityPublicHint": "Bu Visage, tüm oyuncular tarafından jetonlarının Seçici HUD'u aracılığıyla uygulanabilir.",
     "VISAGE.GlobalEditor.Public": "Genel",
-    "VISAGE.Selector.TogglePublic": "Genel Küresel Visage'ların görünürlüğünü değiştir"
+    "VISAGE.Selector.TogglePublic": "Genel Küresel Visage'ların görünürlüğünü değiştir",
+    "VISAGE.GlobalEditor.RingDisabled": "Modrwy Ddeinamig Wedi'i Analluogi"
 }
