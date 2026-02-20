@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "图示尺寸 (1 x 1)",
     "VISAGE.Config.List.Anchor": "锚点 (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "特定系统覆盖",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "如果启用，Visage 将被允许暂时解锁特定于系统的规则（如 PF2E 图示尺寸链接）以应用尺寸或缩放更改。如果禁用，Visage 将无法更改图示的尺寸或缩放设置。"
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "如果启用，Visage 将被允许暂时解锁特定于系统的规则（如 PF2E 图示尺寸链接）以应用尺寸或缩放更改。如果禁用，Visage 将无法更改图示的尺寸或缩放设置。",
+    "VISAGE.Notifications.Error.PermissionDenied": "只有 GM 可以创建、编辑或删除全局 Visage。",
+    "VISAGE.GlobalEditor.Visibility": "共享",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "此 Visage 只能由 GM 应用。",
+    "VISAGE.GlobalEditor.Private": "私有",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "所有玩家都可以通过其图示的选择器 HUD 应用此 Visage。",
+    "VISAGE.GlobalEditor.Public": "公开",
+    "VISAGE.Selector.TogglePublic": "切换公开全局 Visage 的可见性",
+    "VISAGE.GlobalEditor.RingDisabled": "动态圆环已禁用"
 }

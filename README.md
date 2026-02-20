@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-3.4.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-3.5.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -42,7 +42,7 @@
 
 ### Global vs. Local
 
-🔵 **Global Visages** are stored in the World and are for the GM. Global Visages are themed blue.\
+🔵 **Global Visages** are stored in the World and are for the GM. Global Visages are themed blue. GMs can choose to make individual Global Visages public. Public Global Visages will then appear in the token's Selector HUD with the blue theme. Players can hide Public Global Visages in their Selector HUD if they don't need them.\
 🟡 **Local Visages** are stored on the token's actor and are for players. Local Visages are themed gold.
 
 ### Partial Overrides (Inheritance)
@@ -109,10 +109,12 @@ An editor that lets you build and **preview** your token's appearance before sav
 
 Key Features:
 
+* **Dynamic Ring:** Configure the standard Foundry Dynamic Ring for the token. This is added to the Effects tab, but is treated as part of the Visage's appearance. Toggle it on and click it to edit its properties.
 * **Light Source:** Configure the standard Foundry Light Source for the token. This is added to the Effects tab, but is treated as part of the Visage's appearance. Toggle it on and click it to edit its properties.
 * **Visual and Audio Effects**: Add and configure visual or audio effects to Identities and Overlays, using direct filepaths or Sequencer Database Keys. Effects can be place below or above the token. You can configure a delay between applying a Visage's appearance (image, scale, dynamic ring, light source, etc) and any visual and audio effects, and vice versa.
 * **Video Support:** Use `.webm` or `.mp4` files for animated transformations.
 * **Wildcard Support:** Point a Visage to a folder (e.g., `creatures/wolves/*`) or include wildcards (`*` or `?`) within the filename. Every time you apply it, a random image that matches is chosen.
+* **Public sharing of Global Visages:** Global Visages can be set to public or private. If they are public, they will appear inside players' Selector HUDs and they can apply them to their own tokens. Players have the option of hiding shared Global Visages in their Selector HUD.
 
 ### 4. The Token Previewer: Live Visualisation
 
@@ -172,7 +174,6 @@ Software and associated documentation files in this repository are covered by an
 ### Short term
 
 * **Improved APIs:** Improve ability to find and apply Visages.
-* **Add Public/Private flags to global Visages:** GMs can tag their globally stored Visages (both Identities and Overlays) as either Public or Private. Players can see public Visages inside their token's Selector HUD and apply them to their own tokens.
 
 ### Long term (no promises!)
 

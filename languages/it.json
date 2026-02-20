@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Dim. Pedina (1 x 1)",
     "VISAGE.Config.List.Anchor": "Punto di Ancoraggio (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Sovrascritture Specifiche Sistema",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Se abilitato, Visage potrà sbloccare temporaneamente regole specifiche del sistema (come il collegamento Dimensione Pedina di PF2E) per applicare modifiche di dimensione o scala. Se disabilitato, Visage non potrà modificare le impostazioni di dimensione o scala della pedina."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Se abilitato, Visage potrà sbloccare temporaneamente regole specifiche del sistema (come il collegamento Dimensione Pedina di PF2E) per applicare modifiche di dimensione o scala. Se disabilitato, Visage non potrà modificare le impostazioni di dimensione o scala della pedina.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Solo un GM può creare, modificare o eliminare Visage Globali.",
+    "VISAGE.GlobalEditor.Visibility": "Condivisione",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Questo Visage può essere applicato solo dal GM.",
+    "VISAGE.GlobalEditor.Private": "Privato",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Questo Visage può essere applicato da tutti i giocatori tramite l'HUD di selezione della loro pedina.",
+    "VISAGE.GlobalEditor.Public": "Pubblico",
+    "VISAGE.Selector.TogglePublic": "Alterna visibilità dei Visage Globali Pubblici",
+    "VISAGE.GlobalEditor.RingDisabled": "Anello Dinamico Disabilitato"
 }

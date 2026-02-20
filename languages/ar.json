@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "\u200Fحجم الرمز (\u20681 × 1\u2069)",
     "VISAGE.Config.List.Anchor": "\u200Fنقطة الارتكاز (\u2068X / Y\u2069)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "\u200Fتجاوزات النظام المحددة",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "\u200Fفي حال التفعيل، سيُسمح لـ \u2068Visage\u2069 بإلغاء قفل القواعد الخاصة بالنظام مؤقتاً (مثل ربط حجم رمز \u2068PF2E\u2069) لتطبيق تغييرات الأبعاد أو المقياس. في حال التعطيل، لن يتمكن \u2068Visage\u2069 من تغيير إعدادات حجم أو مقياس الرمز."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "\u200Fفي حال التفعيل، سيُسمح لـ \u2068Visage\u2069 بإلغاء قفل القواعد الخاصة بالنظام مؤقتاً (مثل ربط حجم رمز \u2068PF2E\u2069) لتطبيق تغييرات الأبعاد أو المقياس. في حال التعطيل، لن يتمكن \u2068Visage\u2069 من تغيير إعدادات حجم أو مقياس الرمز.",
+    "VISAGE.Notifications.Error.PermissionDenied": "\u200Fفقط الـ \u2068GM\u2069 يمكنه إنشاء، تعديل، أو حذف \u2068Visages\u2069 العالمية.",
+    "VISAGE.GlobalEditor.Visibility": "\u200Fمشاركة",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "\u200Fيمكن تطبيق هذا الـ \u2068Visage\u2069 فقط من قبل الـ \u2068GM\u2069.",
+    "VISAGE.GlobalEditor.Private": "\u200Fخاص",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "\u200Fيمكن تطبيق هذا الـ \u2068Visage\u2069 من قبل جميع اللاعبين عبر \u2068HUD\u2069 الاختيار الخاص برموزهم.",
+    "VISAGE.GlobalEditor.Public": "\u200Fعام",
+    "VISAGE.Selector.TogglePublic": "\u200Fتبديل ظهور \u2068Visages\u2069 العالمية العامة",
+    "VISAGE.GlobalEditor.RingDisabled": "\u200Fالحلقة الديناميكية معطلة"
 }

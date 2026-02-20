@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Token-Größe (1 x 1)",
     "VISAGE.Config.List.Anchor": "Ankerpunkt (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Spezifische System-Überschreibungen",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Wenn aktiviert, darf Visage systemspezifische Regeln (wie PF2E Token-Größen-Bindung) vorübergehend entsperren, um Dimensions- oder Skalierungsänderungen anzuwenden. Wenn deaktiviert, kann Visage Token-Größe oder Skalierung nicht ändern."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Wenn aktiviert, darf Visage systemspezifische Regeln (wie PF2E Token-Größen-Bindung) vorübergehend entsperren, um Dimensions- oder Skalierungsänderungen anzuwenden. Wenn deaktiviert, kann Visage Token-Größe oder Skalierung nicht ändern.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Nur ein GM kann globale Visages erstellen, bearbeiten oder löschen.",
+    "VISAGE.GlobalEditor.Visibility": "Freigabe",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Dieses Visage kann nur vom GM angewendet werden.",
+    "VISAGE.GlobalEditor.Private": "Privat",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Dieses Visage kann von allen Spielern über das Auswahl-HUD ihres Tokens angewendet werden.",
+    "VISAGE.GlobalEditor.Public": "Öffentlich",
+    "VISAGE.Selector.TogglePublic": "Sichtbarkeit öffentlicher globaler Visages umschalten",
+    "VISAGE.GlobalEditor.RingDisabled": "Dynamischer Ring deaktiviert"
 }

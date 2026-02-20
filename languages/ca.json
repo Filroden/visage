@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Mida de Fitxa (1 x 1)",
     "VISAGE.Config.List.Anchor": "Punt d'Ancoratge (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Anul·lacions Específiques del Sistema",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Si s'activa, Visage podrà desbloquejar temporalment regles específiques del sistema (com la vinculació de Mida de Fitxa de PF2E) per aplicar canvis de dimensió o escala. Si es desactiva, Visage no podrà canviar la mida o escala de la fitxa."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Si s'activa, Visage podrà desbloquejar temporalment regles específiques del sistema (com la vinculació de Mida de Fitxa de PF2E) per aplicar canvis de dimensió o escala. Si es desactiva, Visage no podrà canviar la mida o escala de la fitxa.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Només un GM pot crear, editar o eliminar Visages Globals.",
+    "VISAGE.GlobalEditor.Visibility": "Compartir",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Aquest Visage només pot ser aplicat pel GM.",
+    "VISAGE.GlobalEditor.Private": "Privat",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Aquest Visage pot ser aplicat per tots els jugadors a través del HUD de selecció de la seva fitxa.",
+    "VISAGE.GlobalEditor.Public": "Públic",
+    "VISAGE.Selector.TogglePublic": "Alternar visibilitat de Visages Globals Públics",
+    "VISAGE.GlobalEditor.RingDisabled": "Anell Dinàmic Desactivat"
 }

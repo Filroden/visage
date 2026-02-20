@@ -26,7 +26,7 @@
     "VISAGE.Directory.Mode.Library": "Library",
     "VISAGE.Directory.Mode.Bin": "Recycle Bin",
     "VISAGE.Directory.SearchPlaceholder": "Search by name or tag...",
-    
+
     "VISAGE.Directory.CreateNew.Global": "Create New Global Layer",
     "VISAGE.Directory.CreateNew.Local": "Create New Local Layer",
     "VISAGE.Directory.Categories": "Categories",
@@ -34,7 +34,7 @@
     "VISAGE.Directory.Filters": "Active Filters",
     "VISAGE.Directory.ClearTags": "Clear all tags",
     "VISAGE.Directory.NoTags": "No Tags",
-    
+
     "VISAGE.Directory.EmptyLibrary": "No entries found. Create one to get started.",
     "VISAGE.Directory.EmptyBin": "Recycle Bin is empty.",
     "VISAGE.Directory.Empty.Global": "No Global Layers found. Create one to get started.",
@@ -198,10 +198,10 @@
     "VISAGE.Notifications.SaveFailed": "Visage | Failed to save Visage data.",
     "VISAGE.Notifications.NoTokens": "Visage | No tokens selected to apply mask to.",
     "VISAGE.Notifications.SettingsReset": "Visage | All settings reset to default.",
-    
+
     "VISAGE.Notifications.Promoted": "Visage | Promoted '{name}' to Global Library.",
     "VISAGE.Notifications.CopyStats": "Visage | Copied '{label}' to {count} actors.",
-    
+
     "VISAGE.Notifications.ExportEmpty": "Visage | No items to export.",
     "VISAGE.Notifications.Exported": "Visage | Exported {count} items.",
     "VISAGE.Notifications.ImportStats": "Visage | Import: {imported} added, {skipped} duplicates skipped.",
@@ -215,7 +215,7 @@
 
     "VISAGE.Warnings.GhostEdit": "Visage | Token Configuration: A Visage is active on this token. Changes made here will modify the default Token, not the Visage.",
     "VISAGE.Warnings.DeleteActive": "Visage | This Visage is currently active. Deleting it will remove it from the token. Continue?",
-    
+
     "VISAGE.Errors.ImportInvalidFormat": "Visage | Invalid format: Root must be an array.",
 
     "_comment_SETTINGS": "--- MODULE SETTINGS ---",
@@ -375,5 +375,16 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Token Size (1 x 1)",
     "VISAGE.Config.List.Anchor": "Anchor Point (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Specific System Overrides",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "If enabled, Visage will be allowed to temporarily unlock system-specific rules (like PF2E Token Size linking) to apply dimension or scale changes. If disabled, Visage will not be able to change token's size or scale settings."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "If enabled, Visage will be allowed to temporarily unlock system-specific rules (like PF2E Token Size linking) to apply dimension or scale changes. If disabled, Visage will not be able to change token's size or scale settings.",
+
+    "_comment_V3_5_KEYS": "--- V3.5 KEYS ---",
+    "VISAGE.Notifications.Error.PermissionDenied": "Only a GM can create, edit, or delete Global Visages.",
+    "VISAGE.GlobalEditor.Visibility": "Sharing",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "This Visage can only be applied by the GM.",
+    "VISAGE.GlobalEditor.Private": "Private",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "This Visage can be applied by all players through their token's Selector HUD.",
+    "VISAGE.GlobalEditor.Public": "Public",
+    "VISAGE.Selector.TogglePublic": "Toggle visibility of Public Global Visages",
+
+    "VISAGE.GlobalEditor.RingDisabled": "Dynamic Ring Disabled"
 }

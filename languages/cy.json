@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Maint Tocyn (1 x 1)",
     "VISAGE.Config.List.Anchor": "Pwynt Angori (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Trosysgrifiadau System Penodol",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Os caiff ei alluogi, caniateir i Visage ddatgloi rheolau system-benodol dros dro (fel cysylltu Maint Tocyn PF2E) i gymhwyso newidiadau dimensiwn neu raddfa. Os caiff ei analluogi, ni fydd Visage yn gallu newid gosodiadau maint neu raddfa'r tocyn."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Os caiff ei alluogi, caniateir i Visage ddatgloi rheolau system-benodol dros dro (fel cysylltu Maint Tocyn PF2E) i gymhwyso newidiadau dimensiwn neu raddfa. Os caiff ei analluogi, ni fydd Visage yn gallu newid gosodiadau maint neu raddfa'r tocyn.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Yalnızca bir GM Küresel Visage'lar oluşturabilir, düzenleyebilir veya silebilir.",
+    "VISAGE.GlobalEditor.Visibility": "Paylaşım",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Bu Visage yalnızca GM tarafından uygulanabilir.",
+    "VISAGE.GlobalEditor.Private": "Özel",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Bu Visage, tüm oyuncular tarafından jetonlarının Seçici HUD'u aracılığıyla uygulanabilir.",
+    "VISAGE.GlobalEditor.Public": "Genel",
+    "VISAGE.Selector.TogglePublic": "Genel Küresel Visage'ların görünürlüğünü değiştir",
+    "VISAGE.GlobalEditor.RingDisabled": "Modrwy Ddeinamig Wedi'i Analluogi"
 }

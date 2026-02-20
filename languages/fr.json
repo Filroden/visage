@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Taille Pion (1 x 1)",
     "VISAGE.Config.List.Anchor": "Point d'Ancrage (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Surcharges Système Spécifiques",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Si activé, Visage pourra débloquer temporairement les règles spécifiques au système (comme le lien de Taille de Pion PF2E) pour appliquer des changements de dimension ou d'échelle. Si désactivé, Visage ne pourra pas changer la taille ou l'échelle du pion."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Si activé, Visage pourra débloquer temporairement les règles spécifiques au système (comme le lien de Taille de Pion PF2E) pour appliquer des changements de dimension ou d'échelle. Si désactivé, Visage ne pourra pas changer la taille ou l'échelle du pion.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Seul un MJ peut créer, éditer ou supprimer des Visages Globaux.",
+    "VISAGE.GlobalEditor.Visibility": "Partage",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Ce Visage ne peut être appliqué que par le MJ.",
+    "VISAGE.GlobalEditor.Private": "Privé",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Ce Visage peut être appliqué par tous les joueurs via le HUD de sélection de leur pion.",
+    "VISAGE.GlobalEditor.Public": "Public",
+    "VISAGE.Selector.TogglePublic": "Basculer la visibilité des Visages Globaux Publics",
+    "VISAGE.GlobalEditor.RingDisabled": "Anneau Dynamique Désactivé"
 }

@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Jeton Boyutu (1 x 1)",
     "VISAGE.Config.List.Anchor": "Çapa Noktası (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Özel Sistem Geçersiz Kılmaları",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Etkinleştirilirse, Visage boyut veya ölçek değişikliklerini uygulamak için sisteme özgü kuralları (PF2E Jeton Boyutu bağlantısı gibi) geçici olarak açabilir. Devre dışı bırakılırsa, Visage jetonun boyut veya ölçek ayarlarını değiştiremez."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Etkinleştirilirse, Visage boyut veya ölçek değişikliklerini uygulamak için sisteme özgü kuralları (PF2E Jeton Boyutu bağlantısı gibi) geçici olarak açabilir. Devre dışı bırakılırsa, Visage jetonun boyut veya ölçek ayarlarını değiştiremez.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Yalnızca bir GM Küresel Visage'lar oluşturabilir, düzenleyebilir veya silebilir.",
+    "VISAGE.GlobalEditor.Visibility": "Paylaşım",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Bu Visage yalnızca GM tarafından uygulanabilir.",
+    "VISAGE.GlobalEditor.Private": "Özel",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Bu Visage, tüm oyuncular tarafından jetonlarının Seçici HUD'u aracılığıyla uygulanabilir.",
+    "VISAGE.GlobalEditor.Public": "Genel",
+    "VISAGE.Selector.TogglePublic": "Genel Küresel Visage'ların görünürlüğünü değiştir",
+    "VISAGE.GlobalEditor.RingDisabled": "Dinamik Halka Devre Dışı"
 }

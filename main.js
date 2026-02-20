@@ -7,9 +7,9 @@
 
 import { Visage } from "./src/visage.js";
 import { VisageSelector } from "./src/visage-selector.js";
-import { VisageData } from "./src/visage-data.js"; 
-import { VisageEditor } from "./src/visage-editor.js"; 
-import { VisageGallery } from "./src/visage-gallery.js"; 
+import { VisageData } from "./src/visage-data.js";
+import { VisageEditor } from "./src/visage-editor.js";
+import { VisageGallery } from "./src/visage-gallery.js";
 import { handleTokenHUD } from "./src/visage-hud.js";
 import { cleanseSceneTokens, cleanseAllTokens } from "./src/visage-cleanup.js";
 import { migrateWorldData } from "./src/visage-migration.js";
@@ -44,7 +44,7 @@ function openVisageConfig(actor, token = null) {
         let tokenId = token?.id || null;
         let sceneId = token?.parent?.id || null;
 
-        // If no specific token is provided but the actor is synthetic (unlinked), 
+        // If no specific token is provided but the actor is synthetic (unlinked),
         // we must extract the token context from the actor itself.
         if (!tokenId && actor.isToken) {
             tokenId = actor.token.id;
@@ -63,9 +63,8 @@ function openVisageConfig(actor, token = null) {
             actorId: actor.id,
             tokenId: tokenId,
             sceneId: sceneId,
-            id: appId
+            id: appId,
         }).render(true);
-
     } catch (err) {
         console.error("Visage | Failed to open configuration window:", err);
     }
@@ -78,7 +77,7 @@ function openVisageConfig(actor, token = null) {
  * @returns {string|undefined} The Actor ID, or undefined if not found.
  */
 function getActorIdFromElement(li) {
-    const element = (li instanceof jQuery) ? li[0] : li;
+    const element = li instanceof jQuery ? li[0] : li;
     return element.dataset?.entryId || element.dataset?.documentId;
 }
 
@@ -99,7 +98,7 @@ Hooks.once("init", () => {
         window.VisageData = VisageData;
         window.VisageEditor = VisageEditor;
         window.VisageGallery = VisageGallery;
-        
+
         game.modules.get("visage").api.Data = VisageData;
         game.modules.get("visage").api.Editor = VisageEditor;
         game.modules.get("visage").api.Gallery = VisageGallery;
@@ -107,8 +106,12 @@ Hooks.once("init", () => {
         // Register Handlebars helpers for logic and data formatting in templates
         Handlebars.registerHelper("visageNeq", (a, b) => a !== b);
         Handlebars.registerHelper("visageEq", (a, b) => a === b);
-        Handlebars.registerHelper("visageSelected", (condition) => condition ? "selected" : "");
-        Handlebars.registerHelper("visageJson", (context) => JSON.stringify(context));
+        Handlebars.registerHelper("visageSelected", (condition) =>
+            condition ? "selected" : "",
+        );
+        Handlebars.registerHelper("visageJson", (context) =>
+            JSON.stringify(context),
+        );
         Handlebars.registerHelper("visagePercent", (value) => {
             const num = Number(value);
             if (isNaN(num)) return "0%";
@@ -123,7 +126,10 @@ Hooks.once("init", () => {
             "modules/visage/templates/parts/visage-preview.hbs",
             "modules/visage/templates/parts/visage-card.hbs",
             "modules/visage/templates/parts/visage-effectCard.hbs",
-            "modules/visage/templates/parts/visage-tile.hbs"
+            "modules/visage/templates/parts/visage-tile.hbs",
+            "modules/visage/templates/parts/visage-editor-appearance.hbs",
+            "modules/visage/templates/parts/visage-editor-effects.hbs",
+            "modules/visage/templates/parts/visage-editor-triggers.hbs",
         ]);
 
         registerSettings();
@@ -147,15 +153,18 @@ Hooks.once("init", () => {
                     const documentId = getActorIdFromElement(li);
                     const actor = game.actors.get(documentId);
                     if (actor) openVisageConfig(actor);
-                }
+                },
             });
         };
 
         // Hook into both standard and enriched directory context menus
-        Hooks.on("getActorContextOptions", (html, options) => addSidebarOption(options));
+        Hooks.on("getActorContextOptions", (html, options) =>
+            addSidebarOption(options),
+        );
         Hooks.on("getActorDirectoryEntryContext", (html, options) => {
             // Prevent duplicate entries if other modules trigger this hook multiple times
-            if (!options.some(o => o.name === "VISAGE.Title")) addSidebarOption(options);
+            if (!options.some((o) => o.name === "VISAGE.Title"))
+                addSidebarOption(options);
         });
 
         /**
@@ -169,7 +178,7 @@ Hooks.once("init", () => {
                 label: "VISAGE.Title",
                 class: "visage-config",
                 icon: "visage-icon-domino",
-                onclick: () => openVisageConfig(sheet.actor)
+                onclick: () => openVisageConfig(sheet.actor),
             });
         });
 
@@ -187,23 +196,29 @@ Hooks.once("init", () => {
                 icon: "visage-icon-domino",
                 action: "visageConfigure",
                 onClick: () => openVisageConfig(actor),
-                order: 0
+                order: 0,
             });
         };
 
         // Enforce custom styling classes on tooltips generated by Visage elements
-        document.addEventListener("pointerover", (event) => {
-            const target = event.target.closest('[data-tooltip]');
-            if (target && target.closest('.visage')) {
-                if (!target.hasAttribute("data-tooltip-class")) {
-                    target.setAttribute("data-tooltip-class", "visage-tooltip");
+        document.addEventListener(
+            "pointerover",
+            (event) => {
+                const target = event.target.closest("[data-tooltip]");
+                if (target && target.closest(".visage")) {
+                    if (!target.hasAttribute("data-tooltip-class")) {
+                        target.setAttribute(
+                            "data-tooltip-class",
+                            "visage-tooltip",
+                        );
+                    }
                 }
-            }
-        }, { capture: true, passive: true });
+            },
+            { capture: true, passive: true },
+        );
 
         Hooks.on("getHeaderControlsActorSheetV2", addAppV2Control);
         Hooks.on("getActorSheetV2HeaderControls", addAppV2Control);
-
     } catch (err) {
         console.error("Visage | Initialization failed:", err);
     }
@@ -223,7 +238,8 @@ Hooks.on("getSceneControlButtons", (controls) => {
     // Locate the Token Layer controls.
     // Handles system-specific control structures (arrays vs objects).
     let tokenLayer = null;
-    if (Array.isArray(controls)) tokenLayer = controls.find(c => c.name === "token");
+    if (Array.isArray(controls))
+        tokenLayer = controls.find((c) => c.name === "token");
     else {
         for (const key in controls) {
             const layer = controls[key];
@@ -237,17 +253,18 @@ Hooks.on("getSceneControlButtons", (controls) => {
     if (!tokenLayer) return;
 
     const visageTool = {
-        name: "visage-gallery", 
-        title: "VISAGE.Directory.Title.Global", 
+        name: "visage-gallery",
+        title: "VISAGE.Directory.Title.Global",
         icon: "visage-tool-icon",
         visible: true,
-        toggle: false, 
+        toggle: false,
         button: true,
         // Using onChange ensures compatibility with newer Foundry versions (V13+)
         onChange: () => {
-            if (!globalDirectoryInstance) globalDirectoryInstance = new VisageGallery();
+            if (!globalDirectoryInstance)
+                globalDirectoryInstance = new VisageGallery();
             globalDirectoryInstance.render(true);
-        }
+        },
     };
 
     if (Array.isArray(tokenLayer.tools)) tokenLayer.tools.push(visageTool);
@@ -259,24 +276,23 @@ Hooks.on("getSceneControlButtons", (controls) => {
  * Includes debugging tools, cleanup utilities, and migration triggers.
  */
 function registerSettings() {
-    
     game.settings.registerMenu(MODULE_ID, "sampleManager", {
         name: "VISAGE.Settings.SampleManager.Name",
         label: "VISAGE.Settings.SampleManager.Label",
         hint: "VISAGE.Settings.SampleManager.Hint",
         icon: "visage-icon open",
         type: VisageSamples,
-        restricted: true
+        restricted: true,
     });
 
     game.settings.register(MODULE_ID, "allowSystemOverrides", {
-            name: "VISAGE.Settings.AllowSystemOverrides.Name",
-            hint: "VISAGE.Settings.AllowSystemOverrides.Hint",
-            scope: "world",
-            config: true,
-            type: Boolean,
-            default: true
-        });
+        name: "VISAGE.Settings.AllowSystemOverrides.Name",
+        hint: "VISAGE.Settings.AllowSystemOverrides.Hint",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true,
+    });
 
     game.settings.register(MODULE_ID, "disableWelcome", {
         name: "VISAGE.Settings.DisableWelcome.Name",
@@ -284,7 +300,7 @@ function registerSettings() {
         scope: "world",
         config: true,
         type: Boolean,
-        default: false
+        default: false,
     });
 
     game.settings.register(MODULE_ID, "cleanseScene", {
@@ -326,7 +342,7 @@ function registerSettings() {
         scope: "world",
         config: false,
         type: String,
-        default: "0.0.0"
+        default: "0.0.0",
     });
 
     // --- Manual Migration Trigger ---
@@ -343,7 +359,7 @@ function registerSettings() {
                 migrateWorldData();
                 game.settings.set(MODULE_ID, "manualMigration", false);
             }
-        }
+        },
     });
 }
 
@@ -362,25 +378,29 @@ Hooks.once("ready", async () => {
     const currentVersion = game.modules.get(MODULE_ID).version;
 
     const disableWelcome = game.settings.get(MODULE_ID, "disableWelcome");
-        
+
     // RECENT MESSAGE GUARD
     // Look at the last 5 messages in the chat log
     const recentMessages = game.messages.contents.slice(-5);
-    const alreadyPosted = recentMessages.some(m => 
-        m.content.includes("visage-chat-card") && m.content.includes("https://foundryvtt.com/packages/visage")
+    const alreadyPosted = recentMessages.some(
+        (m) =>
+            m.content.includes("visage-chat-card") &&
+            m.content.includes("https://foundryvtt.com/packages/visage"),
     );
 
     if (!disableWelcome && !alreadyPosted) {
-
-        const visageHtml = await renderTemplate("modules/visage/templates/parts/visage-chat-welcome.hbs", {
-            version: currentVersion
-        });
+        const visageHtml = await renderTemplate(
+            "modules/visage/templates/parts/visage-chat-welcome.hbs",
+            {
+                version: currentVersion,
+            },
+        );
 
         await ChatMessage.create({
             user: game.user.id,
             content: visageHtml,
             whisper: [game.user.id],
-            speaker: { alias: "Visage" }
+            speaker: { alias: "Visage" },
         });
     }
 
@@ -391,9 +411,16 @@ Hooks.once("ready", async () => {
         // Check if a migration is required based on the version difference
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {
             // Trigger data migration if the previous version is older than the schema change
-            if (foundry.utils.isNewerVersion(NEEDS_MIGRATION_VERSION, lastVersion)) {
-                console.log(`Visage | Detected legacy data (v${lastVersion}). Migrating to v${NEEDS_MIGRATION_VERSION}...`);
-                
+            if (
+                foundry.utils.isNewerVersion(
+                    NEEDS_MIGRATION_VERSION,
+                    lastVersion,
+                )
+            ) {
+                console.log(
+                    `Visage | Detected legacy data (v${lastVersion}). Migrating to v${NEEDS_MIGRATION_VERSION}...`,
+                );
+
                 // Await migration before updating version
                 await migrateWorldData();
             }
@@ -414,10 +441,11 @@ Visage.apps = {};
  * @param {Application} app - The application instance being rendered.
  */
 Hooks.on("renderApplication", (app) => {
-    if (app instanceof VisageSelector || 
+    if (
+        app instanceof VisageSelector ||
         app instanceof VisageEditor ||
-        app instanceof VisageGallery) {
-        
+        app instanceof VisageGallery
+    ) {
         const appId = app.id || app.options?.id;
         if (appId) Visage.apps[appId] = app;
     }
@@ -428,10 +456,11 @@ Hooks.on("renderApplication", (app) => {
  * @param {Application} app - The application instance being closed.
  */
 Hooks.on("closeApplication", (app) => {
-    if (app instanceof VisageSelector || 
+    if (
+        app instanceof VisageSelector ||
         app instanceof VisageEditor ||
-        app instanceof VisageGallery) {
-        
+        app instanceof VisageGallery
+    ) {
         const appId = app.id || app.options?.id;
         if (appId && Visage.apps[appId]) delete Visage.apps[appId];
     }
@@ -446,32 +475,42 @@ Hooks.on("closeApplication", (app) => {
  */
 Hooks.on("dropCanvasData", async (canvas, data) => {
     if (data.type !== "Visage" || !data.id) return;
-    
+
     // Dynamic import required here because VisageData relies on initialization
     // occurring before it can be fully utilized in this context.
     const { VisageData } = await import("./src/visage-data.js");
     const { Visage } = await import("./src/visage.js");
-    
+
     // Ensure the dropped ID is valid
-    const visageData = VisageData.getGlobal(data.id); 
+    const visageData = VisageData.getGlobal(data.id);
     if (!visageData) return;
 
     // Calculate intersection to find the token under the cursor
-    const target = canvas.tokens.placeables.find(t => {
-        return t.visible && 
-               data.x >= t.x && data.x < t.x + t.w &&
-               data.y >= t.y && data.y < t.y + t.h;
+    const target = canvas.tokens.placeables.find((t) => {
+        return (
+            t.visible &&
+            data.x >= t.x &&
+            data.x < t.x + t.w &&
+            data.y >= t.y &&
+            data.y < t.y + t.h
+        );
     });
 
     if (target) {
         await Visage.apply(target, data.id, { clearStack: false });
-        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { label: visageData.label }));
+        ui.notifications.info(
+            game.i18n.format("VISAGE.Notifications.Applied", {
+                label: visageData.label,
+            }),
+        );
     }
 });
 
 // Intercept Token Config rendering to handle Ghost Edits (modifications to tokens with active Visages)
-Hooks.on("renderTokenConfig", handleGhostEdit); 
-Hooks.on("closeTokenConfig", (app) => { delete app._visageWarned; });
+Hooks.on("renderTokenConfig", handleGhostEdit);
+Hooks.on("closeTokenConfig", (app) => {
+    delete app._visageWarned;
+});
 
 // Integrate with the Token HUD
 Hooks.on("renderTokenHUD", handleTokenHUD);
@@ -510,7 +549,9 @@ Hooks.on("deleteToken", async (tokenDoc, options, userId) => {
 
         // Restore if we have a record of the original and it differs from current
         if (originalPortrait && actor.img !== originalPortrait) {
-            console.log(`Visage | Reverting Actor Portrait for ${actor.name} upon token deletion.`);
+            console.log(
+                `Visage | Reverting Actor Portrait for ${actor.name} upon token deletion.`,
+            );
             await actor.update({ img: originalPortrait });
         }
     }

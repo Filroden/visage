@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Token-storlek (1 x 1)",
     "VISAGE.Config.List.Anchor": "Ankarpunkt (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Specifika System-åsidosättningar",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Om aktiverat tillåts Visage att tillfälligt låsa upp systemspecifika regler (som PF2E Token-storlekslänkning) för att tillämpa dimensions- eller skalningsändringar. Om inaktiverat kan Visage inte ändra tokens storlek eller skalningsinställningar."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Om aktiverat tillåts Visage att tillfälligt låsa upp systemspecifika regler (som PF2E Token-storlekslänkning) för att tillämpa dimensions- eller skalningsändringar. Om inaktiverat kan Visage inte ändra tokens storlek eller skalningsinställningar.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Endast en GM kan skapa, redigera eller ta bort Globala Visages.",
+    "VISAGE.GlobalEditor.Visibility": "Delning",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Detta Visage kan endast appliceras av GM.",
+    "VISAGE.GlobalEditor.Private": "Privat",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Detta Visage kan appliceras av alla spelare via deras tokens Väljare (HUD).",
+    "VISAGE.GlobalEditor.Public": "Offentlig",
+    "VISAGE.Selector.TogglePublic": "Växla synlighet för Offentliga Globala Visages",
+    "VISAGE.GlobalEditor.RingDisabled": "Dynamisk Ring Inaktiverad"
 }

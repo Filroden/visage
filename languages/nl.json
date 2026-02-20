@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Token Grootte (1 x 1)",
     "VISAGE.Config.List.Anchor": "Ankerpunt (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Specifieke Systeem Overschrijvingen",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Indien ingeschakeld, mag Visage tijdelijk systeemspecifieke regels ontgrendelen (zoals PF2E Token Grootte koppeling) om dimensie- of schaalwijzigingen toe te passen. Indien uitgeschakeld, kan Visage de grootte of schaalinstellingen van de token niet wijzigen."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Indien ingeschakeld, mag Visage tijdelijk systeemspecifieke regels ontgrendelen (zoals PF2E Token Grootte koppeling) om dimensie- of schaalwijzigingen toe te passen. Indien uitgeschakeld, kan Visage de grootte of schaalinstellingen van de token niet wijzigen.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Alleen een GM kan Globale Visages maken, bewerken of verwijderen.",
+    "VISAGE.GlobalEditor.Visibility": "Delen",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Deze Visage kan alleen door de GM worden toegepast.",
+    "VISAGE.GlobalEditor.Private": "Privé",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Deze Visage kan door alle spelers worden toegepast via de Selectie HUD van hun token.",
+    "VISAGE.GlobalEditor.Public": "Openbaar",
+    "VISAGE.Selector.TogglePublic": "Wissel zichtbaarheid van Openbare Globale Visages",
+    "VISAGE.GlobalEditor.RingDisabled": "Dynamische Ring Uitgeschakeld"
 }

@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Tamanho da Ficha (1 x 1)",
     "VISAGE.Config.List.Anchor": "Ponto de Ancoragem (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Substituições de Sistema Específicas",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Se ativado, o Visage poderá desbloquear temporariamente regras específicas do sistema (como a vinculação de Tamanho de Ficha do PF2E) para aplicar alterações de dimensão ou escala. Se desativado, o Visage não poderá alterar as definições de tamanho ou escala da ficha."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Se ativado, o Visage poderá desbloquear temporariamente regras específicas do sistema (como a vinculação de Tamanho de Ficha do PF2E) para aplicar alterações de dimensão ou escala. Se desativado, o Visage não poderá alterar as definições de tamanho ou escala da ficha.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Apenas um GM pode criar, editar ou eliminar Visages Globais.",
+    "VISAGE.GlobalEditor.Visibility": "Partilha",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Este Visage só pode ser aplicado pelo GM.",
+    "VISAGE.GlobalEditor.Private": "Privado",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Este Visage pode ser aplicado por todos os jogadores através do HUD de seleção da ficha.",
+    "VISAGE.GlobalEditor.Public": "Público",
+    "VISAGE.Selector.TogglePublic": "Alternar visibilidade de Visages Globais Públicos",
+    "VISAGE.GlobalEditor.RingDisabled": "Anel Dinâmico Desativado"
 }

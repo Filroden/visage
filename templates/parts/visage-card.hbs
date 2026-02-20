@@ -167,7 +167,17 @@
     <div class="card-footer">
        <div class="footer-slider">
             <div class="footer-slide title-slide">
+                {{!-- Visage Label --}}
                 <h4 class="card-title">{{this.label}}</h4>
+
+                {{!-- Public/Private Indicator (Global Only) --}}
+                {{#unless @root.isLocal}}
+                    {{#if this.isPublic}}
+                        <i class="visage-icon public"></i>
+                    {{else}}
+                        <i class="visage-icon private"></i>
+                    {{/if}}
+                {{/unless}}
             </div>
             <div class="footer-slide tags-slide">
                 <div class="card-tags">

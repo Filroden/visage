@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "\u200Fاندازه مهره (\u20681 × 1\u2069)",
     "VISAGE.Config.List.Anchor": "\u200Fنقطه لنگر (\u2068X / Y\u2069)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "\u200Fبازنویسی‌های خاص سیستم",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "\u200Fدر صورت فعال بودن، \u2068Visage\u2069 اجازه خواهد داشت قوانین خاص سیستم (مانند پیوند اندازه مهره در \u2068PF2E\u2069) را به‌طور موقت باز کند تا تغییرات ابعاد یا مقیاس را اعمال کند. در صورت غیرفعال بودن، \u2068Visage\u2069 قادر به تغییر تنظیمات اندازه یا مقیاس مهره نخواهد بود."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "\u200Fدر صورت فعال بودن، \u2068Visage\u2069 اجازه خواهد داشت قوانین خاص سیستم (مانند پیوند اندازه مهره در \u2068PF2E\u2069) را به‌طور موقت باز کند تا تغییرات ابعاد یا مقیاس را اعمال کند. در صورت غیرفعال بودن، \u2068Visage\u2069 قادر به تغییر تنظیمات اندازه یا مقیاس مهره نخواهد بود.",
+    "VISAGE.Notifications.Error.PermissionDenied": "\u200Fفقط \u2068GM\u2069 می‌تواند \u2068Visage\u2069های جهانی را ایجاد، ویرایش یا حذف کند.",
+    "VISAGE.GlobalEditor.Visibility": "\u200Fاشتراک‌گذاری",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "\u200Fاین \u2068Visage\u2069 فقط توسط \u2068GM\u2069 قابل اعمال است.",
+    "VISAGE.GlobalEditor.Private": "\u200Fخصوصی",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "\u200Fاین \u2068Visage\u2069 توسط تمام بازیکنان از طریق \u2068HUD\u2069 انتخابگر مهره قابل اعمال است.",
+    "VISAGE.GlobalEditor.Public": "\u200Fعمومی",
+    "VISAGE.Selector.TogglePublic": "\u200Fتغییر وضعیت نمایش \u2068Visage\u2069های جهانی عمومی",
+    "VISAGE.GlobalEditor.RingDisabled": "\u200Fحلقه پویا غیرفعال شد"
 }

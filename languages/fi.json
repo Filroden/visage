@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Nappulan Koko (1 x 1)",
     "VISAGE.Config.List.Anchor": "Ankkuripiste (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Järjestelmäkohtaiset Ohitukset",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Jos käytössä, Visage voi väliaikaisesti avata järjestelmäkohtaiset säännöt (kuten PF2E Nappulan Koko -linkitys) mittojen tai skaalauksen muuttamiseksi. Jos pois käytöstä, Visage ei voi muuttaa nappulan koko- tai skaalausasetuksia."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Jos käytössä, Visage voi väliaikaisesti avata järjestelmäkohtaiset säännöt (kuten PF2E Nappulan Koko -linkitys) mittojen tai skaalauksen muuttamiseksi. Jos pois käytöstä, Visage ei voi muuttaa nappulan koko- tai skaalausasetuksia.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Vain GM voi luoda, muokata tai poistaa Globaaleja Visageja.",
+    "VISAGE.GlobalEditor.Visibility": "Jakaminen",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Tämän Visagen voi asettaa vain GM.",
+    "VISAGE.GlobalEditor.Private": "Yksityinen",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Kaikki pelaajat voivat asettaa tämän Visagen nappulansa valitsimen kautta.",
+    "VISAGE.GlobalEditor.Public": "Julkinen",
+    "VISAGE.Selector.TogglePublic": "Vaihda julkisten Globaalien Visagejen näkyvyyttä",
+    "VISAGE.GlobalEditor.RingDisabled": "Dynaaminen Kehä Pois Käytöstä"
 }

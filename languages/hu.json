@@ -323,5 +323,13 @@
     "VISAGE.Samples.Items.TokenSize1x1": "Bábu Méret (1 x 1)",
     "VISAGE.Config.List.Anchor": "Horgonypont (X / Y)",
     "VISAGE.Settings.AllowSystemOverrides.Name": "Specifikus Rendszer Felülbírálások",
-    "VISAGE.Settings.AllowSystemOverrides.Hint": "Ha engedélyezve van, a Visage ideiglenesen feloldhatja a rendszerspecifikus szabályokat (mint a PF2E Bábu Méret csatolás), hogy alkalmazza a méret vagy skála módosításokat. Ha le van tiltva, a Visage nem módosíthatja a bábu méret vagy skála beállításait."
+    "VISAGE.Settings.AllowSystemOverrides.Hint": "Ha engedélyezve van, a Visage ideiglenesen feloldhatja a rendszerspecifikus szabályokat (mint a PF2E Bábu Méret csatolás), hogy alkalmazza a méret vagy skála módosításokat. Ha le van tiltva, a Visage nem módosíthatja a bábu méret vagy skála beállításait.",
+    "VISAGE.Notifications.Error.PermissionDenied": "Csak a GM hozhat létre, szerkeszthet vagy törölhet Globális Visage-okat.",
+    "VISAGE.GlobalEditor.Visibility": "Megosztás",
+    "VISAGE.GlobalEditor.VisibilityPrivateHint": "Ezt a Visage-t csak a GM alkalmazhatja.",
+    "VISAGE.GlobalEditor.Private": "Privát",
+    "VISAGE.GlobalEditor.VisibilityPublicHint": "Ezt a Visage-t minden játékos alkalmazhatja a bábu Választó felületén keresztül.",
+    "VISAGE.GlobalEditor.Public": "Nyilvános",
+    "VISAGE.Selector.TogglePublic": "Nyilvános Globális Visage-ok láthatóságának váltása",
+    "VISAGE.GlobalEditor.RingDisabled": "Dinamikus Gyűrű Kikapcsolva"
 }
