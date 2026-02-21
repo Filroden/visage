@@ -26,10 +26,29 @@ export class VisageAutomation {
         Hooks.on("deleteToken", (token) => this._registry.delete(token.id));
         Hooks.on("visageDataChanged", () => this.buildRegistry()); // Custom hook you fire when saving a Visage
 
-        // 2. Data Observation Hooks (Milestone 2 focus)
+        // 2. Data Observation Hooks
         Hooks.on("updateActor", this._onUpdateActor.bind(this));
         Hooks.on("createActiveEffect", this._onStatusChange.bind(this));
         Hooks.on("deleteActiveEffect", this._onStatusChange.bind(this));
+
+        // 3. Event Hooks
+        Hooks.on("updateCombat", this._onCombatChange.bind(this));
+        Hooks.on("deleteCombat", this._onCombatChange.bind(this));
+        Hooks.on("updateToken", this._onUpdateToken.bind(this));
+
+        Hooks.on("targetToken", (user, token, targeted) => {
+            if (this._registry.has(token.id)) this._evaluate(token);
+        });
+
+        Hooks.on("updateScene", (scene, changes) => {
+            if (changes.darkness !== undefined) {
+                // Darkness is global, re-evaluate all tokens
+                for (const tokenId of this._registry.keys()) {
+                    const t = canvas.tokens.get(tokenId);
+                    if (t) this._evaluate(t);
+                }
+            }
+        });
 
         console.log("Visage | Automation Engine Initialized.");
         this.buildRegistry();
@@ -40,7 +59,10 @@ export class VisageAutomation {
      * active Automations configured in their local Visages.
      */
     static buildRegistry() {
+        // Save a reference to the old registry so we don't wipe our memory during saves
+        const oldRegistry = new Map(this._registry);
         this._registry.clear();
+
         if (!canvas.ready) return;
 
         for (const token of canvas.tokens.placeables) {
@@ -57,7 +79,8 @@ export class VisageAutomation {
                 this._registry.set(token.id, {
                     actorId: token.actor.id,
                     visages: automatedVisages,
-                    stateCache: this._registry.get(token.id)?.stateCache || {}, // Preserve existing cache if it exists
+                    // Recover the state cache from the old registry
+                    stateCache: oldRegistry.get(token.id)?.stateCache || {},
                 });
             }
         }
@@ -94,6 +117,29 @@ export class VisageAutomation {
         }
     }
 
+    static _onCombatChange(combat, changes, options, userId) {
+        for (const [tokenId, record] of this._registry.entries()) {
+            const token = canvas.tokens.get(tokenId);
+            if (token) this._evaluate(token);
+        }
+    }
+
+    static _onUpdateToken(tokenDoc, changes, options, userId) {
+        // We only care if elevation or position changed.
+        // This acts as our throttle to prevent evaluating on every minor token update.
+        if (
+            changes.elevation === undefined &&
+            changes.x === undefined &&
+            changes.y === undefined
+        )
+            return;
+
+        if (this._registry.has(tokenDoc.id)) {
+            const token = tokenDoc.object;
+            if (token) this._evaluate(token);
+        }
+    }
+
     // ==========================================
     // THE EVALUATION LOOP
     // ==========================================
@@ -120,6 +166,8 @@ export class VisageAutomation {
                     results.push(this._evalAttribute(actor, cond));
                 } else if (cond.type === "status") {
                     results.push(this._evalStatus(actor, cond));
+                } else if (cond.type === "event") {
+                    results.push(this._evalEvent(token, cond));
                 }
             }
 
@@ -150,10 +198,63 @@ export class VisageAutomation {
         }
     }
 
-    // -- Logic Resolvers (To be written next!) --
+    // -- Logic Resolvers --
 
+    /**
+     * Evaluates an Attribute condition against an actor's data.
+     * @param {Actor} actor - The actor to evaluate.
+     * @param {Object} condition - The condition configuration.
+     * @returns {boolean} True if the condition is met.
+     */
     static _evalAttribute(actor, condition) {
-        return false; // Placeholder
+        if (!condition.path) return false;
+
+        // 1. Fetch the raw value using Foundry's native getProperty
+        // This safely traverses the actor object (e.g., actor.system.attributes.hp.value)
+        const rawVal = foundry.utils.getProperty(actor, condition.path);
+
+        // If the path doesn't exist on this actor, the condition cannot be met
+        if (rawVal === undefined || rawVal === null) return false;
+
+        let checkVal = Number(rawVal);
+        let targetVal = Number(condition.value);
+
+        // Safety check: Ensure we are comparing numbers
+        if (isNaN(checkVal) || isNaN(targetVal)) return false;
+
+        // 2. Handle Percentage Calculations
+        if (condition.mode === "percent") {
+            // Heuristic: In almost all Foundry systems, if the current value is at ".value",
+            // the maximum value is stored at ".max" in the same object.
+            const maxPath = condition.path.replace(/\.value$/, ".max");
+            const maxVal = foundry.utils.getProperty(actor, maxPath);
+            const numMaxVal = Number(maxVal);
+
+            if (!isNaN(numMaxVal) && numMaxVal > 0) {
+                checkVal = (checkVal / numMaxVal) * 100;
+            } else {
+                // If we are asked to calculate a percentage but cannot find a valid 'max',
+                // we must fail safely to prevent errors or false positives.
+                console.warn(
+                    `Visage | Cannot calculate percentage for ${condition.path} - no valid max found at ${maxPath}`,
+                );
+                return false;
+            }
+        }
+
+        // 3. Evaluate the Operator
+        switch (condition.operator) {
+            case "lte":
+                return checkVal <= targetVal;
+            case "gte":
+                return checkVal >= targetVal;
+            case "eq":
+                return checkVal === targetVal;
+            case "neq":
+                return checkVal !== targetVal;
+            default:
+                return false;
+        }
     }
 
     /**
@@ -172,6 +273,50 @@ export class VisageAutomation {
             return hasStatus; // True if the actor HAS the status
         } else if (condition.operator === "inactive") {
             return !hasStatus; // True if the actor DOES NOT HAVE the status
+        }
+
+        return false;
+    }
+
+    /**
+     * Evaluates a Game Event condition against a token's state.
+     * @param {Token} token - The token object on the canvas.
+     * @param {Object} condition - The condition configuration.
+     * @returns {boolean} True if the condition is met.
+     */
+    static _evalEvent(token, condition) {
+        if (condition.eventId === "combat") {
+            const isActive = game.combats.some(
+                (c) =>
+                    c.started &&
+                    c.combatants.some((cb) => cb.tokenId === token.id),
+            );
+            return condition.operator === "active" ? isActive : !isActive;
+        } else if (condition.eventId === "targeted") {
+            // A token is targeted if any user has a targeting reticle on it
+            const isActive = token.targeted.size > 0;
+            return condition.operator === "active" ? isActive : !isActive;
+        } else if (condition.eventId === "elevation") {
+            const el = Number(token.document.elevation) || 0;
+            const val = Number(condition.value) || 0;
+            if (condition.operator === "gt") return el > val;
+            if (condition.operator === "lt") return el < val;
+            return el === val;
+        } else if (condition.eventId === "darkness") {
+            const dark = Number(canvas.scene?.darkness) || 0;
+            const val = Number(condition.value) || 0;
+            if (condition.operator === "gt") return dark > val;
+            if (condition.operator === "lt") return dark < val;
+            return dark === val;
+        } else if (condition.eventId === "region") {
+            if (!condition.regionId) return false;
+            const regionSet = token.document?.regions || [];
+            const inRegion = Array.from(regionSet).some(
+                (r) =>
+                    r.id === condition.regionId ||
+                    r.name === condition.regionId,
+            );
+            return condition.operator === "active" ? inRegion : !inRegion;
         }
 
         return false;

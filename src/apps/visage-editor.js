@@ -223,7 +223,19 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 } else if (c.type === "status") {
                     c.summary = `${c.statusId || "..."} (${c.operator === "active" ? "Applied" : "Removed"})`;
                 } else if (c.type === "event") {
-                    c.summary = `${c.eventId || "..."} (${c.operator === "active" ? "Active" : "Inactive"})`;
+                    if (c.eventId === "elevation" || c.eventId === "darkness") {
+                        const op =
+                            c.operator === "gt"
+                                ? ">"
+                                : c.operator === "lt"
+                                  ? "<"
+                                  : "==";
+                        c.summary = `${c.eventId} ${op} ${c.value || 0}`;
+                    } else if (c.eventId === "region") {
+                        c.summary = `Region: ${c.regionId || "?"} (${c.operator === "active" ? "Inside" : "Outside"})`;
+                    } else {
+                        c.summary = `${c.eventId} (${c.operator === "active" ? "Active" : "Inactive"})`;
+                    }
                 } else if (c.type === "action") {
                     c.summary = `${c.actionType || "..."} (${c.outcome || "any"})`;
                 }
@@ -312,6 +324,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         );
         this.element.addEventListener("change", (e) => {
             this._markDirty();
+
+            // If the user changes the Event Type, we must fully re-render to swap the dynamic form fields
+            if (e.target.name === "inspector.eventId") {
+                this.render();
+                return;
+            }
+
             if (
                 e.target.matches(
                     "select, input[type='text'], input[type='checkbox'], input[type='radio']",
@@ -705,10 +724,34 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         cond.operator =
                             getVal("inspector.operator") ?? cond.operator;
                     } else if (cond.type === "event") {
-                        cond.eventId =
+                        const newEventId =
                             getVal("inspector.eventId") ?? cond.eventId;
+
+                        // Safety: If the user changes the event type, reset the variables so math doesn't break
+                        if (cond.eventId !== newEventId) {
+                            cond.operator =
+                                newEventId === "elevation" ||
+                                newEventId === "darkness"
+                                    ? "gt"
+                                    : "active";
+                            cond.value = newEventId === "darkness" ? 0.5 : 0;
+                            cond.regionId = "";
+                        }
+
+                        cond.eventId = newEventId;
                         cond.operator =
                             getVal("inspector.operator") ?? cond.operator;
+
+                        if (
+                            cond.eventId === "elevation" ||
+                            cond.eventId === "darkness"
+                        ) {
+                            const val = getVal("inspector.value", Number);
+                            if (val !== null && !isNaN(val)) cond.value = val;
+                        } else if (cond.eventId === "region") {
+                            cond.regionId =
+                                getVal("inspector.regionId") ?? cond.regionId;
+                        }
                     } else if (cond.type === "action") {
                         cond.actionType =
                             getVal("inspector.actionType") ?? cond.actionType;
@@ -737,31 +780,48 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
         const changes = {};
 
-        // A. Omit inactive token properties completely
+        // A. Omit inactive token properties by explicitly sending 'null' so Foundry deletes them
         if (formData.nameOverride_active) changes.name = formData.nameOverride;
+        else changes.name = null;
         if (formData.scale_active)
             changes.scale = getVal("scale", Number) / 100;
+        else changes.scale = null;
         if (formData.isFlippedX !== "")
             changes.mirrorX = formData.isFlippedX === "true";
+        else changes.mirrorX = null;
         if (formData.isFlippedY !== "")
             changes.mirrorY = formData.isFlippedY === "true";
+        else changes.mirrorY = null;
         if (formData.alpha_active)
             changes.alpha = getVal("alpha", Number) / 100;
+        else changes.alpha = null;
         if (formData.width_active) changes.width = getVal("width", Number);
+        else changes.width = null;
         if (formData.height_active) changes.height = getVal("height", Number);
+        else changes.height = null;
         if (formData.lockRotation !== "")
             changes.lockRotation = formData.lockRotation === "true";
+        else changes.lockRotation = null;
         if (formData.disposition_active)
             changes.disposition = getVal("disposition", Number);
+        else changes.disposition = null;
         if (formData.portrait_active) changes.portrait = formData.portrait;
+        else changes.portrait = null;
 
         if (formData.img_active || formData.anchor_active) {
             changes.texture = {};
             if (formData.img_active) changes.texture.src = formData.img;
+            else changes.texture.src = null;
+
             if (formData.anchor_active) {
                 changes.texture.anchorX = parseFloat(formData.anchorX);
                 changes.texture.anchorY = parseFloat(formData.anchorY);
+            } else {
+                changes.texture.anchorX = null;
+                changes.texture.anchorY = null;
             }
+        } else {
+            changes.texture = null;
         }
 
         // B. Components always sent

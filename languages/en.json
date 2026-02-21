@@ -441,5 +441,14 @@
     "VISAGE.Editor.Triggers.DurationMode": "Duration Mode",
     "VISAGE.Editor.Triggers.DurationTime": "Milliseconds (ms)",
     "VISAGE.Editor.Triggers.DurationTurn": "Combat Turns",
-    "VISAGE.Editor.Triggers.DurationValue": "Duration Amount"
+    "VISAGE.Editor.Triggers.DurationValue": "Duration Amount",
+    "VISAGE.Editor.Triggers.EventDarkness": "Scene Darkness",
+    "VISAGE.Editor.Triggers.EventRegion": "Scene Region",
+    "VISAGE.Editor.Triggers.EventTargeted": "Targeted by Player",
+    "VISAGE.Editor.Triggers.State": "Trigger State",
+    "VISAGE.Editor.Triggers.OpGt": "Greater Than",
+    "VISAGE.Editor.Triggers.OpLt": "Less Than",
+    "VISAGE.Editor.Triggers.RegionId": "Region ID or Name",
+    "VISAGE.Editor.Triggers.RegionEnter": "Inside Region",
+    "VISAGE.Editor.Triggers.RegionExit": "Outside Region"
 }
