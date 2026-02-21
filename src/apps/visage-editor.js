@@ -167,6 +167,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const baseData = this._getInitialData();
         if (!baseData) return this.close();
 
+        // PREVENT ZOMBIE DATA: The snapshot's 'changes' object is the single source
+        // of truth for the form state. Overwrite the merged changes completely
+        // to ensure unchecked fields stay dead during re-renders.
         let data = this._preservedData
             ? foundry.utils.mergeObject(baseData, this._preservedData, {
                   inplace: false,
