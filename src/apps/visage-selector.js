@@ -104,6 +104,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         // Note: For GMs, this returns ALL globals (Private & Public).
         let allVisages = Visage.getAvailable(this.tokenId);
 
+        // FILTER 0: Remove Soft-Deleted Items
+        allVisages = allVisages.filter((v) => !v.deleted);
+
         // FILTER 1: Strict "HUD" Visibility Rule
         // Private items are reserved for the Global Library (GM view).
         allVisages = allVisages.filter((v) => {
