@@ -49,12 +49,18 @@
                 </h3>
                 <div class="group-drop-zone">
                     {{#each automation.conditions}}
-                        <div class="effect-card {{#if (eq ../inspector.conditionId this.id)}}active{{/if}}" data-action="editCondition" data-id="{{this.id}}">
+                        <div class="effect-card {{#if (eq ../inspector.conditionId this.id)}}active{{/if}} {{#if this.disabled}}visage-disabled{{/if}}" data-action="editCondition" data-id="{{this.id}}">
                             <div class="effect-info">
                                 <span class="effect-name">{{localize this.typeKey}}</span>
                                 <span class="effect-meta">{{this.summary}}</span>
                             </div>
                             <div class="effect-controls">
+                                {{!-- Visibility Toggle --}}
+                                <button type="button" class="effect-btn toggle-visibility" data-action="toggleCondition">
+                                    <i class="visage-icon {{#if this.disabled}}visage-hidden{{else}}visible{{/if}}"></i>
+                                </button>
+                                
+                                {{!-- Delete --}}
                                 <button type="button" class="effect-btn" data-action="deleteCondition" data-id="{{this.id}}">
                                     <i class="visage-icon delete"></i>
                                 </button>
@@ -151,14 +157,15 @@
                             <option value="combat" {{visageSelected (eq inspector.condition.eventId "combat")}}>{{localize "VISAGE.Editor.Triggers.EventCombat"}}</option>
                             <option value="elevation" {{visageSelected (eq inspector.condition.eventId "elevation")}}>{{localize "VISAGE.Editor.Triggers.EventElevation"}}</option>
                             <option value="darkness" {{visageSelected (eq inspector.condition.eventId "darkness")}}>{{localize "VISAGE.Editor.Triggers.EventDarkness"}}</option>
+                            <option value="globalLight" {{visageSelected (eq inspector.condition.eventId "globalLight")}}>{{localize "VISAGE.Editor.Triggers.EventGlobalLight"}}</option>
                             <option value="region" {{visageSelected (eq inspector.condition.eventId "region")}}>{{localize "VISAGE.Editor.Triggers.EventRegion"}}</option>
                             <option value="targeted" {{visageSelected (eq inspector.condition.eventId "targeted")}}>{{localize "VISAGE.Editor.Triggers.EventTargeted"}}</option>
                         </select>
                     </div>
                 </div>
 
-                {{!-- Dynamic Fields: Combat & Targeted (Binary State) --}}
-                {{#if (or (eq inspector.condition.eventId 'combat') (eq inspector.condition.eventId 'targeted'))}}
+                {{!-- Dynamic Fields: Combat, Targeted, & Global Light (Binary State) --}}
+                {{#if (or (eq inspector.condition.eventId 'combat') (or (eq inspector.condition.eventId 'targeted') (eq inspector.condition.eventId 'globalLight')))}}
                     <div class="form-group">
                         <label>{{localize "VISAGE.Editor.Triggers.State"}}</label>
                         <div class="visage-form-fields">

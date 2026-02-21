@@ -123,6 +123,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             closeConditionInspector:
                 VisageEditor.prototype._onCloseConditionInspector,
             openAttributePicker: VisageEditor.prototype._onOpenAttributePicker,
+            toggleCondition: VisageEditor.prototype._onToggleCondition,
         },
     };
 
@@ -1112,6 +1113,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onOpenAttributePicker(event, target) {
         ui.notifications.info("Attribute Picker coming soon!");
         // This will be implemented in Milestone 5
+    }
+    _onToggleCondition(event, target) {
+        const id = target.closest(".effect-card").dataset.id;
+        const condition = this._automationData.conditions.find(
+            (c) => c.id === id,
+        );
+
+        if (condition) {
+            condition.disabled = !condition.disabled;
+            this._markDirty();
+            this.render();
+        }
     }
 
     // -- Effects & Audio --

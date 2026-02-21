@@ -426,8 +426,8 @@
     "VISAGE.Editor.Triggers.EventCombat": "Combat Encounter",
     "VISAGE.Editor.Triggers.EventMovement": "Token Movement",
     "VISAGE.Editor.Triggers.EventElevation": "Token Elevation",
-    "VISAGE.Editor.Triggers.EventActive": "Starts / Increases",
-    "VISAGE.Editor.Triggers.EventInactive": "Ends / Decreases",
+    "VISAGE.Editor.Triggers.EventActive": "Active / On",
+    "VISAGE.Editor.Triggers.EventInactive": "Inactive / Off",
     "VISAGE.Editor.Triggers.ActionType": "Action",
     "VISAGE.Editor.Triggers.ActionAttack": "Roll Attack",
     "VISAGE.Editor.Triggers.ActionCast": "Cast Spell",
@@ -450,5 +450,6 @@
     "VISAGE.Editor.Triggers.OpLt": "Less Than",
     "VISAGE.Editor.Triggers.RegionId": "Region ID or Name",
     "VISAGE.Editor.Triggers.RegionEnter": "Inside Region",
-    "VISAGE.Editor.Triggers.RegionExit": "Outside Region"
+    "VISAGE.Editor.Triggers.RegionExit": "Outside Region",
+    "VISAGE.Editor.Triggers.EventGlobalLight": "Scene Global Illumination"
 }

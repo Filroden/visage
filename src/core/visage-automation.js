@@ -41,12 +41,16 @@ export class VisageAutomation {
         });
 
         Hooks.on("updateScene", (scene, changes) => {
-            if (changes.darkness !== undefined) {
-                // Darkness is global, re-evaluate all tokens
-                for (const tokenId of this._registry.keys()) {
-                    const t = canvas.tokens.get(tokenId);
-                    if (t) this._evaluate(t);
-                }
+            if (
+                changes.environment?.darknessLevel !== undefined ||
+                changes.environment?.globalLight?.enabled !== undefined
+            ) {
+                setTimeout(() => {
+                    for (const tokenId of this._registry.keys()) {
+                        const t = canvas.tokens.get(tokenId);
+                        if (t) this._evaluate(t);
+                    }
+                }, 100);
             }
         });
 
@@ -56,7 +60,7 @@ export class VisageAutomation {
 
     /**
      * Scans the current canvas and builds the registry of tokens that have
-     * active Automations configured in their local Visages.
+     * active Automations configured in their Visages.
      */
     static buildRegistry() {
         // Save a reference to the old registry so we don't wipe our memory during saves
@@ -64,6 +68,12 @@ export class VisageAutomation {
         this._registry.clear();
 
         if (!canvas.ready) return;
+
+        // Fetch all automated Global Visages to act as "Universal Rules"
+        const globalAutomations = VisageData.globals.filter(
+            (v) =>
+                v.automation?.enabled && v.automation?.conditions?.length > 0,
+        );
 
         for (const token of canvas.tokens.placeables) {
             if (!token.actor) continue;
@@ -75,11 +85,16 @@ export class VisageAutomation {
                     v.automation?.conditions?.length > 0,
             );
 
-            if (automatedVisages.length > 0) {
+            // Combine the token's specific local automations with the universal global automations
+            const combinedAutomations = [
+                ...automatedVisages,
+                ...globalAutomations,
+            ];
+
+            if (combinedAutomations.length > 0) {
                 this._registry.set(token.id, {
                     actorId: token.actor.id,
-                    visages: automatedVisages,
-                    // Recover the state cache from the old registry
+                    visages: combinedAutomations,
                     stateCache: oldRegistry.get(token.id)?.stateCache || {},
                 });
             }
@@ -162,6 +177,7 @@ export class VisageAutomation {
             // 1. Resolve conditions
             let results = [];
             for (const cond of auto.conditions) {
+                if (cond.disabled) continue;
                 if (cond.type === "attribute") {
                     results.push(this._evalAttribute(actor, cond));
                 } else if (cond.type === "status") {
@@ -302,8 +318,18 @@ export class VisageAutomation {
             if (condition.operator === "gt") return el > val;
             if (condition.operator === "lt") return el < val;
             return el === val;
+        } else if (condition.eventId === "globalLight") {
+            const env = canvas.scene?.environment;
+            let isLit = false;
+            if (env && env.globalLight?.enabled) {
+                const dark = env.darknessLevel || 0;
+                const min = env.globalLight.darkness?.min ?? 0;
+                const max = env.globalLight.darkness?.max ?? 1;
+                isLit = dark >= min && dark <= max;
+            }
+            return condition.operator === "active" ? isLit : !isLit;
         } else if (condition.eventId === "darkness") {
-            const dark = Number(canvas.scene?.darkness) || 0;
+            const dark = Number(canvas.scene?.environment?.darknessLevel) || 0;
             const val = Number(condition.value) || 0;
             if (condition.operator === "gt") return dark > val;
             if (condition.operator === "lt") return dark < val;
