@@ -20,6 +20,7 @@ import { handleGhostEdit } from "./src/apps/visage-ghost.js";
 import { MODULE_ID } from "./src/core/visage-constants.js";
 import { VisageSequencer } from "./src/integrations/visage-sequencer.js";
 import { VisageSamples } from "./src/data/visage-samples.js";
+import { VisageAutomation } from "./src/core/visage-automation.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -410,6 +411,9 @@ Hooks.once("ready", async () => {
     try {
         // Clean up deleted items older than retention period
         VisageData.runGarbageCollection();
+
+        // Initialize the Automation Engine Watcher
+        VisageAutomation.initialize();
 
         // Check if a migration is required based on the version difference
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {

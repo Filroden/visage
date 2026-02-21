@@ -136,9 +136,11 @@ export class VisageData {
         if (!actor && !game.user.isGM) return;
 
         if (actor) {
-            return actor.update({
+            await actor.update({
                 [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true,
             });
+            Hooks.callAll("visageDataChanged");
+            return;
         }
         return this.updateGlobal(id, { deleted: true, deletedAt: Date.now() });
     }
@@ -150,9 +152,11 @@ export class VisageData {
      */
     static async restore(id, actor = null) {
         if (actor) {
-            return actor.update({
+            await actor.update({
                 [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false,
             });
+            Hooks.callAll("visageDataChanged");
+            return;
         }
         return this.updateGlobal(id, { deleted: false, deletedAt: null });
     }
@@ -164,10 +168,12 @@ export class VisageData {
      */
     static async destroy(id, actor = null) {
         if (actor) {
-            return actor.update({
+            await actor.update({
                 [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]:
                     null,
             });
+            Hooks.callAll("visageDataChanged");
+            return;
         }
         const all = this._getRawGlobal();
         if (all[id]) {
@@ -248,6 +254,7 @@ export class VisageData {
         console.log(
             `Visage | Saved Local Visage for ${actor.name}: ${entry.label}`,
         );
+        Hooks.callAll("visageDataChanged");
     }
 
     // ==========================================

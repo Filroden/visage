@@ -418,6 +418,7 @@
     "VISAGE.Editor.Triggers.OpEq": "Exactly Equals (==)",
     "VISAGE.Editor.Triggers.OpNeq": "Does Not Equal (!=)",
     "VISAGE.Editor.Triggers.StatusId": "Status Effect ID",
+    "VISAGE.Editor.Triggers.SelectStatus": "Select a Status Effect...",
     "VISAGE.Editor.Triggers.StatusActive": "Is Applied",
     "VISAGE.Editor.Triggers.StatusInactive": "Is Removed",
     "VISAGE.Editor.Triggers.TypeEvent": "Event",

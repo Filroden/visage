@@ -122,7 +122,12 @@
                 <div class="form-group stacked">
                     <label>{{localize "VISAGE.Editor.Triggers.StatusId"}}</label>
                     <div class="visage-form-fields">
-                        <input type="text" name="inspector.statusId" value="{{inspector.condition.statusId}}" placeholder="e.g. invisible, prone, blind">
+                        <select name="inspector.statusId">
+                            <option value="" disabled {{#unless inspector.condition.statusId}}selected{{/unless}}>{{localize "VISAGE.Editor.Triggers.SelectStatus"}}</option>
+                            {{#each statusEffects}}
+                                <option value="{{this.value}}" {{visageSelected (eq ../inspector.condition.statusId this.value)}}>{{this.label}}</option>
+                            {{/each}}
+                        </select>
                     </div>
                 </div>
 

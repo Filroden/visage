@@ -172,7 +172,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                   inplace: false,
               })
             : baseData;
-        this._syncMemoryDefaults(data.changes || {});
+
+        if (this._preservedData) {
+            data.changes = foundry.utils.deepClone(this._preservedData.changes);
+        }
+
+        this._syncMemoryDefaults(data);
 
         // 2. Build Transformations
         const rawImg = data.changes?.texture?.src || "";
@@ -252,6 +257,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             },
             inspector: inspectorData,
             automation: this._automationData,
+            statusEffects: this._getStatusEffectOptions(),
             delay: {
                 value: Math.abs(this._delayData) / 1000,
                 direction: this._delayData >= 0 ? "after" : "before",
@@ -1611,6 +1617,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (display && display.tagName === "OUTPUT") display.value = def;
         this._markDirty();
         this._updatePreview();
+    }
+
+    _getStatusEffectOptions() {
+        // Read from core Foundry config, format, and localize
+        const effects = CONFIG.statusEffects.map((s) => ({
+            value: s.id,
+            label: game.i18n.localize(s.name),
+        }));
+
+        // Sort alphabetically by the localized label for better UX
+        effects.sort((a, b) => a.label.localeCompare(b.label));
+        return effects;
     }
 
     _getLightAnimationOptions() {
