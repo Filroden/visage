@@ -1,5 +1,5 @@
-import { VisageUtilities } from "./visage-utilities.js";
-import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
+import { VisageUtilities } from "../utils/visage-utilities.js";
+import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
 
 /**
  * The primary data controller class for Visage.
@@ -95,6 +95,9 @@ export class VisageData {
                     tags: Array.isArray(data.tags) ? data.tags : [],
                     mode: data.mode || "identity",
                     changes: foundry.utils.deepClone(data.changes),
+                    automation: data.automation
+                        ? foundry.utils.deepClone(data.automation)
+                        : undefined,
                     deleted: !!data.deleted,
                 });
             }
@@ -199,6 +202,9 @@ export class VisageData {
             deleted: false,
             deletedAt: null,
             changes: foundry.utils.deepClone(data.changes || {}),
+            automation: data.automation
+                ? foundry.utils.deepClone(data.automation)
+                : undefined,
         };
 
         all[id] = entry;
@@ -230,6 +236,9 @@ export class VisageData {
             tags: data.tags,
             mode: data.mode || "identity",
             changes: foundry.utils.deepClone(data.changes || {}),
+            automation: data.automation
+                ? foundry.utils.deepClone(data.automation)
+                : undefined,
             updated: Date.now(),
         };
 
@@ -261,6 +270,9 @@ export class VisageData {
             mode: data.mode || (source === "local" ? "identity" : "overlay"),
             source: source,
             changes: foundry.utils.deepClone(data.changes || {}),
+            automation: data.automation
+                ? foundry.utils.deepClone(data.automation)
+                : undefined,
         };
 
         // Recursive Clean Function to remove nulls and empty objects
@@ -368,6 +380,20 @@ export class VisageData {
     }
 
     /**
+     * Generates the default structure for a new automation block.
+     * @returns {Object} The default automation schema.
+     */
+    static getDefaultAutomation() {
+        return {
+            enabled: false,
+            logic: "AND",
+            conditions: [],
+            onEnter: { action: "apply", priority: 0 },
+            onExit: { action: "remove", delay: 0 },
+        };
+    }
+
+    /**
      * Formats raw Visage data into a rich View-Model object ready for Handlebars rendering.
      * Extracts metadata for UI badges (scales, flips, rings, effects).
      * @param {Object} data - The raw Visage data.
@@ -446,6 +472,7 @@ export class VisageData {
             isPublic: data.public ?? false,
 
             meta: {
+                hasAutomation: data.automation?.enabled ?? false,
                 hasRing: ringCtx.enabled,
                 hasPulse: ringCtx.hasPulse,
                 hasGradient: ringCtx.hasGradient,

@@ -5,8 +5,8 @@
  * @module visage
  */
 
-import { VisageUtilities } from "./visage-utilities.js";
-import { VisageSystems } from "./visage-systems.js";
+import { VisageUtilities } from "../utils/visage-utilities.js";
+import { VisageSystems } from "../integrations/visage-systems.js";
 import { MODULE_ID } from "./visage-constants.js";
 
 /**
@@ -15,15 +15,14 @@ import { MODULE_ID } from "./visage-constants.js";
  * effects (Visages) to be stacked on top of a token's original "True Form".
  */
 export class VisageComposer {
-
     /**
      * Composes the final appearance of a token by layering the active stack on top of its base state.
      * * **Architecture: Decoupled Composition**
      * 1. **Deconstruction:** The Base State is broken down into atomic properties (Source, Magnitude, Orientation).
      * Critically, Foundry's `scaleX` (which handles both size and flipping) is split into `scale` (size) and `mirror` (flip).
-     * 2. **Layering:** The stack is iterated from bottom (Identity) to top (Overlay). Each layer can override specific atoms 
+     * 2. **Layering:** The stack is iterated from bottom (Identity) to top (Overlay). Each layer can override specific atoms
      * (e.g., changing Scale) without affecting others (e.g., keeping the previous Orientation).
-     * 3. **Reconstruction:** The atomic properties are re-baked into standard Foundry VTT data structures 
+     * 3. **Reconstruction:** The atomic properties are re-baked into standard Foundry VTT data structures
      * (combining size and flip back into a signed `scaleX`) for the final database update.
      * * @param {Token} token - The target token object (canvas placeable).
      * @param {Array<Object>|null} [stackOverride=null] - An optional stack of layers to use (e.g., for temporary previews).
@@ -36,10 +35,11 @@ export class VisageComposer {
         // 1. Retrieve Context
         // Determine which stack to process: the one currently on the token, or a temporary override.
         const allFlags = token.document.flags[MODULE_ID] || {};
-        const currentStack = stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
-        
+        const currentStack =
+            stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
+
         // 2. Revert Condition
-        // If the stack is empty and we aren't forcing a specific base, 
+        // If the stack is empty and we aren't forcing a specific base,
         // we simply revert the token to its clean state.
         if (currentStack.length === 0 && !baseOverride) {
             return this.revertToDefault(token.document);
@@ -52,14 +52,14 @@ export class VisageComposer {
         if (!base) {
             base = VisageUtilities.extractVisualState(token.document);
         }
-        
+
         // --- DECOUPLING PHASE ---
-        // Foundry VTT stores "Flip" as a negative Scale value. 
+        // Foundry VTT stores "Flip" as a negative Scale value.
         // We split these apart so layers can target them independently.
         let currentSrc = base.texture?.src || "";
         let currentScaleX = Math.abs(base.texture?.scaleX ?? 1);
         let currentScaleY = Math.abs(base.texture?.scaleY ?? 1);
-        
+
         // Convert signed scale into boolean intent
         let currentMirrorX = (base.texture?.scaleX ?? 1) < 0;
         let currentMirrorY = (base.texture?.scaleY ?? 1) < 0;
@@ -77,7 +77,7 @@ export class VisageComposer {
         for (const layer of currentStack) {
             if (layer.disabled) continue;
 
-            const c = layer.changes || {}; 
+            const c = layer.changes || {};
 
             // A. Texture Source
             if (c.texture?.src) currentSrc = c.texture.src;
@@ -86,10 +86,16 @@ export class VisageComposer {
             let handledScale = false;
 
             // Anchor Override (Atomic)
-            if (c.texture?.anchorX !== undefined && c.texture.anchorX !== null) {
+            if (
+                c.texture?.anchorX !== undefined &&
+                c.texture.anchorX !== null
+            ) {
                 currentAnchorX = c.texture.anchorX;
             }
-            if (c.texture?.anchorY !== undefined && c.texture.anchorY !== null) {
+            if (
+                c.texture?.anchorY !== undefined &&
+                c.texture.anchorY !== null
+            ) {
                 currentAnchorY = c.texture.anchorY;
             }
 
@@ -97,8 +103,8 @@ export class VisageComposer {
             // Checks for the explicit 'scale' property. This overrides individual X/Y scaling.
             if (c.scale !== undefined && c.scale !== null) {
                 currentScaleX = c.scale;
-                currentScaleY = c.scale; 
-                handledScale = true; 
+                currentScaleY = c.scale;
+                handledScale = true;
             }
 
             // Priority 2: Texture Scale (Legacy Schema)
@@ -117,31 +123,39 @@ export class VisageComposer {
             }
 
             // C. Mirroring (Atomic Override)
-            // Applies explicit intent (True/False). 
+            // Applies explicit intent (True/False).
             // If undefined, the state from the previous layer (or base) persists.
-            if (c.mirrorX !== undefined && c.mirrorX !== null) currentMirrorX = c.mirrorX;
-            if (c.mirrorY !== undefined && c.mirrorY !== null) currentMirrorY = c.mirrorY;
+            if (c.mirrorX !== undefined && c.mirrorX !== null)
+                currentMirrorX = c.mirrorX;
+            if (c.mirrorY !== undefined && c.mirrorY !== null)
+                currentMirrorY = c.mirrorY;
 
             // D. Dynamic Ring
-            if (c.ring && c.ring.enabled) { finalData.ring = c.ring; }
+            if (c.ring && c.ring.enabled) {
+                finalData.ring = c.ring;
+            }
 
             // E. Disposition
             if (c.disposition !== undefined && c.disposition !== null) {
                 finalData.disposition = c.disposition;
             }
-            
+
             // F. Name Override
             if (c.name) finalData.name = c.name;
 
             // G. Dimensions
-            if (c.width !== undefined && c.width !== null) finalData.width = c.width;
-            if (c.height !== undefined && c.height !== null) finalData.height = c.height;
-        
+            if (c.width !== undefined && c.width !== null)
+                finalData.width = c.width;
+            if (c.height !== undefined && c.height !== null)
+                finalData.height = c.height;
+
             // H. Opacity
-            if (c.alpha !== undefined && c.alpha !== null) finalData.alpha = c.alpha;
+            if (c.alpha !== undefined && c.alpha !== null)
+                finalData.alpha = c.alpha;
 
             // I. Rotation Lock
-            if (c.lockRotation !== undefined && c.lockRotation !== null) finalData.lockRotation = c.lockRotation;
+            if (c.lockRotation !== undefined && c.lockRotation !== null)
+                finalData.lockRotation = c.lockRotation;
 
             // J. Light Source (V3.2)
             if (c.light) finalData.light = c.light;
@@ -159,16 +173,16 @@ export class VisageComposer {
         // 6. System Specific Processing
         VisageSystems.process(finalData, base, {
             scaleX: finalData.texture.scaleX,
-            scaleY: finalData.texture.scaleY
+            scaleY: finalData.texture.scaleY,
         });
 
         // 7. Atomic Update
-        // We update the visual data and the state flags in a single operation 
+        // We update the visual data and the state flags in a single operation
         // to prevent database desynchronisation.
         const updateData = {
             ...finalData,
             [`flags.${MODULE_ID}.activeStack`]: currentStack,
-            [`flags.${MODULE_ID}.originalState`]: base
+            [`flags.${MODULE_ID}.originalState`]: base,
         };
 
         // Ensure light is passed correctly (if it exists)
@@ -204,7 +218,7 @@ export class VisageComposer {
         if (!flags.originalState) {
             const clearFlags = {
                 [`flags.${MODULE_ID}.-=activeStack`]: null,
-                [`flags.${MODULE_ID}.-=originalState`]: null
+                [`flags.${MODULE_ID}.-=originalState`]: null,
             };
             return tokenDoc.update(clearFlags, { visageUpdate: true });
         }
@@ -212,20 +226,20 @@ export class VisageComposer {
         // Scenario B: Snapshot exists.
         // Restore the original visual data from the snapshot AND wipe the flags in a single update.
         const original = flags.originalState;
-        
+
         const updateData = {
             ...original,
             [`flags.${MODULE_ID}.-=activeStack`]: null,
             [`flags.${MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
-            [`flags.${MODULE_ID}.-=originalState`]: null
+            [`flags.${MODULE_ID}.-=originalState`]: null,
         };
 
         // Enforce System Integrity
         const context = {
             scaleX: original.texture?.scaleX ?? 1,
-            scaleY: original.texture?.scaleY ?? 1
+            scaleY: original.texture?.scaleY ?? 1,
         };
-        
+
         VisageSystems.process(updateData, original, context);
 
         await tokenDoc.update(updateData, { visageUpdate: true });

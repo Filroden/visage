@@ -1,4 +1,4 @@
-import { MODULE_ID } from "./visage-constants.js";
+import { MODULE_ID } from "../core/visage-constants.js";
 
 /**
  * @file Shared utility functions for the Visage module.
@@ -7,7 +7,6 @@ import { MODULE_ID } from "./visage-constants.js";
  */
 
 export class VisageUtilities {
-
     /**
      * Centralized logging helper.
      * respect's the developer mode module if present to suppress noise.
@@ -16,7 +15,9 @@ export class VisageUtilities {
      */
     static log(message, force = false) {
         // Integrate with _dev-mode module if available for standard debug toggling
-        const shouldLog = force || game.modules.get('_dev-mode')?.api?.getPackageDebugValue(MODULE_ID);
+        const shouldLog =
+            force ||
+            game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID);
         if (shouldLog) console.log(`${MODULE_ID} | ${message}`);
     }
 
@@ -31,20 +32,20 @@ export class VisageUtilities {
      */
     static cleanPath(path) {
         if (!path || typeof path !== "string") return "";
-        
+
         const lastDot = path.lastIndexOf(".");
-        
+
         // If no extension is found, fallback to standard splitting (unlikely for valid assets)
         if (lastDot === -1) return path.split("?")[0];
 
         // Search for a '?' only occurring AFTER the extension dot
         const queryIndex = path.indexOf("?", lastDot);
-        
+
         if (queryIndex !== -1) {
             // Found a cache buster after the extension
             return path.substring(0, queryIndex);
         }
-        
+
         // No cache buster found (any '?' present must be before the dot, i.e., a wildcard)
         return path;
     }
@@ -71,15 +72,15 @@ export class VisageUtilities {
      */
     static async resolvePath(path) {
         if (!path) return path;
-        
+
         // 1. Clean the path to determine if it truly contains wildcards
         // We ignore query strings (like Tokenizer's cache busters) for this check.
         const clean = this.cleanPath(path);
 
         // Optimization: If the CLEAN path has no wildcards, return the ORIGINAL path.
-        // This preserves query strings (cache busters) for the token update, 
+        // This preserves query strings (cache busters) for the token update,
         // while preventing them from breaking the file system lookup below.
-        if (!clean.includes('*') && !clean.includes('?')) return path;
+        if (!clean.includes("*") && !clean.includes("?")) return path;
 
         // 2. Prepare the clean path for FileSystem browsing
         let processingPath = clean;
@@ -100,25 +101,43 @@ export class VisageUtilities {
             // Handle S3 Bucket parsing logic
             if (/\.s3\./i.test(processingPath)) {
                 source = "s3";
-                const { bucket, keyPrefix } = FilePickerClass.parseS3URL(processingPath);
-                if (!bucket) return null; 
+                const { bucket, keyPrefix } =
+                    FilePickerClass.parseS3URL(processingPath);
+                if (!bucket) return null;
                 browseOptions.bucket = bucket;
 
-                const lastSlash = keyPrefix.lastIndexOf('/');
-                directory = lastSlash >= 0 ? keyPrefix.slice(0, lastSlash + 1) : "";
-                pattern   = lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
+                const lastSlash = keyPrefix.lastIndexOf("/");
+                directory =
+                    lastSlash >= 0 ? keyPrefix.slice(0, lastSlash + 1) : "";
+                pattern =
+                    lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
             }
             // Handle Core Icons (Public)
-            else if (processingPath.startsWith("icons/") || processingPath.startsWith("systems/") || processingPath.startsWith("modules/")) {
-                 if (processingPath.startsWith("icons/")) source = "public";
-                 const lastSlash = processingPath.lastIndexOf('/');
-                 directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
-                 pattern   = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
-            }
-            else {
-                const lastSlash = processingPath.lastIndexOf('/');
-                directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
-                pattern   = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
+            else if (
+                processingPath.startsWith("icons/") ||
+                processingPath.startsWith("systems/") ||
+                processingPath.startsWith("modules/")
+            ) {
+                if (processingPath.startsWith("icons/")) source = "public";
+                const lastSlash = processingPath.lastIndexOf("/");
+                directory =
+                    lastSlash >= 0
+                        ? processingPath.slice(0, lastSlash + 1)
+                        : "";
+                pattern =
+                    lastSlash >= 0
+                        ? processingPath.slice(lastSlash + 1)
+                        : processingPath;
+            } else {
+                const lastSlash = processingPath.lastIndexOf("/");
+                directory =
+                    lastSlash >= 0
+                        ? processingPath.slice(0, lastSlash + 1)
+                        : "";
+                pattern =
+                    lastSlash >= 0
+                        ? processingPath.slice(lastSlash + 1)
+                        : processingPath;
             }
 
             // Forge initialisation
@@ -139,14 +158,21 @@ export class VisageUtilities {
 
             // Convert wildcard pattern to a strict RegExp
             const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(`^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
+            const regex = new RegExp(
+                `^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`,
+                "i",
+            );
 
             // Perform the browse call to get file list
-            const content = await FilePickerClass.browse(source, directory, browseOptions);
+            const content = await FilePickerClass.browse(
+                source,
+                directory,
+                browseOptions,
+            );
             if (!content?.files?.length) return null;
 
             // Filter files returned by the server against our wildcard pattern
-            const matches = content.files.filter(file => {
+            const matches = content.files.filter((file) => {
                 const rawName = file.split("/").pop();
                 let name;
                 try {
@@ -159,14 +185,19 @@ export class VisageUtilities {
 
             if (matches.length) {
                 // Return a random selection from the matched files
-                const choice = matches[Math.floor(Math.random() * matches.length)];
+                const choice =
+                    matches[Math.floor(Math.random() * matches.length)];
                 return choice;
             } else {
-                console.warn(`Visage | Wildcard Resolution Failed: No files matched pattern '${pattern}' in directory '${directory}' (Source: ${source})`);
+                console.warn(
+                    `Visage | Wildcard Resolution Failed: No files matched pattern '${pattern}' in directory '${directory}' (Source: ${source})`,
+                );
             }
-        }
-        catch (err) {
-            console.warn(`Visage | Error resolving wildcard path: ${path}`, err);
+        } catch (err) {
+            console.warn(
+                `Visage | Error resolving wildcard path: ${path}`,
+                err,
+            );
         }
 
         return null;
@@ -182,16 +213,18 @@ export class VisageUtilities {
      */
     static extractVisualState(data) {
         if (!data) return {};
-        
+
         // Helper: Prefer raw source data (if Document) to avoid temporary flags/mods.
         const source = data._source || data;
-        
+
         // Fallback helper for nested properties which might not be in _source if they haven't been updated yet
-        const get = (key) => foundry.utils.getProperty(source, key) ?? foundry.utils.getProperty(data, key);
+        const get = (key) =>
+            foundry.utils.getProperty(source, key) ??
+            foundry.utils.getProperty(data, key);
 
         // Safely extract Ring data (Foundry V12+ Dynamic Token Rings)
         const ringData = source.ring?.toObject?.() ?? source.ring ?? {};
-        
+
         // Capture Light Source
         const lightData = source.light?.toObject?.() ?? source.light ?? {};
 
@@ -226,12 +259,12 @@ export class VisageUtilities {
                 scaleX: scaleX,
                 scaleY: scaleY,
                 anchorX: anchorX,
-                anchorY: anchorY
+                anchorY: anchorY,
             },
             ring: ringData,
             light: lightData,
             portrait: portrait,
-            delay: 0
+            delay: 0,
         };
     }
 
@@ -253,7 +286,7 @@ export class VisageUtilities {
                 token = scene?.tokens.get(tokenId);
             }
         }
-        
+
         if (token) actor = token.actor;
         else if (actorId) actor = game.actors.get(actorId);
 
@@ -275,7 +308,7 @@ export class VisageUtilities {
 
         // 2. Theme Classes
         element.classList.remove("visage-theme-local", "visage-theme-global");
-        
+
         if (isLocal) {
             element.classList.add("visage-theme-local");
         } else {
@@ -287,5 +320,7 @@ export class VisageUtilities {
      * Helper property to check availability of the Sequencer module.
      * @returns {boolean} True if Sequencer is active.
      */
-    static get hasSequencer() { return game.modules.get("sequencer")?.active; }
+    static get hasSequencer() {
+        return game.modules.get("sequencer")?.active;
+    }
 }

@@ -1,4 +1,4 @@
-import { VisageUtilities } from "./visage-utilities.js";
+import { VisageUtilities } from "../utils/visage-utilities.js";
 
 /**
  * Handles interactions with the Sequencer module to play and stop visual/audio effects on tokens.
