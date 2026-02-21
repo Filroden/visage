@@ -364,6 +364,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             data = foundry.utils.mergeObject(data, this._preservedData, {
                 inplace: false,
             });
+
+            // PREVENT ZOMBIE DATA: The snapshot's 'changes' object is the single source
+            // of truth for the form state. Overwrite the merged changes completely
+            // to ensure unchecked fields stay dead during re-renders.
+            data.changes = foundry.utils.deepClone(this._preservedData.changes);
         }
 
         let currentMode = data.mode || (this.isLocal ? "identity" : "overlay");
