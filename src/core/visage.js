@@ -1,7 +1,7 @@
 import { VisageComposer } from "./visage-composer.js";
-import { VisageData } from "./visage-data.js";
-import { VisageUtilities } from "./visage-utilities.js";
-import { VisageSequencer } from "./visage-sequencer.js";
+import { VisageData } from "../data/visage-data.js";
+import { VisageUtilities } from "../utils/visage-utilities.js";
+import { VisageSequencer } from "../integrations/visage-sequencer.js";
 import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
 
 /**

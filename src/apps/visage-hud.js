@@ -5,7 +5,7 @@
  * @module visage
  */
 
-import { Visage } from "./visage.js";
+import { Visage } from "../core/visage.js";
 import { VisageSelector } from "./visage-selector.js";
 
 /**
@@ -18,15 +18,15 @@ import { VisageSelector } from "./visage-selector.js";
 export async function handleTokenHUD(app, html, data) {
     // 1. Prevention & Permissions
     // Avoid duplicate buttons if the hook fires multiple times (which can happen during rapid updates).
-    if (html.querySelector('.visage-button')) return;
+    if (html.querySelector(".visage-button")) return;
 
-    const token = app.object; 
+    const token = app.object;
     // Only allow owners to see the Visage controls to prevent players modifying tokens they don't own.
-    if (!token?.actor?.isOwner) return; 
+    if (!token?.actor?.isOwner) return;
 
     const actor = token.actor;
     const sceneId = token.document.parent?.id;
-    if (!sceneId) return; 
+    if (!sceneId) return;
 
     // 2. Render Button
     const title = game.i18n.localize("VISAGE.Title");
@@ -35,42 +35,42 @@ export async function handleTokenHUD(app, html, data) {
             <img src="modules/visage/icons/domino_mask.svg" alt="${title}" class="visage-icon">
         </div>
     `;
-    
+
     // Inject into the left column (standard location for combat/attribute controls)
     const colLeft = html.querySelector(".col.left");
     if (!colLeft) return;
 
-    colLeft.insertAdjacentHTML('beforeend', buttonHtml);
-    const button = colLeft.querySelector('.visage-button');
+    colLeft.insertAdjacentHTML("beforeend", buttonHtml);
+    const button = colLeft.querySelector(".visage-button");
 
     // 3. Bind Event Listeners
     if (button) {
         button.addEventListener("click", () => {
-            const selectorId = `visage-selector-${actor.id}-${token.id}`; 
+            const selectorId = `visage-selector-${actor.id}-${token.id}`;
 
             // Toggle Logic: Close if already open
             if (Visage.apps[selectorId]) {
                 Visage.apps[selectorId].close();
-                return; 
+                return;
             }
 
             // --- Position Calculation ---
             const buttonRect = button.getBoundingClientRect();
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
-            
+
             // GAP LOGIC (Horizontal)
             // We want the HUD's Right Edge to be exactly 32px to the left of the button.
             // Formula: Distance from Screen Right = (Screen Width - Button Left) + Gap
             const gap = 32;
-            const rightPos = (viewportWidth - buttonRect.left) + gap;
+            const rightPos = viewportWidth - buttonRect.left + gap;
 
             // ANCHOR LOGIC (Vertical)
             // If space is tight (< 500px), anchor to BOTTOM (grow up).
             // Otherwise, anchor to TOP (grow down).
             let uiPosition = { right: rightPos };
-            
-            const minComfortableSpace = 500; 
+
+            const minComfortableSpace = 500;
             const spaceBelow = viewportHeight - buttonRect.top;
 
             if (spaceBelow < minComfortableSpace) {
@@ -92,13 +92,13 @@ export async function handleTokenHUD(app, html, data) {
             }
 
             const selectorApp = new VisageSelector({
-                actorId: actor.id, 
-                tokenId: token.id, 
+                actorId: actor.id,
+                tokenId: token.id,
                 sceneId: sceneId,
-                id: selectorId, 
-                uiPosition: uiPosition // Pass our safe custom object
+                id: selectorId,
+                uiPosition: uiPosition, // Pass our safe custom object
             });
-            
+
             selectorApp.render(true);
         });
     }

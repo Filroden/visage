@@ -189,8 +189,7 @@
             <nav class="visage-tabs tabs" aria-label="{{localize 'VISAGE.NavLabel'}}">
                 <a class="item active" data-tab="appearance">{{localize "VISAGE.Editor.Tabs.Appearance"}}</a>
                 <a class="item" data-tab="effects">{{localize "VISAGE.Editor.Tabs.Effects"}}</a>
-                {{!-- Triggers Tab (Hidden for v3.5) --}}
-                <a class="item" data-tab="triggers" style="display:none;">{{localize "VISAGE.Editor.Tabs.Triggers"}}</a>
+                <a class="item" data-tab="triggers">{{localize "VISAGE.Editor.Tabs.Triggers"}}</a>
             </nav>
 
             {{!-- TAB CONTENT --}}
@@ -202,7 +201,7 @@
                 {{!-- TAB 2: EFFECTS (Combined Visual, Audio, Light, Ring) --}}
                 {{> "modules/visage/templates/parts/visage-editor-effects.hbs"}}
 
-                {{!-- TAB 3: TRIGGERS (Placeholder) --}}
+                {{!-- TAB 3: TRIGGERS --}}
                 {{> "modules/visage/templates/parts/visage-editor-triggers.hbs"}}
 
             </section>

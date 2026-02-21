@@ -2,7 +2,7 @@
  * @file Handles "Ghost Edit" protection for the Token Configuration window.
  * * **Purpose:**
  * When a token has a Visage applied, its visual data (img, scale, etc.) is temporarily overridden.
- * If a user opens the Token Config, they normally see this *modified* data. Saving the form would 
+ * If a user opens the Token Config, they normally see this *modified* data. Saving the form would
  * accidentally overwrite the token's "true" default state with the temporary Visage data.
  * * This module intercepts the Token Config render, retrieves the "Original State" snapshot
  * from the flags, and silently populates the form fields with the *original* data.
@@ -10,7 +10,7 @@
  * @module visage
  */
 
-import { MODULE_ID } from "./visage-constants.js";
+import { MODULE_ID } from "../core/visage-constants.js";
 
 /**
  * Intercepts the Token Config application render to inject original state data.
@@ -22,18 +22,21 @@ import { MODULE_ID } from "./visage-constants.js";
  */
 export function handleGhostEdit(app, html, data) {
     const doc = app.document;
-    
+
     // 1. Safety Checks
     // Only proceed if this token is actually under Visage control and has a snapshot.
     if (!doc || !doc.flags?.[MODULE_ID]) return;
-    
+
     const originalState = doc.flags[MODULE_ID].originalState;
-    if (!originalState) return; 
+    if (!originalState) return;
 
     // 2. UI Notification
     // Warn the user that they are editing the *base* token, not the visible mask.
     if (!app._visageWarned) {
-        ui.notifications.warn("VISAGE.Warnings.GhostEdit", { localize: true, permanent: false });
+        ui.notifications.warn("VISAGE.Warnings.GhostEdit", {
+            localize: true,
+            permanent: false,
+        });
         app._visageWarned = true;
     }
 
@@ -47,7 +50,7 @@ export function handleGhostEdit(app, html, data) {
     else if (root?.querySelector) form = root.querySelector("form");
 
     if (!form) {
-        let htmlRoot = (html instanceof jQuery) ? html[0] : html;
+        let htmlRoot = html instanceof jQuery ? html[0] : html;
         if (htmlRoot?.tagName === "FORM") form = htmlRoot;
         else if (htmlRoot?.querySelector) form = htmlRoot.querySelector("form");
     }
@@ -77,11 +80,14 @@ export function handleGhostEdit(app, html, data) {
         // However, the stored data might be a bitmask number (integer).
         if (input.tagName === "MULTI-CHECKBOX") {
             let arrayValue = value;
-            
+
             // If we have a bitmask number, decode it back to keys
             if (name === "ring.effects" && typeof value === "number") {
                 const effectsMap = CONFIG.Token?.ring?.effects || {
-                    "RING_PULSE": 2, "RING_GRADIENT": 4, "BKG_WAVE": 8, "INVISIBILITY": 16
+                    RING_PULSE: 2,
+                    RING_GRADIENT: 4,
+                    BKG_WAVE: 8,
+                    INVISIBILITY: 16,
                 };
                 arrayValue = [];
                 for (const [key, bit] of Object.entries(effectsMap)) {
@@ -94,7 +100,7 @@ export function handleGhostEdit(app, html, data) {
             // Only update if different to avoid infinite loops/reactivity issues
             if (JSON.stringify(input.value) !== JSON.stringify(arrayValue)) {
                 input.value = arrayValue;
-                input.dispatchEvent(new Event('change', { bubbles: true }));
+                input.dispatchEvent(new Event("change", { bubbles: true }));
             }
             return;
         }
@@ -103,42 +109,49 @@ export function handleGhostEdit(app, html, data) {
         if (input.type === "checkbox") {
             if (input.checked !== !!value) {
                 input.checked = !!value;
-                input.dispatchEvent(new Event('change', { bubbles: true }));
+                input.dispatchEvent(new Event("change", { bubbles: true }));
             }
-        } 
-        else if (input.tagName === "COLOR-PICKER") {
-            input.value = value; 
+        } else if (input.tagName === "COLOR-PICKER") {
+            input.value = value;
             // Color pickers sometimes need an explicit input event to update their swatch
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        else {
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
             if (input.value != value) {
                 input.value = value;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-                
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+                input.dispatchEvent(new Event("change", { bubbles: true }));
+
                 // Handle <range-picker> custom elements (Foundry V11+)
                 if (input.tagName === "RANGE-PICKER") {
-                    const rangeInput = input.querySelector('input[type="range"]');
-                    const numberInput = input.querySelector('input[type="number"]');
+                    const rangeInput = input.querySelector(
+                        'input[type="range"]',
+                    );
+                    const numberInput = input.querySelector(
+                        'input[type="number"]',
+                    );
                     if (rangeInput) rangeInput.value = value;
                     if (numberInput) numberInput.value = value;
                 }
                 // Update legacy range slider text display
                 else if (input.type === "range") {
                     const rangeDisplay = input.nextElementSibling;
-                    if (rangeDisplay && rangeDisplay.classList.contains("range-value")) {
+                    if (
+                        rangeDisplay &&
+                        rangeDisplay.classList.contains("range-value")
+                    ) {
                         rangeDisplay.textContent = value;
                     }
                 }
             }
         }
-        
+
         // --- Image Previews ---
         // Manually update the <img> tag so the user *sees* the original image, not just the file path text.
         if (name === "texture.src" || name === "img") {
-            const group = input.closest(".form-group") || input.closest(".form-group-stacked");
+            const group =
+                input.closest(".form-group") ||
+                input.closest(".form-group-stacked");
             const preview = group?.querySelector("img");
             if (preview) preview.src = value;
             const thumb = group?.querySelector(".file-picker-image");
@@ -152,9 +165,9 @@ export function handleGhostEdit(app, html, data) {
         if (key.startsWith("flags") || key === "_id") continue;
         setInput(key, value);
     }
-    
+
     // B. SPECIAL HANDLING: Mirror & Scale & Anchors
-    // Token Config uses virtual inputs 'mirrorX', 'mirrorY', and 'scale' 
+    // Token Config uses virtual inputs 'mirrorX', 'mirrorY', and 'scale'
     // which don't strictly exist in the data model (they are derived from texture.scaleX/Y).
     // We must manually derive and set these to ensure the UI controls match the data.
     const tex = originalState.texture || {};
@@ -171,7 +184,7 @@ export function handleGhostEdit(app, html, data) {
     // 2. Inject into UI
     setInput("mirrorX", isMirrorX);
     setInput("mirrorY", isMirrorY);
-    setInput("scale", absScale); 
+    setInput("scale", absScale);
     setInput("texture.anchorX", anchorX);
     setInput("texture.anchorY", anchorY);
 }
