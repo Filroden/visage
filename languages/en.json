@@ -446,5 +446,9 @@
     "VISAGE.AttributePicker.SearchPlaceholder": "Search paths (e.g. 'hp' or 'ac')",
     "VISAGE.AttributePicker.Empty": "No matching attributes found.",
     "VISAGE.Notifications.Error.NoActorForAttributes": "Cannot pick attributes: No Actor is associated with this Visage.",
-    "VISAGE.Editor.Triggers.AutomationTooltip": "Automation Trigger"
+    "VISAGE.Editor.Triggers.AutomationTooltip": "Automation Trigger",
+    "VISAGE.Editor.Triggers.DataPathHint": "The property path to watch (e.g. system.attributes.hp.value). Note: The picker only shows raw data. You can manually type derived paths (getters) here if you know them.",
+    "VISAGE.Editor.Triggers.DenominatorPath": "Denominator Path (Optional)",
+    "VISAGE.Editor.Triggers.DenominatorHint": "The path to the maximum value. If left blank, Visage will automatically try to find a '.max' property next to your target path.",
+    "VISAGE.Editor.Triggers.DenominatorPlaceholder": "e.g., system.attributes.hp.max"
 }

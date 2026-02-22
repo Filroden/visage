@@ -290,10 +290,13 @@ export class VisageAutomation {
         if (actor.statuses.has(condition.statusId)) {
             isActive = true;
         }
+
         // 2. If not a core status, check all Active Effects by Name (e.g., "Rage", "Disguise Self")
         else {
-            isActive = actor.effects.some((e) => {
-                const effectName = (e.name || "").toLowerCase();
+            // Fallback to .effects if .appliedEffects doesn't exist for some reason (backward compatibility)
+            const effectsToSearch = actor.appliedEffects || actor.effects || [];
+            isActive = effectsToSearch.some((e) => {
+                const effectName = (e.name || e.label || "").toLowerCase();
                 return effectName === searchKey;
             });
         }

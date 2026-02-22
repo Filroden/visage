@@ -2660,9 +2660,24 @@ li.context-item .visage-icon-domino {
     width: 100%;
 }
 
+.visage .category-list {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
 .visage .category-list ul {
-    list-style: none; padding: 0; margin: 0;
-    display: flex; flex-direction: column; gap: 4px;
+    list-style: none;
+    padding: 0;
+    padding-inline-end: var(--filroden-space-s);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
 }
 .visage .category-list li a {
     display: block; padding: 6px 10px;

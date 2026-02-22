@@ -87,10 +87,13 @@
             {{!-- ATTRIBUTE CONDITION CONFIGURATION --}}
             {{#if (eq inspector.condition.type 'attribute')}}
                 <div class="form-group stacked">
-                    <label>{{localize "VISAGE.Editor.Triggers.DataPath"}}</label>
+                    <label>
+                        {{localize "VISAGE.Editor.Triggers.DataPath"}}
+                        <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.Editor.Triggers.DataPathHint'}}"></i>
+                    </label>
                     <div class="visage-form-fields" style="display: flex; gap: 0.5rem;">
                         <input type="text" name="inspector.path" value="{{inspector.condition.path}}" placeholder="e.g. system.attributes.hp.value">
-                        <button type="button" class="file-picker-button" data-action="openAttributePicker" data-tooltip="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}">
+                        <button type="button" class="file-picker-button" data-action="openAttributePicker" data-target="inspector.path" data-tooltip="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}">
                             <i class="visage-icon attribute-picker"></i>
                         </button>
                     </div>
@@ -118,6 +121,22 @@
                         </select>
                     </div>
                 </div>
+
+                {{!-- Dynamic Field: Denominator Path (Only shown for Percent mode) --}}
+                {{#if (eq inspector.condition.mode 'percent')}}
+                <div class="form-group stacked">
+                    <label>
+                        {{localize "VISAGE.Editor.Triggers.DenominatorPath"}}
+                        <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.Editor.Triggers.DenominatorHint'}}"></i>
+                    </label>
+                    <div class="visage-form-fields" style="display: flex; gap: 0.5rem;">
+                        <input type="text" name="inspector.denominatorPath" value="{{inspector.condition.denominatorPath}}" placeholder="{{localize 'VISAGE.Editor.Triggers.DenominatorPlaceholder'}}">
+                        <button type="button" class="file-picker-button" data-action="openAttributePicker" data-target="inspector.denominatorPath" data-tooltip="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}">
+                            <i class="visage-icon attribute-picker"></i>
+                        </button>
+                    </div>
+                </div>
+                {{/if}}
             {{/if}}
 
             {{!-- STATUS CONDITION CONFIGURATION --}}

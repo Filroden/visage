@@ -718,6 +718,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         cond.operator =
                             getVal("inspector.operator") ?? cond.operator;
                         cond.mode = getVal("inspector.mode") ?? cond.mode;
+                        cond.denominatorPath =
+                            getVal("inspector.denominatorPath") ??
+                            cond.denominatorPath ??
+                            "";
                         const val = getVal("inspector.value", Number);
                         if (val !== null && !isNaN(val)) cond.value = val;
                     } else if (cond.type === "status") {
@@ -1061,6 +1065,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 operator: "lte",
                 value: 0,
                 mode: "percent",
+                denominatorPath: "",
             });
         } else if (type === "status") {
             Object.assign(newCondition, { statusId: "", operator: "active" });
@@ -1113,11 +1118,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             );
         }
 
+        // Determine which input field to fill (defaults to inspector.path if none provided)
+        const targetInputName = target.dataset.target || "inspector.path";
+
         new VisageAttributePicker({
             actor: this.actor,
             onSelect: (path) => {
                 const pathInput = this.element.querySelector(
-                    'input[name="inspector.path"]',
+                    `input[name="${targetInputName}"]`,
                 );
                 if (pathInput) {
                     pathInput.value = path;
@@ -1719,6 +1727,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             value: s.id,
             label: game.i18n.localize(s.name),
         }));
+
+        // Dynamically add ALL Active Effects currently applied to the Actor
+        // Using appliedEffects captures both direct effects and item-transferred effects
+        if (this.actor && this.actor.appliedEffects) {
+            this.actor.appliedEffects.forEach((e) => {
+                const name = e.name || e.label;
+
+                // Only add it if it's not already in the list
+                if (
+                    name &&
+                    !effects.some(
+                        (existing) =>
+                            existing.value.toLowerCase() === name.toLowerCase(),
+                    )
+                ) {
+                    effects.push({
+                        value: name,
+                        label: `${name} (Active on Actor)`,
+                    });
+                }
+            });
+        }
 
         // Sort alphabetically by the localized label for better UX
         effects.sort((a, b) => a.label.localeCompare(b.label));
