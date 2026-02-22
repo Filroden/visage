@@ -274,21 +274,34 @@ export class VisageAutomation {
     }
 
     /**
-     * Evaluates a Status Effect condition against an actor.
+     * Evaluates a Status/Active Effect condition against an actor.
      * @param {Actor} actor - The actor to evaluate.
      * @param {Object} condition - The condition configuration.
      * @returns {boolean} True if the condition is met.
      */
     static _evalStatus(actor, condition) {
-        if (!condition.statusId) return false;
+        const targetStatus = condition.customStatus || condition.statusId;
+        if (!targetStatus) return false;
 
-        // Foundry maintains a Set of active status IDs directly on the actor
-        const hasStatus = actor.statuses.has(condition.statusId);
+        const searchKey = targetStatus.trim().toLowerCase();
+        let isActive = false;
+
+        // 1. First, check Foundry's native Statuses Set (e.g., "prone", "blinded")
+        if (actor.statuses.has(condition.statusId)) {
+            isActive = true;
+        }
+        // 2. If not a core status, check all Active Effects by Name (e.g., "Rage", "Disguise Self")
+        else {
+            isActive = actor.effects.some((e) => {
+                const effectName = (e.name || "").toLowerCase();
+                return effectName === searchKey;
+            });
+        }
 
         if (condition.operator === "active") {
-            return hasStatus; // True if the actor HAS the status
+            return isActive; // True if the actor HAS the effect
         } else if (condition.operator === "inactive") {
-            return !hasStatus; // True if the actor DOES NOT HAVE the status
+            return !isActive; // True if the actor DOES NOT HAVE the effect
         }
 
         return false;

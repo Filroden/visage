@@ -19,6 +19,7 @@ import { VisageData } from "../data/visage-data.js";
 import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageDragDropManager } from "./helpers/visage-drag-drop.js";
 import { VisageMediaController } from "./helpers/visage-media-controller.js";
+import { VisageAttributePicker } from "./helpers/visage-attribute-picker.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -185,9 +186,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // 2. Build Transformations
         const rawImg = data.changes?.texture?.src || "";
+        const resolvedPath = await VisageUtilities.resolvePath(rawImg);
         const context = VisageData.toPresentation(data, {
             isWildcard: rawImg.includes("*"),
             isActive: false,
+            resolvedPath: resolvedPath,
         });
         const inspectorData = this._buildInspectorContext();
         const stageData = this._buildStagePreviewContext(
@@ -237,8 +240,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     } else {
                         c.summary = `${c.eventId} (${c.operator === "active" ? "Active" : "Inactive"})`;
                     }
-                } else if (c.type === "action") {
-                    c.summary = `${c.actionType || "..."} (${c.outcome || "any"})`;
                 }
             });
         }
@@ -722,6 +723,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     } else if (cond.type === "status") {
                         cond.statusId =
                             getVal("inspector.statusId") ?? cond.statusId;
+                        cond.customStatus =
+                            getVal("inspector.customStatus") ??
+                            cond.customStatus;
                         cond.operator =
                             getVal("inspector.operator") ?? cond.operator;
                     } else if (cond.type === "event") {
@@ -753,19 +757,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                             cond.regionId =
                                 getVal("inspector.regionId") ?? cond.regionId;
                         }
-                    } else if (cond.type === "action") {
-                        cond.actionType =
-                            getVal("inspector.actionType") ?? cond.actionType;
-                        cond.outcome =
-                            getVal("inspector.outcome") ?? cond.outcome;
-
-                        cond.duration = cond.duration || {};
-                        cond.duration.mode =
-                            getVal("inspector.durationMode") ??
-                            cond.duration.mode;
-                        const dVal = getVal("inspector.durationValue", Number);
-                        if (dVal !== null && !isNaN(dVal))
-                            cond.duration.value = dVal;
                     }
                 }
             }
@@ -808,18 +799,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         else changes.disposition = null;
         if (formData.portrait_active) changes.portrait = formData.portrait;
         else changes.portrait = null;
-
         if (formData.img_active || formData.anchor_active) {
             changes.texture = {};
-            if (formData.img_active) changes.texture.src = formData.img;
-            else changes.texture.src = null;
+
+            if (formData.img_active) {
+                changes.texture.src = formData.img;
+            }
 
             if (formData.anchor_active) {
                 changes.texture.anchorX = parseFloat(formData.anchorX);
                 changes.texture.anchorY = parseFloat(formData.anchorY);
-            } else {
-                changes.texture.anchorX = null;
-                changes.texture.anchorY = null;
             }
         } else {
             changes.texture = null;
@@ -993,6 +982,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onToggleRing() {
         if (!this._ringData) return;
         this._ringData.enabled = !this._ringData.enabled;
+        if (this._ringData.enabled) {
+            const imgCheckbox = this.element.querySelector(
+                'input[name="img_active"]',
+            );
+            if (imgCheckbox && imgCheckbox.checked) {
+                imgCheckbox.checked = false;
+                this._onToggleField(null, imgCheckbox);
+                ui.notifications.info(
+                    game.i18n.localize("VISAGE.GlobalEditor.RingActiveWarning"),
+                );
+            }
+        }
         if (!this._ringData.enabled && this._editingRing) {
             this._editingRing = false;
             this._onCloseEffectInspector();
@@ -1068,13 +1069,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 eventId: "combat",
                 operator: "active",
             });
-        } else if (type === "action") {
-            // Action includes the transient duration latch block
-            Object.assign(newCondition, {
-                actionType: "attack",
-                outcome: "any",
-                duration: { mode: "time", value: 500 },
-            });
         }
 
         this._automationData.conditions.push(newCondition);
@@ -1111,8 +1105,31 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render();
     }
     _onOpenAttributePicker(event, target) {
-        ui.notifications.info("Attribute Picker coming soon!");
-        // This will be implemented in Milestone 5
+        if (!this.actor) {
+            return ui.notifications.warn(
+                game.i18n.localize(
+                    "VISAGE.Notifications.Error.NoActorForAttributes",
+                ),
+            );
+        }
+
+        new VisageAttributePicker({
+            actor: this.actor,
+            onSelect: (path) => {
+                const pathInput = this.element.querySelector(
+                    'input[name="inspector.path"]',
+                );
+                if (pathInput) {
+                    pathInput.value = path;
+                    pathInput.dispatchEvent(
+                        new Event("input", { bubbles: true }),
+                    );
+                    pathInput.dispatchEvent(
+                        new Event("change", { bubbles: true }),
+                    );
+                }
+            },
+        }).render(true);
     }
     _onToggleCondition(event, target) {
         const id = target.closest(".effect-card").dataset.id;
@@ -1376,6 +1393,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const brightPct = lMax > 0 ? ((lData.bright || 0) / lMax) * 100 : 0;
 
         return {
+            img: resolved || rawPath,
             resolvedPath: resolved || rawPath,
             name: changes.name,
             hasCheckerboard: true,

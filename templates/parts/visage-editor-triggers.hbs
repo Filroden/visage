@@ -36,9 +36,6 @@
             <button type="button" data-action="addCondition" data-type="event" {{disabled (not automation.enabled)}}>
                 <i class="visage-icon add"></i> {{localize "VISAGE.Editor.Triggers.AddEvent"}}
             </button>
-            <button type="button" data-action="addCondition" data-type="action" {{disabled (not automation.enabled)}}>
-                <i class="visage-icon add"></i> {{localize "VISAGE.Editor.Triggers.AddAction"}}
-            </button>
         </div>
 
         {{!-- Condition Cards --}}
@@ -126,14 +123,21 @@
             {{!-- STATUS CONDITION CONFIGURATION --}}
             {{#if (eq inspector.condition.type 'status')}}
                 <div class="form-group stacked">
-                    <label>{{localize "VISAGE.Editor.Triggers.StatusId"}}</label>
+                    <label>{{localize "VISAGE.Editor.Triggers.StatusId"}} ({{localize "VISAGE.Editor.Triggers.CoreStatus"}})</label>
                     <div class="visage-form-fields">
                         <select name="inspector.statusId">
-                            <option value="" disabled {{#unless inspector.condition.statusId}}selected{{/unless}}>{{localize "VISAGE.Editor.Triggers.SelectStatus"}}</option>
+                            <option value="">{{localize "VISAGE.Editor.Triggers.CustomOrNoneStatus"}}</option>
                             {{#each statusEffects}}
                                 <option value="{{this.value}}" {{visageSelected (eq ../inspector.condition.statusId this.value)}}>{{this.label}}</option>
                             {{/each}}
                         </select>
+                    </div>
+                </div>
+                
+                <div class="form-group stacked">
+                    <label>{{localize "VISAGE.Editor.Triggers.CustomStatusName"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="text" name="inspector.customStatus" value="{{inspector.condition.customStatus}}" placeholder="{{localize 'VISAGE.Editor.Triggers.CustomStatusPlaceholder'}}">
                     </div>
                 </div>
 
@@ -214,40 +218,6 @@
                         </div>
                     </div>
                 {{/if}}
-            {{/if}}
-
-            {{!-- ACTION CONDITION CONFIGURATION --}}
-            {{#if (eq inspector.condition.type 'action')}}
-                <div class="form-group fade-grid">
-                    <label>{{localize "VISAGE.Editor.Triggers.ActionType"}}</label>
-                    <select name="inspector.actionType">
-                        <option value="attack" {{visageSelected (eq inspector.condition.actionType "attack")}}>{{localize "VISAGE.Editor.Triggers.ActionAttack"}}</option>
-                        <option value="cast" {{visageSelected (eq inspector.condition.actionType "cast")}}>{{localize "VISAGE.Editor.Triggers.ActionCast"}}</option>
-                        <option value="damage" {{visageSelected (eq inspector.condition.actionType "damage")}}>{{localize "VISAGE.Editor.Triggers.ActionDamage"}}</option>
-                        <option value="heal" {{visageSelected (eq inspector.condition.actionType "heal")}}>{{localize "VISAGE.Editor.Triggers.ActionHeal"}}</option>
-                    </select>
-
-                    <label>{{localize "VISAGE.Editor.Triggers.Outcome"}}</label>
-                    <select name="inspector.outcome">
-                        <option value="any" {{visageSelected (eq inspector.condition.outcome "any")}}>{{localize "VISAGE.Editor.Triggers.OutcomeAny"}}</option>
-                        <option value="critical" {{visageSelected (eq inspector.condition.outcome "critical")}}>{{localize "VISAGE.Editor.Triggers.OutcomeCritical"}}</option>
-                        <option value="hit" {{visageSelected (eq inspector.condition.outcome "hit")}}>{{localize "VISAGE.Editor.Triggers.OutcomeHit"}}</option>
-                        <option value="miss" {{visageSelected (eq inspector.condition.outcome "miss")}}>{{localize "VISAGE.Editor.Triggers.OutcomeMiss"}}</option>
-                    </select>
-                </div>
-
-                <hr class="visage-divider">
-
-                <div class="form-group fade-grid">
-                    <label>{{localize "VISAGE.Editor.Triggers.DurationMode"}}</label>
-                    <select name="inspector.durationMode">
-                        <option value="time" {{visageSelected (eq inspector.condition.duration.mode "time")}}>{{localize "VISAGE.Editor.Triggers.DurationTime"}}</option>
-                        <option value="turn" {{visageSelected (eq inspector.condition.duration.mode "turn")}}>{{localize "VISAGE.Editor.Triggers.DurationTurn"}}</option>
-                    </select>
-
-                    <label>{{localize "VISAGE.Editor.Triggers.DurationValue"}}</label>
-                    <input type="number" name="inspector.durationValue" value="{{inspector.condition.duration.value}}" step="1">
-                </div>
             {{/if}}
 
         </fieldset>
