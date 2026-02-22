@@ -1895,8 +1895,6 @@ li.context-item .visage-icon-domino {
     padding: 2rem;
 }
 
-
-
 /* Fade Grid (Inspector) - Mimics .mirroring-grid */
 .visage .visage-form-fields.fade-grid {
     display: grid;
@@ -1910,6 +1908,15 @@ li.context-item .visage-icon-domino {
     margin: 0;
     color: var(--visage-color-text-muted);
     font-size: 0.8em;
+}
+
+.visage .visage-ring-warning-message {
+    font-size: 0.85em;
+    color: var(--visage-color-text-muted);
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 /* --- Footer --- */

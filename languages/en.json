@@ -451,5 +451,10 @@
     "VISAGE.Editor.Triggers.RegionId": "Region ID or Name",
     "VISAGE.Editor.Triggers.RegionEnter": "Inside Region",
     "VISAGE.Editor.Triggers.RegionExit": "Outside Region",
-    "VISAGE.Editor.Triggers.EventGlobalLight": "Scene Global Illumination"
+    "VISAGE.Editor.Triggers.EventGlobalLight": "Scene Global Illumination",
+    "VISAGE.Editor.Triggers.CoreStatus": "Core",
+    "VISAGE.Editor.Triggers.CustomOrNoneStatus": "-- Custom or None --",
+    "VISAGE.Editor.Triggers.CustomStatusName": "Or Custom Name",
+    "VISAGE.Editor.Triggers.CustomStatusPlaceholder": "e.g., 'Rage' or 'Disguise Self'",
+    "VISAGE.GlobalEditor.RingActiveWarning": "Dynamic Ring is active. The token's base image is hidden. To change the token's appearance, edit the Subject Texture in the Ring inspector."
 }

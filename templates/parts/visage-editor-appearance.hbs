@@ -34,22 +34,39 @@
                 data-action="toggleField"
                 data-target="img"
                 {{checked img.active}}
+                {{disabled ring.active}}
             />
             <label>{{localize "VISAGE.GlobalEditor.TokenImage"}}</label>
+
             <div class="visage-form-fields">
-                <input
-                    type="text"
-                    name="img"
-                    value="{{this.img.value}}"
-                    {{disabled (not img.active)}}
-                    placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}"
-                />
-                <button
-                    type="button"
-                    class="file-picker-button"
-                    data-action="openFilePicker"
-                    {{disabled (not img.active)}}
-                ><i class="visage-icon image-search"></i></button>
+                {{#if ring.active}}
+                    <div class="visage-ring-warning-message">
+                        <i class="fas fa-info-circle"></i>
+                        {{localize "VISAGE.GlobalEditor.RingActiveWarning"}}
+                    </div>
+                    <input type="hidden" name="img" value="{{img.value}}" />
+                {{else}}
+                    <input
+                        type="text"
+                        name="img"
+                        value="{{img.value}}"
+                        {{disabled (not img.active)}}
+                        placeholder="{{localize
+                            'VISAGE.GlobalEditor.TokenImage'
+                        }}"
+                    />
+                    <button
+                        type="button"
+                        class="file-picker-button"
+                        data-action="openFilePicker"
+                        data-tooltip="{{localize
+                            'VISAGE.GlobalEditor.FilePicker'
+                        }}"
+                        {{disabled (not img.active)}}
+                    >
+                        <i class="visage-icon image-search"></i>
+                    </button>
+                {{/if}}
             </div>
         </div>
 

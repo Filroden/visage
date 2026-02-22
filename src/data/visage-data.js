@@ -412,7 +412,8 @@ export class VisageData {
         const tx = c.texture || {};
 
         // 1. Path & Media Resolutions
-        const resolvedPath = options.resolvedPath || c.texture?.src || "";
+        const resolvedPath =
+            options.resolvedPath || this.getRepresentativeImage(c);
         const cleanPath = VisageUtilities.cleanPath(resolvedPath);
         const isVideo = options.isVideo ?? VisageUtilities.isVideo(cleanPath);
 
