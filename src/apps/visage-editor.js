@@ -19,6 +19,7 @@ import { VisageData } from "../data/visage-data.js";
 import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageDragDropManager } from "./helpers/visage-drag-drop.js";
 import { VisageMediaController } from "./helpers/visage-media-controller.js";
+import { VisageAttributePicker } from "./helpers/visage-attribute-picker.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -1104,8 +1105,31 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render();
     }
     _onOpenAttributePicker(event, target) {
-        ui.notifications.info("Attribute Picker coming soon!");
-        // This will be implemented in Milestone 5
+        if (!this.actor) {
+            return ui.notifications.warn(
+                game.i18n.localize(
+                    "VISAGE.Notifications.Error.NoActorForAttributes",
+                ),
+            );
+        }
+
+        new VisageAttributePicker({
+            actor: this.actor,
+            onSelect: (path) => {
+                const pathInput = this.element.querySelector(
+                    'input[name="inspector.path"]',
+                );
+                if (pathInput) {
+                    pathInput.value = path;
+                    pathInput.dispatchEvent(
+                        new Event("input", { bubbles: true }),
+                    );
+                    pathInput.dispatchEvent(
+                        new Event("change", { bubbles: true }),
+                    );
+                }
+            },
+        }).render(true);
     }
     _onToggleCondition(event, target) {
         const id = target.closest(".effect-card").dataset.id;

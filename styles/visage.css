@@ -14,7 +14,8 @@
  * 9. Scene Control Integration
  * 10. Welcome Chat Card
  * 11. Game Settings
- * 12. Theme Definitions (The Engine)
+ * 12. Application: Attribute Picker
+ * 13. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
@@ -3499,8 +3500,120 @@ button.visage-tool-icon {
     color: var(--visage-color-text-main-solid) !important;
 }
 
+
 /* ==========================================================================
-   12. THEME DEFINITIONS (The Engine)
+   12. APPLICATION: ATTRIBUTE PICKER
+   ========================================================================== */
+
+.visage.visage-attribute-picker-app .window-content {
+    padding: var(--filroden-space-m) !important;
+}
+
+.visage-attribute-picker-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-m);
+    height: 100%;
+    min-height: 0;
+}
+
+.visage-attribute-picker-content .search-bar {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.visage-attribute-picker-content .search-bar input {
+    width: 100%;
+    padding-inline-start: 2rem;
+    background: var(--visage-color-bg-medium-solid);
+}
+
+.visage-attribute-picker-content .search-bar .visage-icon.search {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: var(--filroden-space-s);
+    transform: translateY(-50%);
+    color: var(--filroden-color-text-muted);
+    pointer-events: none;
+    margin: 0;
+}
+
+.visage-attribute-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-xxs);
+    padding-inline-end: var(--filroden-space-xs);
+}
+
+.visage-attribute-list .empty-state {
+    text-align: center;
+    color: var(--filroden-color-text-muted);
+    font-style: italic;
+    padding: var(--filroden-space-l);
+}
+
+.visage-attribute-list .attribute-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--visage-color-bg-medium-solid);
+    border: 1px solid var(--visage-color-border);
+    border-radius: var(--filroden-radius-small);
+    padding: var(--filroden-space-xs) var(--filroden-space-s);
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.visage-attribute-list .attribute-item:hover {
+    background: var(--visage-color-bg-light);
+    border-color: var(--visage-color-accent);
+}
+
+.visage-attribute-list .attribute-info {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+    overflow: hidden;
+}
+
+.visage-attribute-list .path {
+    font-family: monospace;
+    font-size: var(--filroden-font-size-xs);
+    color: var(--visage-color-text-main-solid);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.visage-attribute-list .type-badge {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    padding: 1px 4px;
+    border-radius: var(--filroden-radius-large);
+    background: var(--visage-color-bg-darkest);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--visage-color-text-muted);
+}
+
+.visage-attribute-list .type-badge.number { color: #64b5f6; border-color: #64b5f6; }
+.visage-attribute-list .type-badge.boolean { color: #81c784; border-color: #81c784; }
+.visage-attribute-list .type-badge.string { color: #ffb74d; border-color: #ffb74d; }
+
+.visage-attribute-list .current-value {
+    font-family: monospace;
+    font-weight: var(--filroden-font-weight-bold);
+    color: var(--visage-color-accent);
+    font-size: var(--filroden-font-size-xs);
+    flex: 0 0 auto;
+    margin-inline-start: var(--filroden-space-s);
+}
+
+
+/* ==========================================================================
+   13. THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
 /* --- 1. Universal Defaults --- */
