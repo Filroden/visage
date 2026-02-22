@@ -2,6 +2,7 @@
 
 | Version | Changes |
 | :--- | :--- |
+| **Version 4.0.0** | |
 | **Version 3.5.2** | **BUG FIXES**<br>- Fixed soft deleted Visages being displayed in the Selector HUD.|
 | **Version 3.5.1** | **BUG FIXES**<br>- Fixed an issue when in the Editor where if you deselected appearance properties, switched tabs then either saved from the Effects tab or returned to the Appearance tab, it would restore the previous data.|
 | **Version 3.5.0** | **NEW FEATURES**<br>- **Public/Private Global Visages**: GMs can mark their Global Visages as either public or private (private is the default). Public global visages will become visible inside players' Selector HUDs and they can apply them to their own tokens.<br><br>**IMPROVEMENTS**<br>- Moved Dynamic Ring configuration into the Editor's Effects tab (to make space for a new tab coming in v4). This now works similar to the Light configuration.<br>- Only persistent effects are restarted when refreshing or returning to a scene with active Visage effects.<br><br>**BUG FIXES**<br>- Fix for error when a token is dropped to the scene that is not owned by the player.<br>- Fixed audio not stopping when switching scenes.|

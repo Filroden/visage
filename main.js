@@ -5,18 +5,22 @@
  * @version 3.0.0
  */
 
-import { Visage } from "./src/visage.js";
-import { VisageSelector } from "./src/visage-selector.js";
-import { VisageData } from "./src/visage-data.js";
-import { VisageEditor } from "./src/visage-editor.js";
-import { VisageGallery } from "./src/visage-gallery.js";
-import { handleTokenHUD } from "./src/visage-hud.js";
-import { cleanseSceneTokens, cleanseAllTokens } from "./src/visage-cleanup.js";
-import { migrateWorldData } from "./src/visage-migration.js";
-import { handleGhostEdit } from "./src/visage-ghost.js";
-import { MODULE_ID } from "./src/visage-constants.js";
-import { VisageSequencer } from "./src/visage-sequencer.js";
-import { VisageSamples } from "./src/visage-samples.js";
+import { Visage } from "./src/core/visage.js";
+import { VisageSelector } from "./src/apps/visage-selector.js";
+import { VisageData } from "./src/data/visage-data.js";
+import { VisageEditor } from "./src/apps/visage-editor.js";
+import { VisageGallery } from "./src/apps/visage-gallery.js";
+import { handleTokenHUD } from "./src/apps/visage-hud.js";
+import {
+    cleanseSceneTokens,
+    cleanseAllTokens,
+} from "./src/data/visage-cleanup.js";
+import { migrateWorldData } from "./src/data/visage-migration.js";
+import { handleGhostEdit } from "./src/apps/visage-ghost.js";
+import { MODULE_ID } from "./src/core/visage-constants.js";
+import { VisageSequencer } from "./src/integrations/visage-sequencer.js";
+import { VisageSamples } from "./src/data/visage-samples.js";
+import { VisageAutomation } from "./src/core/visage-automation.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -408,6 +412,9 @@ Hooks.once("ready", async () => {
         // Clean up deleted items older than retention period
         VisageData.runGarbageCollection();
 
+        // Initialize the Automation Engine Watcher
+        VisageAutomation.initialize();
+
         // Check if a migration is required based on the version difference
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {
             // Trigger data migration if the previous version is older than the schema change
@@ -478,8 +485,8 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
 
     // Dynamic import required here because VisageData relies on initialization
     // occurring before it can be fully utilized in this context.
-    const { VisageData } = await import("./src/visage-data.js");
-    const { Visage } = await import("./src/visage.js");
+    const { VisageData } = await import("./src/data/visage-data.js");
+    const { Visage } = await import("./src/core/visage.js");
 
     // Ensure the dropped ID is valid
     const visageData = VisageData.getGlobal(data.id);

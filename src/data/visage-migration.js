@@ -5,9 +5,9 @@
  * @module visage
  */
 
-import { Visage } from "./visage.js";
+import { Visage } from "../core/visage.js";
 import { VisageData } from "./visage-data.js";
-import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
+import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
 
 /**
  * Main Migration Routine.
@@ -43,14 +43,16 @@ async function _migrateV3(DATA_NAMESPACE) {
     for (const actor of game.actors) {
         const flagData = actor.flags[DATA_NAMESPACE] || {};
         const alternates = flagData.alternateVisages || {};
-        
+
         let updates = {};
         let hasUpdates = false;
 
         for (const [key, data] of Object.entries(alternates)) {
             // If missing 'mode', default to 'identity' (classic Visage behavior)
             if (!data.mode) {
-                updates[`flags.${DATA_NAMESPACE}.alternateVisages.${key}.mode`] = "identity";
+                updates[
+                    `flags.${DATA_NAMESPACE}.alternateVisages.${key}.mode`
+                ] = "identity";
                 hasUpdates = true;
             }
         }
@@ -85,7 +87,9 @@ async function _migrateV3(DATA_NAMESPACE) {
         console.log(`Migrated ${globalsMigrated} Global Entries.`);
     }
 
-    console.log(`Migration Complete. Actors: ${actorsMigrated}, Globals: ${globalsMigrated}`);
+    console.log(
+        `Migration Complete. Actors: ${actorsMigrated}, Globals: ${globalsMigrated}`,
+    );
     console.groupEnd();
 }
 
@@ -97,15 +101,15 @@ async function _migrateV3(DATA_NAMESPACE) {
  * @private
  */
 async function _migrateV2(DATA_NAMESPACE) {
-    const legacyKey = Visage.LEGACY_FLAG_KEY || "visages"; 
+    const legacyKey = Visage.LEGACY_FLAG_KEY || "visages";
     const newKey = Visage.ALTERNATE_FLAG_KEY || "alternateVisages";
 
     console.groupCollapsed("Visage | Legacy Cleanups (v2.2)");
 
     // 1. Find "Synthetic Actors" (Unlinked Tokens)
-    // We must scan the canvas/scenes because unlinked tokens have their own actor data 
+    // We must scan the canvas/scenes because unlinked tokens have their own actor data
     // that is NOT present in game.actors.
-    const worldTokenMap = new Map(); 
+    const worldTokenMap = new Map();
     for (const scene of game.scenes) {
         for (const token of scene.tokens) {
             if (!token.isLinked && token.actor) {
@@ -131,13 +135,15 @@ async function _migrateV2(DATA_NAMESPACE) {
         }
 
         // B. Clean Data Structure inside 'alternateVisages'
-        const targetContainer = updates[`flags.${DATA_NAMESPACE}.${newKey}`] || flags[newKey];
+        const targetContainer =
+            updates[`flags.${DATA_NAMESPACE}.${newKey}`] || flags[newKey];
         if (targetContainer) {
             for (const [id, entry] of Object.entries(targetContainer)) {
                 const cleaned = cleanVisageData(entry);
                 // Simple diff check (stringified) to avoid unnecessary database writes
                 if (JSON.stringify(cleaned) !== JSON.stringify(entry)) {
-                    updates[`flags.${DATA_NAMESPACE}.${newKey}.${id}`] = cleaned;
+                    updates[`flags.${DATA_NAMESPACE}.${newKey}.${id}`] =
+                        cleaned;
                     hasUpdates = true;
                 }
             }
@@ -163,7 +169,7 @@ async function _migrateV2(DATA_NAMESPACE) {
  */
 export function cleanVisageData(entry) {
     if (!entry.changes) return entry;
-    
+
     const c = entry.changes;
 
     // 1. Clean 'img' (Legacy v1)
@@ -183,17 +189,16 @@ export function cleanVisageData(entry) {
     // so they can be layered independently by the Composer.
     const tx = c.texture;
     if (tx && (tx.scaleX !== undefined || tx.scaleY !== undefined)) {
-        
         // Extract Data
         const scaleX = tx.scaleX ?? 1.0;
         const scaleY = tx.scaleY ?? 1.0;
-        
+
         const absX = Math.abs(scaleX);
-        
+
         // A. Extract Atomic Scale Intent
         // If scale isn't 1.0, we assume the user intended to scale the token
         if (absX !== 1.0 && c.scale === undefined) {
-            c.scale = absX; 
+            c.scale = absX;
         }
 
         // B. Extract Mirror Intent
@@ -204,7 +209,7 @@ export function cleanVisageData(entry) {
         // We delete these so they don't override the atomic properties during composition.
         delete tx.scaleX;
         delete tx.scaleY;
-        
+
         // Remove texture object if empty to keep DB clean
         if (Object.keys(tx).length === 0) delete c.texture;
     }

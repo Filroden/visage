@@ -1,9 +1,9 @@
-import { Visage } from "./visage.js";
+import { Visage } from "../core/visage.js";
 import { VisageGallery } from "./visage-gallery.js";
-import { VisageComposer } from "./visage-composer.js";
-import { VisageData } from "./visage-data.js";
-import { VisageUtilities } from "./visage-utilities.js";
-import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
+import { VisageComposer } from "../core/visage-composer.js";
+import { VisageData } from "../data/visage-data.js";
+import { VisageUtilities } from "../utils/visage-utilities.js";
+import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 

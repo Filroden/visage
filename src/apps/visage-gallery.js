@@ -1,9 +1,9 @@
-import { Visage } from "./visage.js";
-import { VisageData } from "./visage-data.js"; 
+import { Visage } from "../core/visage.js";
+import { VisageData } from "../data/visage-data.js";
 import { VisageEditor } from "./visage-editor.js";
-import { VisageUtilities } from "./visage-utilities.js";
-import { cleanVisageData } from "./visage-migration.js";
-import { MODULE_ID } from "./visage-constants.js";
+import { VisageUtilities } from "../utils/visage-utilities.js";
+import { cleanVisageData } from "../data/visage-migration.js";
+import { MODULE_ID } from "../core/visage-constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -13,7 +13,6 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
  * Handles filtering, searching, drag-and-drop application, and import/export operations.
  */
 export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
-    
     /**
      * @param {Object} options - Application options.
      * @param {string} [options.actorId] - The ID of the actor (if Local Gallery).
@@ -22,11 +21,11 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     constructor(options = {}) {
         super(options);
-        
+
         this.actorId = options.actorId || null;
         this.tokenId = options.tokenId || null;
         this.sceneId = options.sceneId || null;
-       
+
         /**
          * Internal state for search and filtering.
          * @type {Object}
@@ -35,14 +34,14 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             search: "",
             category: null,
             tags: new Set(),
-            showBin: false
+            showBin: false,
         };
-        
+
         // --- Reactivity Bindings ---
-        
+
         // Listener for Global Data changes (Settings updates)
         this._onDataChanged = () => this.render();
-        
+
         // Listener for Local Data changes (Actor flag updates)
         this._onActorUpdate = (doc) => {
             if (doc.id === this.actorId) this.render();
@@ -54,7 +53,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             if (this.tokenId && doc.id === this.tokenId) {
                 setTimeout(() => {
                     if (this.rendered) this.render();
-                }, 100); 
+                }, 100);
             }
         };
 
@@ -70,7 +69,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     /**
      * @returns {boolean} True if this gallery is scoped to a specific Actor.
      */
-    get isLocal() { return !!this.actorId; }
+    get isLocal() {
+        return !!this.actorId;
+    }
 
     /**
      * @returns {Actor|null} The resolved Actor document.
@@ -94,10 +95,10 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     static DEFAULT_OPTIONS = {
         tag: "div",
-        id: "visage-gallery", 
+        id: "visage-gallery",
         classes: ["visage", "visage-gallery", "visage-dark-theme"],
         window: {
-            title: "VISAGE.Directory.Title.Global", 
+            title: "VISAGE.Directory.Title.Global",
             icon: "visage-icon-domino",
             resizable: true,
         },
@@ -109,40 +110,42 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             delete: VisageGallery.prototype._onDelete,
             restore: VisageGallery.prototype._onRestore,
             destroy: VisageGallery.prototype._onDestroy,
-            
+
             // Application Actions
             apply: VisageGallery.prototype._onApply,
             toggleMode: VisageGallery.prototype._onToggleMode,
             swapDefault: VisageGallery.prototype._onSwapDefault,
             promote: VisageGallery.prototype._onPromote,
             copyToLocal: VisageGallery.prototype._onCopyToLocal,
-            
+
             // Filtering Actions
             selectCategory: VisageGallery.prototype._onSelectCategory,
             toggleBin: VisageGallery.prototype._onToggleBin,
             clearSearch: VisageGallery.prototype._onClearSearch,
             toggleTag: VisageGallery.prototype._onToggleTag,
             clearTags: VisageGallery.prototype._onClearTags,
-            
+
             // Menu / Data Actions
             toggleMenu: VisageGallery.prototype._onToggleMenu,
             duplicate: VisageGallery.prototype._onDuplicate,
             export: VisageGallery.prototype._onExport,
             import: VisageGallery.prototype._onImport,
-            exportIndividual: VisageGallery.prototype._onExportIndividual
-        }
+            exportIndividual: VisageGallery.prototype._onExportIndividual,
+        },
     };
 
     static PARTS = {
         directory: {
-            template: "modules/visage/templates/visage-gallery.hbs", 
-            scrollable: [".visage-browser-grid", ".visage-sidebar"]
-        }
+            template: "modules/visage/templates/visage-gallery.hbs",
+            scrollable: [".visage-browser-grid", ".visage-sidebar"],
+        },
     };
 
     get title() {
         if (this.isLocal && this.actor) {
-            return game.i18n.format("VISAGE.Directory.Title.Local", { actor: this.actor.name });
+            return game.i18n.format("VISAGE.Directory.Title.Local", {
+                actor: this.actor.name,
+            });
         }
         return game.i18n.localize("VISAGE.Directory.Title.Global");
     }
@@ -153,32 +156,37 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     async _prepareContext(options) {
         let rawItems = [];
-        
+
         // 1. Fetch Source Data
         if (this.isLocal) {
             if (!this.actor) return { identities: [], overlays: [] };
             rawItems = VisageData.getLocal(this.actor);
         } else {
-            rawItems = this.filters.showBin ? VisageData.bin : VisageData.globals;
+            rawItems = this.filters.showBin
+                ? VisageData.bin
+                : VisageData.globals;
         }
 
         let source = rawItems;
         // Local Bin Handling: Filter deleted items based on toggle state
         if (this.isLocal) {
-            source = rawItems.filter(v => this.filters.showBin ? v.deleted : !v.deleted);
+            source = rawItems.filter((v) =>
+                this.filters.showBin ? v.deleted : !v.deleted,
+            );
         }
-        
+
         // 2. Inject "Default" Entry (Local Only)
         // The default appearance is treated as a virtual Identity Visage.
         if (this.isLocal && !this.filters.showBin && this.actor) {
-             let defaultRaw;
-             if (this.tokenId) {
-                 const token = canvas.tokens.get(this.tokenId);
-                 if (token) defaultRaw = VisageData.getDefaultAsVisage(token.document);
-             } 
-             if (!defaultRaw) {
+            let defaultRaw;
+            if (this.tokenId) {
+                const token = canvas.tokens.get(this.tokenId);
+                if (token)
+                    defaultRaw = VisageData.getDefaultAsVisage(token.document);
+            }
+            if (!defaultRaw) {
                 const proto = this.actor.prototypeToken;
-                defaultRaw = { 
+                defaultRaw = {
                     id: "default",
                     label: game.i18n.localize("VISAGE.Selector.Default"),
                     category: "",
@@ -187,43 +195,63 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                     mode: "identity",
                     changes: {
                         name: proto.name,
-                        texture: { src: proto.texture.src, scaleX: proto.texture.scaleX ?? 1.0, scaleY: proto.texture.scaleY ?? 1.0 },
-                        disposition: proto.disposition, ring: proto.ring, width: proto.width, height: proto.height
-                    }
+                        texture: {
+                            src: proto.texture.src,
+                            scaleX: proto.texture.scaleX ?? 1.0,
+                            scaleY: proto.texture.scaleY ?? 1.0,
+                        },
+                        disposition: proto.disposition,
+                        ring: proto.ring,
+                        width: proto.width,
+                        height: proto.height,
+                    },
                 };
-             }
-             if (defaultRaw) source.unshift(defaultRaw);
+            }
+            if (defaultRaw) source.unshift(defaultRaw);
         }
 
         // --- FILTERING LOGIC ---
-        
+
         // A. Calculate Available Tags/Categories (Before filtering, to show full scope)
         const categories = new Set();
-        const tagCounts = {}; 
-        source.forEach(v => {
+        const tagCounts = {};
+        source.forEach((v) => {
             if (v.category) categories.add(v.category);
             if (v.tags && Array.isArray(v.tags)) {
-                v.tags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; });
+                v.tags.forEach((t) => {
+                    tagCounts[t] = (tagCounts[t] || 0) + 1;
+                });
             }
         });
 
         // B. Apply Filters
-        let filteredItems = source.filter(entry => {
+        let filteredItems = source.filter((entry) => {
             // Category Filter
-            if (this.filters.category && entry.category !== this.filters.category) return false;
-            
+            if (
+                this.filters.category &&
+                entry.category !== this.filters.category
+            )
+                return false;
+
             // Search Text (Label or Tags)
             if (this.filters.search) {
                 const term = this.filters.search.toLowerCase();
                 const matchesLabel = entry.label.toLowerCase().includes(term);
-                const matchesTags = entry.tags && entry.tags.some(t => t.toLowerCase().includes(term));
+                const matchesTags =
+                    entry.tags &&
+                    entry.tags.some((t) => t.toLowerCase().includes(term));
                 if (!matchesLabel && !matchesTags) return false;
             }
-            
+
             // Tag Filter (Intersection: Must match ALL selected tags)
             if (this.filters.tags.size > 0) {
                 const entryTags = entry.tags || [];
-                if (!Array.from(this.filters.tags).every(t => entryTags.includes(t))) return false;
+                if (
+                    !Array.from(this.filters.tags).every((t) =>
+                        entryTags.includes(t),
+                    )
+                )
+                    return false;
             }
             return true;
         });
@@ -238,20 +266,22 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
             let resolvedPortrait = undefined;
             if (entry.changes.portrait) {
-                resolvedPortrait = await Visage.resolvePath(entry.changes.portrait);
+                resolvedPortrait = await Visage.resolvePath(
+                    entry.changes.portrait,
+                );
             }
 
             const context = VisageData.toPresentation(entry, {
-                isWildcard: (rawPath || "").includes('*'),
+                isWildcard: (rawPath || "").includes("*"),
                 isActive: false,
-                resolvedPortrait: resolvedPortrait
+                resolvedPortrait: resolvedPortrait,
             });
 
             Object.assign(context, context.meta);
 
-            context.meta.itemTags = (entry.tags || []).map(t => ({
+            context.meta.itemTags = (entry.tags || []).map((t) => ({
                 label: t,
-                active: this.filters.tags.has(t)
+                active: this.filters.tags.has(t),
             }));
             context.changes.img = resolvedPath;
 
@@ -265,45 +295,50 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             if (b.id === "default") return 1;
             return a.label.localeCompare(b.label);
         });
-        
+
         // Sorting: Overlays (Alphabetical)
         overlays.sort((a, b) => a.label.localeCompare(b.label));
 
         // D. Prepare Sidebar Lists
-        const activeTags = Array.from(this.filters.tags).sort().map(t => ({ label: t, active: true }));
+        const activeTags = Array.from(this.filters.tags)
+            .sort()
+            .map((t) => ({ label: t, active: true }));
         const popularTags = Object.entries(tagCounts)
             .sort((a, b) => b[1] - a[1]) // Sort by count desc
             .slice(0, 10) // Top 10
             .map(([tag, count]) => ({ label: tag, count }))
-            .filter(t => !this.filters.tags.has(t.label)) // Exclude already active
-            .map(t => ({ label: t.label, active: false, count: t.count }));
-            
-        const categoryList = Array.from(categories).sort().map(c => ({
-            label: c, active: this.filters.category === c
-        }));
+            .filter((t) => !this.filters.tags.has(t.label)) // Exclude already active
+            .map((t) => ({ label: t.label, active: false, count: t.count }));
 
-        const emptyMsg = this.isLocal 
+        const categoryList = Array.from(categories)
+            .sort()
+            .map((c) => ({
+                label: c,
+                active: this.filters.category === c,
+            }));
+
+        const emptyMsg = this.isLocal
             ? game.i18n.localize("VISAGE.Directory.Empty.Local")
             : game.i18n.localize("VISAGE.Directory.Empty.Global");
 
         return {
             isLocal: this.isLocal,
-            
+
             identities: identities,
             overlays: overlays,
             hasItems: identities.length > 0 || overlays.length > 0,
-            
+
             categories: categoryList,
             filters: this.filters,
             activeTags: activeTags,
             popularTags: popularTags,
             hasFilterBar: activeTags.length > 0 || popularTags.length > 0,
-            
+
             isBin: this.filters.showBin,
-            emptyMessage: emptyMsg
+            emptyMessage: emptyMsg,
         };
     }
-    
+
     _onToggleTag(event, target) {
         const tag = target.dataset.tag;
         if (this.filters.tags.has(tag)) this.filters.tags.delete(tag);
@@ -321,19 +356,26 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Ensure hooks are bound
         if (!this._dataListener) {
-            this._dataListener = Hooks.on("visageDataChanged", () => this.render());
+            this._dataListener = Hooks.on("visageDataChanged", () =>
+                this.render(),
+            );
         }
 
         // Close Popover menus when clicking outside
         if (!this._clickListener) {
             this._clickListener = (event) => {
-                if (!event.target.closest('[data-action="toggleMenu"]') && !event.target.closest('.visage-popover-menu')) {
-                    this.element.querySelectorAll('.visage-popover-menu.active').forEach(menu => {
-                        menu.classList.remove('active');
-                    });
+                if (
+                    !event.target.closest('[data-action="toggleMenu"]') &&
+                    !event.target.closest(".visage-popover-menu")
+                ) {
+                    this.element
+                        .querySelectorAll(".visage-popover-menu.active")
+                        .forEach((menu) => {
+                            menu.classList.remove("active");
+                        });
                 }
             };
-            this.element.addEventListener('click', this._clickListener);
+            this.element.addEventListener("click", this._clickListener);
         }
 
         // Search Debounce
@@ -346,8 +388,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                     this.render();
                     // Restore focus after re-render
                     setTimeout(() => {
-                        const input = this.element.querySelector(".search-bar input");
-                        if(input) {
+                        const input =
+                            this.element.querySelector(".search-bar input");
+                        if (input) {
                             input.focus();
                             const val = input.value;
                             input.value = "";
@@ -361,13 +404,16 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         // Enable Drag-and-Drop for Global Library items only
         if (!this.isLocal) {
             const cards = this.element.querySelectorAll(".visage-card");
-            cards.forEach(card => {
+            cards.forEach((card) => {
                 card.setAttribute("draggable", "true");
-                card.addEventListener("dragstart", this._onDragStart.bind(this));
+                card.addEventListener(
+                    "dragstart",
+                    this._onDragStart.bind(this),
+                );
             });
         } else {
             const cards = this.element.querySelectorAll(".visage-card");
-            cards.forEach(card => card.removeAttribute("draggable"));
+            cards.forEach((card) => card.removeAttribute("draggable"));
         }
     }
 
@@ -377,20 +423,23 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onToggleMenu(event, target) {
         // Close other menus
-        this.element.querySelectorAll('.visage-popover-menu.active').forEach(menu => {
-            if (menu !== target.nextElementSibling) menu.classList.remove('active');
-        });
+        this.element
+            .querySelectorAll(".visage-popover-menu.active")
+            .forEach((menu) => {
+                if (menu !== target.nextElementSibling)
+                    menu.classList.remove("active");
+            });
         const menu = target.nextElementSibling;
-        if (menu) menu.classList.toggle('active');
+        if (menu) menu.classList.toggle("active");
     }
 
     async _onDuplicate(event, target) {
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
-        
+
         let source;
         if (this.isLocal) {
-            source = VisageData.getLocal(this.actor).find(v => v.id === id);
+            source = VisageData.getLocal(this.actor).find((v) => v.id === id);
         } else {
             source = VisageData.getGlobal(id);
         }
@@ -403,20 +452,20 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             category: source.category,
             tags: source.tags ? [...source.tags] : [],
             changes: foundry.utils.deepClone(source.changes),
-            mode: source.mode 
+            mode: source.mode,
         };
 
         await VisageData.save(copy, this.isLocal ? this.actor : null);
-        target.closest('.visage-popover-menu').classList.remove('active');
+        target.closest(".visage-popover-menu").classList.remove("active");
     }
 
     async _onExportIndividual(event, target) {
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
-        
+
         let source;
         if (this.isLocal) {
-            source = VisageData.getLocal(this.actor).find(v => v.id === id);
+            source = VisageData.getLocal(this.actor).find((v) => v.id === id);
         } else {
             source = VisageData.getGlobal(id);
         }
@@ -424,17 +473,21 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!source) return;
 
         const data = [source];
-        const safeName = source.label.replace(/[^a-z0-9]/gi, '_');
+        const safeName = source.label.replace(/[^a-z0-9]/gi, "_");
         const filename = `Visage_${safeName}.json`;
-        
-        foundry.utils.saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
-        target.closest('.visage-popover-menu').classList.remove('active');
+
+        foundry.utils.saveDataToFile(
+            JSON.stringify(data, null, 2),
+            "application/json",
+            filename,
+        );
+        target.closest(".visage-popover-menu").classList.remove("active");
     }
 
     async _onPromote(event, target) {
         const visageId = target.dataset.visageId;
         if (!visageId || !this.isLocal) return;
-        
+
         await VisageData.promote(this.actor, visageId);
     }
 
@@ -443,17 +496,24 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
      * Applies the selected Global Visage as a Local entry on all currently selected tokens.
      */
     async _onCopyToLocal(event, target) {
-        if (this.isLocal) return; 
+        if (this.isLocal) return;
 
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
         const globalMask = VisageData.getGlobal(id);
         if (!globalMask) return;
 
-        const tokens = canvas.tokens.controlled.filter(t => t.document.isOwner);
-        if (tokens.length === 0) return ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
+        const tokens = canvas.tokens.controlled.filter(
+            (t) => t.document.isOwner,
+        );
+        if (tokens.length === 0)
+            return ui.notifications.warn("VISAGE.Notifications.NoTokens", {
+                localize: true,
+            });
 
-        const targetActors = new Set(tokens.map(t => t.actor).filter(a => a));
+        const targetActors = new Set(
+            tokens.map((t) => t.actor).filter((a) => a),
+        );
 
         let count = 0;
         for (const actor of targetActors) {
@@ -462,17 +522,19 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 category: globalMask.category,
                 tags: globalMask.tags ? [...globalMask.tags] : [],
                 mode: globalMask.mode,
-                changes: foundry.utils.deepClone(globalMask.changes)
+                changes: foundry.utils.deepClone(globalMask.changes),
             };
 
             await VisageData.save(payload, actor);
             count++;
         }
 
-        ui.notifications.info(game.i18n.format("VISAGE.Notifications.CopyStats", { 
-            label: globalMask.label, 
-            count: count 
-        }));
+        ui.notifications.info(
+            game.i18n.format("VISAGE.Notifications.CopyStats", {
+                label: globalMask.label,
+                count: count,
+            }),
+        );
     }
 
     /**
@@ -482,13 +544,19 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onSwapDefault(event, target) {
         if (!this.isLocal || !this.tokenId) return;
         const visageId = target.dataset.visageId;
-        const visageLabel = target.closest('.visage-card')?.querySelector('.card-title')?.innerText || "Visage";
+        const visageLabel =
+            target.closest(".visage-card")?.querySelector(".card-title")
+                ?.innerText || "Visage";
 
         const confirmed = await foundry.applications.api.DialogV2.confirm({
-            window: { title: game.i18n.localize("VISAGE.Dialog.SwapDefault.Title") },
-            content: game.i18n.format("VISAGE.Dialog.SwapDefault.Content", { label: visageLabel }),
+            window: {
+                title: game.i18n.localize("VISAGE.Dialog.SwapDefault.Title"),
+            },
+            content: game.i18n.format("VISAGE.Dialog.SwapDefault.Content", {
+                label: visageLabel,
+            }),
             modal: true,
-            rejectClose: false
+            rejectClose: false,
         });
 
         if (!confirmed) return;
@@ -497,7 +565,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             await VisageData.commitToDefault(this.tokenId, visageId);
         } catch (err) {
             console.error(err);
-            ui.notifications.error(game.i18n.localize("VISAGE.Notifications.DefaultSwapFailed"));
+            ui.notifications.error(
+                game.i18n.localize("VISAGE.Notifications.DefaultSwapFailed"),
+            );
         }
     }
 
@@ -506,8 +576,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         let filename;
 
         if (this.isLocal) {
-            data = VisageData.getLocal(this.actor).filter(v => !v.deleted);
-            const safeName = this.actor.name.replace(/[^a-z0-9]/gi, '_');
+            data = VisageData.getLocal(this.actor).filter((v) => !v.deleted);
+            const safeName = this.actor.name.replace(/[^a-z0-9]/gi, "_");
             filename = `Visage_Local_${safeName}.json`;
         } else {
             data = VisageData.globals;
@@ -515,18 +585,28 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         if (data.length === 0) {
-            return ui.notifications.warn("VISAGE.Notifications.ExportEmpty", { localize: true });
+            return ui.notifications.warn("VISAGE.Notifications.ExportEmpty", {
+                localize: true,
+            });
         }
-        
-        foundry.utils.saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
-        ui.notifications.info(game.i18n.format("VISAGE.Notifications.Exported", { count: data.length }));
+
+        foundry.utils.saveDataToFile(
+            JSON.stringify(data, null, 2),
+            "application/json",
+            filename,
+        );
+        ui.notifications.info(
+            game.i18n.format("VISAGE.Notifications.Exported", {
+                count: data.length,
+            }),
+        );
     }
 
     async _onImport(event, target) {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = ".json";
-        
+
         input.onchange = async () => {
             const file = input.files[0];
             if (!file) return;
@@ -535,13 +615,20 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             reader.onload = async (e) => {
                 try {
                     const json = JSON.parse(e.target.result);
-                    if (!Array.isArray(json)) throw new Error(game.i18n.localize("VISAGE.Errors.ImportInvalidFormat"));
+                    if (!Array.isArray(json))
+                        throw new Error(
+                            game.i18n.localize(
+                                "VISAGE.Errors.ImportInvalidFormat",
+                            ),
+                        );
 
                     let imported = 0;
                     let skipped = 0;
 
-                    const currentItems = this.isLocal ? VisageData.getLocal(this.actor) : VisageData.globals;
-                    const currentIds = new Set(currentItems.map(i => i.id));
+                    const currentItems = this.isLocal
+                        ? VisageData.getLocal(this.actor)
+                        : VisageData.globals;
+                    const currentIds = new Set(currentItems.map((i) => i.id));
 
                     for (const entry of json) {
                         const cleanEntry = cleanVisageData(entry);
@@ -552,28 +639,40 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                             continue;
                         }
 
-                        await VisageData.save(cleanEntry, this.isLocal ? this.actor : null);
+                        await VisageData.save(
+                            cleanEntry,
+                            this.isLocal ? this.actor : null,
+                        );
                         imported++;
                     }
 
                     if (imported > 0 || skipped > 0) {
-                        ui.notifications.info(game.i18n.format("VISAGE.Notifications.ImportStats", {
-                            imported: imported,
-                            skipped: skipped
-                        }));
+                        ui.notifications.info(
+                            game.i18n.format(
+                                "VISAGE.Notifications.ImportStats",
+                                {
+                                    imported: imported,
+                                    skipped: skipped,
+                                },
+                            ),
+                        );
                         this.render();
                     } else {
-                        ui.notifications.warn("VISAGE.Notifications.ImportEmpty", { localize: true });
+                        ui.notifications.warn(
+                            "VISAGE.Notifications.ImportEmpty",
+                            { localize: true },
+                        );
                     }
-
                 } catch (err) {
                     console.error("Visage | Import Failed:", err);
-                    ui.notifications.error("VISAGE.Notifications.ImportError", { localize: true });
+                    ui.notifications.error("VISAGE.Notifications.ImportError", {
+                        localize: true,
+                    });
                 }
             };
             reader.readAsText(file);
         };
-        
+
         input.click();
     }
 
@@ -584,19 +683,19 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         event.dataTransfer.setData("text/plain", JSON.stringify(dragData));
     }
 
-    async _onCreate() { 
-        new VisageEditor({ 
+    async _onCreate() {
+        new VisageEditor({
             actorId: this.actorId,
-            tokenId: this.tokenId
-        }).render(true); 
+            tokenId: this.tokenId,
+        }).render(true);
     }
 
     async _onEdit(event, target) {
         const id = target.closest(".visage-card").dataset.id;
-        new VisageEditor({ 
+        new VisageEditor({
             visageId: id,
             actorId: this.actorId,
-            tokenId: this.tokenId
+            tokenId: this.tokenId,
         }).render(true);
     }
 
@@ -604,28 +703,38 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         const card = target.closest(".visage-card");
         if (!card) return;
         const id = card.dataset.id;
-        
+
         // Safety Check: Prevent deletion if Visage is currently active on the token
         if (this.isLocal && this.tokenId) {
-            
             // Manual check in case isActive returns stale data
             const token = canvas.tokens.get(this.tokenId);
-            const currentIdentity = token?.document.getFlag(MODULE_ID, "identity");
-            const inStack = token?.document.getFlag(MODULE_ID, "activeStack")?.some(i => i.id === id);
+            const currentIdentity = token?.document.getFlag(
+                MODULE_ID,
+                "identity",
+            );
+            const inStack = token?.document
+                .getFlag(MODULE_ID, "activeStack")
+                ?.some((i) => i.id === id);
 
             if (currentIdentity === id || inStack) {
-                const confirm = await foundry.applications.api.DialogV2.confirm({
-                   window: { title: game.i18n.localize("VISAGE.Dialog.DeleteActive.Title") },
-                    content: `<p>${game.i18n.localize("VISAGE.Warnings.DeleteActive")}</p>`,
-                    modal: true
-                });
+                const confirm = await foundry.applications.api.DialogV2.confirm(
+                    {
+                        window: {
+                            title: game.i18n.localize(
+                                "VISAGE.Dialog.DeleteActive.Title",
+                            ),
+                        },
+                        content: `<p>${game.i18n.localize("VISAGE.Warnings.DeleteActive")}</p>`,
+                        modal: true,
+                    },
+                );
                 if (!confirm) return;
-                
+
                 // If confirmed, force remove the Visage first
                 await Visage.remove(this.tokenId, id);
             }
         }
-        
+
         await VisageData.delete(id, this.actor);
         if (this.isLocal) this.render();
     }
@@ -633,7 +742,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onRestore(event, target) {
         const card = target.closest(".visage-card");
         if (!card) return;
-        
+
         await VisageData.restore(card.dataset.id, this.actor);
         if (this.isLocal) this.render();
     }
@@ -643,9 +752,11 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!card) return;
 
         const confirm = await foundry.applications.api.DialogV2.confirm({
-            window: { title: game.i18n.localize("VISAGE.Dialog.Destroy.Title") },
+            window: {
+                title: game.i18n.localize("VISAGE.Dialog.Destroy.Title"),
+            },
             content: game.i18n.localize("VISAGE.Dialog.Destroy.Content"),
-            modal: true
+            modal: true,
         });
 
         if (confirm) {
@@ -656,7 +767,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onSelectCategory(event, target) {
         const cat = target.dataset.category;
-        this.filters.category = (this.filters.category === cat) ? null : cat;
+        this.filters.category = this.filters.category === cat ? null : cat;
         this.render();
     }
 
@@ -665,7 +776,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         const requestingBin = mode === "bin";
         if (this.filters.showBin === requestingBin) return;
         this.filters.showBin = requestingBin;
-        this.filters.category = null; 
+        this.filters.category = null;
         this.render();
     }
 
@@ -684,42 +795,66 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             if (this.tokenId) {
                 if (id === "default") {
                     const token = canvas.tokens.get(this.tokenId);
-                    const currentIdentity = token.document.getFlag(MODULE_ID, "identity");
-                    if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
-                    ui.notifications.info(game.i18n.format("VISAGE.Notifications.Updated", { name: name }));
+                    const currentIdentity = token.document.getFlag(
+                        MODULE_ID,
+                        "identity",
+                    );
+                    if (currentIdentity)
+                        await Visage.remove(this.tokenId, currentIdentity);
+                    ui.notifications.info(
+                        game.i18n.format("VISAGE.Notifications.Updated", {
+                            name: name,
+                        }),
+                    );
                 } else {
                     await Visage.apply(this.tokenId, id);
-                    ui.notifications.info(game.i18n.format("VISAGE.Notifications.Updated", { name: name }));
+                    ui.notifications.info(
+                        game.i18n.format("VISAGE.Notifications.Updated", {
+                            name: name,
+                        }),
+                    );
                 }
             } else {
-                ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
+                ui.notifications.warn("VISAGE.Notifications.NoTokens", {
+                    localize: true,
+                });
             }
         } else {
             // Global Mode: Apply to ALL selected tokens on canvas
-            const tokens = canvas.tokens.controlled.filter(t => t.document.isOwner);
-            if (tokens.length === 0) return ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
-            
+            const tokens = canvas.tokens.controlled.filter(
+                (t) => t.document.isOwner,
+            );
+            if (tokens.length === 0)
+                return ui.notifications.warn("VISAGE.Notifications.NoTokens", {
+                    localize: true,
+                });
+
             const visageData = VisageData.getGlobal(id);
             if (!visageData) return;
 
             for (const token of tokens) {
                 await Visage.apply(token, id, { clearStack: false });
             }
-            ui.notifications.info(game.i18n.format("VISAGE.Notifications.Applied", { count: tokens.length, label: name }));
+            ui.notifications.info(
+                game.i18n.format("VISAGE.Notifications.Applied", {
+                    count: tokens.length,
+                    label: name,
+                }),
+            );
         }
     }
 
     /**
-    * Toggles the mode of a specific Visage item (Identity <-> Overlay).
-    * Updates the data source and saves immediately.
+     * Toggles the mode of a specific Visage item (Identity <-> Overlay).
+     * Updates the data source and saves immediately.
      */
     async _onToggleMode(event, target) {
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
-        
+
         let source;
         if (this.isLocal) {
-            source = VisageData.getLocal(this.actor).find(v => v.id === id);
+            source = VisageData.getLocal(this.actor).find((v) => v.id === id);
         } else {
             source = VisageData.getGlobal(id);
         }
@@ -727,14 +862,14 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!source) return;
 
         // Flip Mode
-        const newMode = (source.mode === "identity") ? "overlay" : "identity";
-        
+        const newMode = source.mode === "identity" ? "overlay" : "identity";
+
         // Prepare Update Payload
         // We merge the change into the existing source to ensure all properties are preserved
         const payload = foundry.utils.mergeObject(source, { mode: newMode });
-        
+
         await VisageData.save(payload, this.isLocal ? this.actor : null);
-        
+
         // No manual render needed as save triggers hooks
     }
 }
