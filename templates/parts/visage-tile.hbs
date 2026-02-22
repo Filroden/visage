@@ -77,6 +77,14 @@
             </div>
             {{/if}}
 
+            {{!-- Left Column: Automation Indicator --}}
+            {{#if this.automation.conditions.length}}
+            <div class="visage-automation-indicator {{#unless this.automation.enabled}}muted{{/unless}}" 
+                data-tooltip="{{localize 'VISAGE.Editor.Triggers.AutomationTooltip'}}">
+                <i class="visage-icon power"></i>
+            </div>
+            {{/if}}
+
             {{!-- Lock --}}
             {{#if this.meta.slots.lock.active}}
             <div class="visage-sidebar-glyph lock" data-tooltip="{{localize 'VISAGE.RotationLock.Label'}}">

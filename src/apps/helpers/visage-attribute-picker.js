@@ -17,7 +17,7 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
         classes: ["visage", "visage-dark-theme", "visage-attribute-picker-app"],
         window: {
             title: "VISAGE.Editor.Triggers.AttributePicker",
-            icon: "visage-icon-attribute",
+            icon: "visage-icon attribute-picker ",
             resizable: true,
         },
         position: { width: 400, height: 500 },

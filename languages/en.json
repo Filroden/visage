@@ -389,7 +389,7 @@
 
     "_comment_V4_0_KEYS": "--- V4.0 KEYS ---",
     "VISAGE.Editor.Tabs.Triggers": "Automation",
-    "VISAGE.Editor.Triggers.Enable": "Enable Automation",
+    "VISAGE.Editor.Triggers.Enable": "Switch Automation On/Off",
     "VISAGE.Editor.Triggers.OnEnter": "When Conditions Met",
     "VISAGE.Editor.Triggers.OnExit": "When Conditions Unmet",
     "VISAGE.Editor.Triggers.ActionApply": "Apply Visage",
@@ -445,5 +445,6 @@
     "VISAGE.Editor.Triggers.AttributePicker": "Attribute Picker",
     "VISAGE.AttributePicker.SearchPlaceholder": "Search paths (e.g. 'hp' or 'ac')",
     "VISAGE.AttributePicker.Empty": "No matching attributes found.",
-    "VISAGE.Notifications.Error.NoActorForAttributes": "Cannot pick attributes: No Actor is associated with this Visage."
+    "VISAGE.Notifications.Error.NoActorForAttributes": "Cannot pick attributes: No Actor is associated with this Visage.",
+    "VISAGE.Editor.Triggers.AutomationTooltip": "Automation Trigger"
 }

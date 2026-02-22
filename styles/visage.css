@@ -15,7 +15,8 @@
  * 10. Welcome Chat Card
  * 11. Game Settings
  * 12. Application: Attribute Picker
- * 13. Theme Definitions (The Engine)
+ * 13. Automation Toggles (Gallery cards and Selector HUD tiles)
+ * 14. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
@@ -3613,7 +3614,93 @@ button.visage-tool-icon {
 
 
 /* ==========================================================================
-   13. THEME DEFINITIONS (The Engine)
+   13. AUTOMATION TOGGLES
+   ========================================================================== */
+
+/* Refactored Card Indicators Row */
+.visage .visage-card .card-zone-center .visage-card-indicators-row {
+    position: absolute;
+    top: var(--filroden-space-s);
+    inset-inline-start: var(--filroden-space-s);
+    inset-inline-end: var(--filroden-space-s);
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.visage .visage-card .card-zone-center .visage-card-indicators-row .visage-card-effect-indicator {
+    position: relative;
+    top: auto;
+    inset-inline-start: auto;
+    inset-inline-end: auto;
+    pointer-events: auto;
+}
+
+/* -----------------------------------------
+   Gallery Action Button (Interactive)
+   ----------------------------------------- */
+.visage-card-effect-indicator.automation {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    /* Active State (Green Button Look) */
+    color: var(--filroden-color-success);
+    background: hsla(120, 50%, 50%, 0.15); /* Subtle green backing */
+    border: 1px solid var(--filroden-color-success);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--filroden-font-size-xl);
+    height: var(--filroden-font-size-xl);
+}
+
+.visage-card-effect-indicator.automation i {
+    font-size: var(--filroden-font-size-s); /* Slightly smaller to fit in the button circle */
+}
+
+.visage-card-effect-indicator.automation:hover {
+    transform: scale(1.15);
+    background: hsla(120, 50%, 50%, 0.3);
+    box-shadow: 0 0 8px hsla(120, 50%, 50%, 0.5);
+}
+
+/* Muted State (Disabled Button Look) */
+.visage-card-effect-indicator.automation.muted {
+    color: var(--visage-color-text-muted);
+    background: var(--visage-color-bg-darkest);
+    border-color: transparent;
+    box-shadow: none;
+    opacity: 0.7;
+    filter: grayscale(100%);
+}
+
+.visage-card-effect-indicator.automation.muted:hover {
+    opacity: 1;
+    border-color: var(--visage-color-text-muted);
+}
+
+/* -----------------------------------------
+   Selector HUD Column Placement (Static)
+   ----------------------------------------- */
+.visage .visage-automation-indicator {
+    width: var(--filroden-font-size-l);
+    height: var(--filroden-font-size-l);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--filroden-shadow-card);
+    z-index: 10;
+}
+
+.visage .visage-automation-indicator.muted {
+    background-color: var(--filroden-color-text-muted-solid);
+}
+
+
+/* ==========================================================================
+   14. THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
 /* --- 1. Universal Defaults --- */
