@@ -541,8 +541,8 @@ Hooks.on("deleteToken", async (tokenDoc, options, userId) => {
     // This prevents race conditions where 4 players delete a token and all 4 try to update the Actor.
     if (game.user.id !== userId) return;
 
-    // 2. Clean up Sequencer Effects
-    if (tokenDoc.object && Visage.sequencerReady) {
+    // 2. Clean up Visual/Audio Effects (Only if Sequencer is active)
+    if (tokenDoc.object && game.modules.get("sequencer")?.active) {
         VisageSequencer.revert(tokenDoc.object);
     }
 
