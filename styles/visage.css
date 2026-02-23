@@ -3674,6 +3674,7 @@ button.visage-tool-icon {
     inset-inline-start: auto;
     inset-inline-end: auto;
     pointer-events: auto;
+    padding-bottom: var(--filroden-space-l);
 }
 
 /* -----------------------------------------
@@ -3716,7 +3717,6 @@ button.visage-tool-icon {
 
 .visage-card-effect-indicator.automation.muted:hover {
     opacity: 1;
-    border-color: var(--visage-color-text-muted);
 }
 
 /* -----------------------------------------
