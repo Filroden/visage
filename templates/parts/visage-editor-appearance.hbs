@@ -39,34 +39,33 @@
             <label>{{localize "VISAGE.GlobalEditor.TokenImage"}}</label>
 
             <div class="visage-form-fields">
-                {{#if ring.active}}
-                    <div class="visage-ring-warning-message">
-                        <i class="fas fa-info-circle"></i>
-                        {{localize "VISAGE.GlobalEditor.RingActiveWarning"}}
-                    </div>
-                    <input type="hidden" name="img" value="{{img.value}}" />
-                {{else}}
-                    <input
-                        type="text"
-                        name="img"
-                        value="{{img.value}}"
-                        {{disabled (not img.active)}}
-                        placeholder="{{localize
-                            'VISAGE.GlobalEditor.TokenImage'
-                        }}"
-                    />
-                    <button
-                        type="button"
-                        class="file-picker-button"
-                        data-action="openFilePicker"
-                        data-tooltip="{{localize
-                            'VISAGE.GlobalEditor.FilePicker'
-                        }}"
-                        {{disabled (not img.active)}}
-                    >
-                        <i class="visage-icon image-search"></i>
-                    </button>
+                {{#if ringSubjectTexture.active}}
+                    {{! Warn only if the Ring Subject Texture is actively overriding the base image }}
+                    <span class="visage-ring-warning-message">
+                        <i
+                            class="visage-icon warning"
+                            data-tooltip="{{localize
+                                'VISAGE.GlobalEditor.RingActiveWarning'
+                            }}"
+                        ></i>
+                    </span>
                 {{/if}}
+                <input
+                    type="text"
+                    name="img"
+                    value="{{img.value}}"
+                    {{disabled (not img.active)}}
+                    placeholder="{{localize 'VISAGE.GlobalEditor.TokenImage'}}"
+                />
+                <button
+                    type="button"
+                    class="file-picker-button"
+                    data-action="openFilePicker"
+                    data-tooltip="{{localize 'VISAGE.GlobalEditor.FilePicker'}}"
+                    {{disabled (not img.active)}}
+                >
+                    <i class="visage-icon image-search"></i>
+                </button>
             </div>
         </div>
 

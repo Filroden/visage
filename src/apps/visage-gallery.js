@@ -454,6 +454,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             tags: source.tags ? [...source.tags] : [],
             changes: foundry.utils.deepClone(source.changes),
             mode: source.mode,
+            automation: source.automation
+                ? foundry.utils.deepClone(source.automation)
+                : undefined,
         };
 
         await VisageData.save(copy, this.isLocal ? this.actor : null);
@@ -524,6 +527,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 tags: globalMask.tags ? [...globalMask.tags] : [],
                 mode: globalMask.mode,
                 changes: foundry.utils.deepClone(globalMask.changes),
+                automation: globalMask.automation
+                    ? foundry.utils.deepClone(globalMask.automation)
+                    : undefined,
             };
 
             await VisageData.save(payload, actor);

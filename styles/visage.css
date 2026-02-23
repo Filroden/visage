@@ -2061,7 +2061,7 @@ li.context-item .visage-icon-domino {
 
 .visage .effects-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: var(--filroden-space-s);
     margin-bottom: var(--filroden-space-m);
     flex: 0 0 auto;
@@ -2614,10 +2614,12 @@ li.context-item .visage-icon-domino {
 
 .visage-sidebar .search-bar { 
     position: relative;
+    display: flex;
 }
 .visage-sidebar .search-bar input {
-    padding-inline-start: 2rem;
-    padding-inline-end: 2rem;
+    box-sizing: border-box;
+    padding-inline-start: 2.2rem;
+    padding-inline-end: 2.2rem;
     background: var(--visage-color-bg-darkest);
     border: 1px solid var(--visage-color-border);
     border-radius: var(--filroden-radius-medium);
@@ -2632,16 +2634,37 @@ li.context-item .visage-icon-domino {
     z-index: 2;
     transition: color 0.2s;
 }
-.visage-sidebar .search-bar i.fa-search {
+.visage-sidebar .search-bar > i.search {
+    position: absolute;
+    top: 50%;
     inset-inline-start: var(--filroden-space-s);
-    pointer-events: none; 
+    transform: translateY(-50%);
+    color: var(--filroden-color-text-muted);
+    z-index: 2;
+    pointer-events: none;
+    transition: color 0.2s;
+    margin: 0;
 }
-.visage-sidebar .search-bar i.fa-times {
+.visage-sidebar .search-bar a[data-action="clearSearch"] {
+    position: absolute;
+    top: 50%;
     inset-inline-end: var(--filroden-space-s);
+    transform: translateY(-50%);
+    z-index: 2;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--filroden-color-text-muted);
+    transition: color 0.2s;
 }
-.visage-sidebar .search-bar i.fa-times:hover {
+.visage-sidebar .search-bar a[data-action="clearSearch"]:hover {
     color: var(--filroden-color-text-main-solid);
+}
+.visage-sidebar .search-bar a[data-action="clearSearch"] i {
+    margin: 0;
+    margin-inline-end: var(--filroden-space-l);
+    color: inherit;
 }
 
 .visage-create-btn {
@@ -3539,6 +3562,7 @@ button.visage-tool-icon {
 }
 
 .visage-attribute-picker-content .search-bar input {
+    box-sizing: border-box;
     width: 100%;
     padding-inline-start: 2rem;
     background: var(--visage-color-bg-medium-solid);

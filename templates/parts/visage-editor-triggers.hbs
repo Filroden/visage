@@ -16,6 +16,17 @@
             </div>
         </div>
 
+        {{!-- Priority Configuration --}}
+        <div class="transition-settings-bar {{#unless automation.enabled}}disabled-look{{/unless}}" style="margin-top: 0.5rem; padding: 0.5rem;">
+            <div class="form-group fade-grid" style="margin: 0;">
+                <label data-tooltip="{{localize 'VISAGE.Editor.Triggers.PriorityHint'}}">
+                    {{localize "VISAGE.Editor.Triggers.Priority"}}
+                    <i class="visage-icon info"></i>
+                </label>
+                <input style="max-width: 4rem; justify-items: center;" type="number" name="automation.onEnter.priority" value="{{automation.onEnter.priority}}" step="1">
+            </div>
+        </div>
+
         {{!-- Actions & Logic Toggle --}}
         <div class="effects-actions {{#unless automation.enabled}}disabled-look{{/unless}}">
             <div class="logic-toggle delay-direction-toggle" data-tooltip="VISAGE.Editor.Triggers.LogicHint">

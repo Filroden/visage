@@ -272,6 +272,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 ...VisageData.prepareRingContext(this._ringData),
                 active: this._ringData.enabled,
             },
+            ringSubjectTexture: {
+                active:
+                    this._ringData.enabled && !!this._ringData.subject?.texture,
+            },
             inspector: inspectorData,
             automation: this._automationData,
             statusEffects: this._getStatusEffectOptions(),
@@ -707,6 +711,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._automationData.enabled =
                 formData["automation.enabled"] ?? false;
 
+            // Sync Action and Priority
+            if (!this._automationData.onEnter)
+                this._automationData.onEnter = { action: "apply", priority: 0 };
+            this._automationData.onEnter.action =
+                formData["automation.onEnter.action"] ??
+                this._automationData.onEnter.action;
+            this._automationData.onEnter.priority =
+                getVal("automation.onEnter.priority", Number) ??
+                this._automationData.onEnter.priority;
+
             const renderedConditionId = formData["inspector.conditionId"];
             if (renderedConditionId) {
                 const cond = this._automationData.conditions.find(
@@ -986,18 +1000,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onToggleRing() {
         if (!this._ringData) return;
         this._ringData.enabled = !this._ringData.enabled;
-        if (this._ringData.enabled) {
-            const imgCheckbox = this.element.querySelector(
-                'input[name="img_active"]',
-            );
-            if (imgCheckbox && imgCheckbox.checked) {
-                imgCheckbox.checked = false;
-                this._onToggleField(null, imgCheckbox);
-                ui.notifications.info(
-                    game.i18n.localize("VISAGE.GlobalEditor.RingActiveWarning"),
-                );
-            }
-        }
+
         if (!this._ringData.enabled && this._editingRing) {
             this._editingRing = false;
             this._onCloseEffectInspector();
@@ -1110,7 +1113,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render();
     }
     _onOpenAttributePicker(event, target) {
-        if (!this.actor) {
+        // --- 1. Find a Reference Actor ---
+        let referenceActor = this.actor; // Works perfectly for Local Editor
+
+        if (!referenceActor) {
+            // Fallback A: The currently selected token on the canvas
+            referenceActor = canvas.tokens.controlled[0]?.actor;
+        }
+        if (!referenceActor) {
+            // Fallback B: The first player-owned character in the world
+            referenceActor = game.actors.find((a) => a.hasPlayerOwner);
+        }
+        if (!referenceActor) {
+            // Fallback C: Literally any actor in the world directory
+            referenceActor = game.actors.contents[0];
+        }
+
+        // If the world is completely empty, we must abort.
+        if (!referenceActor) {
             return ui.notifications.warn(
                 game.i18n.localize(
                     "VISAGE.Notifications.Error.NoActorForAttributes",
@@ -1118,11 +1138,21 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             );
         }
 
+        // If we used a fallback (Global Editor), politely inform the GM
+        if (!this.actor) {
+            ui.notifications.info(
+                game.i18n.format("VISAGE.Notifications.AttributeProxy", {
+                    name: referenceActor.name,
+                }),
+            );
+        }
+
+        // --- 2. Launch the Picker ---
         // Determine which input field to fill (defaults to inspector.path if none provided)
         const targetInputName = target.dataset.target || "inspector.path";
 
         new VisageAttributePicker({
-            actor: this.actor,
+            actor: referenceActor,
             onSelect: (path) => {
                 const pathInput = this.element.querySelector(
                     `input[name="${targetInputName}"]`,

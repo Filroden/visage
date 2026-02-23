@@ -196,6 +196,20 @@ export class VisageData {
         const timestamp = Date.now();
         const existing = all[id];
 
+        // --- AUTOMATION CLEANUP (GLOBAL) ---
+        // If automation was enabled but is now being disabled, remove this visage from all tokens
+        if (
+            existing?.automation?.enabled &&
+            (!data.automation || !data.automation.enabled)
+        ) {
+            const VisageApi = game.modules.get(MODULE_ID)?.api;
+            if (VisageApi) {
+                canvas.tokens.placeables.forEach((t) => {
+                    VisageApi.remove(t.id, id);
+                });
+            }
+        }
+
         const entry = {
             id: id,
             label: data.label || "New Mask",
@@ -235,6 +249,23 @@ export class VisageData {
     /** @private */
     static async _saveLocal(data, actor) {
         const id = data.id || foundry.utils.randomID(16);
+
+        // --- AUTOMATION CLEANUP (LOCAL) ---
+        // If automation was enabled but is now being disabled, remove this visage from the actor's tokens
+        const existing =
+            actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY]?.[id];
+        if (
+            existing?.automation?.enabled &&
+            (!data.automation || !data.automation.enabled)
+        ) {
+            const VisageApi = game.modules.get(MODULE_ID)?.api;
+            if (VisageApi) {
+                canvas.tokens.placeables
+                    .filter((t) => t.actor?.id === actor.id)
+                    .forEach((t) => VisageApi.remove(t.id, id));
+            }
+        }
+
         const entry = {
             id: id,
             label: data.label,
@@ -760,6 +791,9 @@ export class VisageData {
             tags: source.tags ? [...source.tags] : [],
             mode: source.mode,
             changes: foundry.utils.deepClone(source.changes),
+            automation: source.automation
+                ? foundry.utils.deepClone(source.automation)
+                : undefined,
         };
 
         await this._saveGlobal(payload);
