@@ -453,5 +453,10 @@
     "VISAGE.Editor.Triggers.Priority": "Priority Level",
     "VISAGE.Editor.Triggers.PriorityHint": "If multiple Visages are triggered at the same time, higher numbers override lower numbers. Identity ties will pick the highest, while Overlays will stack them sequentially.",
     "VISAGE.Notifications.AttributeProxy": "Visage | Using '{name}' as a template to generate the Attribute list.",
-    "VISAGE.Directory.FilterAutomation": "Show Only Automated Visages"
+    "VISAGE.Directory.FilterAutomation": "Show Only Automated Visages",
+    "VISAGE.Editor.Triggers.DataType": "Data Type",
+    "VISAGE.Editor.Triggers.TypeNumber": "Number",
+    "VISAGE.Editor.Triggers.TypeString": "String",
+    "VISAGE.Editor.Triggers.TypeBoolean": "Boolean",
+    "VISAGE.Editor.Triggers.OpIncludes": "Includes (Contains)"
 }

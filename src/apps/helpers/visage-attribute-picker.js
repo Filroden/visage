@@ -42,13 +42,14 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
         const attributes = [];
 
         for (const [key, value] of Object.entries(flatSystem)) {
+            const rawType = typeof value;
+
             // Include Numbers and Booleans
-            let isValid =
-                typeof value === "number" || typeof value === "boolean";
+            let isValid = rawType === "number" || rawType === "boolean";
 
             // Include Strings, but ONLY if they are short (no HTML biographies)
             if (
-                typeof value === "string" &&
+                rawType === "string" &&
                 value.length < 50 &&
                 !value.includes("<")
             ) {
@@ -56,10 +57,14 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
             }
 
             if (isValid) {
+                // Capitalize the first letter to match our en.json keys (e.g., "TypeNumber")
+                const typeKey = `VISAGE.Editor.Triggers.Type${rawType.charAt(0).toUpperCase() + rawType.slice(1)}`;
+
                 attributes.push({
                     path: `system.${key}`,
                     value: value,
-                    type: typeof value,
+                    type: rawType, // Keep the raw lowercase type for CSS classes
+                    typeLabel: game.i18n.localize(typeKey), // The clean, localized string for the UI
                 });
             }
         }

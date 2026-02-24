@@ -2152,6 +2152,9 @@ li.context-item .visage-icon-domino {
 .visage .effect-meta {
     font-size: 0.65rem;
     color: var(--visage-color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .visage .effect-controls {

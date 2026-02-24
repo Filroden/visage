@@ -96,59 +96,104 @@
         <fieldset class="visage-fieldset inspector-fieldset">
             
             {{!-- ATTRIBUTE CONDITION CONFIGURATION --}}
-            {{#if (eq inspector.condition.type 'attribute')}}
-                <div class="form-group stacked">
-                    <label>
-                        {{localize "VISAGE.Editor.Triggers.DataPath"}}
-                        <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.Editor.Triggers.DataPathHint'}}"></i>
-                    </label>
-                    <div class="visage-form-fields" style="display: flex; gap: 0.5rem;">
-                        <input type="text" name="inspector.path" value="{{inspector.condition.path}}" placeholder="e.g. system.attributes.hp.value">
-                        <button type="button" class="file-picker-button" data-action="openAttributePicker" data-target="inspector.path" data-tooltip="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}">
-                            <i class="visage-icon attribute-picker"></i>
-                        </button>
+            {{!-- Dynamic Fields: Attribute --}}
+                {{#if (eq inspector.condition.type 'attribute')}}
+                    <div class="form-group stacked">
+                        <label>
+                            {{localize "VISAGE.Editor.Triggers.DataPath"}}
+                            <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.Editor.Triggers.DataPathHint'}}"></i>
+                        </label>
+                        <div class="visage-form-fields fade-grid" style="grid-template-columns: 1fr max-content;">
+                            <input type="text" name="inspector.path" value="{{inspector.condition.path}}" placeholder="e.g. system.attributes.hp.value">
+                            <button type="button" class="visage-btn" data-action="openAttributePicker" data-target="inspector.path" title="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}">
+                                <i class="visage-icon attribute-picker"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group fade-grid">
-                    <label>{{localize "VISAGE.Editor.Triggers.Operator"}}</label>
-                    <select name="inspector.operator">
-                        <option value="lte" {{visageSelected (eq inspector.condition.operator "lte")}}>{{localize "VISAGE.Editor.Triggers.OpLte"}}</option>
-                        <option value="gte" {{visageSelected (eq inspector.condition.operator "gte")}}>{{localize "VISAGE.Editor.Triggers.OpGte"}}</option>
-                        <option value="eq" {{visageSelected (eq inspector.condition.operator "eq")}}>{{localize "VISAGE.Editor.Triggers.OpEq"}}</option>
-                        <option value="neq" {{visageSelected (eq inspector.condition.operator "neq")}}>{{localize "VISAGE.Editor.Triggers.OpNeq"}}</option>
-                    </select>
-
-                    <label>{{localize "VISAGE.Editor.Triggers.Value"}}</label>
-                    <input type="number" name="inspector.value" value="{{inspector.condition.value}}" step="0.1">
-                </div>
-
-                <div class="form-group">
-                    <label>{{localize "VISAGE.Editor.Triggers.Mode"}}</label>
-                    <div class="visage-form-fields">
-                        <select name="inspector.mode">
-                            <option value="absolute" {{visageSelected (eq inspector.condition.mode "absolute")}}>{{localize "VISAGE.Editor.Triggers.ModeAbsolute"}}</option>
-                            <option value="percent" {{visageSelected (eq inspector.condition.mode "percent")}}>{{localize "VISAGE.Editor.Triggers.ModePercent"}}</option>
-                        </select>
+                    <div class="form-group">
+                        <label>{{localize "VISAGE.Editor.Triggers.DataType"}}</label>
+                        <div class="visage-form-fields">
+                            <select name="inspector.dataType" data-action="render">
+                                <option value="number" {{visageSelected (or (eq inspector.condition.dataType "number") (eq inspector.condition.dataType undefined))}}>{{localize "VISAGE.Editor.Triggers.TypeNumber"}}</option>
+                                <option value="string" {{visageSelected (eq inspector.condition.dataType "string")}}>{{localize "VISAGE.Editor.Triggers.TypeString"}}</option>
+                                <option value="boolean" {{visageSelected (eq inspector.condition.dataType "boolean")}}>{{localize "VISAGE.Editor.Triggers.TypeBoolean"}}</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
 
-                {{!-- Dynamic Field: Denominator Path (Only shown for Percent mode) --}}
-                {{#if (eq inspector.condition.mode 'percent')}}
-                <div class="form-group stacked">
-                    <label>
-                        {{localize "VISAGE.Editor.Triggers.DenominatorPath"}}
-                        <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.Editor.Triggers.DenominatorHint'}}"></i>
-                    </label>
-                    <div class="visage-form-fields" style="display: flex; gap: 0.5rem;">
-                        <input type="text" name="inspector.denominatorPath" value="{{inspector.condition.denominatorPath}}" placeholder="{{localize 'VISAGE.Editor.Triggers.DenominatorPlaceholder'}}">
-                        <button type="button" class="file-picker-button" data-action="openAttributePicker" data-target="inspector.denominatorPath" data-tooltip="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}">
-                            <i class="visage-icon attribute-picker"></i>
-                        </button>
-                    </div>
-                </div>
+                    {{!-- BOOLEAN MODE --}}
+                    {{#if (eq inspector.condition.dataType "boolean")}}
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Triggers.Value"}}</label>
+                            <div class="visage-form-fields">
+                                <select name="inspector.value">
+                                    <option value="true" {{visageSelected (eq inspector.condition.value "true")}}>True</option>
+                                    <option value="false" {{visageSelected (eq inspector.condition.value "false")}}>False</option>
+                                </select>
+                            </div>
+                        </div>
+                    {{else if (eq inspector.condition.dataType "string")}}
+                    {{!-- STRING MODE --}}
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Triggers.Operator"}}</label>
+                            <div class="visage-form-fields">
+                                <select name="inspector.operator">
+                                    <option value="eq" {{visageSelected (eq inspector.condition.operator "eq")}}>{{localize "VISAGE.Editor.Triggers.OpEq"}}</option>
+                                    <option value="neq" {{visageSelected (eq inspector.condition.operator "neq")}}>{{localize "VISAGE.Editor.Triggers.OpNeq"}}</option>
+                                    <option value="includes" {{visageSelected (eq inspector.condition.operator "includes")}}>{{localize "VISAGE.Editor.Triggers.OpIncludes"}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Triggers.Value"}}</label>
+                            <div class="visage-form-fields">
+                                <input type="text" name="inspector.value" value="{{inspector.condition.value}}">
+                            </div>
+                        </div>
+                    {{else}}
+                    {{!-- NUMBER MODE (Default) --}}
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Triggers.Operator"}}</label>
+                            <div class="visage-form-fields">
+                                <select name="inspector.operator">
+                                    <option value="lte" {{visageSelected (eq inspector.condition.operator "lte")}}>{{localize "VISAGE.Editor.Triggers.OpLte"}}</option>
+                                    <option value="gte" {{visageSelected (eq inspector.condition.operator "gte")}}>{{localize "VISAGE.Editor.Triggers.OpGte"}}</option>
+                                    <option value="eq" {{visageSelected (eq inspector.condition.operator "eq")}}>{{localize "VISAGE.Editor.Triggers.OpEq"}}</option>
+                                    <option value="neq" {{visageSelected (eq inspector.condition.operator "neq")}}>{{localize "VISAGE.Editor.Triggers.OpNeq"}}</option>
+                                    <option value="lt" {{visageSelected (eq inspector.condition.operator "lt")}}>{{localize "VISAGE.Editor.Triggers.OpLt"}}</option>
+                                    <option value="gt" {{visageSelected (eq inspector.condition.operator "gt")}}>{{localize "VISAGE.Editor.Triggers.OpGt"}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Triggers.Value"}}</label>
+                            <div class="visage-form-fields">
+                                <input type="number" step="any" name="inspector.value" value="{{inspector.condition.value}}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Triggers.Mode"}}</label>
+                            <div class="visage-form-fields">
+                                <select name="inspector.mode" data-action="render">
+                                    <option value="absolute" {{visageSelected (eq inspector.condition.mode "absolute")}}>{{localize "VISAGE.Editor.Triggers.ModeAbsolute"}}</option>
+                                    <option value="percent" {{visageSelected (eq inspector.condition.mode "percent")}}>{{localize "VISAGE.Editor.Triggers.ModePercent"}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        {{#if (eq inspector.condition.mode "percent")}}
+                        <div class="form-group stacked">
+                            <label>
+                                {{localize "VISAGE.Editor.Triggers.DenominatorPath"}}
+                                <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.Editor.Triggers.DenominatorHint'}}"></i>
+                            </label>
+                            <div class="visage-form-fields">
+                                <input type="text" name="inspector.denominatorPath" value="{{inspector.condition.denominatorPath}}" placeholder="{{localize 'VISAGE.Editor.Triggers.DenominatorPlaceholder'}}">
+                            </div>
+                        </div>
+                        {{/if}}
+                    {{/if}}
                 {{/if}}
-            {{/if}}
 
             {{!-- STATUS CONDITION CONFIGURATION --}}
             {{#if (eq inspector.condition.type 'status')}}

@@ -221,9 +221,21 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 c.typeKey = `VISAGE.Editor.Triggers.Type${c.type.charAt(0).toUpperCase() + c.type.slice(1)}`;
 
                 if (c.type === "attribute") {
-                    const opMap = { lte: "<=", gte: ">=", eq: "==", neq: "!=" };
+                    const opMap = {
+                        lte: "<=",
+                        gte: ">=",
+                        eq: "==",
+                        neq: "!=",
+                        lt: "<",
+                        gt: ">",
+                        includes: "contains",
+                    };
                     const modeStr = c.mode === "percent" ? "%" : "";
-                    c.summary = `${c.path || "..."} ${opMap[c.operator] || ""} ${c.value || 0}${modeStr}`;
+                    // Fallback to 0 only if value is null/undefined to preserve "false" or empty strings
+                    const displayValue =
+                        c.value !== null && c.value !== undefined ? c.value : 0;
+
+                    c.summary = `${c.path || "..."} ${opMap[c.operator] || ""} ${displayValue}${modeStr}`;
                 } else if (c.type === "status") {
                     c.summary = `${c.statusId || "..."} (${c.operator === "active" ? "Applied" : "Removed"})`;
                 } else if (c.type === "event") {
@@ -331,8 +343,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.element.addEventListener("change", (e) => {
             this._markDirty();
 
-            // If the user changes the Event Type, we must fully re-render to swap the dynamic form fields
-            if (e.target.name === "inspector.eventId") {
+            // If the user changes an Inspector type/mode, we must fully re-render to swap the dynamic form fields
+            if (
+                e.target.name === "inspector.eventId" ||
+                e.target.name === "inspector.dataType" ||
+                e.target.name === "inspector.mode"
+            ) {
                 this.render();
                 return;
             }
@@ -729,6 +745,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (cond) {
                     if (cond.type === "attribute") {
                         cond.path = getVal("inspector.path") ?? cond.path;
+                        // Grab the data type
+                        cond.dataType =
+                            getVal("inspector.dataType") ??
+                            cond.dataType ??
+                            "number";
                         cond.operator =
                             getVal("inspector.operator") ?? cond.operator;
                         cond.mode = getVal("inspector.mode") ?? cond.mode;
@@ -736,8 +757,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                             getVal("inspector.denominatorPath") ??
                             cond.denominatorPath ??
                             "";
-                        const val = getVal("inspector.value", Number);
-                        if (val !== null && !isNaN(val)) cond.value = val;
+                        // Parse value based on the chosen data type
+                        if (cond.dataType === "boolean") {
+                            cond.value = getVal("inspector.value") === "true";
+                        } else if (cond.dataType === "string") {
+                            cond.value = getVal("inspector.value") ?? "";
+                        } else {
+                            // Default to Number
+                            const val = getVal("inspector.value", Number);
+                            if (val !== null && !isNaN(val)) cond.value = val;
+                        }
                     } else if (cond.type === "status") {
                         cond.statusId =
                             getVal("inspector.statusId") ?? cond.statusId;
@@ -1065,6 +1094,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (type === "attribute") {
             Object.assign(newCondition, {
                 path: "",
+                dataType: "number",
                 operator: "lte",
                 value: 0,
                 mode: "percent",

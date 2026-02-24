@@ -273,12 +273,34 @@ export class VisageAutomation {
         if (!condition.path) return false;
 
         // 1. Fetch the raw value using Foundry's native getProperty
-        // This safely traverses the actor object (e.g., actor.system.attributes.hp.value)
         const rawVal = foundry.utils.getProperty(actor, condition.path);
 
-        // If the path doesn't exist on this actor, the condition cannot be met
         if (rawVal === undefined || rawVal === null) return false;
 
+        // -- BOOLEAN LOGIC --
+        if (condition.dataType === "boolean") {
+            const checkVal = Boolean(rawVal);
+            const targetVal = String(condition.value) === "true"; // Safely cast to bool
+
+            if (condition.operator === "eq") return checkVal === targetVal;
+            if (condition.operator === "neq") return checkVal !== targetVal;
+            return false;
+        }
+
+        // -- STRING LOGIC --
+        if (condition.dataType === "string") {
+            // Convert both to lowercase for case-insensitive matching
+            const checkVal = String(rawVal).toLowerCase();
+            const targetVal = String(condition.value).toLowerCase();
+
+            if (condition.operator === "eq") return checkVal === targetVal;
+            if (condition.operator === "neq") return checkVal !== targetVal;
+            if (condition.operator === "includes")
+                return checkVal.includes(targetVal);
+            return false;
+        }
+
+        // -- NUMBER LOGIC (Default) --
         let checkVal = Number(rawVal);
         let targetVal = Number(condition.value);
 
@@ -287,7 +309,6 @@ export class VisageAutomation {
 
         // 2. Handle Percentage Calculations
         if (condition.mode === "percent") {
-            // Use the manually provided denominator, or fallback to guessing ".max"
             const maxPath =
                 condition.denominatorPath ||
                 condition.path.replace(/\.value$/, ".max");
@@ -297,8 +318,6 @@ export class VisageAutomation {
             if (!isNaN(numMaxVal) && numMaxVal > 0) {
                 checkVal = (checkVal / numMaxVal) * 100;
             } else {
-                // If we are asked to calculate a percentage but cannot find a valid 'max',
-                // we must fail safely to prevent errors or false positives.
                 console.warn(
                     `Visage | Cannot calculate percentage for ${condition.path} - no valid max found at ${maxPath}`,
                 );
@@ -316,6 +335,10 @@ export class VisageAutomation {
                 return checkVal === targetVal;
             case "neq":
                 return checkVal !== targetVal;
+            case "lt":
+                return checkVal < targetVal;
+            case "gt":
+                return checkVal > targetVal;
             default:
                 return false;
         }
