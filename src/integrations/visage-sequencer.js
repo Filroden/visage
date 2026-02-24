@@ -31,6 +31,9 @@ export class VisageSequencer {
         // 1. Clean Slate (Always run this to stop previous audio before reapplying)
         await this.remove(token, layer.id, isBaseLayer);
 
+        // If the entire layer is toggled off (hidden), abort before rendering effects
+        if (layer.disabled) return;
+
         if (!effects.length) return;
 
         let visuals = effects.filter((e) => e.type === "visual" && !e.disabled);

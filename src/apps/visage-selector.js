@@ -129,7 +129,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
                 // Resolve representative image for the icon (checking for wildcards)
                 const rawPath = VisageData.getRepresentativeImage(v.changes);
-                const isWildcard = (rawPath || "").includes("*");
+                const isWildcard =
+                    (rawPath || "").includes("*") ||
+                    (rawPath || "").includes("?");
 
                 // Resolve portrait if present
                 let resolvedPortrait = undefined;

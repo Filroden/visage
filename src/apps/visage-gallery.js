@@ -283,7 +283,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             }
 
             const context = VisageData.toPresentation(entry, {
-                isWildcard: (rawPath || "").includes("*"),
+                isWildcard:
+                    (rawPath || "").includes("*") ||
+                    (rawPath || "").includes("?"),
                 isActive: false,
                 resolvedPortrait: resolvedPortrait,
             });

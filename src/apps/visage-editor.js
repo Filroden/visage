@@ -1390,10 +1390,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         );
 
         // 4. Update UI Badges & Audio
+        const rawPath = VisageData.getRepresentativeImage(changes);
         this._updateUIBadges(
             VisageData.toPresentation(
                 { changes },
-                { isWildcard: previewData.resolvedPath?.includes("*") },
+                { isWildcard: rawPath.includes("*") || rawPath.includes("?") },
             ).meta,
             changes,
         );
@@ -1609,6 +1610,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const dispContainer = el.querySelector(".meta-item.disposition-item");
         if (dispContainer && meta.slots.disposition) {
+            dispContainer.classList.toggle(
+                "inactive",
+                meta.slots.disposition.class === "none",
+            );
+
             const textSpan = dispContainer.querySelector(
                 ".visage-disposition-text",
             );

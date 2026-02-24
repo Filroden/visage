@@ -515,15 +515,13 @@ export class VisageData {
             (c.scale !== undefined && c.scale !== null) ||
             Math.abs(bakedScaleX) !== 1.0;
         const isDimActive =
-            (c.width ?? 1) !== 1 ||
-            (c.height ?? 1) !== 1 ||
-            c.width !== undefined ||
-            c.height !== undefined;
+            (c.width !== undefined && c.width !== null) ||
+            (c.height !== undefined && c.height !== null);
         const isAnchorActive = anchorXVal !== 0.5 || anchorYVal !== 0.5;
         const isWildcard = options.isWildcard ?? false;
 
         const showDataChip =
-            isScaleActive || c.width || c.height || isAnchorActive;
+            isScaleActive || isDimActive || isAnchorActive || isWildcard;
 
         // 5. Tooltips (Effects & Portraits)
         const activeEffects = (c.effects || []).filter((e) => !e.disabled);
@@ -590,13 +588,17 @@ export class VisageData {
                         val: `${anchorXVal} / ${anchorYVal}`,
                     },
                     alpha: {
-                        active: c.alpha !== undefined && c.alpha !== 1.0,
+                        active:
+                            c.alpha !== undefined &&
+                            c.alpha !== null &&
+                            c.alpha !== 1.0,
                         val: `${Math.round(alpha * 100)}%`,
                     },
                     lock: {
                         active:
-                            lockRotation !== undefined && lockRotation !== null,
-                        val: lockRotation
+                            c.lockRotation !== undefined &&
+                            c.lockRotation !== null,
+                        val: c.lockRotation
                             ? game.i18n.localize("VISAGE.RotationLock.Locked")
                             : game.i18n.localize(
                                   "VISAGE.RotationLock.Unlocked",
