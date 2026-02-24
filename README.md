@@ -53,7 +53,7 @@ While other modules focus on transient animations (a sword swinging or a firebal
 
 Visage was built with User Experience in mind, offering three distinct tools:
 
-1. **The Gallery:** The central hub for browsing, filtering, and organising Visages. GMs manage the world's "Global Library," while players manage their personal "Local Library."
+1. **The Visage Library:** The central hub for browsing, filtering, and organising Visages. GMs manage the world's "Global Library," while players manage their personal "Local Library."
 2. **The Visage Editor:** A powerful workstation for to build Visages. It features a live preview stage so you can see your token's appearance and effects before you ever save or apply them.
 3. **The Selector HUD:** A transient, slick quick-menu that appears next to a token on the canvas. It allows players to quickly swap their active Visages, toggle visibility, and reorder their active stack via drag-and-drop.
 
@@ -62,6 +62,10 @@ Visage was built with User Experience in mind, offering three distinct tools:
 ## Documentation & How-To Guides
 
 Visage is a powerful tool with a lot of depth. For full tutorials, macro API documentation, and setup guides, **[please visit the Visage Wiki](https://github.com/Filroden/visage/wiki)**.
+
+## Troubleshooting & Bug Reports
+
+If you encounter an issue, please use the **Export Diagnostic Log** button located in the Visage module settings. This will download a JSON file containing your environment details and token state, which you can attach to your bug report to help me fix it faster.
 
 ## Recommended Modules
 
