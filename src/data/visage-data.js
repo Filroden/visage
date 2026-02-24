@@ -197,7 +197,6 @@ export class VisageData {
         const existing = all[id];
 
         // --- AUTOMATION CLEANUP (GLOBAL) ---
-        // If automation was enabled but is now being disabled, remove this visage from all tokens
         if (
             existing?.automation?.enabled &&
             (!data.automation || !data.automation.enabled)
@@ -227,6 +226,9 @@ export class VisageData {
                 : undefined,
         };
 
+        // Scrub the entire constructed entry to catch root-level automation and nested changes
+        this._scrubPayload(entry);
+
         all[id] = entry;
         await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
         return entry;
@@ -251,7 +253,6 @@ export class VisageData {
         const id = data.id || foundry.utils.randomID(16);
 
         // --- AUTOMATION CLEANUP (LOCAL) ---
-        // If automation was enabled but is now being disabled, remove this visage from the actor's tokens
         const existing =
             actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY]?.[id];
         if (
@@ -279,9 +280,22 @@ export class VisageData {
             updated: Date.now(),
         };
 
+        // Scrub the entire constructed entry to catch root-level automation and nested changes
+        this._scrubPayload(entry);
+
+        // Explicitly delete old bloat first to bypass Foundry's Deep Merge resurrection
+        if (existing) {
+            await actor.update({
+                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]:
+                    null,
+            });
+        }
+
+        // Save the new perfectly clean entry
         await actor.update({
             [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry,
         });
+
         console.log(
             `Visage | Saved Local Visage for ${actor.name}: ${entry.label}`,
         );
@@ -291,6 +305,53 @@ export class VisageData {
     // ==========================================
     // 4. TRANSFORMERS (Adapters & UI Prep)
     // ==========================================
+
+    /**
+     * Recursively scrubs nulls, empty arrays, empty objects, and untouched default blocks.
+     * Preserves user-configured data even if it is currently toggled off.
+     * @private
+     */
+    static _scrubPayload(obj) {
+        // 1. Smart-Scrub: Remove blocks ONLY if they are disabled AND untouched/empty
+
+        // Light: Delete if disabled AND emits no light (dim and bright are 0 or missing)
+        if (
+            obj.light &&
+            (obj.light.active === false || obj.light.active === "false")
+        ) {
+            if (!obj.light.dim && !obj.light.bright) delete obj.light;
+        }
+
+        // Automation: Delete if disabled AND has no condition triggers built
+        if (
+            obj.automation &&
+            (obj.automation.enabled === false ||
+                obj.automation.enabled === "false")
+        ) {
+            if (
+                !obj.automation.conditions ||
+                obj.automation.conditions.length === 0
+            )
+                delete obj.automation;
+        }
+
+        // 2. Standard recursive scrub for nulls and completely empty arrays/objects
+        for (const key in obj) {
+            if (obj[key] === undefined) continue;
+
+            if (obj[key] === null) {
+                delete obj[key];
+            } else if (Array.isArray(obj[key])) {
+                // Strip empty arrays
+                if (obj[key].length === 0) delete obj[key];
+            } else if (typeof obj[key] === "object") {
+                this._scrubPayload(obj[key]);
+                // Strip completely empty objects
+                if (Object.keys(obj[key]).length === 0) delete obj[key];
+            }
+        }
+        return obj;
+    }
 
     /**
      * Converts a stored DB data object into a runtime 'Layer' object.
@@ -313,22 +374,8 @@ export class VisageData {
                 : undefined,
         };
 
-        // Recursive Clean Function to remove nulls and empty objects
-        const clean = (obj) => {
-            for (const key in obj) {
-                if (obj[key] === null) {
-                    delete obj[key];
-                } else if (
-                    typeof obj[key] === "object" &&
-                    !Array.isArray(obj[key])
-                ) {
-                    clean(obj[key]);
-                    if (Object.keys(obj[key]).length === 0) delete obj[key];
-                }
-            }
-        };
-
-        clean(layer.changes);
+        // Clean legacy data on the fly (new data is already scrubbed before saving)
+        VisageData._scrubPayload(layer.changes);
 
         // Resolve Wildcard Paths
         if (layer.changes?.texture?.src) {

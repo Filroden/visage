@@ -333,6 +333,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onRender(context, options) {
+        this._isReady = false;
+
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
         // Form Event Delegation
@@ -424,6 +426,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             );
             if (btn) btn.className = "visage-icon grid-off";
         }
+
+        requestAnimationFrame(() => {
+            this._isReady = true;
+        });
     }
 
     // --- Private Context Builders ---
@@ -867,6 +873,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         changes.delay = this._delayData;
         changes.effects = this._effects.filter((e) => !e.disabled);
 
+        // Clean up transient UI properties from the automation data before saving
+        const cleanAutomation = foundry.utils.deepClone(this._automationData);
+        if (cleanAutomation && cleanAutomation.conditions) {
+            cleanAutomation.conditions.forEach((c) => {
+                delete c.typeKey;
+                delete c.summary;
+            });
+        }
+
         return {
             id: this.visageId,
             label: formData.label,
@@ -876,7 +891,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 : [],
             mode: formData.mode,
             public: formData.public === "true",
-            automation: this._automationData,
+            automation: cleanAutomation,
             changes: changes,
         };
     }
@@ -909,6 +924,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _markDirty() {
+        if (!this._isReady) return;
+
         if (!this.isDirty) {
             this.isDirty = true;
             this.element.querySelector(".visage-save")?.classList.add("dirty");
@@ -1042,6 +1059,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingRing = true;
         this._editingLight = false;
         this._activeEffectId = null;
+        this._activeConditionId = null;
         this.render();
     }
     _onToggleLight() {
@@ -1055,6 +1073,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingLight = true;
         this._editingRing = false;
         this._activeEffectId = null;
+        this._activeConditionId = null;
         this.render();
     }
     _onToggleDelayDirection(event, target) {
@@ -1111,6 +1130,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this._automationData.conditions.push(newCondition);
         this._activeConditionId = newCondition.id;
+        this._activeEffectId = null;
+        this._editingLight = false;
+        this._editingRing = false;
 
         // Ensure UI focuses the inspector
         this.element
@@ -1122,6 +1144,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     _onEditCondition(event, target) {
         this._activeConditionId = target.closest(".effect-card").dataset.id;
+        this._activeEffectId = null;
+        this._editingLight = false;
+        this._editingRing = false;
         this.render();
     }
     _onDeleteCondition(event, target) {
@@ -1229,6 +1254,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;
+        this._activeConditionId = null;
         this._markDirty();
         this.render();
     }
@@ -1244,6 +1270,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;
+        this._activeConditionId = null;
         this._markDirty();
         this.render();
     }
@@ -1251,6 +1278,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._activeEffectId = target.closest(".effect-card").dataset.id;
         this._editingLight = false;
         this._editingRing = false;
+        this._activeConditionId = null;
         this.render();
     }
     _onToggleEffect(event, target) {
@@ -1653,15 +1681,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const hidden = container.querySelector("input[name='tags']");
         const pillsDiv = container.querySelector(".visage-tag-pills");
 
-        const update = () => {
+        // 1. Add the isInit flag
+        const update = (isInit = false) => {
             hidden.value = Array.from(
                 pillsDiv.querySelectorAll(".visage-tag-pill"),
             )
                 .map((p) => p.dataset.tag)
                 .join(",");
-            this._markDirty();
+
+            // Only mark dirty if this was a user action
+            if (!isInit) this._markDirty();
         };
-        const add = (text) => {
+
+        // 2. Add the isInit flag here
+        const add = (text, isInit = false) => {
             const clean = text.trim();
             if (
                 !clean ||
@@ -1679,9 +1712,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 update();
             });
             pillsDiv.appendChild(pill);
-            update();
+
+            // 3. Pass the flag down
+            update(isInit);
         };
 
+        // 4. Pass 'true' during initial load
         if (hidden.value) hidden.value.split(",").forEach(add);
 
         input.addEventListener("keydown", (ev) => {
