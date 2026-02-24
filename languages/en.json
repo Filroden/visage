@@ -458,5 +458,9 @@
     "VISAGE.Editor.Triggers.TypeNumber": "Number",
     "VISAGE.Editor.Triggers.TypeString": "String",
     "VISAGE.Editor.Triggers.TypeBoolean": "Boolean",
-    "VISAGE.Editor.Triggers.OpIncludes": "Includes (Contains)"
+    "VISAGE.Editor.Triggers.OpIncludes": "Includes (Contains)",
+    "VISAGE.Settings.ExportLog.Name": "Export Diagnostic Log",
+    "VISAGE.Settings.ExportLog.Hint": "Generates a JSON file containing your environment details, active modules, and Visage data to help the developer troubleshoot bugs.",
+    "VISAGE.Settings.ExportLog.Label": "Export Log",
+    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnostic log exported successfully."
 }

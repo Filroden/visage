@@ -21,6 +21,7 @@ import { MODULE_ID } from "./src/core/visage-constants.js";
 import { VisageSequencer } from "./src/integrations/visage-sequencer.js";
 import { VisageSamples } from "./src/data/visage-samples.js";
 import { VisageAutomation } from "./src/core/visage-automation.js";
+import { VisageUtilities } from "./src/utils/visage-utilities.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -287,6 +288,20 @@ function registerSettings() {
         icon: "visage-icon open",
         type: VisageSamples,
         restricted: true,
+    });
+
+    // Register Diagnostic Export Menu Button
+    game.settings.registerMenu(MODULE_ID, "exportDiagnostics", {
+        name: "VISAGE.Settings.ExportLog.Name",
+        hint: "VISAGE.Settings.ExportLog.Hint",
+        label: "VISAGE.Settings.ExportLog.Label",
+        type: class extends foundry.applications.api.ApplicationV2 {
+            render(force, options) {
+                VisageUtilities.exportDiagnostics();
+                return this;
+            }
+        },
+        restricted: false,
     });
 
     game.settings.register(MODULE_ID, "allowSystemOverrides", {
