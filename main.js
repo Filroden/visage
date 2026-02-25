@@ -128,13 +128,16 @@ Hooks.once("init", () => {
             "modules/visage/templates/visage-selector.hbs",
             "modules/visage/templates/visage-editor.hbs",
             "modules/visage/templates/visage-gallery.hbs",
+            "modules/visage/templates/visage-samples.hbs",
             "modules/visage/templates/parts/visage-preview.hbs",
             "modules/visage/templates/parts/visage-card.hbs",
+            "modules/visage/templates/parts/visage-chat-welcome.hbs",
             "modules/visage/templates/parts/visage-effectCard.hbs",
             "modules/visage/templates/parts/visage-tile.hbs",
             "modules/visage/templates/parts/visage-editor-appearance.hbs",
             "modules/visage/templates/parts/visage-editor-effects.hbs",
             "modules/visage/templates/parts/visage-editor-triggers.hbs",
+            "modules/visage/templates/helpers/visage-attribute-picker.hbs",
         ]);
 
         registerSettings();

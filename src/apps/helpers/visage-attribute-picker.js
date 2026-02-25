@@ -1,4 +1,4 @@
-import { MODULE_ID } from "../../core/visage-constants.js";
+import { VisageUtilities } from "../../utils/visage-utilities.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -9,6 +9,7 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
         super(options);
         this.actor = options.actor;
         this.onSelect = options.onSelect;
+        this.isLocal = options.isLocal ?? false;
     }
 
     static DEFAULT_OPTIONS = {
@@ -79,6 +80,8 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
     }
 
     _onRender(context, options) {
+        VisageUtilities.applyVisageTheme(this.element, this.isLocal);
+
         // Bind the live search bar using pure DOM manipulation
         const searchInput = this.element.querySelector(
             ".visage-attribute-search",

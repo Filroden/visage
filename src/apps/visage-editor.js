@@ -1208,6 +1208,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         new VisageAttributePicker({
             actor: referenceActor,
+            isLocal: this.isLocal,
             onSelect: (path) => {
                 const pathInput = this.element.querySelector(
                     `input[name="${targetInputName}"]`,
