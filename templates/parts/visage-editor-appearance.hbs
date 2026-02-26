@@ -36,20 +36,35 @@
                 {{checked img.active}}
             />
             <label>{{localize "VISAGE.GlobalEditor.TokenImage"}}</label>
+
             <div class="visage-form-fields">
+                {{#if ringSubjectTexture.active}}
+                    {{! Warn only if the Ring Subject Texture is actively overriding the base image }}
+                    <span class="visage-ring-warning-message">
+                        <i
+                            class="visage-icon warning"
+                            data-tooltip="{{localize
+                                'VISAGE.GlobalEditor.RingActiveWarning'
+                            }}"
+                        ></i>
+                    </span>
+                {{/if}}
                 <input
                     type="text"
                     name="img"
-                    value="{{this.img.value}}"
+                    value="{{img.value}}"
                     {{disabled (not img.active)}}
-                    placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}"
+                    placeholder="{{localize 'VISAGE.GlobalEditor.TokenImage'}}"
                 />
                 <button
                     type="button"
                     class="file-picker-button"
                     data-action="openFilePicker"
+                    data-tooltip="{{localize 'VISAGE.GlobalEditor.FilePicker'}}"
                     {{disabled (not img.active)}}
-                ><i class="visage-icon image-search"></i></button>
+                >
+                    <i class="visage-icon image-search"></i>
+                </button>
             </div>
         </div>
 

@@ -5,18 +5,23 @@
  * @version 3.0.0
  */
 
-import { Visage } from "./src/visage.js";
-import { VisageSelector } from "./src/visage-selector.js";
-import { VisageData } from "./src/visage-data.js";
-import { VisageEditor } from "./src/visage-editor.js";
-import { VisageGallery } from "./src/visage-gallery.js";
-import { handleTokenHUD } from "./src/visage-hud.js";
-import { cleanseSceneTokens, cleanseAllTokens } from "./src/visage-cleanup.js";
-import { migrateWorldData } from "./src/visage-migration.js";
-import { handleGhostEdit } from "./src/visage-ghost.js";
-import { MODULE_ID } from "./src/visage-constants.js";
-import { VisageSequencer } from "./src/visage-sequencer.js";
-import { VisageSamples } from "./src/visage-samples.js";
+import { Visage } from "./src/core/visage.js";
+import { VisageSelector } from "./src/apps/visage-selector.js";
+import { VisageData } from "./src/data/visage-data.js";
+import { VisageEditor } from "./src/apps/visage-editor.js";
+import { VisageGallery } from "./src/apps/visage-gallery.js";
+import { handleTokenHUD } from "./src/apps/visage-hud.js";
+import {
+    cleanseSceneTokens,
+    cleanseAllTokens,
+} from "./src/data/visage-cleanup.js";
+import { migrateWorldData } from "./src/data/visage-migration.js";
+import { handleGhostEdit } from "./src/apps/visage-ghost.js";
+import { MODULE_ID } from "./src/core/visage-constants.js";
+import { VisageSequencer } from "./src/integrations/visage-sequencer.js";
+import { VisageSamples } from "./src/data/visage-samples.js";
+import { VisageAutomation } from "./src/core/visage-automation.js";
+import { VisageUtilities } from "./src/utils/visage-utilities.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -123,13 +128,16 @@ Hooks.once("init", () => {
             "modules/visage/templates/visage-selector.hbs",
             "modules/visage/templates/visage-editor.hbs",
             "modules/visage/templates/visage-gallery.hbs",
+            "modules/visage/templates/visage-samples.hbs",
             "modules/visage/templates/parts/visage-preview.hbs",
             "modules/visage/templates/parts/visage-card.hbs",
+            "modules/visage/templates/parts/visage-chat-welcome.hbs",
             "modules/visage/templates/parts/visage-effectCard.hbs",
             "modules/visage/templates/parts/visage-tile.hbs",
             "modules/visage/templates/parts/visage-editor-appearance.hbs",
             "modules/visage/templates/parts/visage-editor-effects.hbs",
             "modules/visage/templates/parts/visage-editor-triggers.hbs",
+            "modules/visage/templates/helpers/visage-attribute-picker.hbs",
         ]);
 
         registerSettings();
@@ -285,6 +293,20 @@ function registerSettings() {
         restricted: true,
     });
 
+    // Register Diagnostic Export Menu Button
+    game.settings.registerMenu(MODULE_ID, "exportDiagnostics", {
+        name: "VISAGE.Settings.ExportLog.Name",
+        hint: "VISAGE.Settings.ExportLog.Hint",
+        label: "VISAGE.Settings.ExportLog.Label",
+        type: class extends foundry.applications.api.ApplicationV2 {
+            render(force, options) {
+                VisageUtilities.exportDiagnostics();
+                return this;
+            }
+        },
+        restricted: false,
+    });
+
     game.settings.register(MODULE_ID, "allowSystemOverrides", {
         name: "VISAGE.Settings.AllowSystemOverrides.Name",
         hint: "VISAGE.Settings.AllowSystemOverrides.Hint",
@@ -408,6 +430,9 @@ Hooks.once("ready", async () => {
         // Clean up deleted items older than retention period
         VisageData.runGarbageCollection();
 
+        // Initialize the Automation Engine Watcher
+        VisageAutomation.initialize();
+
         // Check if a migration is required based on the version difference
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {
             // Trigger data migration if the previous version is older than the schema change
@@ -478,8 +503,8 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
 
     // Dynamic import required here because VisageData relies on initialization
     // occurring before it can be fully utilized in this context.
-    const { VisageData } = await import("./src/visage-data.js");
-    const { Visage } = await import("./src/visage.js");
+    const { VisageData } = await import("./src/data/visage-data.js");
+    const { Visage } = await import("./src/core/visage.js");
 
     // Ensure the dropped ID is valid
     const visageData = VisageData.getGlobal(data.id);
@@ -534,8 +559,8 @@ Hooks.on("deleteToken", async (tokenDoc, options, userId) => {
     // This prevents race conditions where 4 players delete a token and all 4 try to update the Actor.
     if (game.user.id !== userId) return;
 
-    // 2. Clean up Sequencer Effects
-    if (tokenDoc.object && Visage.sequencerReady) {
+    // 2. Clean up Visual/Audio Effects (Only if Sequencer is active)
+    if (tokenDoc.object && game.modules.get("sequencer")?.active) {
         VisageSequencer.revert(tokenDoc.object);
     }
 

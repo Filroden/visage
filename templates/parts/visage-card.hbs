@@ -44,23 +44,32 @@
         {{!-- CENTER: VISUAL PREVIEW --}}
         <div class="card-zone-center">
 
-            {{!-- Effects / Light / Delay Indicator --}}
-            {{#if this.meta.showEffectsBadge}}
-            <div class="visage-card-effect-indicator behavior" 
-                    data-tooltip="{{this.meta.effectsTooltip}}" 
-                    data-tooltip-class="visage-tooltip">
-                <i class="visage-icon wand-stars"></i>
-            </div>
-            {{/if}}
+            {{!-- Indicators Row --}}
+            <div class="visage-card-indicators-row">
 
-            {{!-- Portrait Indicator --}}
-            {{#if this.meta.hasPortrait}}
-            <div class="visage-card-effect-indicator portrait" 
-                    data-tooltip="{{this.meta.portraitTooltip}}" 
-                    data-tooltip-class="visage-tooltip">
-                <i class="visage-icon portrait"></i>
-            </div>
-            {{/if}}            
+                {{!-- Effects --}}
+                {{#if this.meta.showEffectsBadge}}
+                    <div class="visage-card-effect-indicator behavior" data-tooltip="{{{this.meta.effectsTooltip}}}">
+                        <i class="visage-icon wand-stars"></i>
+                    </div>
+                {{/if}}
+
+                {{!-- Automation Toggle --}}
+                {{#if this.automation.conditions.length}}
+                    <div class="visage-card-effect-indicator automation {{#unless this.automation.enabled}}muted{{/unless}}" 
+                         data-action="toggleAutomation" 
+                         data-tooltip="{{localize 'VISAGE.Editor.Triggers.Enable'}}">
+                        <i class="visage-icon power"></i>
+                    </div>
+                {{/if}}
+
+                {{!-- Portrait --}}
+                {{#if this.meta.hasPortrait}}
+                    <div class="visage-card-effect-indicator portrait" data-tooltip="{{{this.meta.portraitTooltip}}}">
+                        <i class="visage-icon portrait"></i>
+                    </div>
+                {{/if}}
+            </div>           
 
             {{!-- Main Image --}}
             <div class="visual-target">

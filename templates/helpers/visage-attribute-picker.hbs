@@ -1,0 +1,42 @@
+<div class="visage-attribute-picker-content">
+    <div class="search-bar">
+        <i class="visage-icon search"></i>
+        <input
+            type="text"
+            class="visage-attribute-search"
+            placeholder="{{localize
+                'VISAGE.AttributePicker.SearchPlaceholder'
+            }}"
+        />
+    </div>
+
+    <div class="visage-attribute-list visage-scrollable">
+        {{#if isEmpty}}
+            <div class="empty-state">{{localize
+                    "VISAGE.AttributePicker.Empty"
+                }}</div>
+        {{else}}
+            {{! This hidden div is used by the JS live-search }}
+            <div
+                class="empty-state empty-state-dynamic"
+                style="display: none;"
+            >{{localize "VISAGE.AttributePicker.Empty"}}</div>
+
+            {{#each attributes}}
+                <div
+                    class="attribute-item"
+                    data-action="selectAttribute"
+                    data-path="{{this.path}}"
+                >
+                    <div class="attribute-info">
+                        <span class="path">{{this.path}}</span>
+                        <span
+                            class="type-badge {{this.type}}"
+                        >{{this.typeLabel}}</span>
+                    </div>
+                    <span class="current-value">={{this.value}}</span>
+                </div>
+            {{/each}}
+        {{/if}}
+    </div>
+</div>
