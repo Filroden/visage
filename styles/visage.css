@@ -3009,7 +3009,6 @@ li.context-item .visage-icon-domino {
     top: var(--filroden-space-s);
     width: 2rem;
     height: 2rem;
-    background: rgba(0, 0, 0, 0.75);
     border: var(--filroden-border-main);
     border-radius: 50%;
     display: flex;
@@ -3677,7 +3676,6 @@ button.visage-tool-icon {
     inset-inline-start: auto;
     inset-inline-end: auto;
     pointer-events: auto;
-    padding-bottom: var(--filroden-space-l);
 }
 
 /* -----------------------------------------
@@ -3728,6 +3726,7 @@ button.visage-tool-icon {
 .visage .visage-automation-indicator {
     width: var(--filroden-font-size-l);
     height: var(--filroden-font-size-l);
+    color: var(--filroden-color-success);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -3737,7 +3736,7 @@ button.visage-tool-icon {
 }
 
 .visage .visage-automation-indicator.muted {
-    background-color: var(--filroden-color-text-muted-solid);
+    color: var(--filroden-color-text-muted-solid);
 }
 
 

@@ -15,6 +15,8 @@
 
 **Visage is the ultimate non-destructive token appearance module with an optional automation engine.** It gives your tokens an "infinite wardrobe," allowing GMs and players to instantly transform characters with "Identities" and stackable "Overlays." By treating token art as a dynamic, persistent narrative tool, Visage brings your game's evolving story directly onto the canvas.
 
+![Visage](https://github.com/Filroden/visage/blob/main/images/apply_visages.gif)
+
 ### The Brass Tacks
 
 In mechanical terms, **Visage is a robust token property manager**. Instead of manually opening the Token Configuration window during a game to change a token's image, size, disposition, dynamic ring, or light source, you save those settings into a package called a "Visage". And with the *Sequencer* module installed, you can also add visual and audio effects to your Visages.
@@ -41,23 +43,29 @@ While other modules focus on transient animations (a sword swinging or a firebal
 
 ### Key Features
 
-* **🤖 The Automation Engine (New in v4):** Stop manually applying effects! Configure Visage to listen in the background and automatically apply visuals when conditions are met. Trigger Visages based on:
+* **The Automation Engine (New in v4):** Stop manually applying effects! Configure Visage to listen in the background and automatically apply visuals when conditions are met. Trigger Visages based on:
   * **Attributes:** e.g., Apply a bloody portrait when HP drops below 50%. Built with a  searchable Attribute Picker that works with any game system.
   * **Status Effects:** e.g., Apply a glowing forcefield when the "Mage Armour" effect is present.
   * **Game Events:** React to Scene Darkness, Global Illumination, elevation changes, Region entry/exit, Combat states or even the token being targeted.
-* **🎬 Integrated Media Pipeline:** Visage seamlessly hooks into the **[Sequencer](https://foundryvtt.com/packages/sequencer)** module. Bind particle effects, looping animations, and sound effects to your Visages. When the Visage is removed, the audio and visual effects stop automatically.
-* **💍 Dynamic Token Ring Support:** Fully supports Foundry's Dynamic Token Rings. Override subject textures, background colours, and toggle ring effects (Pulse, Wave, Invisibility) on the fly.
-* **🌍 Global & Local Libraries:** GMs can build a "Global Library" of universal effects to use across the world. Set some of these Visages to "public" and they become visible for players to use. Players have a "Local Library" tied to their specific character sheet for their personal transformations.
+* **Integrated Media Pipeline:** Visage seamlessly hooks into the **[Sequencer](https://foundryvtt.com/packages/sequencer)** module. Bind particle effects, looping animations, and sound effects to your Visages. When the Visage is removed, the audio and visual effects stop automatically.
+* **Dynamic Token Ring Support:** Fully supports Foundry's Dynamic Token Rings. Override subject textures, background colours, and toggle ring effects (Pulse, Wave, Invisibility) on the fly.
+* **Global & Local Libraries:** GMs can build a "Global Library" of universal effects to use across the world. Set some of these Visages to "public" and they become visible for players to use. Players have a "Local Library" tied to their specific character sheet for their personal transformations.
 
 ### The Interface
 
 Visage was built with User Experience in mind, offering three distinct tools:
 
 1. **The Visage Library:** The central hub for browsing, filtering, and organising Visages. GMs manage the world's "Global Library," while players manage their personal "Local Library."
+
+   ![Visage Local Library](https://github.com/Filroden/visage/blob/main/images/local_library.png)
+
 2. **The Visage Editor:** A powerful workstation for to build Visages. It features a live preview stage so you can see your token's appearance and effects before you ever save or apply them.
+
+   ![Visage Global Editor](https://github.com/Filroden/visage/blob/main/images/global_editor.png)
+
 3. **The Selector HUD:** A transient, slick quick-menu that appears next to a token on the canvas. It allows players to quickly swap their active Visages, toggle visibility, and reorder their active stack via drag-and-drop.
 
----
+   ![Visage Selector HUD](https://github.com/Filroden/visage/blob/main/images/visage_selector_hud.png)
 
 ## Documentation & How-To Guides
 
