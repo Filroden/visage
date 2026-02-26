@@ -1,4 +1,4 @@
-import { MODULE_ID } from "../../core/visage-constants.js";
+import { VisageUtilities } from "../../utils/visage-utilities.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -9,6 +9,7 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
         super(options);
         this.actor = options.actor;
         this.onSelect = options.onSelect;
+        this.isLocal = options.isLocal ?? false;
     }
 
     static DEFAULT_OPTIONS = {
@@ -17,7 +18,7 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
         classes: ["visage", "visage-dark-theme", "visage-attribute-picker-app"],
         window: {
             title: "VISAGE.Editor.Triggers.AttributePicker",
-            icon: "visage-icon-attribute",
+            icon: "visage-icon attribute-picker ",
             resizable: true,
         },
         position: { width: 400, height: 500 },
@@ -42,13 +43,14 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
         const attributes = [];
 
         for (const [key, value] of Object.entries(flatSystem)) {
+            const rawType = typeof value;
+
             // Include Numbers and Booleans
-            let isValid =
-                typeof value === "number" || typeof value === "boolean";
+            let isValid = rawType === "number" || rawType === "boolean";
 
             // Include Strings, but ONLY if they are short (no HTML biographies)
             if (
-                typeof value === "string" &&
+                rawType === "string" &&
                 value.length < 50 &&
                 !value.includes("<")
             ) {
@@ -56,10 +58,14 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
             }
 
             if (isValid) {
+                // Capitalize the first letter to match our en.json keys (e.g., "TypeNumber")
+                const typeKey = `VISAGE.Editor.Triggers.Type${rawType.charAt(0).toUpperCase() + rawType.slice(1)}`;
+
                 attributes.push({
                     path: `system.${key}`,
                     value: value,
-                    type: typeof value,
+                    type: rawType, // Keep the raw lowercase type for CSS classes
+                    typeLabel: game.i18n.localize(typeKey), // The clean, localized string for the UI
                 });
             }
         }
@@ -74,6 +80,8 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
     }
 
     _onRender(context, options) {
+        VisageUtilities.applyVisageTheme(this.element, this.isLocal);
+
         // Bind the live search bar using pure DOM manipulation
         const searchInput = this.element.querySelector(
             ".visage-attribute-search",

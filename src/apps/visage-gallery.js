@@ -34,6 +34,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             search: "",
             category: null,
             tags: new Set(),
+            automation: false,
             showBin: false,
         };
 
@@ -124,9 +125,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             clearSearch: VisageGallery.prototype._onClearSearch,
             toggleTag: VisageGallery.prototype._onToggleTag,
             clearTags: VisageGallery.prototype._onClearTags,
+            toggleAutomationFilter:
+                VisageGallery.prototype._onToggleAutomationFilter,
 
             // Menu / Data Actions
             toggleMenu: VisageGallery.prototype._onToggleMenu,
+            toggleAutomation: VisageGallery.prototype._onToggleAutomation,
             duplicate: VisageGallery.prototype._onDuplicate,
             export: VisageGallery.prototype._onExport,
             import: VisageGallery.prototype._onImport,
@@ -253,6 +257,13 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 )
                     return false;
             }
+
+            // Automation Filter
+            if (this.filters.automation) {
+                const hasAutomation = entry.automation?.conditions?.length > 0;
+                if (!hasAutomation) return false;
+            }
+
             return true;
         });
 
@@ -272,7 +283,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             }
 
             const context = VisageData.toPresentation(entry, {
-                isWildcard: (rawPath || "").includes("*"),
+                isWildcard:
+                    (rawPath || "").includes("*") ||
+                    (rawPath || "").includes("?"),
                 isActive: false,
                 resolvedPortrait: resolvedPortrait,
             });
@@ -348,6 +361,11 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onClearTags(event, target) {
         this.filters.tags.clear();
+        this.render();
+    }
+
+    _onToggleAutomationFilter(event, target) {
+        this.filters.automation = !this.filters.automation;
         this.render();
     }
 
@@ -453,6 +471,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             tags: source.tags ? [...source.tags] : [],
             changes: foundry.utils.deepClone(source.changes),
             mode: source.mode,
+            automation: source.automation
+                ? foundry.utils.deepClone(source.automation)
+                : undefined,
         };
 
         await VisageData.save(copy, this.isLocal ? this.actor : null);
@@ -523,6 +544,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 tags: globalMask.tags ? [...globalMask.tags] : [],
                 mode: globalMask.mode,
                 changes: foundry.utils.deepClone(globalMask.changes),
+                automation: globalMask.automation
+                    ? foundry.utils.deepClone(globalMask.automation)
+                    : undefined,
             };
 
             await VisageData.save(payload, actor);
@@ -871,5 +895,28 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         await VisageData.save(payload, this.isLocal ? this.actor : null);
 
         // No manual render needed as save triggers hooks
+    }
+
+    async _onToggleAutomation(event, target) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const card = target.closest(".visage-card");
+        const id = card.dataset.id;
+
+        let source = this.isLocal
+            ? VisageData.getLocal(this.actor).find((v) => v.id === id)
+            : VisageData.getGlobal(id);
+
+        if (!source || !source.automation) return;
+
+        // Toggle state
+        const newEnabled = !source.automation.enabled;
+        const payload = foundry.utils.mergeObject(
+            foundry.utils.deepClone(source),
+            { "automation.enabled": newEnabled },
+        );
+
+        await VisageData.save(payload, this.isLocal ? this.actor : null);
     }
 }

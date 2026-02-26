@@ -323,4 +323,63 @@ export class VisageUtilities {
     static get hasSequencer() {
         return game.modules.get("sequencer")?.active;
     }
+
+    /**
+     * Generates and downloads a diagnostic JSON file for bug reporting.
+     */
+    static exportDiagnostics() {
+        const module = game.modules.get("visage");
+
+        const diagnosticData = {
+            timestamp: new Date().toISOString(),
+            environment: {
+                userAgent: navigator.userAgent,
+                foundryVersion: game.version,
+                system: {
+                    id: game.system.id,
+                    version: game.system.version,
+                },
+            },
+            visage: {
+                version: module.version,
+                sequencerActive: game.modules.get("sequencer")?.active || false,
+                jb2aActive:
+                    game.modules.get("JB2A_DnD5e")?.active ||
+                    game.modules.get("jb2a_patreon")?.active ||
+                    false,
+                activeModules: game.modules
+                    .filter((m) => m.active)
+                    .map((m) => m.id),
+            },
+            data: {
+                globalLibrary:
+                    game.settings.get("visage", "globalVisages") || {},
+            },
+        };
+
+        if (canvas.ready && canvas.tokens.controlled.length > 0) {
+            diagnosticData.data.selectedTokens = canvas.tokens.controlled.map(
+                (t) => ({
+                    name: t.name,
+                    actorId: t.actor?.id,
+                    localVisages:
+                        t.actor?.flags?.visage?.alternateVisages || {},
+                    activeStack: t.document.flags?.visage?.activeStack || [],
+                    identity: t.document.flags?.visage?.identity || null,
+                }),
+            );
+        }
+
+        const filename = `Visage_Diagnostics_${Date.now()}.json`;
+        foundry.utils.saveDataToFile(
+            JSON.stringify(diagnosticData, null, 2),
+            "application/json",
+            filename,
+        );
+
+        // Using the new localization key
+        ui.notifications.info(
+            game.i18n.localize("VISAGE.Notifications.ExportSuccess"),
+        );
+    }
 }

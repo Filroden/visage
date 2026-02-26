@@ -32,7 +32,7 @@
 
         <nav class="category-list">
             <h3 class="sidebar-header">{{localize "VISAGE.Directory.Categories"}}</h3>
-            <ul>
+            <ul class="visage-scrollable">
                 <li class="{{#unless filters.category}}active{{/unless}}">
                     <a data-action="selectCategory" data-category="">{{localize "VISAGE.Directory.AllVisages"}}</a>
                 </li>
@@ -58,7 +58,6 @@
     <main class="visage-browser">
 
         {{!-- TAG FILTER BAR --}}
-        {{#if hasFilterBar}}
         <div class="visage-filter-bar">
             <i class="visage-icon filter filter-icon" title="{{localize 'VISAGE.Directory.Filters'}}"></i>
             <div class="filter-pills">
@@ -76,13 +75,19 @@
                 </button>
                 {{/each}}
             </div>
+
+            <div class="filter-divider"></div>
+
+            <button class="clear-filters" data-action="toggleAutomationFilter" data-tooltip="{{localize 'VISAGE.Directory.FilterAutomation'}}" style="color: {{#if filters.automation}}var(--visage-color-accent){{else}}var(--visage-color-text-main-solid){{/if}};">
+                <i class="visage-icon power"></i>
+            </button>
+
             {{#if activeTags.length}}
             <button class="clear-filters" data-action="clearTags" data-tooltip="{{localize 'VISAGE.Directory.ClearTags'}}">
                 <span class="visage-icon-clear"></span>
             </button>
             {{/if}}
         </div>
-        {{/if}}
         
         {{!-- SECTIONED GRID --}}
         {{#if hasItems}}

@@ -1,6 +1,7 @@
 import { MODULE_ID } from "../core/visage-constants.js";
 import { VisageData } from "./visage-data.js";
 import { cleanVisageData } from "./visage-migration.js";
+import { VisageUtilities } from "../utils/visage-utilities.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -79,6 +80,10 @@ export class VisageSamples extends HandlebarsApplicationMixin(ApplicationV2) {
         return {
             packs: VisageSamples.PACKS,
         };
+    }
+
+    _onRender(context, options) {
+        VisageUtilities.applyVisageTheme(this.element, false);
     }
 
     /**

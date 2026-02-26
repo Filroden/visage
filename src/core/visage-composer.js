@@ -99,27 +99,12 @@ export class VisageComposer {
                 currentAnchorY = c.texture.anchorY;
             }
 
-            // Priority 1: Atomic Scale (Modern Schema)
+            // Atomic Scale
             // Checks for the explicit 'scale' property. This overrides individual X/Y scaling.
             if (c.scale !== undefined && c.scale !== null) {
                 currentScaleX = c.scale;
                 currentScaleY = c.scale;
                 handledScale = true;
-            }
-
-            // Priority 2: Texture Scale (Legacy Schema)
-            // If atomic scale is missing, check for legacy baked scale data.
-            // This ensures backward compatibility for older masks that haven't been migrated.
-            if (!handledScale && c.texture) {
-                if (c.texture.scaleX !== undefined) {
-                    currentScaleX = Math.abs(c.texture.scaleX);
-                    // Legacy data implies flipping via negative scale, so we update mirror intent here too
-                    currentMirrorX = c.texture.scaleX < 0;
-                }
-                if (c.texture.scaleY !== undefined) {
-                    currentScaleY = Math.abs(c.texture.scaleY);
-                    currentMirrorY = c.texture.scaleY < 0;
-                }
             }
 
             // C. Mirroring (Atomic Override)

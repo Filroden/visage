@@ -129,7 +129,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
                 // Resolve representative image for the icon (checking for wildcards)
                 const rawPath = VisageData.getRepresentativeImage(v.changes);
-                const isWildcard = (rawPath || "").includes("*");
+                const isWildcard =
+                    (rawPath || "").includes("*") ||
+                    (rawPath || "").includes("?");
 
                 // Resolve portrait if present
                 let resolvedPortrait = undefined;
@@ -173,6 +175,34 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             defaultForm,
             ...processedItems.filter((v) => v.mode === "identity"),
         ];
+
+        // If a global identity is currently active but isn't in the identities list
+        // (e.g., it's a private GM Visage or the player hid public globals),
+        // fetch it and inject it so the player knows why their token is changed.
+        if (
+            currentFormKey !== "default" &&
+            !identities.some((i) => i.isActive)
+        ) {
+            const globalIdentity = VisageData.getGlobal(currentFormKey);
+            if (globalIdentity) {
+                const globalPresentation = VisageData.toPresentation(
+                    globalIdentity,
+                    {
+                        isActive: true,
+                        isGlobal: true,
+                    },
+                );
+
+                globalPresentation.key = currentFormKey;
+                globalPresentation.themeClass = "visage-theme-global"; // Triggers the Blue Border
+                globalPresentation.resolvedPath = await Visage.resolvePath(
+                    globalIdentity.changes?.texture?.src,
+                );
+
+                // Inject it right after the "Default" tile so it sits at the front
+                identities.splice(1, 0, globalPresentation);
+            }
+        }
 
         // Overlay List: Just stored overlays
         const overlays = processedItems.filter((v) => v.mode === "overlay");

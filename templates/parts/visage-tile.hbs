@@ -70,10 +70,18 @@
 
             {{!-- Effects --}}
             {{#if this.meta.showEffectsBadge}}
-            <div class="visage-sidebar-glyph effects" 
+            <div class="visage-sidebar-glyph effects"
                  data-tooltip="{{this.meta.effectsTooltip}}"
                  data-tooltip-class="visage-tooltip">
                 <i class="visage-icon wand-stars"></i>
+            </div>
+            {{/if}}
+
+            {{!-- Left Column: Automation Indicator --}}
+            {{#if this.automation.conditions.length}}
+            <div class="visage-sidebar-glyph visage-automation-indicator {{#unless this.automation.enabled}}muted{{/unless}}" 
+                data-tooltip="{{localize 'VISAGE.Editor.Triggers.AutomationTooltip'}}">
+                <i class="visage-icon power"></i>
             </div>
             {{/if}}
 

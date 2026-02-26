@@ -15,7 +15,8 @@
  * 10. Welcome Chat Card
  * 11. Game Settings
  * 12. Application: Attribute Picker
- * 13. Theme Definitions (The Engine)
+ * 13. Automation Toggles (Gallery cards and Selector HUD tiles)
+ * 14. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
@@ -2060,7 +2061,7 @@ li.context-item .visage-icon-domino {
 
 .visage .effects-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: var(--filroden-space-s);
     margin-bottom: var(--filroden-space-m);
     flex: 0 0 auto;
@@ -2151,6 +2152,9 @@ li.context-item .visage-icon-domino {
 .visage .effect-meta {
     font-size: 0.65rem;
     color: var(--visage-color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .visage .effect-controls {
@@ -2613,10 +2617,12 @@ li.context-item .visage-icon-domino {
 
 .visage-sidebar .search-bar { 
     position: relative;
+    display: flex;
 }
 .visage-sidebar .search-bar input {
-    padding-inline-start: 2rem;
-    padding-inline-end: 2rem;
+    box-sizing: border-box;
+    padding-inline-start: 2.2rem;
+    padding-inline-end: 2.2rem;
     background: var(--visage-color-bg-darkest);
     border: 1px solid var(--visage-color-border);
     border-radius: var(--filroden-radius-medium);
@@ -2631,16 +2637,37 @@ li.context-item .visage-icon-domino {
     z-index: 2;
     transition: color 0.2s;
 }
-.visage-sidebar .search-bar i.fa-search {
+.visage-sidebar .search-bar > i.search {
+    position: absolute;
+    top: 50%;
     inset-inline-start: var(--filroden-space-s);
-    pointer-events: none; 
+    transform: translateY(-50%);
+    color: var(--filroden-color-text-muted);
+    z-index: 2;
+    pointer-events: none;
+    transition: color 0.2s;
+    margin: 0;
 }
-.visage-sidebar .search-bar i.fa-times {
+.visage-sidebar .search-bar a[data-action="clearSearch"] {
+    position: absolute;
+    top: 50%;
     inset-inline-end: var(--filroden-space-s);
+    transform: translateY(-50%);
+    z-index: 2;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--filroden-color-text-muted);
+    transition: color 0.2s;
 }
-.visage-sidebar .search-bar i.fa-times:hover {
+.visage-sidebar .search-bar a[data-action="clearSearch"]:hover {
     color: var(--filroden-color-text-main-solid);
+}
+.visage-sidebar .search-bar a[data-action="clearSearch"] i {
+    margin: 0;
+    margin-inline-end: var(--filroden-space-l);
+    color: inherit;
 }
 
 .visage-create-btn {
@@ -2659,9 +2686,24 @@ li.context-item .visage-icon-domino {
     width: 100%;
 }
 
+.visage .category-list {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
 .visage .category-list ul {
-    list-style: none; padding: 0; margin: 0;
-    display: flex; flex-direction: column; gap: 4px;
+    list-style: none;
+    padding: 0;
+    padding-inline-end: var(--filroden-space-s);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
 }
 .visage .category-list li a {
     display: block; padding: 6px 10px;
@@ -2967,7 +3009,6 @@ li.context-item .visage-icon-domino {
     top: var(--filroden-space-s);
     width: 2rem;
     height: 2rem;
-    background: rgba(0, 0, 0, 0.75);
     border: var(--filroden-border-main);
     border-radius: 50%;
     display: flex;
@@ -3523,6 +3564,7 @@ button.visage-tool-icon {
 }
 
 .visage-attribute-picker-content .search-bar input {
+    box-sizing: border-box;
     width: 100%;
     padding-inline-start: 2rem;
     background: var(--visage-color-bg-medium-solid);
@@ -3613,7 +3655,93 @@ button.visage-tool-icon {
 
 
 /* ==========================================================================
-   13. THEME DEFINITIONS (The Engine)
+   13. AUTOMATION TOGGLES
+   ========================================================================== */
+
+/* Refactored Card Indicators Row */
+.visage .visage-card .card-zone-center .visage-card-indicators-row {
+    position: absolute;
+    top: var(--filroden-space-s);
+    inset-inline-start: var(--filroden-space-s);
+    inset-inline-end: var(--filroden-space-s);
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.visage .visage-card .card-zone-center .visage-card-indicators-row .visage-card-effect-indicator {
+    position: relative;
+    top: auto;
+    inset-inline-start: auto;
+    inset-inline-end: auto;
+    pointer-events: auto;
+}
+
+/* -----------------------------------------
+   Gallery Action Button (Interactive)
+   ----------------------------------------- */
+.visage-card-effect-indicator.automation {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    /* Active State (Green Button Look) */
+    color: var(--filroden-color-success);
+    background: hsla(120, 50%, 50%, 0.15); /* Subtle green backing */
+    border: 1px solid var(--filroden-color-success);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--filroden-font-size-xl);
+    height: var(--filroden-font-size-xl);
+}
+
+.visage-card-effect-indicator.automation i {
+    font-size: var(--filroden-font-size-s); /* Slightly smaller to fit in the button circle */
+}
+
+.visage-card-effect-indicator.automation:hover {
+    transform: scale(1.15);
+    background: hsla(120, 50%, 50%, 0.3);
+    box-shadow: 0 0 8px hsla(120, 50%, 50%, 0.5);
+}
+
+/* Muted State (Disabled Button Look) */
+.visage-card-effect-indicator.automation.muted {
+    color: var(--visage-color-text-muted);
+    background: var(--visage-color-bg-darkest);
+    border-color: transparent;
+    box-shadow: none;
+    opacity: 0.7;
+    filter: grayscale(100%);
+}
+
+.visage-card-effect-indicator.automation.muted:hover {
+    opacity: 1;
+}
+
+/* -----------------------------------------
+   Selector HUD Column Placement (Static)
+   ----------------------------------------- */
+.visage .visage-automation-indicator {
+    width: var(--filroden-font-size-l);
+    height: var(--filroden-font-size-l);
+    color: var(--filroden-color-success);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--filroden-shadow-card);
+    z-index: 10;
+}
+
+.visage .visage-automation-indicator.muted {
+    color: var(--filroden-color-text-muted-solid);
+}
+
+
+/* ==========================================================================
+   14. THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
 /* --- 1. Universal Defaults --- */

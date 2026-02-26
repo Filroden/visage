@@ -21,6 +21,7 @@ import { MODULE_ID } from "./src/core/visage-constants.js";
 import { VisageSequencer } from "./src/integrations/visage-sequencer.js";
 import { VisageSamples } from "./src/data/visage-samples.js";
 import { VisageAutomation } from "./src/core/visage-automation.js";
+import { VisageUtilities } from "./src/utils/visage-utilities.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -127,13 +128,16 @@ Hooks.once("init", () => {
             "modules/visage/templates/visage-selector.hbs",
             "modules/visage/templates/visage-editor.hbs",
             "modules/visage/templates/visage-gallery.hbs",
+            "modules/visage/templates/visage-samples.hbs",
             "modules/visage/templates/parts/visage-preview.hbs",
             "modules/visage/templates/parts/visage-card.hbs",
+            "modules/visage/templates/parts/visage-chat-welcome.hbs",
             "modules/visage/templates/parts/visage-effectCard.hbs",
             "modules/visage/templates/parts/visage-tile.hbs",
             "modules/visage/templates/parts/visage-editor-appearance.hbs",
             "modules/visage/templates/parts/visage-editor-effects.hbs",
             "modules/visage/templates/parts/visage-editor-triggers.hbs",
+            "modules/visage/templates/helpers/visage-attribute-picker.hbs",
         ]);
 
         registerSettings();
@@ -287,6 +291,20 @@ function registerSettings() {
         icon: "visage-icon open",
         type: VisageSamples,
         restricted: true,
+    });
+
+    // Register Diagnostic Export Menu Button
+    game.settings.registerMenu(MODULE_ID, "exportDiagnostics", {
+        name: "VISAGE.Settings.ExportLog.Name",
+        hint: "VISAGE.Settings.ExportLog.Hint",
+        label: "VISAGE.Settings.ExportLog.Label",
+        type: class extends foundry.applications.api.ApplicationV2 {
+            render(force, options) {
+                VisageUtilities.exportDiagnostics();
+                return this;
+            }
+        },
+        restricted: false,
     });
 
     game.settings.register(MODULE_ID, "allowSystemOverrides", {
@@ -541,8 +559,8 @@ Hooks.on("deleteToken", async (tokenDoc, options, userId) => {
     // This prevents race conditions where 4 players delete a token and all 4 try to update the Actor.
     if (game.user.id !== userId) return;
 
-    // 2. Clean up Sequencer Effects
-    if (tokenDoc.object && Visage.sequencerReady) {
+    // 2. Clean up Visual/Audio Effects (Only if Sequencer is active)
+    if (tokenDoc.object && game.modules.get("sequencer")?.active) {
         VisageSequencer.revert(tokenDoc.object);
     }
 

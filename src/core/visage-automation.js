@@ -95,7 +95,6 @@ export class VisageAutomation {
                 this._registry.set(token.id, {
                     actorId: token.actor.id,
                     visages: combinedAutomations,
-                    stateCache: oldRegistry.get(token.id)?.stateCache || {},
                 });
             }
         }
@@ -145,7 +144,8 @@ export class VisageAutomation {
         if (
             changes.elevation === undefined &&
             changes.x === undefined &&
-            changes.y === undefined
+            changes.y === undefined &&
+            changes.delta === undefined
         )
             return;
 
@@ -170,22 +170,25 @@ export class VisageAutomation {
         const actor = token.actor;
         const VisageApi = game.modules.get(MODULE_ID).api;
 
+        // The transition queue for this evaluation cycle
+        const queue = { apply: [], remove: [] };
+
         for (const visage of record.visages) {
             const auto = visage.automation;
-            const visageId = visage.id;
 
             // 1. Resolve conditions
             let results = [];
             for (const cond of auto.conditions) {
                 if (cond.disabled) continue;
-                if (cond.type === "attribute") {
+                if (cond.type === "attribute")
                     results.push(this._evalAttribute(actor, cond));
-                } else if (cond.type === "status") {
+                else if (cond.type === "status")
                     results.push(this._evalStatus(actor, cond));
-                } else if (cond.type === "event") {
+                else if (cond.type === "event")
                     results.push(this._evalEvent(token, cond));
-                }
             }
+
+            if (results.length === 0) continue;
 
             // 2. Apply Logic (AND / OR)
             const isTrue =
@@ -193,23 +196,67 @@ export class VisageAutomation {
                     ? results.every((r) => r === true)
                     : results.some((r) => r === true);
 
-            // 3. Compare with Cache (The Latch)
-            const wasTrue = record.stateCache[visageId] ?? false;
+            // 3. True Declarative State Check
+            // We bypass the fragile in-memory cache and check the exact canvas state!
+            const isActive = await VisageApi.isActive(token.id, visage.id);
 
-            if (isTrue && !wasTrue) {
-                // Transition: FALSE -> TRUE
-                record.stateCache[visageId] = true;
-                if (auto.onEnter.action === "apply")
-                    await VisageApi.apply(token.id, visageId);
-                else if (auto.onEnter.action === "remove")
-                    await VisageApi.remove(token.id, visageId);
-            } else if (!isTrue && wasTrue) {
-                // Transition: TRUE -> FALSE
-                record.stateCache[visageId] = false;
-                if (auto.onExit.action === "apply")
-                    await VisageApi.apply(token.id, visageId);
-                else if (auto.onExit.action === "remove")
-                    await VisageApi.remove(token.id, visageId);
+            if (isTrue && !isActive) {
+                // Condition met, but visage missing -> Apply
+                const action = auto.onEnter?.action || "apply";
+                if (queue[action]) queue[action].push(visage);
+            } else if (!isTrue && isActive) {
+                // Condition failed, but visage present -> Remove
+                const action = auto.onExit?.action || "remove";
+                if (queue[action]) queue[action].push(visage);
+            } else if (isTrue && isActive && visage.mode === "identity") {
+                // Self-Healing Identity Rule
+                const action = auto.onEnter?.action || "apply";
+                if (action === "apply" && queue.apply) queue.apply.push(visage);
+            }
+        }
+
+        // 4. Process the Queue (Removals first)
+        for (const visage of queue.remove) {
+            const isActive = await VisageApi.isActive(token.id, visage.id);
+            if (isActive) await VisageApi.remove(token.id, visage.id);
+        }
+
+        // 5. Prioritize and Process Applies
+        if (queue.apply.length > 0) {
+            // SCENARIO 1: Identity Highlander Rule
+            const identities = queue.apply.filter((v) => v.mode === "identity");
+            let winningIdentity = null;
+            if (identities.length > 0) {
+                winningIdentity = identities.reduce((prev, curr) => {
+                    const prevPri = prev.automation.onEnter?.priority || 0;
+                    const currPri = curr.automation.onEnter?.priority || 0;
+                    if (prevPri === currPri) {
+                        return prev.id.localeCompare(curr.id) > 0 ? prev : curr;
+                    }
+                    return prevPri > currPri ? prev : curr;
+                });
+            }
+
+            // SCENARIO 2: Overlay Sorting (Ascending)
+            const overlays = queue.apply
+                .filter((v) => v.mode !== "identity")
+                .sort((a, b) => {
+                    const priA = a.automation.onEnter?.priority || 0;
+                    const priB = b.automation.onEnter?.priority || 0;
+                    if (priA === priB) {
+                        return a.id.localeCompare(b.id);
+                    }
+                    return priA - priB;
+                });
+
+            // Combine winners
+            const finalApplies = winningIdentity
+                ? [winningIdentity, ...overlays]
+                : overlays;
+
+            for (const visage of finalApplies) {
+                const isActive = await VisageApi.isActive(token.id, visage.id);
+                if (!isActive) await VisageApi.apply(token.id, visage.id);
             }
         }
     }
@@ -226,12 +273,34 @@ export class VisageAutomation {
         if (!condition.path) return false;
 
         // 1. Fetch the raw value using Foundry's native getProperty
-        // This safely traverses the actor object (e.g., actor.system.attributes.hp.value)
         const rawVal = foundry.utils.getProperty(actor, condition.path);
 
-        // If the path doesn't exist on this actor, the condition cannot be met
         if (rawVal === undefined || rawVal === null) return false;
 
+        // -- BOOLEAN LOGIC --
+        if (condition.dataType === "boolean") {
+            const checkVal = Boolean(rawVal);
+            const targetVal = String(condition.value) === "true"; // Safely cast to bool
+
+            if (condition.operator === "eq") return checkVal === targetVal;
+            if (condition.operator === "neq") return checkVal !== targetVal;
+            return false;
+        }
+
+        // -- STRING LOGIC --
+        if (condition.dataType === "string") {
+            // Convert both to lowercase for case-insensitive matching
+            const checkVal = String(rawVal).toLowerCase();
+            const targetVal = String(condition.value).toLowerCase();
+
+            if (condition.operator === "eq") return checkVal === targetVal;
+            if (condition.operator === "neq") return checkVal !== targetVal;
+            if (condition.operator === "includes")
+                return checkVal.includes(targetVal);
+            return false;
+        }
+
+        // -- NUMBER LOGIC (Default) --
         let checkVal = Number(rawVal);
         let targetVal = Number(condition.value);
 
@@ -240,17 +309,15 @@ export class VisageAutomation {
 
         // 2. Handle Percentage Calculations
         if (condition.mode === "percent") {
-            // Heuristic: In almost all Foundry systems, if the current value is at ".value",
-            // the maximum value is stored at ".max" in the same object.
-            const maxPath = condition.path.replace(/\.value$/, ".max");
+            const maxPath =
+                condition.denominatorPath ||
+                condition.path.replace(/\.value$/, ".max");
             const maxVal = foundry.utils.getProperty(actor, maxPath);
             const numMaxVal = Number(maxVal);
 
             if (!isNaN(numMaxVal) && numMaxVal > 0) {
                 checkVal = (checkVal / numMaxVal) * 100;
             } else {
-                // If we are asked to calculate a percentage but cannot find a valid 'max',
-                // we must fail safely to prevent errors or false positives.
                 console.warn(
                     `Visage | Cannot calculate percentage for ${condition.path} - no valid max found at ${maxPath}`,
                 );
@@ -268,6 +335,10 @@ export class VisageAutomation {
                 return checkVal === targetVal;
             case "neq":
                 return checkVal !== targetVal;
+            case "lt":
+                return checkVal < targetVal;
+            case "gt":
+                return checkVal > targetVal;
             default:
                 return false;
         }
@@ -290,10 +361,13 @@ export class VisageAutomation {
         if (actor.statuses.has(condition.statusId)) {
             isActive = true;
         }
+
         // 2. If not a core status, check all Active Effects by Name (e.g., "Rage", "Disguise Self")
         else {
-            isActive = actor.effects.some((e) => {
-                const effectName = (e.name || "").toLowerCase();
+            // Fallback to .effects if .appliedEffects doesn't exist for some reason (backward compatibility)
+            const effectsToSearch = actor.appliedEffects || actor.effects || [];
+            isActive = effectsToSearch.some((e) => {
+                const effectName = (e.name || e.label || "").toLowerCase();
                 return effectName === searchKey;
             });
         }

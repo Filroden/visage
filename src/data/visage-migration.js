@@ -222,21 +222,7 @@ export function cleanVisageData(entry) {
         if (Object.keys(tx).length === 0) delete c.texture;
     }
 
-    // 4. Migrate Ring Subject Texture Fallback (v3.0 UX Fix)
-    // If a ring is enabled but has no subject texture, move the base image into the ring.
-    if (c.ring?.enabled) {
-        const baseImg = c.texture?.src;
-        if (baseImg && !c.ring.subject?.texture) {
-            if (!c.ring.subject) c.ring.subject = {};
-            c.ring.subject.texture = baseImg;
-
-            // Safely remove the base image so it doesn't conflict with the new UI logic
-            delete c.texture.src;
-            if (Object.keys(c.texture).length === 0) delete c.texture;
-        }
-    }
-
-    // 5. Ensure Mode (v3.0)
+    // 4. Ensure Mode (v3.0)
     // If we are cleaning an object in isolation, we default to identity.
     // The bulk migration handles context-aware defaults (overlay vs identity).
     if (!entry.mode) {

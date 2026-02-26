@@ -221,9 +221,21 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 c.typeKey = `VISAGE.Editor.Triggers.Type${c.type.charAt(0).toUpperCase() + c.type.slice(1)}`;
 
                 if (c.type === "attribute") {
-                    const opMap = { lte: "<=", gte: ">=", eq: "==", neq: "!=" };
+                    const opMap = {
+                        lte: "<=",
+                        gte: ">=",
+                        eq: "==",
+                        neq: "!=",
+                        lt: "<",
+                        gt: ">",
+                        includes: "contains",
+                    };
                     const modeStr = c.mode === "percent" ? "%" : "";
-                    c.summary = `${c.path || "..."} ${opMap[c.operator] || ""} ${c.value || 0}${modeStr}`;
+                    // Fallback to 0 only if value is null/undefined to preserve "false" or empty strings
+                    const displayValue =
+                        c.value !== null && c.value !== undefined ? c.value : 0;
+
+                    c.summary = `${c.path || "..."} ${opMap[c.operator] || ""} ${displayValue}${modeStr}`;
                 } else if (c.type === "status") {
                     c.summary = `${c.statusId || "..."} (${c.operator === "active" ? "Applied" : "Removed"})`;
                 } else if (c.type === "event") {
@@ -272,6 +284,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 ...VisageData.prepareRingContext(this._ringData),
                 active: this._ringData.enabled,
             },
+            ringSubjectTexture: {
+                active:
+                    this._ringData.enabled && !!this._ringData.subject?.texture,
+            },
             inspector: inspectorData,
             automation: this._automationData,
             statusEffects: this._getStatusEffectOptions(),
@@ -317,6 +333,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onRender(context, options) {
+        this._isReady = false;
+
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
         // Form Event Delegation
@@ -327,8 +345,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.element.addEventListener("change", (e) => {
             this._markDirty();
 
-            // If the user changes the Event Type, we must fully re-render to swap the dynamic form fields
-            if (e.target.name === "inspector.eventId") {
+            // If the user changes an Inspector type/mode, we must fully re-render to swap the dynamic form fields
+            if (
+                e.target.name === "inspector.eventId" ||
+                e.target.name === "inspector.dataType" ||
+                e.target.name === "inspector.mode"
+            ) {
                 this.render();
                 return;
             }
@@ -404,6 +426,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             );
             if (btn) btn.className = "visage-icon grid-off";
         }
+
+        requestAnimationFrame(() => {
+            this._isReady = true;
+        });
     }
 
     // --- Private Context Builders ---
@@ -707,6 +733,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._automationData.enabled =
                 formData["automation.enabled"] ?? false;
 
+            // Sync Action and Priority
+            if (!this._automationData.onEnter)
+                this._automationData.onEnter = { action: "apply", priority: 0 };
+            this._automationData.onEnter.action =
+                formData["automation.onEnter.action"] ??
+                this._automationData.onEnter.action;
+            this._automationData.onEnter.priority =
+                getVal("automation.onEnter.priority", Number) ??
+                this._automationData.onEnter.priority;
+
             const renderedConditionId = formData["inspector.conditionId"];
             if (renderedConditionId) {
                 const cond = this._automationData.conditions.find(
@@ -715,11 +751,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (cond) {
                     if (cond.type === "attribute") {
                         cond.path = getVal("inspector.path") ?? cond.path;
+                        // Grab the data type
+                        cond.dataType =
+                            getVal("inspector.dataType") ??
+                            cond.dataType ??
+                            "number";
                         cond.operator =
                             getVal("inspector.operator") ?? cond.operator;
                         cond.mode = getVal("inspector.mode") ?? cond.mode;
-                        const val = getVal("inspector.value", Number);
-                        if (val !== null && !isNaN(val)) cond.value = val;
+                        cond.denominatorPath =
+                            getVal("inspector.denominatorPath") ??
+                            cond.denominatorPath ??
+                            "";
+                        // Parse value based on the chosen data type
+                        if (cond.dataType === "boolean") {
+                            cond.value = getVal("inspector.value") === "true";
+                        } else if (cond.dataType === "string") {
+                            cond.value = getVal("inspector.value") ?? "";
+                        } else {
+                            // Default to Number
+                            const val = getVal("inspector.value", Number);
+                            if (val !== null && !isNaN(val)) cond.value = val;
+                        }
                     } else if (cond.type === "status") {
                         cond.statusId =
                             getVal("inspector.statusId") ?? cond.statusId;
@@ -820,6 +873,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         changes.delay = this._delayData;
         changes.effects = this._effects.filter((e) => !e.disabled);
 
+        // Clean up transient UI properties from the automation data before saving
+        const cleanAutomation = foundry.utils.deepClone(this._automationData);
+        if (cleanAutomation && cleanAutomation.conditions) {
+            cleanAutomation.conditions.forEach((c) => {
+                delete c.typeKey;
+                delete c.summary;
+            });
+        }
+
         return {
             id: this.visageId,
             label: formData.label,
@@ -829,7 +891,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 : [],
             mode: formData.mode,
             public: formData.public === "true",
-            automation: this._automationData,
+            automation: cleanAutomation,
             changes: changes,
         };
     }
@@ -862,6 +924,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _markDirty() {
+        if (!this._isReady) return;
+
         if (!this.isDirty) {
             this.isDirty = true;
             this.element.querySelector(".visage-save")?.classList.add("dirty");
@@ -982,18 +1046,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onToggleRing() {
         if (!this._ringData) return;
         this._ringData.enabled = !this._ringData.enabled;
-        if (this._ringData.enabled) {
-            const imgCheckbox = this.element.querySelector(
-                'input[name="img_active"]',
-            );
-            if (imgCheckbox && imgCheckbox.checked) {
-                imgCheckbox.checked = false;
-                this._onToggleField(null, imgCheckbox);
-                ui.notifications.info(
-                    game.i18n.localize("VISAGE.GlobalEditor.RingActiveWarning"),
-                );
-            }
-        }
+
         if (!this._ringData.enabled && this._editingRing) {
             this._editingRing = false;
             this._onCloseEffectInspector();
@@ -1006,6 +1059,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingRing = true;
         this._editingLight = false;
         this._activeEffectId = null;
+        this._activeConditionId = null;
         this.render();
     }
     _onToggleLight() {
@@ -1019,6 +1073,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingLight = true;
         this._editingRing = false;
         this._activeEffectId = null;
+        this._activeConditionId = null;
         this.render();
     }
     _onToggleDelayDirection(event, target) {
@@ -1058,9 +1113,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (type === "attribute") {
             Object.assign(newCondition, {
                 path: "",
+                dataType: "number",
                 operator: "lte",
                 value: 0,
                 mode: "percent",
+                denominatorPath: "",
             });
         } else if (type === "status") {
             Object.assign(newCondition, { statusId: "", operator: "active" });
@@ -1073,6 +1130,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this._automationData.conditions.push(newCondition);
         this._activeConditionId = newCondition.id;
+        this._activeEffectId = null;
+        this._editingLight = false;
+        this._editingRing = false;
 
         // Ensure UI focuses the inspector
         this.element
@@ -1084,6 +1144,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     _onEditCondition(event, target) {
         this._activeConditionId = target.closest(".effect-card").dataset.id;
+        this._activeEffectId = null;
+        this._editingLight = false;
+        this._editingRing = false;
         this.render();
     }
     _onDeleteCondition(event, target) {
@@ -1105,7 +1168,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         await this.render();
     }
     _onOpenAttributePicker(event, target) {
-        if (!this.actor) {
+        // --- 1. Find a Reference Actor ---
+        let referenceActor = this.actor; // Works perfectly for Local Editor
+
+        if (!referenceActor) {
+            // Fallback A: The currently selected token on the canvas
+            referenceActor = canvas.tokens.controlled[0]?.actor;
+        }
+        if (!referenceActor) {
+            // Fallback B: The first player-owned character in the world
+            referenceActor = game.actors.find((a) => a.hasPlayerOwner);
+        }
+        if (!referenceActor) {
+            // Fallback C: Literally any actor in the world directory
+            referenceActor = game.actors.contents[0];
+        }
+
+        // If the world is completely empty, we must abort.
+        if (!referenceActor) {
             return ui.notifications.warn(
                 game.i18n.localize(
                     "VISAGE.Notifications.Error.NoActorForAttributes",
@@ -1113,11 +1193,25 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             );
         }
 
+        // If we used a fallback (Global Editor), politely inform the GM
+        if (!this.actor) {
+            ui.notifications.info(
+                game.i18n.format("VISAGE.Notifications.AttributeProxy", {
+                    name: referenceActor.name,
+                }),
+            );
+        }
+
+        // --- 2. Launch the Picker ---
+        // Determine which input field to fill (defaults to inspector.path if none provided)
+        const targetInputName = target.dataset.target || "inspector.path";
+
         new VisageAttributePicker({
-            actor: this.actor,
+            actor: referenceActor,
+            isLocal: this.isLocal,
             onSelect: (path) => {
                 const pathInput = this.element.querySelector(
-                    'input[name="inspector.path"]',
+                    `input[name="${targetInputName}"]`,
                 );
                 if (pathInput) {
                     pathInput.value = path;
@@ -1161,6 +1255,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;
+        this._activeConditionId = null;
         this._markDirty();
         this.render();
     }
@@ -1176,6 +1271,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;
+        this._activeConditionId = null;
         this._markDirty();
         this.render();
     }
@@ -1183,6 +1279,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._activeEffectId = target.closest(".effect-card").dataset.id;
         this._editingLight = false;
         this._editingRing = false;
+        this._activeConditionId = null;
         this.render();
     }
     _onToggleEffect(event, target) {
@@ -1294,10 +1391,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         );
 
         // 4. Update UI Badges & Audio
+        const rawPath = VisageData.getRepresentativeImage(changes);
         this._updateUIBadges(
             VisageData.toPresentation(
                 { changes },
-                { isWildcard: previewData.resolvedPath?.includes("*") },
+                { isWildcard: rawPath.includes("*") || rawPath.includes("?") },
             ).meta,
             changes,
         );
@@ -1513,6 +1611,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const dispContainer = el.querySelector(".meta-item.disposition-item");
         if (dispContainer && meta.slots.disposition) {
+            dispContainer.classList.toggle(
+                "inactive",
+                meta.slots.disposition.class === "none",
+            );
+
             const textSpan = dispContainer.querySelector(
                 ".visage-disposition-text",
             );
@@ -1585,15 +1688,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const hidden = container.querySelector("input[name='tags']");
         const pillsDiv = container.querySelector(".visage-tag-pills");
 
-        const update = () => {
+        // 1. Add the isInit flag
+        const update = (isInit = false) => {
             hidden.value = Array.from(
                 pillsDiv.querySelectorAll(".visage-tag-pill"),
             )
                 .map((p) => p.dataset.tag)
                 .join(",");
-            this._markDirty();
+
+            // Only mark dirty if this was a user action
+            if (!isInit) this._markDirty();
         };
-        const add = (text) => {
+
+        // 2. Add the isInit flag here
+        const add = (text, isInit = false) => {
             const clean = text.trim();
             if (
                 !clean ||
@@ -1611,9 +1719,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 update();
             });
             pillsDiv.appendChild(pill);
-            update();
+
+            // 3. Pass the flag down
+            update(isInit);
         };
 
+        // 4. Pass 'true' during initial load
         if (hidden.value) hidden.value.split(",").forEach(add);
 
         input.addEventListener("keydown", (ev) => {
@@ -1719,6 +1830,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             value: s.id,
             label: game.i18n.localize(s.name),
         }));
+
+        // Dynamically add ALL Active Effects currently applied to the Actor
+        // Using appliedEffects captures both direct effects and item-transferred effects
+        if (this.actor && this.actor.appliedEffects) {
+            this.actor.appliedEffects.forEach((e) => {
+                const name = e.name || e.label;
+
+                // Only add it if it's not already in the list
+                if (
+                    name &&
+                    !effects.some(
+                        (existing) =>
+                            existing.value.toLowerCase() === name.toLowerCase(),
+                    )
+                ) {
+                    effects.push({
+                        value: name,
+                        label: `${name} (Active on Actor)`,
+                    });
+                }
+            });
+        }
 
         // Sort alphabetically by the localized label for better UX
         effects.sort((a, b) => a.label.localeCompare(b.label));
