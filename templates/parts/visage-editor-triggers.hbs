@@ -187,8 +187,11 @@
                                 {{localize "VISAGE.Editor.Triggers.DenominatorPath"}}
                                 <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.Editor.Triggers.DenominatorHint'}}"></i>
                             </label>
-                            <div class="visage-form-fields">
+                            <div class="visage-form-fields fade-grid" style="grid-template-columns: 1fr max-content;">
                                 <input type="text" name="inspector.denominatorPath" value="{{inspector.condition.denominatorPath}}" placeholder="{{localize 'VISAGE.Editor.Triggers.DenominatorPlaceholder'}}">
+                                <button type="button" class="visage-btn" data-action="openAttributePicker" data-target="inspector.denominatorPath" title="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}">
+                                    <i class="visage-icon attribute-picker"></i>
+                                </button>
                             </div>
                         </div>
                         {{/if}}
