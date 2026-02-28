@@ -29,6 +29,7 @@ export class VisageAutomation {
         // 2. Data Observation Hooks
         Hooks.on("updateActor", this._onUpdateActor.bind(this));
         Hooks.on("createActiveEffect", this._onStatusChange.bind(this));
+        Hooks.on("updateActiveEffect", this._onStatusChange.bind(this));
         Hooks.on("deleteActiveEffect", this._onStatusChange.bind(this));
 
         // 3. Event Hooks
