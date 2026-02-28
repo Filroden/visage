@@ -73,7 +73,9 @@ export class VisageAutomation {
         // Fetch all automated Global Visages to act as "Universal Rules"
         const globalAutomations = VisageData.globals.filter(
             (v) =>
-                v.automation?.enabled && v.automation?.conditions?.length > 0,
+                !v.deleted &&
+                v.automation?.enabled &&
+                v.automation?.conditions?.length > 0,
         );
 
         for (const token of canvas.tokens.placeables) {
@@ -82,6 +84,7 @@ export class VisageAutomation {
             const localVisages = VisageData.getLocal(token.actor);
             const automatedVisages = localVisages.filter(
                 (v) =>
+                    !v.deleted &&
                     v.automation?.enabled &&
                     v.automation?.conditions?.length > 0,
             );
@@ -119,7 +122,11 @@ export class VisageAutomation {
     }
 
     static _onStatusChange(effect, options, userId) {
-        const actor = effect.parent;
+        const actor =
+            effect.parent?.documentName === "Item"
+                ? effect.parent.parent
+                : effect.parent;
+
         if (!actor || actor.documentName !== "Actor") return;
 
         const linkedTokens = canvas.tokens.placeables.filter(
