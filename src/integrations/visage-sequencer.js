@@ -28,24 +28,29 @@ export class VisageSequencer {
         const effects = layer.changes?.effects || [];
         const tag = isBaseLayer ? "visage-base" : `visage-mask-${layer.id}`;
 
-        // 1. Clean Slate (Always run this to stop previous audio before reapplying)
+        // 1. Clean Slate
         await this.remove(token, layer.id, isBaseLayer);
 
-        // If the entire layer is toggled off (hidden), abort before rendering effects
-        if (layer.disabled) return;
-
-        if (!effects.length) return;
+        if (layer.disabled || !effects.length) return;
 
         let visuals = effects.filter((e) => e.type === "visual" && !e.disabled);
         let audios = effects.filter((e) => e.type === "audio" && !e.disabled);
 
-        // 2. Prevent One-Shots on Restore
         if (isRestore) {
             visuals = visuals.filter((e) => (e.loop ?? true) === true);
             audios = audios.filter((e) => (e.loop ?? true) === true);
         }
 
-        // --- A. VISUALS (Sequencer: Infinite Duration) ---
+        // --- THE ZERO ANCHOR MATH ---
+        // Find the most negative delay across all active effects. If none are negative, offset is 0.
+        const allActive = [...visuals, ...audios];
+        const minDelaySeconds = Math.min(
+            0,
+            ...allActive.map((e) => e.delay || 0),
+        );
+        const offsetMS = Math.abs(minDelaySeconds) * 1000;
+
+        // --- A. VISUALS (Sequencer) ---
         if (visuals.length > 0) {
             try {
                 const sequence = new Sequence();
@@ -56,6 +61,8 @@ export class VisageSequencer {
                     if (!path || typeof path !== "string") continue;
 
                     const isLoop = effect.loop ?? true;
+                    // Apply the true start time
+                    const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
 
                     let seqEffect = sequence
                         .effect()
@@ -65,14 +72,14 @@ export class VisageSequencer {
                         .opacity(effect.opacity ?? 1.0)
                         .rotate(effect.rotation ?? 0)
                         .belowTokens(effect.zOrder === "below")
+                        .delay(trueDelayMS) // <-- FIXED: True relative delay
                         .name(tag)
                         .origin(layer.id);
 
                     if (isLoop) {
-                        // Infinite Duration (~1 year)
                         seqEffect.duration(31536000000);
                     } else {
-                        seqEffect.missed(false); // Play Once
+                        seqEffect.missed(false);
                     }
                     hasVisuals = true;
                 }
@@ -83,9 +90,10 @@ export class VisageSequencer {
             }
         }
 
-        // --- B. AUDIO (AudioHelper: Manual) ---
+        // --- B. AUDIO (AudioHelper) ---
         if (audios.length > 0) {
-            this._playAudioEffects(token, audios, tag);
+            // Pass the calculated offset down to the audio processor
+            this._playAudioEffects(token, audios, tag, offsetMS);
         }
     }
 
@@ -144,25 +152,31 @@ export class VisageSequencer {
             }
         }
 
-        // 2. Kill Audio (Safely resolve any still-loading promises)
+        // 2. Kill Audio (Safely resolve any still-loading promises and handle fades)
         if (tokenId) {
             const soundKey = `${tokenId}-${tag}`;
             if (this._activeSounds.has(soundKey)) {
                 const instances = this._activeSounds.get(soundKey);
-                instances.forEach((soundOrPromise) => {
-                    if (soundOrPromise instanceof Promise) {
-                        soundOrPromise.then((s) => {
+                instances.forEach((item) => {
+                    if (item.isTimeout) {
+                        clearTimeout(item.id);
+                    } else if (item.isPromise) {
+                        item.playResult.then((s) => {
                             if (s && typeof s.stop === "function") {
                                 s.volume = 0;
                                 s.stop();
                             }
                         });
-                    } else if (
-                        soundOrPromise &&
-                        typeof soundOrPromise.stop === "function"
-                    ) {
-                        soundOrPromise.volume = 0;
-                        soundOrPromise.stop();
+                    } else if (item && typeof item.stop === "function") {
+                        const fadeOut = item.visageFadeOut || 0;
+                        if (fadeOut > 0 && item.playing) {
+                            this._fadeAudio(item, item.volume, 0, fadeOut).then(
+                                () => item.stop(),
+                            );
+                        } else {
+                            item.volume = 0;
+                            item.stop();
+                        }
                     }
                 });
                 this._activeSounds.delete(soundKey);
@@ -270,11 +284,32 @@ export class VisageSequencer {
     }
 
     /**
-     * Internal helper to play audio effects via AudioHelper.
-     * Manually handles Loops, One-Shot cleanup, and Promise tracking.
-     * @private
+     * Helper to gradually shift an audio's volume.
      */
-    static _playAudioEffects(token, audios, tag) {
+    static _fadeAudio(sound, startVol, endVol, durationMS) {
+        return new Promise((resolve) => {
+            if (!sound || durationMS <= 0) {
+                if (sound) sound.volume = endVol;
+                return resolve();
+            }
+            let startTime = Date.now();
+            const interval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                let progress = elapsed / durationMS;
+                if (progress >= 1) {
+                    progress = 1;
+                    clearInterval(interval);
+                }
+                sound.volume = startVol + (endVol - startVol) * progress;
+                if (progress === 1) resolve();
+            }, 20); // 50fps smooth fade
+        });
+    }
+
+    /**
+     * Internal helper to play audio effects via AudioHelper.
+     */
+    static _playAudioEffects(token, audios, tag, offsetMS = 0) {
         const tokenId = typeof token === "string" ? token : token?.id;
         if (!tokenId) return;
 
@@ -291,57 +326,80 @@ export class VisageSequencer {
                 ? effect.opacity
                 : 0.8;
 
-            const playResult = foundry.audio.AudioHelper.play(
-                {
-                    src: path,
-                    volume: targetVol,
-                    loop: isLoop,
-                },
-                false,
-            );
+            // Calculate true start time
+            const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
 
-            const handleSoundLoad = (sound) => {
-                // Security Check: If the soundKey was deleted or overwritten while we waited to load,
-                // it means the user rapidly changed Visages. Terminate the loaded sound immediately.
-                const currentInstances = this._activeSounds.get(soundKey);
-                if (!currentInstances || currentInstances !== activeInstances) {
+            const fadeInMS = effect.fadeIn || 0;
+            const fadeOutMS = effect.fadeOut || 0;
+
+            const playTask = () => {
+                const playResult = foundry.audio.AudioHelper.play(
+                    {
+                        src: path,
+                        volume: fadeInMS > 0 ? 0 : targetVol,
+                        loop: isLoop,
+                    },
+                    false,
+                );
+
+                const handleSoundLoad = (sound) => {
+                    const currentInstances = this._activeSounds.get(soundKey);
+                    if (
+                        !currentInstances ||
+                        currentInstances !== activeInstances
+                    ) {
+                        if (sound) {
+                            try {
+                                sound.volume = 0;
+                                sound.stop();
+                            } catch (err) {
+                                /* Ignore */
+                            }
+                        }
+                        return null;
+                    }
+
                     if (sound) {
-                        try {
-                            sound.volume = 0;
-                            if (typeof sound.stop === "function") sound.stop();
-                        } catch (err) {
-                            /* Ignore */
+                        sound.visageFadeOut = fadeOutMS;
+                        const idx = currentInstances.findIndex(
+                            (i) =>
+                                i === playResult || i.playResult === playResult,
+                        );
+                        if (idx > -1) currentInstances[idx] = sound;
+
+                        if (fadeInMS > 0)
+                            this._fadeAudio(sound, 0, targetVol, fadeInMS);
+
+                        if (!isLoop) {
+                            sound.addEventListener("end", () => {
+                                const latestInstances =
+                                    this._activeSounds.get(soundKey);
+                                if (latestInstances) {
+                                    const sIdx = latestInstances.indexOf(sound);
+                                    if (sIdx > -1)
+                                        latestInstances.splice(sIdx, 1);
+                                }
+                            });
                         }
                     }
-                    return null;
-                }
+                    return sound;
+                };
 
-                if (sound) {
-                    // Swap out the promise for the resolved sound
-                    const idx = currentInstances.indexOf(playResult);
-                    if (idx > -1) currentInstances[idx] = sound;
-
-                    if (!isLoop) {
-                        sound.addEventListener("end", () => {
-                            const latestInstances =
-                                this._activeSounds.get(soundKey);
-                            if (latestInstances) {
-                                const sIdx = latestInstances.indexOf(sound);
-                                if (sIdx > -1) latestInstances.splice(sIdx, 1);
-                            }
-                        });
-                    }
+                if (playResult instanceof Promise) {
+                    activeInstances.push({ isPromise: true, playResult });
+                    playResult.then(handleSoundLoad);
+                } else {
+                    activeInstances.push(playResult);
+                    handleSoundLoad(playResult);
                 }
-                return sound;
             };
 
-            // Support both V12 (Promise) and V11 (Immediate) architectures
-            if (playResult instanceof Promise) {
-                activeInstances.push(playResult);
-                playResult.then(handleSoundLoad);
+            // Respect True Start Delay
+            if (trueDelayMS > 0) {
+                const tid = setTimeout(playTask, trueDelayMS);
+                activeInstances.push({ isTimeout: true, id: tid });
             } else {
-                activeInstances.push(playResult);
-                handleSoundLoad(playResult);
+                playTask();
             }
         });
     }

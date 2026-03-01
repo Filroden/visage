@@ -125,7 +125,6 @@ export class Visage {
 
         const layer = await VisageData.toLayer(data, source);
         const changes = layer.changes || {};
-        const delay = changes.delay || 0;
 
         // 2. Prepare Stack Updates
         let stack = foundry.utils.deepClone(
@@ -192,14 +191,24 @@ export class Visage {
         };
 
         // 4. Execute with Transition Timing
-        if (delay > 0) {
-            runVisualFX();
-            setTimeout(runDataUpdate, delay);
-        } else if (delay < 0) {
-            await runDataUpdate();
-            setTimeout(runVisualFX, Math.abs(delay));
+
+        // Calculate the Token Swap Offset (Zero Anchor) based on the most negative effect delay
+        const activeEffects = (changes.effects || []).filter(
+            (e) => !e.disabled,
+        );
+        const minDelaySeconds = activeEffects.length
+            ? Math.min(0, ...activeEffects.map((e) => e.delay || 0))
+            : 0;
+        const offsetMS = Math.abs(minDelaySeconds) * 1000;
+
+        // Visual and Audio effects natively handle their own start times (including positive delays)
+        // inside VisageSequencer, so we always fire them immediately.
+        runVisualFX();
+
+        // Delay the actual token image/data swap if we have negative delays (pre-effects)
+        if (offsetMS > 0) {
+            setTimeout(() => runDataUpdate(), offsetMS);
         } else {
-            runVisualFX();
             await runDataUpdate();
         }
 

@@ -2,32 +2,8 @@
     
     {{!-- VIEW 1: THE STACK LIST --}}
     <div class="visage-view view-list">
-        
-        {{!-- Transition Timing (Sequencer Only) --}}
-        {{#if hasSequencer}}
-        <div class="transition-settings-bar {{#unless inspector.hasEffects}}disabled-look{{/unless}}">
-            <label>
-                <i class="visage-icon timer"></i> 
-                {{localize "VISAGE.Editor.TransitionDelay.Label"}}
-            </label>
-            
-            <div class="delay-controls">
-                <div class="delay-direction-toggle">
-                    <button type="button" class="delay-btn {{#if (visageEq delay.direction 'before')}}active{{/if}}" 
-                        data-action="toggleDelayDirection" data-value="before" data-tooltip="VISAGE.Editor.TransitionDelay.Before">
-                        {{localize "VISAGE.Editor.TransitionDelay.TokenLeads"}}
-                    </button>
-                    <button type="button" class="delay-btn {{#if (visageEq delay.direction 'after')}}active{{/if}}" 
-                        data-action="toggleDelayDirection" data-value="after" data-tooltip="VISAGE.Editor.TransitionDelay.After">
-                        {{localize "VISAGE.Editor.TransitionDelay.EffectsLead"}}
-                    </button>
-                </div>
-                <div class="delay-slider-wrapper">
-                    <range-picker name="delayValue" value="{{delay.value}}" min="0" max="3.0" step="0.1" {{disabled (not inspector.hasEffects)}}></range-picker>
-                </div>
-            </div>
-        </div>
 
+        {{#if hasSequencer}}
         <div class="effects-actions">
             <button type="button" data-action="addVisual">
                 <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Effects.AddVisual"}}
@@ -330,6 +306,13 @@
                     </div>
                     <p class="hint">{{localize "VISAGE.Editor.Effects.DatabaseHint"}}</p>
                 </div>
+
+                <div class="form-group">
+                    <label>{{localize "VISAGE.Editor.Effects.Delay"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="number" name="effectDelay" value="{{inspector.delay}}" step="0.1" placeholder="0">
+                    </div>
+                </div>
             {{/if}}
 
             {{!-- VISUAL SPECIFIC --}}
@@ -388,6 +371,12 @@
 
             {{!-- AUDIO SPECIFIC --}}
             {{#if (eq inspector.type 'audio')}}
+                <div class="form-group fade-grid">
+                    <label>{{localize "VISAGE.Editor.Effects.FadeIn"}}</label>
+                    <input type="number" name="effectFadeIn" value="{{inspector.fadeIn}}" step="100" placeholder="0">
+                    <label>{{localize "VISAGE.Editor.Effects.FadeOut"}}</label>
+                    <input type="number" name="effectFadeOut" value="{{inspector.fadeOut}}" step="100" placeholder="0">
+                </div>
                 <div class="form-group checkbox-input-group" style="grid-template-columns: 1fr max-content max-content;">
                     <label>{{localize "VISAGE.Editor.Effects.Volume"}}</label>
                     <div class="visage-form-fields">
