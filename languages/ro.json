@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Exportă Jurnal de Diagnostic",
     "VISAGE.Settings.ExportLog.Hint": "Generează un fișier JSON conținând detaliile mediului tău, modulele active și datele Visage pentru a ajuta dezvoltatorul să depaneze erorile.",
     "VISAGE.Settings.ExportLog.Label": "Exportă Jurnal",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Jurnal de diagnostic exportat cu succes."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Jurnal de diagnostic exportat cu succes.",
+    "VISAGE.Editor.Effects.Delay": "Întârziere de Pornire (s)",
+    "VISAGE.Editor.Effects.FadeIn": "Apariție Treptată (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "Dispariție Treptată (ms)",
+    "VISAGE.Editor.Timeline.Open": "Cronologie",
+    "VISAGE.Editor.Timeline.Title": "Cronologie Efecte Visage"
 }

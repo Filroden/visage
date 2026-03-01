@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "진단 로그 내보내기",
     "VISAGE.Settings.ExportLog.Hint": "개발자가 버그를 해결하는 데 도움이 되도록 환경 세부 정보, 활성 모듈 및 Visage 데이터가 포함된 JSON 파일을 생성합니다.",
     "VISAGE.Settings.ExportLog.Label": "로그 내보내기",
-    "VISAGE.Notifications.ExportSuccess": "Visage | 진단 로그를 성공적으로 내보냈습니다."
+    "VISAGE.Notifications.ExportSuccess": "Visage | 진단 로그를 성공적으로 내보냈습니다.",
+    "VISAGE.Editor.Effects.Delay": "시작 지연 (초)",
+    "VISAGE.Editor.Effects.FadeIn": "페이드 인 (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "페이드 아웃 (ms)",
+    "VISAGE.Editor.Timeline.Open": "타임라인",
+    "VISAGE.Editor.Timeline.Title": "Visage 효과 타임라인"
 }

@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "匯出診斷日誌",
     "VISAGE.Settings.ExportLog.Hint": "產生一個包含您的環境詳細資訊、啟用模組和 Visage 資料的 JSON 檔案，以協助開發者對錯誤進行故障排除。",
     "VISAGE.Settings.ExportLog.Label": "匯出日誌",
-    "VISAGE.Notifications.ExportSuccess": "Visage | 診斷日誌成功匯出。"
+    "VISAGE.Notifications.ExportSuccess": "Visage | 診斷日誌成功匯出。",
+    "VISAGE.Editor.Effects.Delay": "啟動延遲 (秒)",
+    "VISAGE.Editor.Effects.FadeIn": "淡入 (毫秒)",
+    "VISAGE.Editor.Effects.FadeOut": "淡出 (毫秒)",
+    "VISAGE.Editor.Timeline.Open": "時間軸",
+    "VISAGE.Editor.Timeline.Title": "Visage 效果時間軸"
 }

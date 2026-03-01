@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Exportera Diagnostiklogg",
     "VISAGE.Settings.ExportLog.Hint": "Genererar en JSON-fil som innehåller dina miljödetaljer, aktiva moduler och Visage-data för att hjälpa utvecklaren felsöka buggar.",
     "VISAGE.Settings.ExportLog.Label": "Exportera Logg",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnostiklogg exporterades framgångsrikt."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnostiklogg exporterades framgångsrikt.",
+    "VISAGE.Editor.Effects.Delay": "Startfördröjning (s)",
+    "VISAGE.Editor.Effects.FadeIn": "Tona In (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "Tona Ut (ms)",
+    "VISAGE.Editor.Timeline.Open": "Tidslinje",
+    "VISAGE.Editor.Timeline.Title": "Tidslinje för Visage-effekter"
 }

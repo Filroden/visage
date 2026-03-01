@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Diagnose-Protokoll exportieren",
     "VISAGE.Settings.ExportLog.Hint": "Generiert eine JSON-Datei mit Umgebungsdetails, aktiven Modulen und Visage-Daten, um dem Entwickler bei der Fehlerbehebung zu helfen.",
     "VISAGE.Settings.ExportLog.Label": "Protokoll exportieren",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnose-Protokoll erfolgreich exportiert."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnose-Protokoll erfolgreich exportiert.",
+    "VISAGE.Editor.Effects.Delay": "Startverzögerung (s)",
+    "VISAGE.Editor.Effects.FadeIn": "Einblenden (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "Ausblenden (ms)",
+    "VISAGE.Editor.Timeline.Open": "Zeitleiste",
+    "VISAGE.Editor.Timeline.Title": "Visage-Effekt-Zeitleiste"
 }

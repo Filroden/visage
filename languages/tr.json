@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Teşhis Günlüğünü Dışa Aktar",
     "VISAGE.Settings.ExportLog.Hint": "Geliştiricinin hataları gidermesine yardımcı olmak için ortam ayrıntılarınızı, aktif modülleri ve Visage verilerini içeren bir JSON dosyası oluşturur.",
     "VISAGE.Settings.ExportLog.Label": "Günlüğü Dışa Aktar",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Teşhis günlüğü başarıyla dışa aktarıldı."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Teşhis günlüğü başarıyla dışa aktarıldı.",
+    "VISAGE.Editor.Effects.Delay": "Başlangıç Gecikmesi (sn)",
+    "VISAGE.Editor.Effects.FadeIn": "Karararak Giriş (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "Karararak Çıkış (ms)",
+    "VISAGE.Editor.Timeline.Open": "Zaman Çizelgesi",
+    "VISAGE.Editor.Timeline.Title": "Visage Efekt Zaman Çizelgesi"
 }

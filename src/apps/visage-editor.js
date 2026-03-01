@@ -20,6 +20,7 @@ import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageDragDropManager } from "./helpers/visage-drag-drop.js";
 import { VisageMediaController } from "./helpers/visage-media-controller.js";
 import { VisageAttributePicker } from "./helpers/visage-attribute-picker.js";
+import { VisageMediaTimeline } from "./helpers/visage-media-timeline.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -125,6 +126,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 VisageEditor.prototype._onCloseConditionInspector,
             openAttributePicker: VisageEditor.prototype._onOpenAttributePicker,
             toggleCondition: VisageEditor.prototype._onToggleCondition,
+            openTimeline: VisageEditor.prototype._onOpenTimeline,
         },
     };
 
@@ -151,7 +153,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     // ==========================================
-    // 2. CORE LIFECYCLE (Foundry V2)
+    // 2. CORE LIFECYCLE
     // ==========================================
 
     async render(options) {
@@ -160,7 +162,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async close(options) {
-        this._mediaController.stopAll();
+        // 1. Audio preview cleanup
+        if (this._mediaController) this._mediaController.stopAll();
+
+        // 2. Timeline window cleanup
+        if (this._timelineApp && this._timelineApp.rendered) {
+            this._timelineApp.close();
+        }
+
         return super.close(options);
     }
 
@@ -1024,6 +1033,19 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             },
         });
         fp.render(true);
+    }
+
+    async _onOpenTimeline(event, target) {
+        if (!this._timelineApp) {
+            this._timelineApp = new VisageMediaTimeline({ editor: this });
+        }
+
+        // If it's already open, bring it to the front. Otherwise, render it.
+        if (this._timelineApp.rendered) {
+            this._timelineApp.bringToFront();
+        } else {
+            this._timelineApp.render({ force: true });
+        }
     }
 
     _activateTab(tabName) {

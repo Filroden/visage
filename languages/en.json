@@ -467,5 +467,7 @@
     "_comment_V4_1_KEYS": "--- V4.1 KEYS ---",
     "VISAGE.Editor.Effects.Delay": "Start Delay (s)",
     "VISAGE.Editor.Effects.FadeIn": "Fade In (ms)",
-    "VISAGE.Editor.Effects.FadeOut": "Fade Out (ms)"
+    "VISAGE.Editor.Effects.FadeOut": "Fade Out (ms)",
+    "VISAGE.Editor.Timeline.Open": "Timeline",
+    "VISAGE.Editor.Timeline.Title": "Visage Effect Timeline"
 }

@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "\u200Fصادرات گزارش تشخیص",
     "VISAGE.Settings.ExportLog.Hint": "\u200Fیک فایل \u2068JSON\u2069 حاوی جزئیات محیط شما، ماژول‌های فعال و داده‌های \u2068Visage\u2069 برای کمک به توسعه‌دهنده در عیب‌یابی ایجاد می‌کند.",
     "VISAGE.Settings.ExportLog.Label": "\u200Fصادرات گزارش",
-    "VISAGE.Notifications.ExportSuccess": "\u200F\u2068Visage\u2069 | گزارش تشخیص با موفقیت صادر شد."
+    "VISAGE.Notifications.ExportSuccess": "\u200F\u2068Visage\u2069 | گزارش تشخیص با موفقیت صادر شد.",
+    "VISAGE.Editor.Effects.Delay": "\u200Fتاخیر شروع (\u2068s\u2069)",
+    "VISAGE.Editor.Effects.FadeIn": "\u200Fمحو شدن به داخل (\u2068ms\u2069)",
+    "VISAGE.Editor.Effects.FadeOut": "\u200Fمحو شدن به بیرون (\u2068ms\u2069)",
+    "VISAGE.Editor.Timeline.Open": "\u200Fخط زمانی",
+    "VISAGE.Editor.Timeline.Title": "\u200Fخط زمانی جلوه‌های \u2068Visage\u2069"
 }

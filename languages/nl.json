@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Diagnostisch Logboek Exporteren",
     "VISAGE.Settings.ExportLog.Hint": "Genereert een JSON-bestand met omgevingsdetails, actieve modules en Visage-data om de ontwikkelaar te helpen bij het oplossen van bugs.",
     "VISAGE.Settings.ExportLog.Label": "Exporteer Logboek",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnostisch logboek succesvol geëxporteerd."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnostisch logboek succesvol geëxporteerd.",
+    "VISAGE.Editor.Effects.Delay": "Startvertraging (s)",
+    "VISAGE.Editor.Effects.FadeIn": "Fade In (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "Fade Out (ms)",
+    "VISAGE.Editor.Timeline.Open": "Tijdlijn",
+    "VISAGE.Editor.Timeline.Title": "Visage Effect Tijdlijn"
 }

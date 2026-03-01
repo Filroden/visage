@@ -5,6 +5,12 @@
 
         {{#if hasSequencer}}
         <div class="effects-actions">
+            {{!-- Timeline Button --}}
+            <button type="button" data-action="openTimeline" class="timeline-btn" {{#unless inspector.hasEffects}}disabled{{/unless}}>
+                <i class="visage-icon timeline"></i> {{localize "VISAGE.Editor.Timeline.Open"}}
+            </button>
+            
+            {{!-- Add Visual/Audio Buttons --}}
             <button type="button" data-action="addVisual">
                 <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Effects.AddVisual"}}
             </button>

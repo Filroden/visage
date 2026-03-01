@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Експорт Журналу Діагностики",
     "VISAGE.Settings.ExportLog.Hint": "Генерує JSON-файл, що містить деталі вашого середовища, активні модулі та дані Visage, щоб допомогти розробнику у виправленні помилок.",
     "VISAGE.Settings.ExportLog.Label": "Експорт Журналу",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Журнал діагностики успішно експортовано."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Журнал діагностики успішно експортовано.",
+    "VISAGE.Editor.Effects.Delay": "Затримка Старту (с)",
+    "VISAGE.Editor.Effects.FadeIn": "Плавна Поява (мс)",
+    "VISAGE.Editor.Effects.FadeOut": "Плавне Зникнення (мс)",
+    "VISAGE.Editor.Timeline.Open": "Таймлайн",
+    "VISAGE.Editor.Timeline.Title": "Таймлайн Ефектів Visage"
 }
