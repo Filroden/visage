@@ -180,19 +180,24 @@ export function cleanVisageData(entry) {
 
     const c = entry.changes;
 
-    // 1. Clean 'img' (Legacy v1)
+    // Clean 'img' (Legacy v1)
     if (c.img) {
         if (!c.texture) c.texture = {};
         if (!c.texture.src) c.texture.src = c.img;
         delete c.img;
     }
 
-    // 2. Clean 'visual' (Legacy v2.2 Dev Artifact)
+    // Clean 'visual' (Legacy v2.2 Dev Artifact)
     if (c.visual) {
         delete c.visual;
     }
 
-    // 3. Migrate Baked Scale (Legacy v2.0/v2.1)
+    // Strip legacy global delay (migrated to individual effects in v4.1)
+    if (c.delay !== undefined) {
+        delete c.delay;
+    }
+
+    // Migrate Baked Scale (Legacy v2.0/v2.1)
     // We separate the magnitude (scale) from the orientation (mirror/flip)
     // so they can be layered independently by the Composer.
     const tx = c.texture;
@@ -222,7 +227,7 @@ export function cleanVisageData(entry) {
         if (Object.keys(tx).length === 0) delete c.texture;
     }
 
-    // 4. Ensure Mode (v3.0)
+    // Ensure Mode (v3.0)
     // If we are cleaning an object in isolation, we default to identity.
     // The bulk migration handles context-aware defaults (overlay vs identity).
     if (!entry.mode) {

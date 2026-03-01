@@ -335,6 +335,11 @@ export class VisageData {
                 delete obj.automation;
         }
 
+        // Strip legacy global delay (migrated to individual effects in v4.1)
+        if (obj.delay !== undefined) {
+            delete obj.delay;
+        }
+
         // 2. Standard recursive scrub for nulls and completely empty arrays/objects
         for (const key in obj) {
             if (obj[key] === undefined) continue;
