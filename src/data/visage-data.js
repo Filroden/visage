@@ -335,6 +335,11 @@ export class VisageData {
                 delete obj.automation;
         }
 
+        // Strip legacy global delay (migrated to individual effects in v4.1)
+        if (obj.delay !== undefined) {
+            delete obj.delay;
+        }
+
         // 2. Standard recursive scrub for nulls and completely empty arrays/objects
         for (const key in obj) {
             if (obj[key] === undefined) continue;
@@ -458,7 +463,6 @@ export class VisageData {
                 disposition: sourceData.disposition ?? 0,
                 light: lightData,
                 portrait: portrait,
-                delay: 0,
                 ring: ringData,
             },
         };
@@ -796,24 +800,6 @@ export class VisageData {
                 </div>`;
                 })
                 .join("");
-        }
-
-        // C. Delay (Bottom)
-        if (c.delay !== undefined && c.delay !== 0) {
-            const dirLabel =
-                c.delay > 0
-                    ? game.i18n.localize(
-                          "VISAGE.Editor.TransitionDelay.EffectsLead",
-                      )
-                    : game.i18n.localize(
-                          "VISAGE.Editor.TransitionDelay.TokenLeads",
-                      );
-            content += `
-            <div class='visage-tooltip-row footer'>
-                <i class='visage-icon timer'></i> 
-                <span class='label'>${game.i18n.localize("VISAGE.Editor.TransitionDelay.Label")}</span>
-                <span class='meta'>${Math.abs(c.delay) / 1000}s (${dirLabel})</span>
-            </div>`;
         }
 
         return `<div class='visage-tooltip-content'>${content}</div>`;

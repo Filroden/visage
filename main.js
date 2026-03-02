@@ -138,6 +138,7 @@ Hooks.once("init", () => {
             "modules/visage/templates/parts/visage-editor-effects.hbs",
             "modules/visage/templates/parts/visage-editor-triggers.hbs",
             "modules/visage/templates/helpers/visage-attribute-picker.hbs",
+            "modules/visage/templates/helpers/visage-media-timeline.hbs",
         ]);
 
         registerSettings();

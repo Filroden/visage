@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Allforio Log Diagnostig",
     "VISAGE.Settings.ExportLog.Hint": "Cynhyrchu ffeil JSON yn cynnwys manylion eich amgylchedd, modiwlau gweithredol, a data Visage i helpu'r datblygwr i ddatrys chwilod.",
     "VISAGE.Settings.ExportLog.Label": "Allforio Log",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Allforiwyd log diagnostig yn llwyddiannus."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Allforiwyd log diagnostig yn llwyddiannus.",
+    "VISAGE.Editor.Effects.Delay": "Oedi Cychwyn (e)",
+    "VISAGE.Editor.Effects.FadeIn": "Pylu I Mewn (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "Pylu Allan (ms)",
+    "VISAGE.Editor.Timeline.Open": "Llinell Amser",
+    "VISAGE.Editor.Timeline.Title": "Llinell Amser Effaith Visage"
 }

@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Esporta Log Diagnostico",
     "VISAGE.Settings.ExportLog.Hint": "Genera un file JSON contenente i dettagli del tuo ambiente, moduli attivi e dati Visage per aiutare lo sviluppatore a risolvere i bug.",
     "VISAGE.Settings.ExportLog.Label": "Esporta Log",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Log diagnostico esportato con successo."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Log diagnostico esportato con successo.",
+    "VISAGE.Editor.Effects.Delay": "Ritardo di Avvio (s)",
+    "VISAGE.Editor.Effects.FadeIn": "Dissolvenza in Entrata (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "Dissolvenza in Uscita (ms)",
+    "VISAGE.Editor.Timeline.Open": "Timeline",
+    "VISAGE.Editor.Timeline.Title": "Timeline Effetti Visage"
 }

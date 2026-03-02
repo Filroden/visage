@@ -20,6 +20,7 @@ import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageDragDropManager } from "./helpers/visage-drag-drop.js";
 import { VisageMediaController } from "./helpers/visage-media-controller.js";
 import { VisageAttributePicker } from "./helpers/visage-attribute-picker.js";
+import { VisageMediaTimeline } from "./helpers/visage-media-timeline.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -125,6 +126,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 VisageEditor.prototype._onCloseConditionInspector,
             openAttributePicker: VisageEditor.prototype._onOpenAttributePicker,
             toggleCondition: VisageEditor.prototype._onToggleCondition,
+            openTimeline: VisageEditor.prototype._onOpenTimeline,
         },
     };
 
@@ -151,7 +153,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     // ==========================================
-    // 2. CORE LIFECYCLE (Foundry V2)
+    // 2. CORE LIFECYCLE
     // ==========================================
 
     async render(options) {
@@ -160,7 +162,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async close(options) {
-        this._mediaController.stopAll();
+        // 1. Audio preview cleanup
+        if (this._mediaController) this._mediaController.stopAll();
+
+        // 2. Timeline window cleanup
+        if (this._timelineApp && this._timelineApp.rendered) {
+            this._timelineApp.close();
+        }
+
         return super.close(options);
     }
 
@@ -475,8 +484,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Effects Sync
         if (this._effects === null)
             this._effects = c.effects ? foundry.utils.deepClone(c.effects) : [];
-        if (this._delayData === 0 && c.delay !== undefined)
-            this._delayData = c.delay;
 
         // Light Data Sync
         if (this._lightData === null) {
@@ -574,6 +581,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     zOrder: effect.zOrder ?? "above",
                     blendMode: effect.blendMode || "normal",
                     loop: effect.loop ?? true,
+                    delay: effect.delay || 0,
+                    fadeIn: effect.fadeIn || 0,
+                    fadeOut: effect.fadeOut || 0,
                 });
             }
         } else if (this._activeConditionId) {
@@ -642,12 +652,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 : type(val);
         };
 
-        // Delay Sync
-        const delayVal = getVal("delayValue", Number);
-        if (delayVal !== null && !isNaN(delayVal))
-            this._delayData =
-                Math.round(delayVal * 1000) * (this._delayData >= 0 ? 1 : -1);
-
         // Light Sync
         if (this._editingLight) {
             [
@@ -706,10 +710,19 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         !!formData.effectRotationRandom;
                     activeEffect.zOrder =
                         getVal("effectZIndex") ?? activeEffect.zOrder;
+                    activeEffect.delay =
+                        getVal("effectDelay", Number) ?? activeEffect.delay;
                 } else if (activeEffect.type === "audio") {
                     const volVal = getVal("effectVolume", Number);
                     if (volVal !== null && !isNaN(volVal))
                         activeEffect.opacity = volVal;
+
+                    activeEffect.delay =
+                        getVal("effectDelay", Number) ?? activeEffect.delay;
+                    activeEffect.fadeIn =
+                        getVal("effectFadeIn", Number) ?? activeEffect.fadeIn;
+                    activeEffect.fadeOut =
+                        getVal("effectFadeOut", Number) ?? activeEffect.fadeOut;
                 }
             }
         }
@@ -870,7 +883,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // B. Components always sent
         changes.light = this._lightData;
         changes.ring = this._ringData;
-        changes.delay = this._delayData;
         changes.effects = this._effects.filter((e) => !e.disabled);
 
         // Clean up transient UI properties from the automation data before saving
@@ -1021,6 +1033,19 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             },
         });
         fp.render(true);
+    }
+
+    async _onOpenTimeline(event, target) {
+        if (!this._timelineApp) {
+            this._timelineApp = new VisageMediaTimeline({ editor: this });
+        }
+
+        // If it's already open, bring it to the front. Otherwise, render it.
+        if (this._timelineApp.rendered) {
+            this._timelineApp.bringToFront();
+        } else {
+            this._timelineApp.render({ force: true });
+        }
     }
 
     _activateTab(tabName) {
@@ -1252,6 +1277,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             zOrder: "above",
             loop: true,
             disabled: false,
+            delay: 0,
         };
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;
@@ -1268,6 +1294,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             opacity: 0.8,
             loop: true,
             disabled: false,
+            delay: 0,
+            fadeIn: 0,
+            fadeOut: 0,
         };
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;

@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "导出诊断日志",
     "VISAGE.Settings.ExportLog.Hint": "生成一个包含您的环境详细信息、活动模块和 Visage 数据的 JSON 文件，以帮助开发者对错误进行故障排除。",
     "VISAGE.Settings.ExportLog.Label": "导出日志",
-    "VISAGE.Notifications.ExportSuccess": "Visage | 诊断日志成功导出。"
+    "VISAGE.Notifications.ExportSuccess": "Visage | 诊断日志成功导出。",
+    "VISAGE.Editor.Effects.Delay": "启动延迟 (秒)",
+    "VISAGE.Editor.Effects.FadeIn": "淡入 (毫秒)",
+    "VISAGE.Editor.Effects.FadeOut": "淡出 (毫秒)",
+    "VISAGE.Editor.Timeline.Open": "时间轴",
+    "VISAGE.Editor.Timeline.Title": "Visage 效果时间轴"
 }

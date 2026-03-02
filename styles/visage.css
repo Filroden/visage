@@ -15,8 +15,9 @@
  * 10. Welcome Chat Card
  * 11. Game Settings
  * 12. Application: Attribute Picker
- * 13. Automation Toggles (Gallery cards and Selector HUD tiles)
- * 14. Theme Definitions (The Engine)
+ * 13. Timeline HUD
+ * 14. Automation Toggles (Gallery cards and Selector HUD tiles)
+ * 15. Theme Definitions (The Engine)
  */
 
 /* ==========================================================================
@@ -1162,6 +1163,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.power      { -webkit-mask-image: url('../icons/power_settings_circle.svg'); mask-image: url('../icons/power_settings_circle.svg'); }
 .visage-icon.list      { -webkit-mask-image: url('../icons/list.svg'); mask-image: url('../icons/list.svg'); }
 .visage-icon.attribute-picker      { -webkit-mask-image: url('../icons/list_alt_check.svg'); mask-image: url('../icons/list_alt_check.svg'); }
+.visage-icon.timeline      { -webkit-mask-image: url('../icons/view_timeline.svg'); mask-image: url('../icons/view_timeline.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -3655,7 +3657,201 @@ button.visage-tool-icon {
 
 
 /* ==========================================================================
-   13. AUTOMATION TOGGLES
+   13. VISAGE TIMELINE HUD
+   ========================================================================== */
+
+.visage-timeline-app .window-content {
+    padding: 0;
+    overflow: hidden;
+    background: var(--visage-color-bg-darkest);
+}
+
+.visage-timeline-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    user-select: none;
+}
+
+/* --- Ruler --- */
+.timeline-ruler {
+    height: 30px;
+    background: var(--visage-color-bg-medium-solid);
+    position: relative;
+    padding-inline-start: 40px; /* Space for the track headers */
+}
+
+.ruler-ticks {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.ruler-ticks .tick {
+    position: absolute;
+    height: 35%;
+    border-inline-start: 1px solid var(--visage-color-text-muted);
+    transform: translateX(calc(-50% * var(--filroden-dir-flip)));
+}
+
+.ruler-ticks .tick.top {
+    bottom: 0;
+}
+
+.ruler-ticks .tick.bottom {
+    top: 0;
+}
+
+.ruler-ticks .tick.zero-anchor {
+    border-inline-start: 2px solid var(--visage-color-text-muted);
+}
+
+.ruler-ticks .tick-label {
+    position: absolute;
+    inset-inline-start: 4px; /* Anchor exactly to the tick line */
+    transform: translateX(calc(-50% * var(--filroden-dir-flip))); /* Pull it back by exactly half its own width */
+    font-size: var(--filroden-font-size-xs);
+    color: var(--visage-color-text-muted);
+    text-align: center;
+    direction: ltr; 
+    unicode-bidi: isolate;
+}
+
+.ruler-ticks .tick:last-child,
+.ruler-ticks .tick:last-child .tick-label {
+    display: none;
+    border: none;
+}
+
+.ruler-ticks .tick-label.top {
+    bottom: 14px;
+}
+
+.ruler-ticks .tick-label.bottom {
+    top: 14px;
+}
+
+.ruler-ticks .tick.zero-anchor .tick-label {
+    color: var(--visage-color-text-muted);
+    font-weight: bold;
+}
+
+/* --- Tracks --- */
+.timeline-tracks {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.timeline-track {
+    display: flex;
+    border-bottom: 1px solid var(--visage-color-border);
+    border-top: 1px solid var(--visage-color-border);
+    min-height: 40px; /* Minimum 1 swimlane */
+}
+
+.track-header {
+    width: 40px;
+    flex-shrink: 0;
+    background: var(--visage-color-bg-medium);
+    border-inline-end: 1px solid var(--visage-color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--visage-color-text-muted);
+    z-index: 2; /* Sit above the zero line */
+}
+
+.track-lanes {
+    flex: 1;
+    position: relative;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 34px,
+        var(--visage-color-bg-medium) 34px,
+        var(--visage-color-bg-medium) 35px
+    ); /* Creates subtle swimlane guide lines */
+    transition: height 0.2s ease;
+}
+
+/* --- The Zero Anchor Line --- */
+.zero-anchor-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--visage-color-bg-hover);
+    box-shadow: 0 0 5px var(--visage-color-bg-hover);
+    pointer-events: none;
+    z-index: 1;
+    transform: translateX(calc(24px * var(--filroden-dir-flip)));
+}
+
+/* --- Draggable Blocks --- */
+.timeline-block {
+    position: absolute;
+    height: 28px;
+    min-width: 60px;
+    margin-top: 3px;
+    border-radius: var(--filroden-radius-s);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--filroden-space-s);
+    cursor: grab;
+    box-shadow: var(--filroden-shadow-card);
+    transform: translateX(calc(-50% * var(--filroden-dir-flip)));
+    transition: top 0.2s ease;
+    z-index: 10;
+    background: hsl(var(--visage-hue), 40%, 30%);
+    border: 1px solid hsl(var(--visage-hue), 50%, 40%);
+}
+.timeline-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: var(--visage-color-text-muted);
+    transform: translateX(-50%);
+    opacity: 0.4;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.timeline-block:active {
+    cursor: grabbing;
+    z-index: 100;
+    box-shadow: var(--filroden-shadow-popout);
+    filter: brightness(1.2);
+    border-color: var(--visage-color-bg-hover);
+}
+.timeline-block:active::before {
+    background: var(--visage-color-bg-hover);
+    opacity: 0.8;
+}
+
+.block-label {
+    position: relative;
+    z-index: 2; /* Keep text above the center notch */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--visage-color-text-main-solid);
+    background: hsl(var(--visage-hue), 40%, 30%);
+    pointer-events: none;
+    text-shadow: 0 0 3px var(--visage-color-bg-darkest), 0 0 5px var(--visage-color-bg-darkest);
+}
+
+
+/* ==========================================================================
+   14. AUTOMATION TOGGLES
    ========================================================================== */
 
 /* Refactored Card Indicators Row */
@@ -3741,7 +3937,7 @@ button.visage-tool-icon {
 
 
 /* ==========================================================================
-   14. THEME DEFINITIONS (The Engine)
+   15. THEME DEFINITIONS (The Engine)
    ========================================================================== */
 
 /* --- 1. Universal Defaults --- */
@@ -3749,6 +3945,8 @@ button.visage-tool-icon {
    Acts as the "Gold" fallback if no specific theme class is present. */
 
 .visage {
+    --visage-hue: var(--filroden-hue1);
+
     /* Backgrounds */
     --visage-color-bg-darkest: var(--filroden-color-bg-darkest);
     --visage-color-bg-medium: var(--filroden-color-bg-medium);
@@ -3780,6 +3978,8 @@ button.visage-tool-icon {
 /* --- 2. Theme A: Gold (Local / Visage) --- */
 
 .visage-theme-local {
+    --visage-hue: var(--filroden-hue1);
+
     /* Backgrounds */
     --visage-color-bg-darkest: var(--filroden-color-bg-darkest);
     --visage-color-bg-medium: var(--filroden-color-bg-medium);
@@ -3811,6 +4011,8 @@ button.visage-tool-icon {
 /* --- 3. Theme B: Blue (Global / Mask) --- */
 
 .visage-theme-global {
+    --visage-hue: var(--filroden-hue2);
+
     /* Backgrounds (Shifted Hue) */
     --visage-color-bg-darkest: var(--filroden-color2-bg-darkest);
     --visage-color-bg-medium: var(--filroden-color2-bg-medium);

@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Vie Diagnostiikkaloki",
     "VISAGE.Settings.ExportLog.Hint": "Luo JSON-tiedoston, joka sisältää ympäristösi tiedot, aktiiviset moduulit ja Visage-tiedot, auttaakseen kehittäjää vianmäärityksessä.",
     "VISAGE.Settings.ExportLog.Label": "Vie Loki",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnostiikkaloki vietiin onnistuneesti."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnostiikkaloki vietiin onnistuneesti.",
+    "VISAGE.Editor.Effects.Delay": "Aloitusviive (s)",
+    "VISAGE.Editor.Effects.FadeIn": "Häivytys Sisään (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "Häivytys Ulos (ms)",
+    "VISAGE.Editor.Timeline.Open": "Aikajana",
+    "VISAGE.Editor.Timeline.Title": "Visage-efektien Aikajana"
 }

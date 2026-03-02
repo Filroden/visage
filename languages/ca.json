@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Exportar Registre de Diagnòstic",
     "VISAGE.Settings.ExportLog.Hint": "Genera un fitxer JSON que conté els detalls del teu entorn, mòduls actius i dades de Visage per ajudar el desenvolupador a solucionar errors.",
     "VISAGE.Settings.ExportLog.Label": "Exportar Registre",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Registre de diagnòstic exportat amb èxit."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Registre de diagnòstic exportat amb èxit.",
+    "VISAGE.Editor.Effects.Delay": "Retard d'Inici (s)",
+    "VISAGE.Editor.Effects.FadeIn": "Fos d'Entrada (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "Fos de Sortida (ms)",
+    "VISAGE.Editor.Timeline.Open": "Línia de Temps",
+    "VISAGE.Editor.Timeline.Title": "Línia de Temps d'Efectes de Visage"
 }

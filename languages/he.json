@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "\u200Fייצא יומן אבחון",
     "VISAGE.Settings.ExportLog.Hint": "\u200Fמייצר קובץ \u2068JSON\u2069 המכיל את פרטי הסביבה שלך, מודולים פעילים ונתוני \u2068Visage\u2069 כדי לעזור למפתח בפתרון תקלות.",
     "VISAGE.Settings.ExportLog.Label": "\u200Fייצא יומן",
-    "VISAGE.Notifications.ExportSuccess": "\u200F\u2068Visage\u2069 | יומן האבחון יוצא בהצלחה."
+    "VISAGE.Notifications.ExportSuccess": "\u200F\u2068Visage\u2069 | יומן האבחון יוצא בהצלחה.",
+    "VISAGE.Editor.Effects.Delay": "\u200Fהשהיית התחלה (\u2068s\u2069)",
+    "VISAGE.Editor.Effects.FadeIn": "\u200Fעמעום כניסה (\u2068ms\u2069)",
+    "VISAGE.Editor.Effects.FadeOut": "\u200Fעמעום יציאה (\u2068ms\u2069)",
+    "VISAGE.Editor.Timeline.Open": "\u200Fציר זמן",
+    "VISAGE.Editor.Timeline.Title": "\u200Fציר זמן של אפקטי \u2068Visage\u2069"
 }

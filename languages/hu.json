@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Diagnosztikai Napló Exportálása",
     "VISAGE.Settings.ExportLog.Hint": "Generál egy JSON fájlt, amely tartalmazza a környezeti részleteket, az aktív modulokat és a Visage adatokat, hogy segítsen a fejlesztőnek a hibák elhárításában.",
     "VISAGE.Settings.ExportLog.Label": "Napló Exportálása",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnosztikai napló sikeresen exportálva."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnosztikai napló sikeresen exportálva.",
+    "VISAGE.Editor.Effects.Delay": "Indítási Késleltetés (s)",
+    "VISAGE.Editor.Effects.FadeIn": "Fokozatos Megjelenés (ms)",
+    "VISAGE.Editor.Effects.FadeOut": "Fokozatos Eltűnés (ms)",
+    "VISAGE.Editor.Timeline.Open": "Idővonal",
+    "VISAGE.Editor.Timeline.Title": "Visage Effekt Idővonal"
 }

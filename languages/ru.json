@@ -406,5 +406,10 @@
     "VISAGE.Settings.ExportLog.Name": "Exportovat Diagnostický Protokol",
     "VISAGE.Settings.ExportLog.Hint": "Vygeneruje JSON soubor obsahující podrobnosti o vašem prostředí, aktivních modulech a datech Visage, aby pomohl vývojáři při řešení chyb.",
     "VISAGE.Settings.ExportLog.Label": "Exportovat Protokol",
-    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnostický protokol úspěšně exportován."
+    "VISAGE.Notifications.ExportSuccess": "Visage | Diagnostický protokol úspěšně exportován.",
+    "VISAGE.Editor.Effects.Delay": "Задержка Старта (с)",
+    "VISAGE.Editor.Effects.FadeIn": "Плавное Появление (мс)",
+    "VISAGE.Editor.Effects.FadeOut": "Плавное Исчезновение (мс)",
+    "VISAGE.Editor.Timeline.Open": "Таймлайн",
+    "VISAGE.Editor.Timeline.Title": "Таймлайн Эффектов Visage"
 }
