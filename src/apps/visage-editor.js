@@ -391,6 +391,32 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._bindTagInput();
         this._dragDropManager.bind(this.element);
 
+        // --- Global Drag & Drop for External Foundry Documents ---
+        // Prevent default on dragover to allow the drop event to fire anywhere on the window
+        this.element.addEventListener("dragover", (e) => e.preventDefault());
+        this.element.addEventListener("drop", async (e) => {
+            try {
+                // Safely extract drag data natively without triggering V13 deprecation warnings
+                const dragDataText = e.dataTransfer.getData("text/plain");
+                if (!dragDataText) return;
+
+                const data = JSON.parse(dragDataText);
+
+                // If it's a Macro, intercept it and prevent it from bubbling to the internal manager
+                if (data?.type === "Macro" && data?.uuid) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (typeof this._onDropMacro === "function") {
+                        await this._onDropMacro(data.uuid);
+                    }
+                }
+            } catch (err) {
+                // Ignore errors: This just means the user dragged something internal (like a Visage card)
+                // that doesn't have valid JSON data attached to it.
+            }
+        });
+
         // Text input debouncing
         let textTimer;
         this.element.addEventListener("input", (e) => {
@@ -1337,6 +1363,33 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingRing = false;
         this._markDirty();
         this.render();
+    }
+    async _onDropMacro(uuid) {
+        // Fetch the macro document to get its real name
+        const macroDoc = await fromUuid(uuid);
+        if (!macroDoc) return;
+
+        const newEffect = {
+            id: foundry.utils.randomID(16),
+            type: "macro",
+            label: macroDoc.name,
+            uuid: uuid,
+            delay: 0,
+            disabled: false,
+        };
+
+        this._effects.push(newEffect);
+        this._activeEffectId = newEffect.id;
+        this._activeConditionId = null;
+        this._editingLight = false;
+        this._editingRing = false;
+
+        this._activeTab = "effects";
+
+        this._markDirty();
+        this.render({ force: true });
+
+        ui.notifications.info(`Visage | Added Macro: ${macroDoc.name}`);
     }
     _onEditEffect(event, target) {
         this._activeEffectId = target.closest(".effect-card").dataset.id;

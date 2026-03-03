@@ -132,6 +132,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleMenu: VisageGallery.prototype._onToggleMenu,
             toggleAutomation: VisageGallery.prototype._onToggleAutomation,
             duplicate: VisageGallery.prototype._onDuplicate,
+            copyMacro: VisageGallery.prototype._onCopyMacro,
             export: VisageGallery.prototype._onExport,
             import: VisageGallery.prototype._onImport,
             exportIndividual: VisageGallery.prototype._onExportIndividual,
@@ -478,6 +479,45 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         await VisageData.save(copy, this.isLocal ? this.actor : null);
         target.closest(".visage-popover-menu").classList.remove("active");
+    }
+
+    /**
+     * Silently copies a pre-formatted API command to the user's clipboard.
+     * Appends the human-readable Label as a comment for context.
+     */
+    async _onCopyMacro(event, target) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const card = target.closest(".visage-card");
+        const id = card.dataset.id;
+
+        // Fetch the source data to get the accurate label
+        let source;
+        if (this.isLocal) {
+            source = VisageData.getLocal(this.actor).find((v) => v.id === id);
+        } else {
+            source = VisageData.getGlobal(id);
+        }
+
+        if (!source) return;
+
+        // Format the string exactly as proposed in the roadmap
+        const macroText = `game.modules.get("visage").api.apply(token.id, "${id}"); // Applies: "${source.label}"`;
+
+        // Push to clipboard using Foundry's native helper
+        game.clipboard.copyPlainText(macroText);
+
+        // Notify the GM
+        ui.notifications.info(
+            game.i18n.format("VISAGE.Notifications.MacroCopied", {
+                name: source.label,
+            }),
+        );
+
+        // Close the popover menu visually
+        const popover = target.closest(".visage-popover-menu");
+        if (popover) popover.classList.remove("active");
     }
 
     async _onExportIndividual(event, target) {

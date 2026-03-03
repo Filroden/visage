@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Schakelen",
     "VISAGE.Editor.Effects.AddVisual": "Voeg Visueel Toe",
     "VISAGE.Editor.Effects.AddAudio": "Voeg Audio Toe",
-    "VISAGE.Editor.Effects.Empty": "Geen effecten toegevoegd.",
+    "VISAGE.Editor.Effects.Empty": "Geen visuele of audio-effecten toegevoegd.",
     "VISAGE.Editor.Effects.SettingsTitle": "Effect Instellingen",
     "VISAGE.Editor.Effects.NamePlaceholder": "Effect Naam",
     "VISAGE.Editor.Effects.PathPlaceholder": "bijv. jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "Fade In (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Fade Out (ms)",
     "VISAGE.Editor.Timeline.Open": "Tijdlijn",
-    "VISAGE.Editor.Timeline.Title": "Visage Effect Tijdlijn"
+    "VISAGE.Editor.Timeline.Title": "Visage Effect Tijdlijn",
+    "VISAGE.Editor.Effects.AddMacro": "Macro Toevoegen",
+    "VISAGE.Editor.Groups.Macro": "Macro's",
+    "VISAGE.Editor.Effects.MacroUUID": "Macro UUID",
+    "VISAGE.Editor.Macros.Empty": "Geen macro's toegevoegd.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Macro niet gevonden: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Geen UUID",
+    "VISAGE.Actions.CopyMacro": "Kopieer Macro API",
+    "VISAGE.Notifications.MacroCopied": "Visage | Macro API voor '{name}' gekopieerd naar klembord."
 }

@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Перемкнути",
     "VISAGE.Editor.Effects.AddVisual": "Дод. Візуальний",
     "VISAGE.Editor.Effects.AddAudio": "Дод. Аудіо",
-    "VISAGE.Editor.Effects.Empty": "Ефектів не додано.",
+    "VISAGE.Editor.Effects.Empty": "Візуальні або звукові ефекти не додано.",
     "VISAGE.Editor.Effects.SettingsTitle": "Налаштування Ефекту",
     "VISAGE.Editor.Effects.NamePlaceholder": "Назва Ефекту",
     "VISAGE.Editor.Effects.PathPlaceholder": "напр. jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "Плавна Поява (мс)",
     "VISAGE.Editor.Effects.FadeOut": "Плавне Зникнення (мс)",
     "VISAGE.Editor.Timeline.Open": "Таймлайн",
-    "VISAGE.Editor.Timeline.Title": "Таймлайн Ефектів Visage"
+    "VISAGE.Editor.Timeline.Title": "Таймлайн Ефектів Visage",
+    "VISAGE.Editor.Effects.AddMacro": "Додати Макрос",
+    "VISAGE.Editor.Groups.Macro": "Макроси",
+    "VISAGE.Editor.Effects.MacroUUID": "UUID Макроса",
+    "VISAGE.Editor.Macros.Empty": "Макроси не додано.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Макрос не знайдено: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Немає UUID",
+    "VISAGE.Actions.CopyMacro": "Скопіювати API Макроса",
+    "VISAGE.Notifications.MacroCopied": "Visage | API Макроса для '{name}' скопійовано в буфер обміну."
 }

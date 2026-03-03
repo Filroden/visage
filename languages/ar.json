@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "\u200Fتبديل",
     "VISAGE.Editor.Effects.AddVisual": "\u200Fإضافة مرئي",
     "VISAGE.Editor.Effects.AddAudio": "\u200Fإضافة صوتي",
-    "VISAGE.Editor.Effects.Empty": "\u200Fلم تتم إضافة تأثيرات.",
+    "VISAGE.Editor.Effects.Empty": "\u200Fلم تتم إضافة تأثيرات بصرية أو صوتية.",
     "VISAGE.Editor.Effects.SettingsTitle": "\u200Fإعدادات التأثير",
     "VISAGE.Editor.Effects.NamePlaceholder": "\u200Fاسم التأثير",
     "VISAGE.Editor.Effects.PathPlaceholder": "\u200Fمثل: \u2068jb2a.fire_bolt.red\u2069",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "\u200Fظهور تدريجي (\u2068ms\u2069)",
     "VISAGE.Editor.Effects.FadeOut": "\u200Fاختفاء تدريجي (\u2068ms\u2069)",
     "VISAGE.Editor.Timeline.Open": "\u200Fالخط الزمني",
-    "VISAGE.Editor.Timeline.Title": "\u200Fالخط الزمني لتأثيرات \u2068Visage\u2069"
+    "VISAGE.Editor.Timeline.Title": "\u200Fالخط الزمني لتأثيرات \u2068Visage\u2069",
+    "VISAGE.Editor.Effects.AddMacro": "\u200Fإضافة ماكرو",
+    "VISAGE.Editor.Groups.Macro": "\u200Fوحدات الماكرو",
+    "VISAGE.Editor.Effects.MacroUUID": "\u200Fمعرف الماكرو (\u2068UUID\u2069)",
+    "VISAGE.Editor.Macros.Empty": "\u200Fلم تتم إضافة وحدات ماكرو.",
+    "VISAGE.Notifications.MacroNotFound": "\u200F\u2068Visage\u2069 | لم يتم العثور على الماكرو: \u2068{uuid}\u2069",
+    "VISAGE.Editor.Effects.NoUUID": "\u200Fبدون \u2068UUID\u2069",
+    "VISAGE.Actions.CopyMacro": "\u200Fنسخ \u2068API\u2069 الماكرو",
+    "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | تم نسخ \u2068API\u2069 الماكرو لـ '\u2068{name}\u2069' إلى الحافظة."
 }

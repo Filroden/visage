@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "切換",
     "VISAGE.Editor.Effects.AddVisual": "新增視覺",
     "VISAGE.Editor.Effects.AddAudio": "新增音訊",
-    "VISAGE.Editor.Effects.Empty": "未新增效果。",
+    "VISAGE.Editor.Effects.Empty": "未新增任何視覺或音訊效果。",
     "VISAGE.Editor.Effects.SettingsTitle": "效果設定",
     "VISAGE.Editor.Effects.NamePlaceholder": "效果名稱",
     "VISAGE.Editor.Effects.PathPlaceholder": "例如: jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "淡入 (毫秒)",
     "VISAGE.Editor.Effects.FadeOut": "淡出 (毫秒)",
     "VISAGE.Editor.Timeline.Open": "時間軸",
-    "VISAGE.Editor.Timeline.Title": "Visage 效果時間軸"
+    "VISAGE.Editor.Timeline.Title": "Visage 效果時間軸",
+    "VISAGE.Editor.Effects.AddMacro": "新增巨集",
+    "VISAGE.Editor.Groups.Macro": "巨集",
+    "VISAGE.Editor.Effects.MacroUUID": "巨集 UUID",
+    "VISAGE.Editor.Macros.Empty": "未新增巨集。",
+    "VISAGE.Notifications.MacroNotFound": "Visage | 找不到巨集：{uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "無 UUID",
+    "VISAGE.Actions.CopyMacro": "複製巨集 API",
+    "VISAGE.Notifications.MacroCopied": "Visage | 已將 '{name}' 的巨集 API 複製到剪貼簿。"
 }

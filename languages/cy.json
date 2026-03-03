@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Toglo",
     "VISAGE.Editor.Effects.AddVisual": "Ychwanegu Gweledol",
     "VISAGE.Editor.Effects.AddAudio": "Ychwanegu Sain",
-    "VISAGE.Editor.Effects.Empty": "Dim effeithiau wedi'u hychwanegu.",
+    "VISAGE.Editor.Effects.Empty": "Dim effeithiau gweledol na sain wedi'u hychwanegu.",
     "VISAGE.Editor.Effects.SettingsTitle": "Gosodiadau Effaith",
     "VISAGE.Editor.Effects.NamePlaceholder": "Enw Effaith",
     "VISAGE.Editor.Effects.PathPlaceholder": "e.e. jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "Pylu I Mewn (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Pylu Allan (ms)",
     "VISAGE.Editor.Timeline.Open": "Llinell Amser",
-    "VISAGE.Editor.Timeline.Title": "Llinell Amser Effaith Visage"
+    "VISAGE.Editor.Timeline.Title": "Llinell Amser Effaith Visage",
+    "VISAGE.Editor.Effects.AddMacro": "Ychwanegu Macro",
+    "VISAGE.Editor.Groups.Macro": "Macros",
+    "VISAGE.Editor.Effects.MacroUUID": "UUID Macro",
+    "VISAGE.Editor.Macros.Empty": "Dim macros wedi'u hychwanegu.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Heb ddod o hyd i'r macro: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Dim UUID",
+    "VISAGE.Actions.CopyMacro": "Copïo API Macro",
+    "VISAGE.Notifications.MacroCopied": "Visage | API Macro ar gyfer '{name}' wedi'i gopïo i'r clipfwrdd."
 }

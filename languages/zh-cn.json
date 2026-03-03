@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "切换",
     "VISAGE.Editor.Effects.AddVisual": "添加视觉",
     "VISAGE.Editor.Effects.AddAudio": "添加音频",
-    "VISAGE.Editor.Effects.Empty": "未添加效果。",
+    "VISAGE.Editor.Effects.Empty": "未添加任何视觉或音频效果。",
     "VISAGE.Editor.Effects.SettingsTitle": "效果设置",
     "VISAGE.Editor.Effects.NamePlaceholder": "效果名称",
     "VISAGE.Editor.Effects.PathPlaceholder": "例如: jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "淡入 (毫秒)",
     "VISAGE.Editor.Effects.FadeOut": "淡出 (毫秒)",
     "VISAGE.Editor.Timeline.Open": "时间轴",
-    "VISAGE.Editor.Timeline.Title": "Visage 效果时间轴"
+    "VISAGE.Editor.Timeline.Title": "Visage 效果时间轴",
+    "VISAGE.Editor.Effects.AddMacro": "添加宏",
+    "VISAGE.Editor.Groups.Macro": "宏",
+    "VISAGE.Editor.Effects.MacroUUID": "宏 UUID",
+    "VISAGE.Editor.Macros.Empty": "未添加宏。",
+    "VISAGE.Notifications.MacroNotFound": "Visage | 未找到宏：{uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "无 UUID",
+    "VISAGE.Actions.CopyMacro": "复制宏 API",
+    "VISAGE.Notifications.MacroCopied": "Visage | 已将 '{name}' 的宏 API 复制到剪贴板。"
 }

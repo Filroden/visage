@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Váltás",
     "VISAGE.Editor.Effects.AddVisual": "Vizuális Hozzáad.",
     "VISAGE.Editor.Effects.AddAudio": "Hang Hozzáad.",
-    "VISAGE.Editor.Effects.Empty": "Nincsenek hozzáadott hatások.",
+    "VISAGE.Editor.Effects.Empty": "Nincsenek vizuális vagy hang effektek hozzáadva.",
     "VISAGE.Editor.Effects.SettingsTitle": "Hatás Beállítások",
     "VISAGE.Editor.Effects.NamePlaceholder": "Hatás Neve",
     "VISAGE.Editor.Effects.PathPlaceholder": "pl. jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "Fokozatos Megjelenés (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Fokozatos Eltűnés (ms)",
     "VISAGE.Editor.Timeline.Open": "Idővonal",
-    "VISAGE.Editor.Timeline.Title": "Visage Effekt Idővonal"
+    "VISAGE.Editor.Timeline.Title": "Visage Effekt Idővonal",
+    "VISAGE.Editor.Effects.AddMacro": "Makró Hozzáadása",
+    "VISAGE.Editor.Groups.Macro": "Makrók",
+    "VISAGE.Editor.Effects.MacroUUID": "Makró UUID",
+    "VISAGE.Editor.Macros.Empty": "Nincsenek makrók hozzáadva.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Makró nem található: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Nincs UUID",
+    "VISAGE.Actions.CopyMacro": "Makró API Másolása",
+    "VISAGE.Notifications.MacroCopied": "Visage | Makró API a(z) '{name}' elemhez a vágólapra másolva."
 }

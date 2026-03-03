@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "전환",
     "VISAGE.Editor.Effects.AddVisual": "시각 효과 추가",
     "VISAGE.Editor.Effects.AddAudio": "오디오 추가",
-    "VISAGE.Editor.Effects.Empty": "추가된 효과 없음.",
+    "VISAGE.Editor.Effects.Empty": "추가된 시각 또는 오디오 효과가 없습니다.",
     "VISAGE.Editor.Effects.SettingsTitle": "효과 설정",
     "VISAGE.Editor.Effects.NamePlaceholder": "효과 이름",
     "VISAGE.Editor.Effects.PathPlaceholder": "예: jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "페이드 인 (ms)",
     "VISAGE.Editor.Effects.FadeOut": "페이드 아웃 (ms)",
     "VISAGE.Editor.Timeline.Open": "타임라인",
-    "VISAGE.Editor.Timeline.Title": "Visage 효과 타임라인"
+    "VISAGE.Editor.Timeline.Title": "Visage 효과 타임라인",
+    "VISAGE.Editor.Effects.AddMacro": "매크로 추가",
+    "VISAGE.Editor.Groups.Macro": "매크로",
+    "VISAGE.Editor.Effects.MacroUUID": "매크로 UUID",
+    "VISAGE.Editor.Macros.Empty": "추가된 매크로가 없습니다.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | 매크로를 찾을 수 없음: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "UUID 없음",
+    "VISAGE.Actions.CopyMacro": "매크로 API 복사",
+    "VISAGE.Notifications.MacroCopied": "Visage | '{name}'의 매크로 API가 클립보드에 복사되었습니다。"
 }

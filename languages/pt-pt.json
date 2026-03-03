@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Alternar",
     "VISAGE.Editor.Effects.AddVisual": "Adic. Visual",
     "VISAGE.Editor.Effects.AddAudio": "Adic. Áudio",
-    "VISAGE.Editor.Effects.Empty": "Nenhum efeito adicionado.",
+    "VISAGE.Editor.Effects.Empty": "Nenhum efeito visual ou de áudio adicionado.",
     "VISAGE.Editor.Effects.SettingsTitle": "Definições do Efeito",
     "VISAGE.Editor.Effects.NamePlaceholder": "Nome do Efeito",
     "VISAGE.Editor.Effects.PathPlaceholder": "ex. jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "Fade In (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Fade Out (ms)",
     "VISAGE.Editor.Timeline.Open": "Linha do Tempo",
-    "VISAGE.Editor.Timeline.Title": "Linha do Tempo de Efeitos do Visage"
+    "VISAGE.Editor.Timeline.Title": "Linha do Tempo de Efeitos do Visage",
+    "VISAGE.Editor.Effects.AddMacro": "Adicionar Macro",
+    "VISAGE.Editor.Groups.Macro": "Macros",
+    "VISAGE.Editor.Effects.MacroUUID": "UUID da Macro",
+    "VISAGE.Editor.Macros.Empty": "Nenhuma macro adicionada.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Macro não encontrada: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Sem UUID",
+    "VISAGE.Actions.CopyMacro": "Copiar API da Macro",
+    "VISAGE.Notifications.MacroCopied": "Visage | API da Macro para '{name}' copiada para a área de transferência."
 }

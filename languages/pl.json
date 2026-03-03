@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Przełącz",
     "VISAGE.Editor.Effects.AddVisual": "Dodaj Wizualny",
     "VISAGE.Editor.Effects.AddAudio": "Dodaj Dźwięk",
-    "VISAGE.Editor.Effects.Empty": "Brak dodanych efektów.",
+    "VISAGE.Editor.Effects.Empty": "Nie dodano żadnych efektów wizualnych ani dźwiękowych.",
     "VISAGE.Editor.Effects.SettingsTitle": "Ustawienia Efektu",
     "VISAGE.Editor.Effects.NamePlaceholder": "Nazwa Efektu",
     "VISAGE.Editor.Effects.PathPlaceholder": "np. jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "Pojawianie się (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Zanikanie (ms)",
     "VISAGE.Editor.Timeline.Open": "Oś Czasu",
-    "VISAGE.Editor.Timeline.Title": "Oś Czasu Efektów Visage"
+    "VISAGE.Editor.Timeline.Title": "Oś Czasu Efektów Visage",
+    "VISAGE.Editor.Effects.AddMacro": "Dodaj Makro",
+    "VISAGE.Editor.Groups.Macro": "Makra",
+    "VISAGE.Editor.Effects.MacroUUID": "UUID Makra",
+    "VISAGE.Editor.Macros.Empty": "Nie dodano żadnych makr.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Nie znaleziono makra: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Brak UUID",
+    "VISAGE.Actions.CopyMacro": "Kopiuj API Makra",
+    "VISAGE.Notifications.MacroCopied": "Visage | API Makra dla '{name}' skopiowane do schowka."
 }

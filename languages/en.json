@@ -231,7 +231,7 @@
     "VISAGE.Actions.Toggle": "Toggle",
     "VISAGE.Editor.Effects.AddVisual": "Add Visual",
     "VISAGE.Editor.Effects.AddAudio": "Add Audio",
-    "VISAGE.Editor.Effects.Empty": "No effects added.",
+    "VISAGE.Editor.Effects.Empty": "No visual or audio effects added.",
     "VISAGE.Editor.Effects.SettingsTitle": "Effect Settings",
     "VISAGE.Editor.Effects.NamePlaceholder": "Effect Name",
     "VISAGE.Editor.Effects.PathPlaceholder": "e.g. jb2a.fire_bolt.red",
@@ -477,5 +477,7 @@
     "VISAGE.Editor.Effects.MacroUUID": "Macro UUID",
     "VISAGE.Editor.Macros.Empty": "No macros added.",
     "VISAGE.Notifications.MacroNotFound": "Visage | Macro not found: {uuid}",
-    "VISAGE.Editor.Effects.NoUUID": "No UUID"
+    "VISAGE.Editor.Effects.NoUUID": "No UUID",
+    "VISAGE.Actions.CopyMacro": "Copy Macro API",
+    "VISAGE.Notifications.MacroCopied": "Visage | Macro API for '{name}' copied to clipboard."
 }

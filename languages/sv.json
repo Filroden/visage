@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Växla",
     "VISAGE.Editor.Effects.AddVisual": "Lägg till Visuell",
     "VISAGE.Editor.Effects.AddAudio": "Lägg till Ljud",
-    "VISAGE.Editor.Effects.Empty": "Inga effekter tillagda.",
+    "VISAGE.Editor.Effects.Empty": "Inga visuella eller ljudeffekter tillagda.",
     "VISAGE.Editor.Effects.SettingsTitle": "Effektinställningar",
     "VISAGE.Editor.Effects.NamePlaceholder": "Effektnamn",
     "VISAGE.Editor.Effects.PathPlaceholder": "t.ex. jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "Tona In (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Tona Ut (ms)",
     "VISAGE.Editor.Timeline.Open": "Tidslinje",
-    "VISAGE.Editor.Timeline.Title": "Tidslinje för Visage-effekter"
+    "VISAGE.Editor.Timeline.Title": "Tidslinje för Visage-effekter",
+    "VISAGE.Editor.Effects.AddMacro": "Lägg till Makro",
+    "VISAGE.Editor.Groups.Macro": "Makron",
+    "VISAGE.Editor.Effects.MacroUUID": "Makro-UUID",
+    "VISAGE.Editor.Macros.Empty": "Inga makron tillagda.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Makro hittades inte: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Inget UUID",
+    "VISAGE.Actions.CopyMacro": "Kopiera Makro-API",
+    "VISAGE.Notifications.MacroCopied": "Visage | Makro-API för '{name}' kopierades till urklipp."
 }

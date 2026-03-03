@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Переключить",
     "VISAGE.Editor.Effects.AddVisual": "Доб. Визуальный",
     "VISAGE.Editor.Effects.AddAudio": "Доб. Аудио",
-    "VISAGE.Editor.Effects.Empty": "Эффекты не добавлены.",
+    "VISAGE.Editor.Effects.Empty": "Визуальные или звуковые эффекты не добавлены.",
     "VISAGE.Editor.Effects.SettingsTitle": "Настройки Эффекта",
     "VISAGE.Editor.Effects.NamePlaceholder": "Имя Эффекта",
     "VISAGE.Editor.Effects.PathPlaceholder": "напр. jb2a.fire_bolt.red",
@@ -411,5 +411,13 @@
     "VISAGE.Editor.Effects.FadeIn": "Плавное Появление (мс)",
     "VISAGE.Editor.Effects.FadeOut": "Плавное Исчезновение (мс)",
     "VISAGE.Editor.Timeline.Open": "Таймлайн",
-    "VISAGE.Editor.Timeline.Title": "Таймлайн Эффектов Visage"
+    "VISAGE.Editor.Timeline.Title": "Таймлайн Эффектов Visage",
+    "VISAGE.Editor.Effects.AddMacro": "Добавить Макрос",
+    "VISAGE.Editor.Groups.Macro": "Макросы",
+    "VISAGE.Editor.Effects.MacroUUID": "UUID Макроса",
+    "VISAGE.Editor.Macros.Empty": "Макросы не добавлены.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Макрос не найден: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Нет UUID",
+    "VISAGE.Actions.CopyMacro": "Скопировать API Макроса",
+    "VISAGE.Notifications.MacroCopied": "Visage | API Макроса для '{name}' скопировано в буфер обмена."
 }
