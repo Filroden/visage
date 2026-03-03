@@ -245,9 +245,13 @@ export class Visage {
 
         // Delay the actual token image/data swap if we have negative delays (pre-effects)
         if (offsetMS > 0) {
-            setTimeout(() => runDataUpdate(), offsetMS);
+            setTimeout(async () => {
+                await runDataUpdate();
+                Hooks.callAll("visageApplied", token, data);
+            }, offsetMS);
         } else {
             await runDataUpdate();
+            Hooks.callAll("visageApplied", token, data);
         }
 
         return true;
@@ -316,6 +320,8 @@ export class Visage {
             }
         }
 
+        Hooks.callAll("visageRemoved", token, maskId);
+
         return true;
     }
 
@@ -350,6 +356,8 @@ export class Visage {
         ) {
             await token.actor.update({ img: originalPortrait });
         }
+
+        Hooks.callAll("visageReverted", token);
     }
 
     /**
