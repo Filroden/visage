@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Nie znaleziono makra: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "Brak UUID",
     "VISAGE.Actions.CopyMacro": "Kopiuj API Makra",
-    "VISAGE.Notifications.MacroCopied": "Visage | API Makra dla '{name}' skopiowane do schowka."
+    "VISAGE.Notifications.MacroCopied": "Visage | API Makra dla '{name}' skopiowane do schowka.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Przeciągnij i upuść Makro Foundry tutaj"
 }

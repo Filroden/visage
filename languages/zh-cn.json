@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | 未找到宏：{uuid}",
     "VISAGE.Editor.Effects.NoUUID": "无 UUID",
     "VISAGE.Actions.CopyMacro": "复制宏 API",
-    "VISAGE.Notifications.MacroCopied": "Visage | 已将 '{name}' 的宏 API 复制到剪贴板。"
+    "VISAGE.Notifications.MacroCopied": "Visage | 已将 '{name}' 的宏 API 复制到剪贴板。",
+    "VISAGE.Editor.Effects.DragMacroHere": "将 Foundry 宏拖放到此处"
 }

@@ -479,5 +479,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Macro not found: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "No UUID",
     "VISAGE.Actions.CopyMacro": "Copy Macro API",
-    "VISAGE.Notifications.MacroCopied": "Visage | Macro API for '{name}' copied to clipboard."
+    "VISAGE.Notifications.MacroCopied": "Visage | Macro API for '{name}' copied to clipboard.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Drag & Drop a Foundry Macro Here"
 }

@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "\u200F\u2068Visage\u2069 | מאקרו לא נמצא: \u2068{uuid}\u2069",
     "VISAGE.Editor.Effects.NoUUID": "\u200Fללא \u2068UUID\u2069",
     "VISAGE.Actions.CopyMacro": "\u200Fהעתק \u2068API\u2069 של מאקרו",
-    "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | \u2068API\u2069 של מאקרו עבור '\u2068{name}\u2069' הועתק ללוח."
+    "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | \u2068API\u2069 של מאקרו עבור '\u2068{name}\u2069' הועתק ללוח.",
+    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fגרור ושחרר מאקרו של \u2068Foundry\u2069 לכאן"
 }

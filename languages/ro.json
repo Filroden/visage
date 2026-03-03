@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Macro negăsit: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "Fără UUID",
     "VISAGE.Actions.CopyMacro": "Copiază API Macro",
-    "VISAGE.Notifications.MacroCopied": "Visage | API Macro pentru '{name}' copiat în clipboard."
+    "VISAGE.Notifications.MacroCopied": "Visage | API Macro pentru '{name}' copiat în clipboard.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Trage și plasează un Macro Foundry aici"
 }

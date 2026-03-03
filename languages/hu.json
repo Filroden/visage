@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Makró nem található: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "Nincs UUID",
     "VISAGE.Actions.CopyMacro": "Makró API Másolása",
-    "VISAGE.Notifications.MacroCopied": "Visage | Makró API a(z) '{name}' elemhez a vágólapra másolva."
+    "VISAGE.Notifications.MacroCopied": "Visage | Makró API a(z) '{name}' elemhez a vágólapra másolva.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Húzz és ejts ide egy Foundry Makrót"
 }

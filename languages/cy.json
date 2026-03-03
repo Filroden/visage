@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Heb ddod o hyd i'r macro: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "Dim UUID",
     "VISAGE.Actions.CopyMacro": "Copïo API Macro",
-    "VISAGE.Notifications.MacroCopied": "Visage | API Macro ar gyfer '{name}' wedi'i gopïo i'r clipfwrdd."
+    "VISAGE.Notifications.MacroCopied": "Visage | API Macro ar gyfer '{name}' wedi'i gopïo i'r clipfwrdd.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Llusgo a gollwng Macro Foundry yma"
 }

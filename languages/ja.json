@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | マクロが見つかりません: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "UUID なし",
     "VISAGE.Actions.CopyMacro": "マクロ API をコピー",
-    "VISAGE.Notifications.MacroCopied": "Visage | '{name}' のマクロ API をクリップボードにコピーしました。"
+    "VISAGE.Notifications.MacroCopied": "Visage | '{name}' のマクロ API をクリップボードにコピーしました。",
+    "VISAGE.Editor.Effects.DragMacroHere": "ここに Foundry マクロをドラッグ＆ドロップ"
 }

@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Makro hittades inte: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "Inget UUID",
     "VISAGE.Actions.CopyMacro": "Kopiera Makro-API",
-    "VISAGE.Notifications.MacroCopied": "Visage | Makro-API för '{name}' kopierades till urklipp."
+    "VISAGE.Notifications.MacroCopied": "Visage | Makro-API för '{name}' kopierades till urklipp.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Dra och släpp ett Foundry-makro här"
 }

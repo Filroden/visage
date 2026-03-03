@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | 找不到巨集：{uuid}",
     "VISAGE.Editor.Effects.NoUUID": "無 UUID",
     "VISAGE.Actions.CopyMacro": "複製巨集 API",
-    "VISAGE.Notifications.MacroCopied": "Visage | 已將 '{name}' 的巨集 API 複製到剪貼簿。"
+    "VISAGE.Notifications.MacroCopied": "Visage | 已將 '{name}' 的巨集 API 複製到剪貼簿。",
+    "VISAGE.Editor.Effects.DragMacroHere": "將 Foundry 巨集拖放到此處"
 }

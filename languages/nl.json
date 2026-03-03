@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Macro niet gevonden: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "Geen UUID",
     "VISAGE.Actions.CopyMacro": "Kopieer Macro API",
-    "VISAGE.Notifications.MacroCopied": "Visage | Macro API voor '{name}' gekopieerd naar klembord."
+    "VISAGE.Notifications.MacroCopied": "Visage | Macro API voor '{name}' gekopieerd naar klembord.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Sleep en zet hier een Foundry Macro neer"
 }

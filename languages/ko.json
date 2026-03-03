@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | 매크로를 찾을 수 없음: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "UUID 없음",
     "VISAGE.Actions.CopyMacro": "매크로 API 복사",
-    "VISAGE.Notifications.MacroCopied": "Visage | '{name}'의 매크로 API가 클립보드에 복사되었습니다。"
+    "VISAGE.Notifications.MacroCopied": "Visage | '{name}'의 매크로 API가 클립보드에 복사되었습니다。",
+    "VISAGE.Editor.Effects.DragMacroHere": "여기에 Foundry 매크로를 드래그 앤 드롭하세요"
 }

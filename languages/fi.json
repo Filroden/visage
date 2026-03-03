@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Makroa ei löytynyt: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "Ei UUID:tä",
     "VISAGE.Actions.CopyMacro": "Kopioi Makron API",
-    "VISAGE.Notifications.MacroCopied": "Visage | Makron API kohteelle '{name}' kopioitiin leikepöydälle."
+    "VISAGE.Notifications.MacroCopied": "Visage | Makron API kohteelle '{name}' kopioitiin leikepöydälle.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Vedä ja pudota Foundry-makro tähän"
 }

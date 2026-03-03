@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Macro no trobada: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "Sense UUID",
     "VISAGE.Actions.CopyMacro": "Copiar API de Macro",
-    "VISAGE.Notifications.MacroCopied": "Visage | API de la Macro per a '{name}' copiada al porta-retalls."
+    "VISAGE.Notifications.MacroCopied": "Visage | API de la Macro per a '{name}' copiada al porta-retalls.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Arrossega i deixa anar una Macro de Foundry aquí"
 }

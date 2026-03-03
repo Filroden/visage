@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "\u200F\u2068Visage\u2069 | لم يتم العثور على الماكرو: \u2068{uuid}\u2069",
     "VISAGE.Editor.Effects.NoUUID": "\u200Fبدون \u2068UUID\u2069",
     "VISAGE.Actions.CopyMacro": "\u200Fنسخ \u2068API\u2069 الماكرو",
-    "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | تم نسخ \u2068API\u2069 الماكرو لـ '\u2068{name}\u2069' إلى الحافظة."
+    "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | تم نسخ \u2068API\u2069 الماكرو لـ '\u2068{name}\u2069' إلى الحافظة.",
+    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fاسحب وأفلت ماكرو \u2068Foundry\u2069 هنا"
 }

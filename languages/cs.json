@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Makro nenalezeno: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "Žádné UUID",
     "VISAGE.Actions.CopyMacro": "Kopírovat API Makra",
-    "VISAGE.Notifications.MacroCopied": "Visage | API Makra pro '{name}' bylo zkopírováno do schránky."
+    "VISAGE.Notifications.MacroCopied": "Visage | API Makra pro '{name}' bylo zkopírováno do schránky.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Přetáhněte sem Makro Foundry"
 }

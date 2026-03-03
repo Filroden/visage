@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Makro bulunamadı: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "UUID Yok",
     "VISAGE.Actions.CopyMacro": "Makro API'sini Kopyala",
-    "VISAGE.Notifications.MacroCopied": "Visage | '{name}' için Makro API'si panoya kopyalandı."
+    "VISAGE.Notifications.MacroCopied": "Visage | '{name}' için Makro API'si panoya kopyalandı.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Bir Foundry Makrosunu buraya Sürükleyip Bırakın"
 }

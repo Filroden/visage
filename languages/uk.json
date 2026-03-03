@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "Visage | Макрос не знайдено: {uuid}",
     "VISAGE.Editor.Effects.NoUUID": "Немає UUID",
     "VISAGE.Actions.CopyMacro": "Скопіювати API Макроса",
-    "VISAGE.Notifications.MacroCopied": "Visage | API Макроса для '{name}' скопійовано в буфер обміну."
+    "VISAGE.Notifications.MacroCopied": "Visage | API Макроса для '{name}' скопійовано в буфер обміну.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Перетягніть сюди Макрос Foundry"
 }

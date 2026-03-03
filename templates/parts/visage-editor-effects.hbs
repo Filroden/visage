@@ -143,15 +143,15 @@
                 <h3 class="group-header sticky">
                     <i class="visage-icon macro"></i> {{localize "VISAGE.Editor.Groups.Macro"}}
                 </h3>
-                <div class="effect-drop-zone">
+                <div class="group-drop-zone">
                     {{#each inspector.effectsMacro}}
                         {{> "modules/visage/templates/parts/visage-effectCard.hbs"}}
-                    {{else}}
-                        <div class="empty-placeholder empty-state-dynamic">
-                            <i class="visage-icon macro"></i>
-                            <p>{{localize "VISAGE.Editor.Macros.Empty"}}</p>
-                        </div>
                     {{/each}}
+                    
+                    {{!-- Permanent Visual Drop Zone --}}
+                    <div class="macro-drop-target">
+                        <span>{{localize "VISAGE.Editor.Effects.DragMacroHere"}}</span>
+                    </div>
                 </div>
             </div>
         </div>

@@ -419,5 +419,6 @@
     "VISAGE.Notifications.MacroNotFound": "\u200F\u2068Visage\u2069 | ماکرو پیدا نشد: \u2068{uuid}\u2069",
     "VISAGE.Editor.Effects.NoUUID": "\u200Fبدون \u2068UUID\u2069",
     "VISAGE.Actions.CopyMacro": "\u200Fکپی \u2068API\u2069 ماکرو",
-    "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | \u2068API\u2069 ماکرو برای '\u2068{name}\u2069' در کلیپ‌بورد کپی شد."
+    "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | \u2068API\u2069 ماکرو برای '\u2068{name}\u2069' در کلیپ‌بورد کپی شد.",
+    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fیک ماکرو \u2068Foundry\u2069 را اینجا بکشید و رها کنید"
 }

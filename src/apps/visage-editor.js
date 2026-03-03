@@ -394,28 +394,32 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // --- Global Drag & Drop for External Foundry Documents ---
         // Prevent default on dragover to allow the drop event to fire anywhere on the window
         this.element.addEventListener("dragover", (e) => e.preventDefault());
-        this.element.addEventListener("drop", async (e) => {
-            try {
-                // Safely extract drag data natively without triggering V13 deprecation warnings
-                const dragDataText = e.dataTransfer.getData("text/plain");
-                if (!dragDataText) return;
+        this.element.addEventListener(
+            "drop",
+            async (e) => {
+                try {
+                    // Safely extract drag data natively without triggering V13 deprecation warnings
+                    const dragDataText = e.dataTransfer.getData("text/plain");
+                    if (!dragDataText) return;
 
-                const data = JSON.parse(dragDataText);
+                    const data = JSON.parse(dragDataText);
 
-                // If it's a Macro, intercept it and prevent it from bubbling to the internal manager
-                if (data?.type === "Macro" && data?.uuid) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                    // If it's a Macro, intercept it and prevent it from bubbling to the internal manager
+                    if (data?.type === "Macro" && data?.uuid) {
+                        e.preventDefault();
+                        e.stopPropagation();
 
-                    if (typeof this._onDropMacro === "function") {
-                        await this._onDropMacro(data.uuid);
+                        if (typeof this._onDropMacro === "function") {
+                            await this._onDropMacro(data.uuid);
+                        }
                     }
+                } catch (err) {
+                    // Ignore errors: This just means the user dragged something internal (like a Visage card)
+                    // that doesn't have valid JSON data attached to it.
                 }
-            } catch (err) {
-                // Ignore errors: This just means the user dragged something internal (like a Visage card)
-                // that doesn't have valid JSON data attached to it.
-            }
-        });
+            },
+            { capture: true },
+        );
 
         // Text input debouncing
         let textTimer;
