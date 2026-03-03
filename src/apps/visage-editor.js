@@ -127,6 +127,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             openAttributePicker: VisageEditor.prototype._onOpenAttributePicker,
             toggleCondition: VisageEditor.prototype._onToggleCondition,
             openTimeline: VisageEditor.prototype._onOpenTimeline,
+            addMacro: VisageEditor.prototype._onAddMacro,
         },
     };
 
@@ -530,11 +531,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const formatEffect = (e) => ({
             ...e,
             icon:
-                e.type === "audio" ? "visage-icon audio" : "visage-icon visual",
+                e.type === "audio"
+                    ? "visage-icon audio"
+                    : e.type === "macro"
+                      ? "visage-icon macro"
+                      : "visage-icon visual",
             metaLabel:
                 e.type === "audio"
-                    ? `Volume: ${Math.round((e.opacity ?? 1) * 100)}%`
-                    : `${e.zOrder === "below" ? "Below" : "Above"} • ${Math.round((e.scale ?? 1) * 100)}%`,
+                    ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((e.opacity ?? 1) * 100)}%`
+                    : e.type === "macro"
+                      ? e.uuid ||
+                        game.i18n.localize("VISAGE.Editor.Effects.NoUUID")
+                      : `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1) * 100)}%`,
         });
 
         const inspectorData = {
@@ -550,6 +558,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 .map(formatEffect),
             effectsAudio: this._effects
                 .filter((e) => e.type === "audio")
+                .map(formatEffect),
+            effectsMacro: this._effects
+                .filter((e) => e.type === "macro")
                 .map(formatEffect),
             type: null,
         };
@@ -584,6 +595,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     delay: effect.delay || 0,
                     fadeIn: effect.fadeIn || 0,
                     fadeOut: effect.fadeOut || 0,
+                    uuid: effect.uuid || "",
                 });
             }
         } else if (this._activeConditionId) {
@@ -723,6 +735,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         getVal("effectFadeIn", Number) ?? activeEffect.fadeIn;
                     activeEffect.fadeOut =
                         getVal("effectFadeOut", Number) ?? activeEffect.fadeOut;
+                } else if (activeEffect.type === "macro") {
+                    activeEffect.uuid =
+                        getVal("effectUuid") ?? activeEffect.uuid;
+                    activeEffect.delay =
+                        getVal("effectDelay", Number) ?? activeEffect.delay;
                 }
             }
         }
@@ -1304,6 +1321,23 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+    _onAddMacro() {
+        const newEffect = {
+            id: foundry.utils.randomID(16),
+            type: "macro",
+            label: "New Macro",
+            uuid: "", // The Foundry UUID of the macro
+            delay: 0,
+            disabled: false,
+        };
+        this._effects.push(newEffect);
+        this._activeEffectId = newEffect.id;
+        this._activeConditionId = null;
+        this._editingLight = false;
+        this._editingRing = false;
+        this._markDirty();
+        this.render();
+    }
     _onEditEffect(event, target) {
         this._activeEffectId = target.closest(".effect-card").dataset.id;
         this._editingLight = false;
@@ -1457,8 +1491,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     if (metaEl) {
                         metaEl.textContent =
                             activeEffect.type === "audio"
-                                ? `Volume: ${Math.round((activeEffect.opacity ?? 1) * 100)}%`
-                                : `${activeEffect.zOrder === "below" ? "Below" : "Above"} • ${Math.round((activeEffect.scale ?? 1) * 100)}%`;
+                                ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((activeEffect.opacity ?? 1) * 100)}%`
+                                : activeEffect.type === "macro"
+                                  ? activeEffect.uuid ||
+                                    game.i18n.localize(
+                                        "VISAGE.Editor.Effects.NoUUID",
+                                    )
+                                  : `${activeEffect.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((activeEffect.scale ?? 1) * 100)}%`;
                     }
                 }
             }

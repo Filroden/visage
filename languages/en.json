@@ -469,5 +469,13 @@
     "VISAGE.Editor.Effects.FadeIn": "Fade In (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Fade Out (ms)",
     "VISAGE.Editor.Timeline.Open": "Timeline",
-    "VISAGE.Editor.Timeline.Title": "Visage Effect Timeline"
+    "VISAGE.Editor.Timeline.Title": "Visage Effect Timeline",
+
+    "_comment_V4_2_KEYS": "--- V4.2 KEYS ---",
+    "VISAGE.Editor.Effects.AddMacro": "Add Macro",
+    "VISAGE.Editor.Groups.Macro": "Macros",
+    "VISAGE.Editor.Effects.MacroUUID": "Macro UUID",
+    "VISAGE.Editor.Macros.Empty": "No macros added.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Macro not found: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "No UUID"
 }

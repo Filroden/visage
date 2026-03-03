@@ -68,6 +68,9 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(
         const audioEffects = activeEffects.filter(
             (e) => String(e.type).toLowerCase() === "audio",
         );
+        const macroEffects = activeEffects.filter(
+            (e) => String(e.type).toLowerCase() === "macro",
+        );
 
         // Calculate Rulers (Every 1 second)
         const ticks = [];
@@ -86,14 +89,18 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(
         // Apply Event Packing (Swimlane Math)
         const processedVisual = this._packLanes(visualEffects);
         const processedAudio = this._packLanes(audioEffects);
+        const processedMacro = this._packLanes(macroEffects);
 
         return {
             ticks,
             zeroPosition: this._timeToPercent(0),
+            hasSequencer: !!VisageUtilities.hasSequencer,
             visualEffects: processedVisual.effects,
             visualHeight: Math.max(1, processedVisual.lanes) * this.LANE_HEIGHT,
             audioEffects: processedAudio.effects,
             audioHeight: Math.max(1, processedAudio.lanes) * this.LANE_HEIGHT,
+            macroEffects: processedMacro.effects,
+            macroHeight: Math.max(1, processedMacro.lanes) * this.LANE_HEIGHT,
         };
     }
 

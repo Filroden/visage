@@ -190,6 +190,41 @@ export class Visage {
             }
         };
 
+        // Task C: Macro Execution
+        const runMacros = (offsetMS, activeFX) => {
+            const macros = activeFX.filter((e) => e.type === "macro" && e.uuid);
+
+            for (const macroEffect of macros) {
+                // Calculate true start time relative to the Zero Anchor
+                const trueDelayMS = (macroEffect.delay || 0) * 1000 + offsetMS;
+
+                setTimeout(async () => {
+                    try {
+                        const macroObj = await fromUuid(macroEffect.uuid);
+                        if (macroObj) {
+                            macroObj.execute({
+                                actor: token.actor,
+                                token: token.document,
+                                visage: data,
+                                action: "apply",
+                            });
+                        } else {
+                            ui.notifications.warn(
+                                game.i18n.format(
+                                    "VISAGE.Notifications.MacroNotFound",
+                                    {
+                                        uuid: macroEffect.uuid,
+                                    },
+                                ),
+                            );
+                        }
+                    } catch (err) {
+                        console.error("Visage | Macro Execution Error:", err);
+                    }
+                }, trueDelayMS);
+            }
+        };
+
         // 4. Execute with Transition Timing
 
         // Calculate the Token Swap Offset (Zero Anchor) based on the most negative effect delay
@@ -204,6 +239,9 @@ export class Visage {
         // Visual and Audio effects natively handle their own start times (including positive delays)
         // inside VisageSequencer, so we always fire them immediately.
         runVisualFX();
+
+        // Macros calculate their own relative start times against the anchor
+        runMacros(offsetMS, activeEffects);
 
         // Delay the actual token image/data swap if we have negative delays (pre-effects)
         if (offsetMS > 0) {

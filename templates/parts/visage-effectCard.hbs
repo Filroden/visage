@@ -14,13 +14,15 @@
     </div>
 
     <div class="effect-controls">
-        {{!-- Loop Toggle --}}
-        <button type="button" class="effect-btn {{#if this.loop}}active{{/if}}" 
-                data-action="toggleLoop" 
-                data-effect-id="{{this.id}}"
-                data-tooltip="VISAGE.Editor.Effects.Loop">
-            <i class="visage-icon repeat"></i>
-        </button>
+        {{!-- Loop Toggle (Hidden for Macros) --}}
+        {{#unless (eq this.type 'macro')}}
+            <button type="button" class="effect-btn {{#if this.loop}}active{{/if}}" 
+                    data-action="toggleLoop" 
+                    data-effect-id="{{this.id}}"
+                    data-tooltip="VISAGE.Editor.Effects.Loop">
+                <i class="visage-icon repeat"></i>
+            </button>
+        {{/unless}}
         
         {{!-- Visibility Toggle --}}
         <button type="button" class="effect-btn toggle-visibility" data-action="toggleEffect" data-effect-id="{{this.id}}">
