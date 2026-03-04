@@ -76,7 +76,11 @@
             "name": "Français (French)",
             "path": "languages/fr.json"
         },
-        { "lang": "he", "name": "עברית (Hebrew)", "path": "languages/he.json" },
+        {
+            "lang": "he",
+            "name": "עברית (Hebrew)",
+            "path": "languages/he.json"
+        },
         {
             "lang": "hu",
             "name": "Magyar (Hungarian)",
