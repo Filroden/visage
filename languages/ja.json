@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "切替",
     "VISAGE.Editor.Effects.AddVisual": "視覚効果を追加",
     "VISAGE.Editor.Effects.AddAudio": "音声効果を追加",
-    "VISAGE.Editor.Effects.Empty": "エフェクトがありません。",
+    "VISAGE.Editor.Effects.Empty": "視覚エフェクトやオーディオエフェクトは追加されていません。",
     "VISAGE.Editor.Effects.SettingsTitle": "エフェクト設定",
     "VISAGE.Editor.Effects.NamePlaceholder": "エフェクト名",
     "VISAGE.Editor.Effects.PathPlaceholder": "例: jb2a.fire_bolt.red",
@@ -411,5 +411,14 @@
     "VISAGE.Editor.Effects.FadeIn": "フェードイン (ms)",
     "VISAGE.Editor.Effects.FadeOut": "フェードアウト (ms)",
     "VISAGE.Editor.Timeline.Open": "タイムライン",
-    "VISAGE.Editor.Timeline.Title": "Visage エフェクトタイムライン"
+    "VISAGE.Editor.Timeline.Title": "Visage エフェクトタイムライン",
+    "VISAGE.Editor.Effects.AddMacro": "マクロを追加",
+    "VISAGE.Editor.Groups.Macro": "マクロ",
+    "VISAGE.Editor.Effects.MacroUUID": "マクロ UUID",
+    "VISAGE.Editor.Macros.Empty": "マクロが追加されていません。",
+    "VISAGE.Notifications.MacroNotFound": "Visage | マクロが見つかりません: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "UUID なし",
+    "VISAGE.Actions.CopyMacro": "マクロ API をコピー",
+    "VISAGE.Notifications.MacroCopied": "Visage | '{name}' のマクロ API をクリップボードにコピーしました。",
+    "VISAGE.Editor.Effects.DragMacroHere": "ここに Foundry マクロをドラッグ＆ドロップ"
 }

@@ -3,22 +3,27 @@
     {{!-- VIEW 1: THE STACK LIST --}}
     <div class="visage-view view-list">
 
-        {{#if hasSequencer}}
         <div class="effects-actions">
-            {{!-- Timeline Button --}}
+            {{!-- Timeline Button (Always available) --}}
             <button type="button" data-action="openTimeline" class="timeline-btn" {{#unless inspector.hasEffects}}disabled{{/unless}}>
                 <i class="visage-icon timeline"></i> {{localize "VISAGE.Editor.Timeline.Open"}}
             </button>
             
-            {{!-- Add Visual/Audio Buttons --}}
-            <button type="button" data-action="addVisual">
-                <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Effects.AddVisual"}}
-            </button>
-            <button type="button" data-action="addAudio">
-                <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Effects.AddAudio"}}
+            {{#if hasSequencer}}
+                {{!-- Add Visual/Audio Buttons --}}
+                <button type="button" data-action="addVisual">
+                    <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Effects.AddVisual"}}
+                </button>
+                <button type="button" data-action="addAudio">
+                    <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Effects.AddAudio"}}
+                </button>
+            {{/if}}
+
+            {{!-- Add Macro Button (Always available) --}}
+            <button type="button" data-action="addMacro">
+                <i class="visage-icon macro"></i> {{localize "VISAGE.Editor.Effects.AddMacro"}}
             </button>
         </div>
-        {{/if}}
 
         <div class="visage-effect-list visage-scrollable">
             
@@ -132,6 +137,23 @@
                     <p style="max-width: 300px; line-height: 1.5;">{{localize "VISAGE.Editor.Effects.DependencyHint"}}</p>
                 </div>
             {{/if}}
+
+            {{!-- 4. Macros --}}
+            <div class="effect-group" data-group="macro">
+                <h3 class="group-header sticky">
+                    <i class="visage-icon macro"></i> {{localize "VISAGE.Editor.Groups.Macro"}}
+                </h3>
+                <div class="group-drop-zone">
+                    {{#each inspector.effectsMacro}}
+                        {{> "modules/visage/templates/parts/visage-effectCard.hbs"}}
+                    {{/each}}
+                    
+                    {{!-- Permanent Visual Drop Zone --}}
+                    <div class="macro-drop-target">
+                        <span>{{localize "VISAGE.Editor.Effects.DragMacroHere"}}</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -387,6 +409,28 @@
                     <label>{{localize "VISAGE.Editor.Effects.Volume"}}</label>
                     <div class="visage-form-fields">
                         <range-picker name="effectVolume" value="{{inspector.opacity}}" min="0" max="1" step="0.1"></range-picker>
+                    </div>
+                </div>
+            {{/if}}
+
+            {{!-- MACRO SPECIFIC --}}
+            {{#if (eq inspector.type 'macro')}}
+                <div class="form-group">
+                    <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="text" name="effectLabel" value="{{inspector.label}}" placeholder="Macro Name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{{localize "VISAGE.Editor.Effects.MacroUUID"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="text" name="effectUuid" value="{{inspector.uuid}}" placeholder="Macro.xxxxxxxxxxxx">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{{localize "VISAGE.Editor.Effects.Delay"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="number" name="effectDelay" value="{{inspector.delay}}" step="0.1" placeholder="0">
                     </div>
                 </div>
             {{/if}}

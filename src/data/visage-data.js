@@ -786,11 +786,19 @@ export class VisageData {
                     const icon =
                         e.type === "audio"
                             ? "visage-icon audio"
-                            : "visage-icon visual";
+                            : e.type === "macro"
+                              ? "visage-icon macro"
+                              : "visage-icon visual";
+
                     const meta =
                         e.type === "audio"
                             ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((e.opacity ?? 0.8) * 100)}%`
-                            : `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1.0) * 100)}%`;
+                            : e.type === "macro"
+                              ? e.uuid ||
+                                game.i18n.localize(
+                                    "VISAGE.Editor.Effects.NoUUID",
+                                )
+                              : `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1.0) * 100)}%`;
 
                     return `
                 <div class='visage-tooltip-row'>

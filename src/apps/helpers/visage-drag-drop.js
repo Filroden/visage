@@ -57,8 +57,11 @@ export class VisageDragDropManager {
             card.addEventListener("dragover", (ev) => {
                 ev.preventDefault();
                 const sourceType = this.dragSource?.dataset.type;
-                if (sourceType === "visual" && card.dataset.type === "visual")
+
+                // Allow Visuals to sort with Visuals, and Macros to sort with Macros
+                if (sourceType === card.dataset.type) {
                     card.classList.add("drag-over");
+                }
             });
 
             card.addEventListener("dragleave", () =>
@@ -87,8 +90,12 @@ export class VisageDragDropManager {
                 ev.preventDefault();
                 const sourceType = this.dragSource?.dataset.type;
                 const targetGroup = group.dataset.group;
+
                 if (sourceType === "audio" && targetGroup !== "audio") return;
                 if (sourceType === "visual" && targetGroup === "audio") return;
+                if (sourceType === "macro" && targetGroup !== "macro") return;
+                if (sourceType !== "macro" && targetGroup === "macro") return;
+
                 group.classList.add("group-drag-over");
             });
 
@@ -140,6 +147,11 @@ export class VisageDragDropManager {
             } else if (targetGroup === "audio") {
                 const lastIdx = effects.findLastIndex(
                     (e) => e.type === "audio",
+                );
+                if (lastIdx !== -1) insertIndex = lastIdx + 1;
+            } else if (targetGroup === "macro") {
+                const lastIdx = effects.findLastIndex(
+                    (e) => e.type === "macro",
                 );
                 if (lastIdx !== -1) insertIndex = lastIdx + 1;
             }

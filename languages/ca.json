@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Alternar",
     "VISAGE.Editor.Effects.AddVisual": "Afegir Visual",
     "VISAGE.Editor.Effects.AddAudio": "Afegir Àudio",
-    "VISAGE.Editor.Effects.Empty": "Cap efecte afegit.",
+    "VISAGE.Editor.Effects.Empty": "No s'han afegit efectes visuals o d'àudio.",
     "VISAGE.Editor.Effects.SettingsTitle": "Configuració d'Efecte",
     "VISAGE.Editor.Effects.NamePlaceholder": "Nom de l'Efecte",
     "VISAGE.Editor.Effects.PathPlaceholder": "ex. jb2a.fire_bolt.red",
@@ -411,5 +411,14 @@
     "VISAGE.Editor.Effects.FadeIn": "Fos d'Entrada (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Fos de Sortida (ms)",
     "VISAGE.Editor.Timeline.Open": "Línia de Temps",
-    "VISAGE.Editor.Timeline.Title": "Línia de Temps d'Efectes de Visage"
+    "VISAGE.Editor.Timeline.Title": "Línia de Temps d'Efectes de Visage",
+    "VISAGE.Editor.Effects.AddMacro": "Afegeix Macro",
+    "VISAGE.Editor.Groups.Macro": "Macros",
+    "VISAGE.Editor.Effects.MacroUUID": "UUID de Macro",
+    "VISAGE.Editor.Macros.Empty": "Cap macro afegida.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Macro no trobada: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Sense UUID",
+    "VISAGE.Actions.CopyMacro": "Copiar API de Macro",
+    "VISAGE.Notifications.MacroCopied": "Visage | API de la Macro per a '{name}' copiada al porta-retalls.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Arrossega i deixa anar una Macro de Foundry aquí"
 }

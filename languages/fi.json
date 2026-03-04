@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Vaihda",
     "VISAGE.Editor.Effects.AddVisual": "Lisää Visuaalinen",
     "VISAGE.Editor.Effects.AddAudio": "Lisää Ääni",
-    "VISAGE.Editor.Effects.Empty": "Ei lisättyjä tehosteita.",
+    "VISAGE.Editor.Effects.Empty": "Ei lisättyjä visuaalisia tai ääniefektejä.",
     "VISAGE.Editor.Effects.SettingsTitle": "Tehosteen Asetukset",
     "VISAGE.Editor.Effects.NamePlaceholder": "Tehosteen Nimi",
     "VISAGE.Editor.Effects.PathPlaceholder": "esim. jb2a.fire_bolt.red",
@@ -411,5 +411,14 @@
     "VISAGE.Editor.Effects.FadeIn": "Häivytys Sisään (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Häivytys Ulos (ms)",
     "VISAGE.Editor.Timeline.Open": "Aikajana",
-    "VISAGE.Editor.Timeline.Title": "Visage-efektien Aikajana"
+    "VISAGE.Editor.Timeline.Title": "Visage-efektien Aikajana",
+    "VISAGE.Editor.Effects.AddMacro": "Lisää Makro",
+    "VISAGE.Editor.Groups.Macro": "Makrot",
+    "VISAGE.Editor.Effects.MacroUUID": "Makron UUID",
+    "VISAGE.Editor.Macros.Empty": "Ei lisättyjä makroja.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Makroa ei löytynyt: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Ei UUID:tä",
+    "VISAGE.Actions.CopyMacro": "Kopioi Makron API",
+    "VISAGE.Notifications.MacroCopied": "Visage | Makron API kohteelle '{name}' kopioitiin leikepöydälle.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Vedä ja pudota Foundry-makro tähän"
 }

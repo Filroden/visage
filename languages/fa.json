@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "\u200Fتغییر وضعیت",
     "VISAGE.Editor.Effects.AddVisual": "\u200Fافزودن بصری",
     "VISAGE.Editor.Effects.AddAudio": "\u200Fافزودن صوتی",
-    "VISAGE.Editor.Effects.Empty": "\u200Fهیچ افکتی اضافه نشده است.",
+    "VISAGE.Editor.Effects.Empty": "\u200Fهیچ جلوه بصری یا صوتی اضافه نشده است.",
     "VISAGE.Editor.Effects.SettingsTitle": "\u200Fتنظیمات افکت",
     "VISAGE.Editor.Effects.NamePlaceholder": "\u200Fنام افکت",
     "VISAGE.Editor.Effects.PathPlaceholder": "\u200Fمثلاً: \u2068jb2a.fire_bolt.red\u2069",
@@ -411,5 +411,14 @@
     "VISAGE.Editor.Effects.FadeIn": "\u200Fمحو شدن به داخل (\u2068ms\u2069)",
     "VISAGE.Editor.Effects.FadeOut": "\u200Fمحو شدن به بیرون (\u2068ms\u2069)",
     "VISAGE.Editor.Timeline.Open": "\u200Fخط زمانی",
-    "VISAGE.Editor.Timeline.Title": "\u200Fخط زمانی جلوه‌های \u2068Visage\u2069"
+    "VISAGE.Editor.Timeline.Title": "\u200Fخط زمانی جلوه‌های \u2068Visage\u2069",
+    "VISAGE.Editor.Effects.AddMacro": "\u200Fافزودن ماکرو",
+    "VISAGE.Editor.Groups.Macro": "\u200Fماکروها",
+    "VISAGE.Editor.Effects.MacroUUID": "\u200F\u2068UUID\u2069 ماکرو",
+    "VISAGE.Editor.Macros.Empty": "\u200Fهیچ ماکرویی اضافه نشده است.",
+    "VISAGE.Notifications.MacroNotFound": "\u200F\u2068Visage\u2069 | ماکرو پیدا نشد: \u2068{uuid}\u2069",
+    "VISAGE.Editor.Effects.NoUUID": "\u200Fبدون \u2068UUID\u2069",
+    "VISAGE.Actions.CopyMacro": "\u200Fکپی \u2068API\u2069 ماکرو",
+    "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | \u2068API\u2069 ماکرو برای '\u2068{name}\u2069' در کلیپ‌بورد کپی شد.",
+    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fیک ماکرو \u2068Foundry\u2069 را اینجا بکشید و رها کنید"
 }

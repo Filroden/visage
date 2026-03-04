@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "\u200Fהחלף מצב",
     "VISAGE.Editor.Effects.AddVisual": "\u200Fהוסף ויזואלי",
     "VISAGE.Editor.Effects.AddAudio": "\u200Fהוסף שמע",
-    "VISAGE.Editor.Effects.Empty": "\u200Fלא נוספו אפקטים.",
+    "VISAGE.Editor.Effects.Empty": "\u200Fלא נוספו אפקטים חזותיים או קוליים.",
     "VISAGE.Editor.Effects.SettingsTitle": "\u200Fהגדרות אפקט",
     "VISAGE.Editor.Effects.NamePlaceholder": "\u200Fשם האפקט",
     "VISAGE.Editor.Effects.PathPlaceholder": "\u200Fלדוגמה: \u2068jb2a.fire_bolt.red\u2069",
@@ -411,5 +411,14 @@
     "VISAGE.Editor.Effects.FadeIn": "\u200Fעמעום כניסה (\u2068ms\u2069)",
     "VISAGE.Editor.Effects.FadeOut": "\u200Fעמעום יציאה (\u2068ms\u2069)",
     "VISAGE.Editor.Timeline.Open": "\u200Fציר זמן",
-    "VISAGE.Editor.Timeline.Title": "\u200Fציר זמן של אפקטי \u2068Visage\u2069"
+    "VISAGE.Editor.Timeline.Title": "\u200Fציר זמן של אפקטי \u2068Visage\u2069",
+    "VISAGE.Editor.Effects.AddMacro": "\u200Fהוסף מאקרו",
+    "VISAGE.Editor.Groups.Macro": "\u200Fמאקרו",
+    "VISAGE.Editor.Effects.MacroUUID": "\u200F\u2068UUID\u2069 של המאקרו",
+    "VISAGE.Editor.Macros.Empty": "\u200Fלא נוספו מקרואים.",
+    "VISAGE.Notifications.MacroNotFound": "\u200F\u2068Visage\u2069 | מאקרו לא נמצא: \u2068{uuid}\u2069",
+    "VISAGE.Editor.Effects.NoUUID": "\u200Fללא \u2068UUID\u2069",
+    "VISAGE.Actions.CopyMacro": "\u200Fהעתק \u2068API\u2069 של מאקרו",
+    "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | \u2068API\u2069 של מאקרו עבור '\u2068{name}\u2069' הועתק ללוח.",
+    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fגרור ושחרר מאקרו של \u2068Foundry\u2069 לכאן"
 }

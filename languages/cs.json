@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Přepnout",
     "VISAGE.Editor.Effects.AddVisual": "Přidat Vizuál",
     "VISAGE.Editor.Effects.AddAudio": "Přidat Zvuk",
-    "VISAGE.Editor.Effects.Empty": "Žádné efekty nebyly přidány.",
+    "VISAGE.Editor.Effects.Empty": "Nebyly přidány žádné vizuální ani zvukové efekty.",
     "VISAGE.Editor.Effects.SettingsTitle": "Nastavení Efektu",
     "VISAGE.Editor.Effects.NamePlaceholder": "Název Efektu",
     "VISAGE.Editor.Effects.PathPlaceholder": "např. jb2a.fire_bolt.red",
@@ -411,5 +411,14 @@
     "VISAGE.Editor.Effects.FadeIn": "Postupné Objevení (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Postupné Zmizení (ms)",
     "VISAGE.Editor.Timeline.Open": "Časová Osa",
-    "VISAGE.Editor.Timeline.Title": "Časová Osa Efektů Visage"
+    "VISAGE.Editor.Timeline.Title": "Časová Osa Efektů Visage",
+    "VISAGE.Editor.Effects.AddMacro": "Přidat Makro",
+    "VISAGE.Editor.Groups.Macro": "Makra",
+    "VISAGE.Editor.Effects.MacroUUID": "UUID Makra",
+    "VISAGE.Editor.Macros.Empty": "Nebyla přidána žádná makra.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Makro nenalezeno: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Žádné UUID",
+    "VISAGE.Actions.CopyMacro": "Kopírovat API Makra",
+    "VISAGE.Notifications.MacroCopied": "Visage | API Makra pro '{name}' bylo zkopírováno do schránky.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Přetáhněte sem Makro Foundry"
 }

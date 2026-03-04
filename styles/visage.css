@@ -1164,6 +1164,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.list      { -webkit-mask-image: url('../icons/list.svg'); mask-image: url('../icons/list.svg'); }
 .visage-icon.attribute-picker      { -webkit-mask-image: url('../icons/list_alt_check.svg'); mask-image: url('../icons/list_alt_check.svg'); }
 .visage-icon.timeline      { -webkit-mask-image: url('../icons/view_timeline.svg'); mask-image: url('../icons/view_timeline.svg'); }
+.visage-icon.macro      { -webkit-mask-image: url('../icons/code.svg'); mask-image: url('../icons/code.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -2245,6 +2246,43 @@ li.context-item .visage-icon-domino {
     display: flex;
     flex-direction: column;
     gap: var(--filroden-space-xs);
+}
+
+/* --- Permanent Macro Drop Zone --- */
+.visage .macro-drop-target {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--filroden-space-xs);
+    padding: var(--filroden-space-m);
+    margin-top: var(--filroden-space-xs);
+    border: 2px dashed var(--visage-color-border);
+    border-radius: var(--filroden-radius-medium);
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--visage-color-text-muted);
+    text-align: center;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+.visage .macro-drop-target i {
+    font-size: 2rem;
+    opacity: 0.5;
+    margin-bottom: var(--filroden-space-xxs);
+}
+
+.visage .macro-drop-target:hover {
+    opacity: 1;
+    color: var(--visage-color-text-main-solid);
+    border-color: var(--visage-color-accent);
+    background: rgba(var(--visage-color-accent-rgb), 0.1);
+}
+
+.visage .macro-drop-target:hover i {
+    opacity: 1;
+    color: var(--visage-color-accent);
 }
 
 /* --- View 2: Inspector --- */

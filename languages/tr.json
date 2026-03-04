@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Değiştir",
     "VISAGE.Editor.Effects.AddVisual": "Görsel Ekle",
     "VISAGE.Editor.Effects.AddAudio": "Ses Ekle",
-    "VISAGE.Editor.Effects.Empty": "Efekt eklenmedi.",
+    "VISAGE.Editor.Effects.Empty": "Görsel veya işitsel efekt eklenmedi.",
     "VISAGE.Editor.Effects.SettingsTitle": "Efekt Ayarları",
     "VISAGE.Editor.Effects.NamePlaceholder": "Efekt İsmi",
     "VISAGE.Editor.Effects.PathPlaceholder": "örn. jb2a.fire_bolt.red",
@@ -411,5 +411,14 @@
     "VISAGE.Editor.Effects.FadeIn": "Karararak Giriş (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Karararak Çıkış (ms)",
     "VISAGE.Editor.Timeline.Open": "Zaman Çizelgesi",
-    "VISAGE.Editor.Timeline.Title": "Visage Efekt Zaman Çizelgesi"
+    "VISAGE.Editor.Timeline.Title": "Visage Efekt Zaman Çizelgesi",
+    "VISAGE.Editor.Effects.AddMacro": "Makro Ekle",
+    "VISAGE.Editor.Groups.Macro": "Makrolar",
+    "VISAGE.Editor.Effects.MacroUUID": "Makro UUID",
+    "VISAGE.Editor.Macros.Empty": "Makro eklenmedi.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Makro bulunamadı: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "UUID Yok",
+    "VISAGE.Actions.CopyMacro": "Makro API'sini Kopyala",
+    "VISAGE.Notifications.MacroCopied": "Visage | '{name}' için Makro API'si panoya kopyalandı.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Bir Foundry Makrosunu buraya Sürükleyip Bırakın"
 }

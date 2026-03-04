@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Umschalten",
     "VISAGE.Editor.Effects.AddVisual": "Visuell dazu",
     "VISAGE.Editor.Effects.AddAudio": "Audio dazu",
-    "VISAGE.Editor.Effects.Empty": "Keine Effekte hinzugefügt.",
+    "VISAGE.Editor.Effects.Empty": "Keine visuellen oder Audio-Effekte hinzugefügt.",
     "VISAGE.Editor.Effects.SettingsTitle": "Effekt-Einstellungen",
     "VISAGE.Editor.Effects.NamePlaceholder": "Effekt-Name",
     "VISAGE.Editor.Effects.PathPlaceholder": "z.B. jb2a.fire_bolt.red",
@@ -411,5 +411,14 @@
     "VISAGE.Editor.Effects.FadeIn": "Einblenden (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Ausblenden (ms)",
     "VISAGE.Editor.Timeline.Open": "Zeitleiste",
-    "VISAGE.Editor.Timeline.Title": "Visage-Effekt-Zeitleiste"
+    "VISAGE.Editor.Timeline.Title": "Visage-Effekt-Zeitleiste",
+    "VISAGE.Editor.Effects.AddMacro": "Makro hinzufügen",
+    "VISAGE.Editor.Groups.Macro": "Makros",
+    "VISAGE.Editor.Effects.MacroUUID": "Makro-UUID",
+    "VISAGE.Editor.Macros.Empty": "Keine Makros hinzugefügt.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Makro nicht gefunden: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Keine UUID",
+    "VISAGE.Actions.CopyMacro": "Makro-API kopieren",
+    "VISAGE.Notifications.MacroCopied": "Visage | Makro-API für '{name}' in die Zwischenablage kopiert.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Ziehe ein Foundry-Makro per Drag & Drop hierher"
 }

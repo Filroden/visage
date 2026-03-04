@@ -189,7 +189,7 @@
     "VISAGE.Actions.Toggle": "Comută",
     "VISAGE.Editor.Effects.AddVisual": "Adaugă Vizual",
     "VISAGE.Editor.Effects.AddAudio": "Adaugă Audio",
-    "VISAGE.Editor.Effects.Empty": "Niciun efect adăugat.",
+    "VISAGE.Editor.Effects.Empty": "Nu s-au adăugat efecte vizuale sau audio.",
     "VISAGE.Editor.Effects.SettingsTitle": "Setări Efect",
     "VISAGE.Editor.Effects.NamePlaceholder": "Nume Efect",
     "VISAGE.Editor.Effects.PathPlaceholder": "ex. jb2a.fire_bolt.red",
@@ -411,5 +411,14 @@
     "VISAGE.Editor.Effects.FadeIn": "Apariție Treptată (ms)",
     "VISAGE.Editor.Effects.FadeOut": "Dispariție Treptată (ms)",
     "VISAGE.Editor.Timeline.Open": "Cronologie",
-    "VISAGE.Editor.Timeline.Title": "Cronologie Efecte Visage"
+    "VISAGE.Editor.Timeline.Title": "Cronologie Efecte Visage",
+    "VISAGE.Editor.Effects.AddMacro": "Adaugă Macro",
+    "VISAGE.Editor.Groups.Macro": "Macro-uri",
+    "VISAGE.Editor.Effects.MacroUUID": "UUID Macro",
+    "VISAGE.Editor.Macros.Empty": "Niciun macro adăugat.",
+    "VISAGE.Notifications.MacroNotFound": "Visage | Macro negăsit: {uuid}",
+    "VISAGE.Editor.Effects.NoUUID": "Fără UUID",
+    "VISAGE.Actions.CopyMacro": "Copiază API Macro",
+    "VISAGE.Notifications.MacroCopied": "Visage | API Macro pentru '{name}' copiat în clipboard.",
+    "VISAGE.Editor.Effects.DragMacroHere": "Trage și plasează un Macro Foundry aici"
 }
