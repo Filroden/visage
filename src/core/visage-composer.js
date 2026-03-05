@@ -175,7 +175,10 @@ export class VisageComposer {
         if (finalData.light) updateData.light = finalData.light;
 
         // pass 'visageUpdate: true' to prevent infinite recursion in update hooks
-        await token.document.update(updateData, { visageUpdate: true });
+        await token.document.update(updateData, {
+            visageUpdate: true,
+            scenescape: true, // Acts as a universal passport for Mass Edit compatibility
+        });
     }
 
     /**
@@ -204,6 +207,7 @@ export class VisageComposer {
             const clearFlags = {
                 [`flags.${MODULE_ID}.-=activeStack`]: null,
                 [`flags.${MODULE_ID}.-=originalState`]: null,
+                [`flags.${MODULE_ID}.-=identity`]: null,
             };
             return tokenDoc.update(clearFlags, { visageUpdate: true });
         }
@@ -217,6 +221,7 @@ export class VisageComposer {
             [`flags.${MODULE_ID}.-=activeStack`]: null,
             [`flags.${MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
             [`flags.${MODULE_ID}.-=originalState`]: null,
+            [`flags.${MODULE_ID}.-=identity`]: null,
         };
 
         // Enforce System Integrity
@@ -227,7 +232,10 @@ export class VisageComposer {
 
         VisageSystems.process(updateData, original, context);
 
-        await tokenDoc.update(updateData, { visageUpdate: true });
+        await tokenDoc.update(updateData, {
+            visageUpdate: true,
+            scenescape: true, // Acts as a universal passport for Mass Edit compatibility
+        });
     }
 
     /**

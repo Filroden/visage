@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Dim UUID",
     "VISAGE.Actions.CopyMacro": "Copïo API Macro",
     "VISAGE.Notifications.MacroCopied": "Visage | API Macro ar gyfer '{name}' wedi'i gopïo i'r clipfwrdd.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Llusgo a gollwng Macro Foundry yma"
+    "VISAGE.Editor.Effects.DragMacroHere": "Llusgo a gollwng Macro Foundry yma",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Ymyrraeth Mass Edit",
+    "VISAGE.MassEdit.InterceptContent": "<p>Rydych yn ceisio defnyddio Mass Edit ar <b>{count}</b> tocyn(nau) sydd â Visages gweithredol.</p><p>Er mwyn atal llygredd data, rhaid i Visage eu dychwelyd i'w cyflwr gwreiddiol yn gyntaf. Bydd Mass Edit yn cau am ychydig i glirio ei storfa.</p><p><i>(I adfer y Visages hyn, agorwch a chau Mass Edit eto. Nodwch nad oes rhaid i chi wneud newidiadau yn Mass Edit i hyn weithio.)</i></p><p><b>Ydych chi am ddychwelyd y tocynnau hyn nawr?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Wedi'i Gwblhau",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mae Mass Edit wedi cau.</p><p>A hoffech chi <b>adfer</b> y Visages a gafodd eu tynnu dros dro o'ch tocynnau?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Yn dychwelyd tocynnau ar gyfer golygu diogel...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Tocynnau wedi'u dychwelyd yn ddiogel! Ailagorwch Mass Edit i wneud eich newidiadau. Yna fe'ch anogir i adfer eich Visages.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Yn adfer ymddangosiadau tocynnau...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Ymddangosiadau tocynnau wedi'u hadfer.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Rydych yn defnyddio Mass Edit ar docynnau sydd â Visages gweithredol! Mae Mass Edit yn darllen eu Visages presennol fel eu data sylfaen. Gall addasu unrhyw osodiadau tocyn yma drosysgrifo data gwreiddiol y tocyn yn barhaol gyda'u Visages presennol."
 }

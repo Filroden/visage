@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "\u200Fبدون \u2068UUID\u2069",
     "VISAGE.Actions.CopyMacro": "\u200Fنسخ \u2068API\u2069 الماكرو",
     "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | تم نسخ \u2068API\u2069 الماكرو لـ '\u2068{name}\u2069' إلى الحافظة.",
-    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fاسحب وأفلت ماكرو \u2068Foundry\u2069 هنا"
+    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fاسحب وأفلت ماكرو \u2068Foundry\u2069 هنا",
+    "VISAGE.MassEdit.InterceptTitle": "\u200F\u2068Visage\u2069 | اعتراض \u2068Mass Edit\u2069",
+    "VISAGE.MassEdit.InterceptContent": "\u200F<p>أنت تحاول تطبيق \u2068Mass Edit\u2069 على <b>\u2068{count}\u2069</b> رمز (رموز) تحتوي على \u2068Visages\u2069 نشطة.</p><p>لمنع تلف البيانات، يجب أن يقوم \u2068Visage\u2069 بإعادتها إلى حالتها الأصلية أولاً. سيتم إغلاق \u2068Mass Edit\u2069 لفترة وجيزة لمسح ذاكرة التخزين المؤقت الخاصة به.</p><p><i>(لاستعادة هذه الـ \u2068Visages\u2069، ما عليك سوى فتح وإغلاق \u2068Mass Edit\u2069 مرة أخرى. لاحظ أنه ليس عليك إجراء تغييرات في \u2068Mass Edit\u2069 حتى يعمل هذا.)</i></p><p><b>هل تريد إعادة هذه الرموز إلى حالتها الأصلية الآن؟</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "\u200F\u2068Visage\u2069 | اكتمل \u2068Mass Edit\u2069",
+    "VISAGE.MassEdit.CompleteContent": "\u200F<p>تم إغلاق \u2068Mass Edit\u2069.</p><p>هل ترغب في <b>استعادة</b> الـ \u2068Visages\u2069 التي تمت إزالتها مؤقتًا من رموزك؟</p>",
+    "VISAGE.Notifications.MassEditReverting": "\u200F\u2068Visage\u2069 | جاري إعادة الرموز للتحرير الآمن...",
+    "VISAGE.Notifications.MassEditReverted": "\u200F\u2068Visage\u2069 | تمت إعادة الرموز بأمان! أعد فتح \u2068Mass Edit\u2069 لإجراء تغييراتك. سيُطلب منك بعد ذلك استعادة الـ \u2068Visages\u2069 الخاصة بك.",
+    "VISAGE.Notifications.MassEditRestoring": "\u200F\u2068Visage\u2069 | جاري استعادة مظاهر الرموز...",
+    "VISAGE.Notifications.MassEditRestored": "\u200F\u2068Visage\u2069 | تمت استعادة مظاهر الرموز.",
+    "VISAGE.Warnings.MassEditActive": "\u200F\u2068Visage\u2069 | أنت تطبق \u2068Mass Edit\u2069 على رموز ذات \u2068Visages\u2069 نشطة! يقرأ \u2068Mass Edit\u2069 الـ \u2068Visages\u2069 الحالية كبياناتها الأساسية. قد يؤدي تعديل أي إعدادات للرمز هنا إلى الكتابة فوق بيانات الرمز الأصلية بشكل دائم باستخدام الـ \u2068Visages\u2069 الحالية."
 }

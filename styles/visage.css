@@ -362,6 +362,12 @@ li.context-item .visage-icon-domino {
 .visage-effect-layer.below { z-index: 0; }
 .visage-effect-layer.above { z-index: 10; }
 
+/* --- Dialog Overrides --- */
+
+.visage-dialog-compact .window-content .standard-form {
+    gap: 0;
+}
+
 
 /* ==========================================================================
    3. APPLICATION: UNIVERSAL SHELL

@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Sin UUID",
     "VISAGE.Actions.CopyMacro": "Copiar API de Macro",
     "VISAGE.Notifications.MacroCopied": "Visage | API de la Macro para '{name}' copiada al portapapeles.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Arrastra y suelta una Macro de Foundry aquí"
+    "VISAGE.Editor.Effects.DragMacroHere": "Arrastra y suelta una Macro de Foundry aquí",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Intercepción de Mass Edit",
+    "VISAGE.MassEdit.InterceptContent": "<p>Estás intentando aplicar Mass Edit a <b>{count}</b> ficha(s) que tienen Visages activos.</p><p>Para evitar la corrupción de datos, Visage debe revertirlas primero a su estado original. Mass Edit se cerrará brevemente para purgar su caché.</p><p><i>(Para restaurar estos Visages, simplemente abre y cierra Mass Edit de nuevo. Ten en cuenta que no tienes que hacer cambios en Mass Edit para que esto funcione.)</i></p><p><b>¿Quieres Revertir estas fichas ahora?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Completado",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit se ha cerrado.</p><p>¿Te gustaría <b>restaurar</b> los Visages que fueron eliminados temporalmente de tus fichas?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Revirtiendo fichas para una edición segura...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | ¡Fichas revertidas de forma segura! Vuelve a abrir Mass Edit para hacer tus cambios. Luego se te pedirá que restaures tus Visages.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Restaurando apariencias de las fichas...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Apariencias de las fichas restauradas.",
+    "VISAGE.Warnings.MassEditActive": "Visage | ¡Estás aplicando Mass Edit a fichas con Visages activos! Mass Edit lee sus Visages actuales como sus datos base. Modificar cualquier configuración de la ficha aquí puede sobrescribir permanentemente los datos originales de la ficha con sus Visages actuales."
 }

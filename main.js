@@ -22,6 +22,7 @@ import { VisageSequencer } from "./src/integrations/visage-sequencer.js";
 import { VisageSamples } from "./src/data/visage-samples.js";
 import { VisageAutomation } from "./src/core/visage-automation.js";
 import { VisageUtilities } from "./src/utils/visage-utilities.js";
+import { VisageMassEdit } from "./src/integrations/visage-mass-edit.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -433,6 +434,9 @@ Hooks.once("ready", async () => {
 
         // Initialize the Automation Engine Watcher
         VisageAutomation.initialize();
+
+        // Initialize the Mass Edit Watcher
+        VisageMassEdit.initialize();
 
         // Check if a migration is required based on the version difference
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {

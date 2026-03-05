@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "\u200Fללא \u2068UUID\u2069",
     "VISAGE.Actions.CopyMacro": "\u200Fהעתק \u2068API\u2069 של מאקרו",
     "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | \u2068API\u2069 של מאקרו עבור '\u2068{name}\u2069' הועתק ללוח.",
-    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fגרור ושחרר מאקרו של \u2068Foundry\u2069 לכאן"
+    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fגרור ושחרר מאקרו של \u2068Foundry\u2069 לכאן",
+    "VISAGE.MassEdit.InterceptTitle": "\u200F\u2068Visage\u2069 | יירוט של \u2068Mass Edit\u2069",
+    "VISAGE.MassEdit.InterceptContent": "\u200F<p>אתה מנסה להחיל \u2068Mass Edit\u2069 על <b>\u2068{count}\u2069</b> טוקנים עם \u2068Visages\u2069 פעילים.</p><p>כדי למנוע השחתת נתונים, \u2068Visage\u2069 חייב להחזיר אותם למצבם המקורי תחילה. \u2068Mass Edit\u2069 ייסגר לזמן קצר כדי לנקות את המטמון שלו.</p><p><i>(כדי לשחזר \u2068Visages\u2069 אלה, פשוט פתח וסגור שוב את \u2068Mass Edit\u2069. שים לב שאינך צריך לבצע שינויים ב-\u2068Mass Edit\u2069 כדי שזה יעבוד.)</i></p><p><b>האם ברצונך להחזיר טוקנים אלה למצבם המקורי כעת?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "\u200F\u2068Visage\u2069 | \u2068Mass Edit\u2069 הושלם",
+    "VISAGE.MassEdit.CompleteContent": "\u200F<p>\u2068Mass Edit\u2069 נסגר.</p><p>האם תרצה <b>לשחזר</b> את ה-\u2068Visages\u2069 שהוסרו זמנית מהטוקנים שלך?</p>",
+    "VISAGE.Notifications.MassEditReverting": "\u200F\u2068Visage\u2069 | מחזיר טוקנים למצבם המקורי לעריכה בטוחה...",
+    "VISAGE.Notifications.MassEditReverted": "\u200F\u2068Visage\u2069 | טוקנים הוחזרו למצבם המקורי בבטחה! פתח מחדש את \u2068Mass Edit\u2069 כדי לבצע את השינויים שלך. לאחר מכן תתבקש לשחזר את ה-\u2068Visages\u2069 שלך.",
+    "VISAGE.Notifications.MassEditRestoring": "\u200F\u2068Visage\u2069 | משחזר מראה טוקנים...",
+    "VISAGE.Notifications.MassEditRestored": "\u200F\u2068Visage\u2069 | מראה הטוקנים שוחזר.",
+    "VISAGE.Warnings.MassEditActive": "\u200F\u2068Visage\u2069 | אתה מחיל \u2068Mass Edit\u2069 על טוקנים עם \u2068Visages\u2069 פעילים! \u2068Mass Edit\u2069 קורא את ה-\u2068Visages\u2069 הנוכחיים שלהם כנתוני הבסיס. שינוי כלשהו בהגדרות הטוקן כאן עשוי לדרוס לצמיתות את נתוני הטוקן המקוריים עם ה-\u2068Visages\u2069 הנוכחיים שלהם."
 }

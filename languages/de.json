@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Keine UUID",
     "VISAGE.Actions.CopyMacro": "Makro-API kopieren",
     "VISAGE.Notifications.MacroCopied": "Visage | Makro-API für '{name}' in die Zwischenablage kopiert.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Ziehe ein Foundry-Makro per Drag & Drop hierher"
+    "VISAGE.Editor.Effects.DragMacroHere": "Ziehe ein Foundry-Makro per Drag & Drop hierher",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Mass Edit Abfangen",
+    "VISAGE.MassEdit.InterceptContent": "<p>Du versuchst, Mass Edit auf <b>{count}</b> Token anzuwenden, die aktive Visages haben.</p><p>Um Datenbeschädigungen zu vermeiden, muss Visage diese zuerst in ihren ursprünglichen Zustand zurückversetzen. Mass Edit wird kurzzeitig geschlossen, um den Cache zu leeren.</p><p><i>(Um diese Visages wiederherzustellen, öffne und schließe Mass Edit einfach erneut. Beachte, dass du in Mass Edit keine Änderungen vornehmen musst, damit dies funktioniert.)</i></p><p><b>Möchtest du diese Token jetzt zurückversetzen?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Abgeschlossen",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit wurde geschlossen.</p><p>Möchtest du die Visages <b>wiederherstellen</b>, die vorübergehend von deinen Token entfernt wurden?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Token werden für sichere Bearbeitung zurückversetzt...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Token sicher zurückversetzt! Öffne Mass Edit erneut, um deine Änderungen vorzunehmen. Du wirst dann aufgefordert, deine Visages wiederherzustellen.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Token-Erscheinungsbilder werden wiederhergestellt...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Token-Erscheinungsbilder wiederhergestellt.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Du wendest Mass Edit auf Token mit aktiven Visages an! Mass Edit liest ihre aktuellen Visages als Basisdaten. Wenn du hier Token-Einstellungen änderst, können die ursprünglichen Token-Daten dauerhaft mit ihren aktuellen Visages überschrieben werden."
 }

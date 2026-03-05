@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Fără UUID",
     "VISAGE.Actions.CopyMacro": "Copiază API Macro",
     "VISAGE.Notifications.MacroCopied": "Visage | API Macro pentru '{name}' copiat în clipboard.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Trage și plasează un Macro Foundry aici"
+    "VISAGE.Editor.Effects.DragMacroHere": "Trage și plasează un Macro Foundry aici",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Interceptare Mass Edit",
+    "VISAGE.MassEdit.InterceptContent": "<p>Încerci să aplici Mass Edit pe <b>{count}</b> jeton(oane) care au Visage-uri active.</p><p>Pentru a preveni coruperea datelor, Visage trebuie să le readucă mai întâi la starea lor originală. Mass Edit se va închide scurt timp pentru a-și goli memoria cache.</p><p><i>(Pentru a restaura aceste Visage-uri, pur și simplu deschide și închide Mass Edit din nou. Reține că nu trebuie să faci modificări în Mass Edit pentru ca acest lucru să funcționeze.)</i></p><p><b>Vrei să readuci aceste jetoane acum?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Complet",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit a fost închis.</p><p>Ai dori să <b>restaurezi</b> Visage-urile care au fost eliminate temporar de pe jetoanele tale?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Se readuc jetoanele pentru editare sigură...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Jetoane readuse în siguranță! Redeschide Mass Edit pentru a face modificările. Apoi ți se va cere să îți restaurezi Visage-urile.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Se restaurează aspectul jetoanelor...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Aspectul jetoanelor a fost restaurat.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Aplici Mass Edit pe jetoane cu Visage-uri active! Mass Edit citește Visage-urile lor actuale ca date de bază. Modificarea oricăror setări ale jetonului aici poate suprascrie permanent datele originale ale jetonului cu Visage-urile lor actuale."
 }

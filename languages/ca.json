@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Sense UUID",
     "VISAGE.Actions.CopyMacro": "Copiar API de Macro",
     "VISAGE.Notifications.MacroCopied": "Visage | API de la Macro per a '{name}' copiada al porta-retalls.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Arrossega i deixa anar una Macro de Foundry aquí"
+    "VISAGE.Editor.Effects.DragMacroHere": "Arrossega i deixa anar una Macro de Foundry aquí",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Intercepció de Mass Edit",
+    "VISAGE.MassEdit.InterceptContent": "<p>Estàs intentant aplicar Mass Edit a <b>{count}</b> fitxa(es) que tenen Visages actius.</p><p>Per evitar la corrupció de dades, Visage les ha de revertir primer al seu estat original. Mass Edit es tancarà breument per purgar la seva memòria cau.</p><p><i>(Per restaurar aquests Visages, simplement obre i tanca Mass Edit de nou. Tingues en compte que no has de fer canvis a Mass Edit perquè això funcioni.)</i></p><p><b>Vols Revertir aquestes fitxes ara?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Completat",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit s'ha tancat.</p><p>T'agradaria <b>restaurar</b> els Visages que es van eliminar temporalment de les teves fitxes?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Revertint fitxes per a una edició segura...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Fitxes revertides de forma segura! Torna a obrir Mass Edit per fer els teus canvis. Després se't demanarà que restauris els teus Visages.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Restaurant aparences de les fitxes...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Aparences de les fitxes restauradas.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Estàs aplicant Mass Edit a fitxes amb Visages actius! Mass Edit llegeix els seus Visages actuals com les seves dades base. Modificar qualsevol configuració de la fitxa aquí pot sobreescriure permanentment les dades originals de la fitxa amb els seus Visages actuals."
 }

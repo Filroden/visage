@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Pas d'UUID",
     "VISAGE.Actions.CopyMacro": "Copier l'API de la Macro",
     "VISAGE.Notifications.MacroCopied": "Visage | API de la Macro pour '{name}' copiée dans le presse-papiers.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Glissez-déposez une Macro Foundry ici"
+    "VISAGE.Editor.Effects.DragMacroHere": "Glissez-déposez une Macro Foundry ici",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Interception de Mass Edit",
+    "VISAGE.MassEdit.InterceptContent": "<p>Vous tentez d'appliquer Mass Edit à <b>{count}</b> pion(s) ayant des Visages actifs.</p><p>Pour éviter la corruption des données, Visage doit d'abord les ramener à leur état d'origine. Mass Edit se fermera brièvement pour vider son cache.</p><p><i>(Pour restaurer ces Visages, ouvrez et fermez simplement Mass Edit à nouveau. Notez que vous n'avez pas besoin de faire de modifications dans Mass Edit pour que cela fonctionne.)</i></p><p><b>Voulez-vous rétablir ces pions maintenant ?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Terminé",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit a été fermé.</p><p>Souhaitez-vous <b>restaurer</b> les Visages qui ont été temporairement retirés de vos pions ?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Rétablissement des pions pour une édition sécurisée...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Pions rétablis en toute sécurité ! Rouvrez Mass Edit pour effectuer vos modifications. Il vous sera ensuite demandé de restaurer vos Visages.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Restauration de l'apparence des pions...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Apparence des pions restaurée.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Vous appliquez Mass Edit à des pions avec des Visages actifs ! Mass Edit lit leurs Visages actuels comme leurs données de base. Modifier un paramètre de pion ici peut écraser définitivement les données originales du pion avec leurs Visages actuels."
 }

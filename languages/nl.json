@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Geen UUID",
     "VISAGE.Actions.CopyMacro": "Kopieer Macro API",
     "VISAGE.Notifications.MacroCopied": "Visage | Macro API voor '{name}' gekopieerd naar klembord.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Sleep en zet hier een Foundry Macro neer"
+    "VISAGE.Editor.Effects.DragMacroHere": "Sleep en zet hier een Foundry Macro neer",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Mass Edit Onderschepping",
+    "VISAGE.MassEdit.InterceptContent": "<p>Je probeert Mass Edit toe te passen op <b>{count}</b> token(s) die actieve Visages hebben.</p><p>Om datacorruptie te voorkomen, moet Visage ze eerst terugzetten naar hun oorspronkelijke staat. Mass Edit zal kort sluiten om zijn cache te wissen.</p><p><i>(Om deze Visages te herstellen, open en sluit je Mass Edit gewoon opnieuw. Let op dat je geen wijzigingen hoeft aan te brengen in Mass Edit om dit te laten werken.)</i></p><p><b>Wil je deze tokens nu terugzetten?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Voltooid",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit is gesloten.</p><p>Wil je de Visages <b>herstellen</b> die tijdelijk van je tokens zijn verwijderd?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Tokens terugzetten voor veilige bewerking...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Tokens veilig teruggezet! Heropen Mass Edit om je wijzigingen aan te brengen. Je wordt dan gevraagd om je Visages te herstellen.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Uiterlijk van tokens herstellen...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Uiterlijk van tokens hersteld.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Je past Mass Edit toe op tokens met actieve Visages! Mass Edit leest hun huidige Visages als hun basisdata. Het wijzigen van tokeninstellingen hier kan de originele tokendata permanent overschrijven met hun huidige Visages."
 }
