@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Sem UUID",
     "VISAGE.Actions.CopyMacro": "Copiar API da Macro",
     "VISAGE.Notifications.MacroCopied": "Visage | API da Macro para '{name}' copiada para a área de transferência.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Arraste e largue uma Macro do Foundry aqui"
+    "VISAGE.Editor.Effects.DragMacroHere": "Arraste e largue uma Macro do Foundry aqui",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Interceção do Mass Edit",
+    "VISAGE.MassEdit.InterceptContent": "<p>Está a tentar aplicar o Mass Edit a <b>{count}</b> ficha(s) que têm Visages ativos.</p><p>Para evitar corrupção de dados, o Visage deve revertê-las primeiro ao seu estado original. O Mass Edit será fechado brevemente para limpar a cache.</p><p><i>(Para restaurar estes Visages, basta abrir e fechar o Mass Edit novamente. Tenha em atenção que não precisa de fazer alterações no Mass Edit para que isto funcione.)</i></p><p><b>Deseja Reverter estas fichas agora?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Concluído",
+    "VISAGE.MassEdit.CompleteContent": "<p>O Mass Edit foi fechado.</p><p>Gostaria de <b>restaurar</b> os Visages que foram removidos temporariamente das suas fichas?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | A reverter fichas para edição segura...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Fichas revertidas em segurança! Reabra o Mass Edit para fazer as suas alterações. Em seguida, ser-lhe-á pedido para restaurar os seus Visages.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | A restaurar aparências das fichas...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Aparências das fichas restauradas.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Está a usar o Mass Edit em fichas com Visages ativos! O Mass Edit lê os seus Visages atuais como os seus dados base. Modificar qualquer definição da ficha aqui pode substituir permanentemente os dados originais da ficha com os seus Visages atuais."
 }

@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "\u200Fبدون \u2068UUID\u2069",
     "VISAGE.Actions.CopyMacro": "\u200Fکپی \u2068API\u2069 ماکرو",
     "VISAGE.Notifications.MacroCopied": "\u200F\u2068Visage\u2069 | \u2068API\u2069 ماکرو برای '\u2068{name}\u2069' در کلیپ‌بورد کپی شد.",
-    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fیک ماکرو \u2068Foundry\u2069 را اینجا بکشید و رها کنید"
+    "VISAGE.Editor.Effects.DragMacroHere": "\u200Fیک ماکرو \u2068Foundry\u2069 را اینجا بکشید و رها کنید",
+    "VISAGE.MassEdit.InterceptTitle": "\u200F\u2068Visage\u2069 | توقف \u2068Mass Edit\u2069",
+    "VISAGE.MassEdit.InterceptContent": "\u200F<p>شما در حال تلاش برای اعمال \u2068Mass Edit\u2069 روی <b>\u2068{count}\u2069</b> مهره دارای \u2068Visage\u2069 فعال هستید.</p><p>برای جلوگیری از خرابی داده‌ها، \u2068Visage\u2069 ابتدا باید آن‌ها را به حالت اصلی خود برگرداند. \u2068Mass Edit\u2069 برای پاک کردن حافظه پنهان خود مدت کوتاهی بسته خواهد شد.</p><p><i>(برای بازیابی این \u2068Visage\u2069ها، به سادگی \u2068Mass Edit\u2069 را دوباره باز و بسته کنید. توجه داشته باشید که برای کار کردن این مورد نیازی به ایجاد تغییرات در \u2068Mass Edit\u2069 ندارید.)</i></p><p><b>آیا می‌خواهید اکنون این مهره‌ها را به حالت قبل برگردانید؟</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "\u200F\u2068Visage\u2069 | \u2068Mass Edit\u2069 کامل شد",
+    "VISAGE.MassEdit.CompleteContent": "\u200F<p>\u2068Mass Edit\u2069 بسته شده است.</p><p>آیا می‌خواهید \u2068Visage\u2069هایی که به طور موقت از مهره‌های شما حذف شده بودند را <b>بازیابی</b> کنید؟</p>",
+    "VISAGE.Notifications.MassEditReverting": "\u200F\u2068Visage\u2069 | بازگرداندن مهره‌ها برای ویرایش ایمن...",
+    "VISAGE.Notifications.MassEditReverted": "\u200F\u2068Visage\u2069 | مهره‌ها با موفقیت بازگردانده شدند! برای اعمال تغییرات خود، \u2068Mass Edit\u2069 را دوباره باز کنید. سپس از شما خواسته می‌شود \u2068Visage\u2069های خود را بازیابی کنید.",
+    "VISAGE.Notifications.MassEditRestoring": "\u200F\u2068Visage\u2069 | در حال بازیابی ظاهر مهره‌ها...",
+    "VISAGE.Notifications.MassEditRestored": "\u200F\u2068Visage\u2069 | ظاهر مهره‌ها بازیابی شد.",
+    "VISAGE.Warnings.MassEditActive": "\u200F\u2068Visage\u2069 | شما در حال اعمال \u2068Mass Edit\u2069 روی مهره‌های دارای \u2068Visage\u2069 فعال هستید! \u2068Mass Edit\u2069، \u2068Visage\u2069های فعلی آن‌ها را به عنوان داده‌های پایه می‌خواند. تغییر هر یک از تنظیمات مهره در اینجا ممکن است داده‌های اصلی مهره را به طور دائم با \u2068Visage\u2069های فعلی آن‌ها بازنویسی کند."
 }

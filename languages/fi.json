@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Ei UUID:tä",
     "VISAGE.Actions.CopyMacro": "Kopioi Makron API",
     "VISAGE.Notifications.MacroCopied": "Visage | Makron API kohteelle '{name}' kopioitiin leikepöydälle.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Vedä ja pudota Foundry-makro tähän"
+    "VISAGE.Editor.Effects.DragMacroHere": "Vedä ja pudota Foundry-makro tähän",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Mass Edit Keskeytys",
+    "VISAGE.MassEdit.InterceptContent": "<p>Yrität käyttää Mass Edit -toimintoa <b>{count}</b> nappulaan, joilla on aktiivisia Visageja.</p><p>Tietojen vioittumisen estämiseksi Visagen on ensin palautettava ne alkuperäiseen tilaansa. Mass Edit sulkeutuu hetkeksi tyhjentääkseen välimuistinsa.</p><p><i>(Palauttaaksesi nämä Visaget, avaa ja sulje Mass Edit uudelleen. Huomaa, että sinun ei tarvitse tehdä muutoksia Mass Editissä, jotta tämä toimisi.)</i></p><p><b>Haluatko palauttaa nämä nappulat nyt?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Valmis",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit on suljettu.</p><p>Haluatko <b>palauttaa</b> Visaget, jotka poistettiin väliaikaisesti nappuloiltasi?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Palautetaan nappuloita turvallista muokkausta varten...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Nappulat palautettu turvallisesti! Avaa Mass Edit uudelleen tehdäksesi muutoksesi. Tämän jälkeen sinua pyydetään palauttamaan Visagesi.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Palautetaan nappuloiden ulkoasuja...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Nappuloiden ulkoasut palautettu.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Käytät Mass Edit -toimintoa nappuloihin, joilla on aktiivisia Visageja! Mass Edit lukee niiden nykyiset Visaget niiden perustietoina. Nappuloiden asetusten muokkaaminen tässä voi korvata nappulan alkuperäiset tiedot pysyvästi niiden nykyisillä Visageilla."
 }

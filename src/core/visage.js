@@ -3,6 +3,7 @@ import { VisageData } from "../data/visage-data.js";
 import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageSequencer } from "../integrations/visage-sequencer.js";
 import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
+import { VisageMassEdit } from "../integrations/visage-mass-edit.js";
 
 /**
  * The core API class for the Visage module.
@@ -36,6 +37,7 @@ export class Visage {
             resolvePath: VisageUtilities.resolvePath.bind(VisageUtilities),
             toggleLayer: this.toggleLayer.bind(this),
             reorderStack: this.reorderStack.bind(this),
+            restoreMassEdit: VisageMassEdit.forceRestore.bind(VisageMassEdit),
         };
 
         // Hook into Sequencer to ensure effects are restored when the scene loads

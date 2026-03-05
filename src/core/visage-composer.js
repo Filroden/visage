@@ -207,6 +207,7 @@ export class VisageComposer {
             const clearFlags = {
                 [`flags.${MODULE_ID}.-=activeStack`]: null,
                 [`flags.${MODULE_ID}.-=originalState`]: null,
+                [`flags.${MODULE_ID}.-=identity`]: null,
             };
             return tokenDoc.update(clearFlags, { visageUpdate: true });
         }
@@ -220,6 +221,7 @@ export class VisageComposer {
             [`flags.${MODULE_ID}.-=activeStack`]: null,
             [`flags.${MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
             [`flags.${MODULE_ID}.-=originalState`]: null,
+            [`flags.${MODULE_ID}.-=identity`]: null,
         };
 
         // Enforce System Integrity

@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Немає UUID",
     "VISAGE.Actions.CopyMacro": "Скопіювати API Макроса",
     "VISAGE.Notifications.MacroCopied": "Visage | API Макроса для '{name}' скопійовано в буфер обміну.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Перетягніть сюди Макрос Foundry"
+    "VISAGE.Editor.Effects.DragMacroHere": "Перетягніть сюди Макрос Foundry",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Перехоплення Mass Edit",
+    "VISAGE.MassEdit.InterceptContent": "<p>Ви намагаєтеся застосувати Mass Edit до <b>{count}</b> токена(ів) з активними Visage.</p><p>Щоб запобігти пошкодженню даних, Visage повинен спочатку повернути їх до початкового стану. Mass Edit ненадовго закриється для очищення кешу.</p><p><i>(Щоб відновити ці Visage, просто відкрийте і закрийте Mass Edit знову. Зверніть увагу, що вам не обов'язково вносити зміни в Mass Edit, щоб це спрацювало.)</i></p><p><b>Ви хочете повернути ці токени до початкового стану зараз?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Завершено",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit закрито.</p><p>Чи бажаєте ви <b>відновити</b> Visage, які були тимчасово видалені з ваших токенів?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Повернення токенів для безпечного редагування...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Токени безпечно повернуто до початкового стану! Відкрийте Mass Edit знову, щоб внести зміни. Потім вам буде запропоновано відновити ваші Visage.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Відновлення зовнішнього вигляду токенів...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Зовнішній вигляд токенів відновлено.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Ви використовуєте Mass Edit для токенів з активними Visage! Mass Edit зчитує їхні поточні Visage як базові дані. Зміна будь-яких налаштувань токена тут може назавжди перезаписати початкові дані токена їхніми поточними Visage."
 }

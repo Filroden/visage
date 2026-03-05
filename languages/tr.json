@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "UUID Yok",
     "VISAGE.Actions.CopyMacro": "Makro API'sini Kopyala",
     "VISAGE.Notifications.MacroCopied": "Visage | '{name}' için Makro API'si panoya kopyalandı.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Bir Foundry Makrosunu buraya Sürükleyip Bırakın"
+    "VISAGE.Editor.Effects.DragMacroHere": "Bir Foundry Makrosunu buraya Sürükleyip Bırakın",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Mass Edit Kesintisi",
+    "VISAGE.MassEdit.InterceptContent": "<p>Aktif Visage'ları olan <b>{count}</b> jetona Mass Edit uygulamaya çalışıyorsunuz.</p><p>Veri bozulmasını önlemek için, Visage'ın önce onları orijinal durumlarına döndürmesi gerekir. Mass Edit, önbelleğini temizlemek için kısa bir süreliğine kapanacaktır.</p><p><i>(Bu Visage'ları geri yüklemek için Mass Edit'i tekrar açıp kapatmanız yeterlidir. Bunun çalışması için Mass Edit'te değişiklik yapmanız gerekmediğini unutmayın.)</i></p><p><b>Bu jetonları şimdi eski haline döndürmek istiyor musunuz?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Tamamlandı",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit kapatıldı.</p><p>Jetonlarınızdan geçici olarak kaldırılan Visage'ları <b>geri yüklemek</b> ister misiniz?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Güvenli düzenleme için jetonlar eski haline döndürülüyor...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Jetonlar güvenli bir şekilde eski haline döndürüldü! Değişikliklerinizi yapmak için Mass Edit'i yeniden açın. Ardından Visage'larınızı geri yüklemeniz istenecektir.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Jeton görünümleri geri yükleniyor...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Jeton görünümleri geri yüklendi.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Aktif Visage'ları olan jetonlara Mass Edit uyguluyorsunuz! Mass Edit, mevcut Visage'larını temel verileri olarak okur. Burada herhangi bir jeton ayarını değiştirmek, orijinal jeton verilerinin kalıcı olarak mevcut Visage'larıyla üzerine yazılmasına neden olabilir."
 }

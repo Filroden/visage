@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "無 UUID",
     "VISAGE.Actions.CopyMacro": "複製巨集 API",
     "VISAGE.Notifications.MacroCopied": "Visage | 已將 '{name}' 的巨集 API 複製到剪貼簿。",
-    "VISAGE.Editor.Effects.DragMacroHere": "將 Foundry 巨集拖放到此處"
+    "VISAGE.Editor.Effects.DragMacroHere": "將 Foundry 巨集拖放到此處",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Mass Edit 攔截",
+    "VISAGE.MassEdit.InterceptContent": "<p>您正在嘗試對 <b>{count}</b> 個具有啟用 Visage 的指示物進行 Mass Edit。</p><p>為了防止資料損壞，Visage 必須先將它們還原到原始狀態。Mass Edit 將短暫關閉以清除其快取。</p><p><i>(要恢復這些 Visage，只需再次打開然後關閉 Mass Edit 即可。請注意，您無需在 Mass Edit 中進行任何更改即可使其生效。)</i></p><p><b>您想現在還原這些指示物嗎？</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit 完成",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit 已關閉。</p><p>您想<b>恢復</b>從您的指示物中臨時移除的 Visage 嗎？</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | 正在還原指示物以進行安全編輯...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | 指示物已安全還原！重新打開 Mass Edit 以進行更改。然後將提示您恢復您的 Visage。",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | 正在恢復指示物外觀...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | 指示物外觀已恢復。",
+    "VISAGE.Warnings.MassEditActive": "Visage | 您正在對具有啟用 Visage 的指示物進行 Mass Edit！Mass Edit 會將其目前的 Visage 作為其基礎資料讀取。在此處修改任何指示物設定可能會將其目前的 Visage 永久覆蓋到原始指示物資料上。"
 }

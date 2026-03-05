@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Nessun UUID",
     "VISAGE.Actions.CopyMacro": "Copia API Macro",
     "VISAGE.Notifications.MacroCopied": "Visage | API Macro per '{name}' copiata negli appunti.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Trascina e rilascia una Macro di Foundry qui"
+    "VISAGE.Editor.Effects.DragMacroHere": "Trascina e rilascia una Macro di Foundry qui",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Intercettazione di Mass Edit",
+    "VISAGE.MassEdit.InterceptContent": "<p>Stai tentando di applicare Mass Edit a <b>{count}</b> pedina/e con Visage attivi.</p><p>Per prevenire la corruzione dei dati, Visage deve prima riportarle al loro stato originale. Mass Edit si chiuderà brevemente per svuotare la sua cache.</p><p><i>(Per ripristinare questi Visage, apri e chiudi semplicemente Mass Edit di nuovo. Nota che non devi apportare modifiche in Mass Edit affinché funzioni.)</i></p><p><b>Vuoi ripristinare queste pedine ora?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Completato",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit è stato chiuso.</p><p>Vorresti <b>ripristinare</b> i Visage che sono stati temporaneamente rimossi dalle tue pedine?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Ripristino delle pedine per una modifica sicura...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Pedine ripristinate in modo sicuro! Riapri Mass Edit per apportare le tue modifiche. Ti verrà poi chiesto di ripristinare i tuoi Visage.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Ripristino dell'aspetto delle pedine...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Aspetto delle pedine ripristinato.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Stai applicando Mass Edit a pedine con Visage attivi! Mass Edit legge i loro Visage attuali come dati di base. Modificare le impostazioni della pedina qui potrebbe sovrascrivere permanentemente i dati originali della pedina con i loro Visage attuali."
 }

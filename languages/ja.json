@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "UUID なし",
     "VISAGE.Actions.CopyMacro": "マクロ API をコピー",
     "VISAGE.Notifications.MacroCopied": "Visage | '{name}' のマクロ API をクリップボードにコピーしました。",
-    "VISAGE.Editor.Effects.DragMacroHere": "ここに Foundry マクロをドラッグ＆ドロップ"
+    "VISAGE.Editor.Effects.DragMacroHere": "ここに Foundry マクロをドラッグ＆ドロップ",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Mass Edit 割り込み",
+    "VISAGE.MassEdit.InterceptContent": "<p>アクティブな Visage を持つ <b>{count}</b> 個のトークンに Mass Edit を試みています。</p><p>データの破損を防ぐため、Visage はまずそれらを元の状態に戻す必要があります。キャッシュを消去するため、Mass Edit は一時的に閉じられます。</p><p><i>(これらの Visage を復元するには、もう一度 Mass Edit を開いて閉じるだけです。これが機能するために Mass Edit で変更を加える必要はないことに注意してください。)</i></p><p><b>今すぐこれらのトークンを元に戻しますか？</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit 完了",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit が閉じられました。</p><p>トークンから一時的に削除された Visage を<b>復元</b>しますか？</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | 安全な編集のためにトークンを元に戻しています...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | トークンは安全に元に戻されました！ 変更を加えるには Mass Edit を再度開いてください。その後、Visage を復元するように求められます。",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | トークンの外見を復元しています...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | トークンの外見が復元されました。",
+    "VISAGE.Warnings.MassEditActive": "Visage | アクティブな Visage を持つトークンを Mass Edit しています！ Mass Edit は現在の Visage をベースデータとして読み込みます。ここでトークン設定を変更すると、元のトークンデータが現在の Visage で永久に上書きされる可能性があります。"
 }

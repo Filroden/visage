@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "无 UUID",
     "VISAGE.Actions.CopyMacro": "复制宏 API",
     "VISAGE.Notifications.MacroCopied": "Visage | 已将 '{name}' 的宏 API 复制到剪贴板。",
-    "VISAGE.Editor.Effects.DragMacroHere": "将 Foundry 宏拖放到此处"
+    "VISAGE.Editor.Effects.DragMacroHere": "将 Foundry 宏拖放到此处",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Mass Edit 拦截",
+    "VISAGE.MassEdit.InterceptContent": "<p>您正在尝试对 <b>{count}</b> 个具有活动 Visage 的图示进行 Mass Edit。</p><p>为了防止数据损坏，Visage 必须先将它们还原到原始状态。Mass Edit 将短暂关闭以清除其缓存。</p><p><i>(要恢复这些 Visage，只需再次打开然后关闭 Mass Edit 即可。请注意，您无需在 Mass Edit 中进行任何更改即可使其生效。)</i></p><p><b>您想现在还原这些图示吗？</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit 完成",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit 已关闭。</p><p>您想<b>恢复</b>从您的图示中临时移除的 Visage 吗？</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | 正在还原图示以进行安全编辑...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | 图示已安全还原！重新打开 Mass Edit 以进行更改。然后将提示您恢复您的 Visage。",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | 正在恢复图示外观...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | 图示外观已恢复。",
+    "VISAGE.Warnings.MassEditActive": "Visage | 您正在对具有活动 Visage 的图示进行 Mass Edit！Mass Edit 会将其当前的 Visage 作为其基础数据读取。在此处修改任何图示设置可能会将其当前的 Visage 永久覆盖到原始图示数据上。"
 }

@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Nincs UUID",
     "VISAGE.Actions.CopyMacro": "Makró API Másolása",
     "VISAGE.Notifications.MacroCopied": "Visage | Makró API a(z) '{name}' elemhez a vágólapra másolva.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Húzz és ejts ide egy Foundry Makrót"
+    "VISAGE.Editor.Effects.DragMacroHere": "Húzz és ejts ide egy Foundry Makrót",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Mass Edit Megszakítás",
+    "VISAGE.MassEdit.InterceptContent": "<p>Megpróbálsz Mass Edit-et alkalmazni <b>{count}</b> bábura, amelyeken aktív Visage-ok vannak.</p><p>Az adatsérülés elkerülése érdekében a Visage-nak először vissza kell állítania őket az eredeti állapotukba. A Mass Edit rövid időre bezárul, hogy kiürítse a gyorsítótárát.</p><p><i>(Ezeknek a Visage-oknak a helyreállításához egyszerűen nyisd meg és zárd be újra a Mass Edit-et. Vedd figyelembe, hogy nem kell változtatásokat végezned a Mass Edit-ben ahhoz, hogy ez működjön.)</i></p><p><b>Vissza akarod állítani ezeket a bábukat most?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Befejezve",
+    "VISAGE.MassEdit.CompleteContent": "<p>A Mass Edit bezárult.</p><p>Szeretnéd <b>helyreállítani</b> a bábuiról ideiglenesen eltávolított Visage-okat?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Bábuk visszaállítása a biztonságos szerkesztéshez...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Bábuk biztonságosan visszaállítva! Nyisd meg újra a Mass Edit-et a változtatások elvégzéséhez. Ezután a rendszer kérni fogja a Visage-ok helyreállítását.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Bábuk megjelenésének helyreállítása...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Bábuk megjelenése helyreállítva.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Aktív Visage-okkal rendelkező bábukon használsz Mass Edit-et! A Mass Edit a jelenlegi Visage-okat olvassa be alapadatként. A bábu beállításainak itt történő módosítása véglegesen felülírhatja az eredeti bábuadatokat a jelenlegi Visage-okkal."
 }

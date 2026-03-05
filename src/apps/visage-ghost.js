@@ -27,6 +27,13 @@ export function handleGhostEdit(app, html, data) {
     // Only proceed if this token is actually under Visage control and has a snapshot.
     if (!doc || !doc.flags?.[MODULE_ID]) return;
 
+    // BYPASS: Ignore Mass Edit applications to prevent hook/DOM conflicts
+    if (
+        app.constructor.name.includes("Mass") ||
+        app.options?.id?.includes("mass")
+    )
+        return;
+
     const originalState = doc.flags[MODULE_ID].originalState;
     if (!originalState) return;
 

@@ -420,5 +420,14 @@
     "VISAGE.Editor.Effects.NoUUID": "Žádné UUID",
     "VISAGE.Actions.CopyMacro": "Kopírovat API Makra",
     "VISAGE.Notifications.MacroCopied": "Visage | API Makra pro '{name}' bylo zkopírováno do schránky.",
-    "VISAGE.Editor.Effects.DragMacroHere": "Přetáhněte sem Makro Foundry"
+    "VISAGE.Editor.Effects.DragMacroHere": "Přetáhněte sem Makro Foundry",
+    "VISAGE.MassEdit.InterceptTitle": "Visage | Zachycení Mass Edit",
+    "VISAGE.MassEdit.InterceptContent": "<p>Pokoušíte se použít Mass Edit na <b>{count}</b> tokenu/tokenech s aktivními Visage.</p><p>Aby se zabránilo poškození dat, Visage je musí nejprve vrátit do původního stavu. Mass Edit se na okamžik zavře, aby vymazal svou mezipaměť.</p><p><i>(Pro obnovení těchto Visage jednoduše znovu otevřete a zavřete Mass Edit. Vezměte prosím na vědomí, že pro to nemusíte v Mass Edit dělat žádné změny.)</i></p><p><b>Chcete tyto tokeny vrátit nyní?</b></p>",
+    "VISAGE.MassEdit.CompleteTitle": "Visage | Mass Edit Dokončen",
+    "VISAGE.MassEdit.CompleteContent": "<p>Mass Edit byl zavřen.</p><p>Přejete si <b>obnovit</b> Visage, které byly dočasně odstraněny z vašich tokenů?</p>",
+    "VISAGE.Notifications.MassEditReverting": "Visage | Vracení tokenů pro bezpečnou úpravu...",
+    "VISAGE.Notifications.MassEditReverted": "Visage | Tokeny bezpečně vráceny! Znovu otevřete Mass Edit pro provedení změn. Poté budete vyzváni k obnovení vašich Visage.",
+    "VISAGE.Notifications.MassEditRestoring": "Visage | Obnovování vzhledu tokenů...",
+    "VISAGE.Notifications.MassEditRestored": "Visage | Vzhled tokenů obnoven.",
+    "VISAGE.Warnings.MassEditActive": "Visage | Používáte Mass Edit na tokeny s aktivními Visage! Mass Edit čte jejich současné Visage jako základní data. Úprava jakýchkoli nastavení tokenu zde může trvale přepsat původní data tokenu jejich současnými Visage."
 }
