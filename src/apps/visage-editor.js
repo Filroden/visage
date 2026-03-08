@@ -1950,10 +1950,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _getStatusEffectOptions() {
-        // Read from core Foundry config, format, and localize
+        // Read from core Foundry config, format, and localise, falling back to legacy 'label' if 'name' is missing
         const effects = CONFIG.statusEffects.map((s) => ({
             value: s.id,
-            label: game.i18n.localize(s.name),
+            label: game.i18n.localize(s.name || s.label),
         }));
 
         // Dynamically add ALL Active Effects currently applied to the Actor
