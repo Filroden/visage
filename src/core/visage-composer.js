@@ -252,15 +252,20 @@ export class VisageComposer {
     }
 
     /**
-     * Calculates the final texture orientation and anchor state based on the current stack priority.
+     * Calculates the final texture orientation, scale, and anchor state based on the current stack priority.
      * Iterates from the bottom of the stack (Identity) up to the top (Overlays).
      * @param {Array<Object>} stack - The active Visage stack.
      * @param {Object} [originalState] - The snapshot of the token before Visage was applied.
-     * @returns {Object} { anchorX, anchorY, mirrorX, mirrorY }
+     * @returns {Object} { anchorX, anchorY, scaleX, scaleY, mirrorX, mirrorY }
      */
     static resolveTextureState(stack, originalState) {
         let anchorX = originalState?.texture?.anchorX ?? 0.5;
         let anchorY = originalState?.texture?.anchorY ?? 0.5;
+
+        // Capture absolute scale, ignoring the sign which denotes the mirror state
+        let scaleX = Math.abs(originalState?.texture?.scaleX ?? 1);
+        let scaleY = Math.abs(originalState?.texture?.scaleY ?? 1);
+
         let mirrorX = (originalState?.texture?.scaleX ?? 1) < 0;
         let mirrorY = (originalState?.texture?.scaleY ?? 1) < 0;
 
@@ -271,10 +276,16 @@ export class VisageComposer {
             if (c.texture?.anchorX !== undefined && c.texture.anchorX !== null) anchorX = c.texture.anchorX;
             if (c.texture?.anchorY !== undefined && c.texture.anchorY !== null) anchorY = c.texture.anchorY;
 
+            // Capture atomic scale overrides
+            if (c.scale !== undefined && c.scale !== null) {
+                scaleX = c.scale;
+                scaleY = c.scale;
+            }
+
             if (c.mirrorX !== undefined && c.mirrorX !== null) mirrorX = c.mirrorX;
             if (c.mirrorY !== undefined && c.mirrorY !== null) mirrorY = c.mirrorY;
         }
 
-        return { anchorX, anchorY, mirrorX, mirrorY };
+        return { anchorX, anchorY, scaleX, scaleY, mirrorX, mirrorY };
     }
 }

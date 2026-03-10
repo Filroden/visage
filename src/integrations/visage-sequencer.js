@@ -56,12 +56,6 @@ export class VisageSequencer {
             anticipatedState = VisageComposer.resolveTextureState(stack, originalState);
         }
 
-        const { anchorX, anchorY, mirrorX: flipX, mirrorY: flipY } = anticipatedState;
-
-        // --- Invert the anchor if the token is flipped ---
-        const seqAnchorX = flipX ? 1.0 - anchorX : anchorX;
-        const seqAnchorY = flipY ? 1.0 - anchorY : anchorY;
-
         // --- A. VISUALS (Sequencer) ---
         if (visuals.length > 0) {
             try {
@@ -77,19 +71,16 @@ export class VisageSequencer {
                     const effectScale = effect.scale ?? 1.0;
 
                     // --- Dampen the anchor shift based on effect scale ---
-                    // This ensures a 300% scaled effect physically moves the exact
-                    // same number of pixels as the 100% scaled token art.
-                    const finalAnchorX = 0.5 - (0.5 - seqAnchorX) / effectScale;
-                    const finalAnchorY = 0.5 - (0.5 - seqAnchorY) / effectScale;
+                    const anchorData = this._calculateDampenedAnchor(anticipatedState, effectScale);
 
                     let seqEffect = sequence
                         .effect()
                         .file(path)
                         .attachTo(token)
-                        .scaleToObject(effectScale)
-                        .anchor({ x: finalAnchorX, y: finalAnchorY })
-                        .mirrorX(flipX)
-                        .mirrorY(flipY)
+                        .scaleToObject(effectScale, { considerTokenScale: true })
+                        .anchor({ x: anchorData.x, y: anchorData.y })
+                        .mirrorX(anchorData.flipX)
+                        .mirrorY(anchorData.flipY)
                         .opacity(effect.opacity ?? 1.0)
                         .rotate(effect.rotation ?? 0)
                         .belowTokens(effect.zOrder === "below")
@@ -450,10 +441,6 @@ export class VisageSequencer {
     static refreshMatrix(token, layerId, anticipatedState) {
         if (!VisageUtilities.hasSequencer) return;
 
-        const { anchorX, anchorY, mirrorX: flipX, mirrorY: flipY } = anticipatedState;
-        const seqAnchorX = flipX ? 1.0 - anchorX : anchorX;
-        const seqAnchorY = flipY ? 1.0 - anchorY : anchorY;
-
         // Fetch the original layer data so we know the scales of the running effects
         const currentStack = token.document.getFlag("visage", "activeStack") || [];
         const layer = currentStack.find((l) => l.id === layerId);
@@ -470,15 +457,36 @@ export class VisageSequencer {
             const visageEffect = visuals.find((v) => v.id === effectId);
             const effectScale = visageEffect?.scale ?? 1.0;
 
-            // Apply the dampened formula
-            const finalAnchorX = 0.5 - (0.5 - seqAnchorX) / effectScale;
-            const finalAnchorY = 0.5 - (0.5 - seqAnchorY) / effectScale;
+            // Apply the dampened formula via the single source of truth
+            const anchorData = this._calculateDampenedAnchor(anticipatedState, effectScale);
 
             effect.update({
-                anchor: { x: finalAnchorX, y: finalAnchorY },
-                mirrorX: flipX,
-                mirrorY: flipY,
+                anchor: { x: anchorData.x, y: anchorData.y },
+                mirrorX: anchorData.flipX,
+                mirrorY: anchorData.flipY,
             });
         }
+    }
+
+    /**
+     * Calculates the dampened anchor points for Sequencer visual effects.
+     * Compounds the effect scale with the token's texture scale to prevent
+     * alignment breaking when the token art visually outgrows its bounding box.
+     * @private
+     */
+    static _calculateDampenedAnchor(anticipatedState, effectScale = 1.0) {
+        const { anchorX, anchorY, mirrorX: flipX, mirrorY: flipY } = anticipatedState;
+
+        const seqAnchorX = flipX ? 1.0 - anchorX : anchorX;
+        const seqAnchorY = flipY ? 1.0 - anchorY : anchorY;
+
+        return {
+            // The anchor dampening MUST only divide by the effect's internal scale.
+            // The token's texture scale natively cancels out in the physical offset math.
+            x: 0.5 - (0.5 - seqAnchorX) / effectScale,
+            y: 0.5 - (0.5 - seqAnchorY) / effectScale,
+            flipX,
+            flipY,
+        };
     }
 }

@@ -1153,6 +1153,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const macroDoc = await fromUuid(uuid);
         if (!macroDoc) return;
 
+        // PRESERVE DOM STATE: Capture any unsaved text input before forcing a re-render
+        this._preservedData = this._prepareSaveData();
+
         const newEffect = {
             id: foundry.utils.randomID(16),
             type: "macro",

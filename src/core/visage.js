@@ -40,23 +40,28 @@ export class Visage {
             restoreMassEdit: VisageMassEdit.forceRestore.bind(VisageMassEdit),
         };
 
-        // Hook into Sequencer to ensure effects are restored when the scene loads
+        // 1. Sequencer-Specific Initialisation
         Hooks.once("sequencer.ready", () => {
             Visage.sequencerReady = true;
+            // If the scene is already fully drawn, restore immediately
             if (canvas.ready) Visage._restoreAll();
         });
 
-        // Restore effects when the canvas (scene) becomes ready
+        // 2. Core Scene Synchronisation
         Hooks.on("canvasReady", () => {
-            if (Visage.sequencerReady) setTimeout(() => Visage._restoreAll(), 100);
+            // Only restore if Sequencer has finished its own boot process
+            if (Visage.sequencerReady) {
+                Visage._restoreAll();
+            }
         });
 
-        // Restore effects on newly created tokens (e.g., drag-and-drop)
+        // 3. Token Generation
         Hooks.on("createToken", (tokenDoc, options, userId) => {
             if (game.user.id !== userId) return;
 
-            if (tokenDoc.object && Visage.sequencerReady) {
-                setTimeout(() => VisageSequencer.restore(tokenDoc.object), 250);
+            // Safely check both the physical object and the dependency natively
+            if (Visage.sequencerReady && tokenDoc.object) {
+                VisageSequencer.restore(tokenDoc.object);
             }
         });
 
@@ -123,11 +128,6 @@ export class Visage {
         const updateFlags = {};
 
         // --- Calculate the Matrix Diff ---
-        let originalState = token.document.getFlag(DATA_NAMESPACE, "originalState");
-        if (!originalState) originalState = VisageUtilities.extractVisualState(token.document);
-
-        const currentState = VisageComposer.resolveTextureState(currentStack, originalState);
-
         if (clearStack) {
             if (Visage.sequencerReady) await VisageSequencer.revert(token);
             stack = [];
@@ -147,15 +147,10 @@ export class Visage {
 
         updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
 
-        const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor.img);
+        // Call the single source of truth
+        const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
 
-        // Resolve the Anticipated State and check for physical shifts
-        const anticipatedState = VisageComposer.resolveTextureState(stack, originalState);
-        const matrixChanged =
-            currentState.anchorX !== anticipatedState.anchorX ||
-            currentState.anchorY !== anticipatedState.anchorY ||
-            currentState.mirrorX !== anticipatedState.mirrorX ||
-            currentState.mirrorY !== anticipatedState.mirrorY;
+        const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor.img);
 
         // 3. Define Orchestration Tasks
 
@@ -269,17 +264,8 @@ export class Visage {
         stack = stack.filter((l) => l.id !== maskId);
         if (stack.length === initialLength) return false;
 
-        // --- NEW: Matrix Synchronization ---
-        let originalState = token.document.getFlag(DATA_NAMESPACE, "originalState");
-        if (!originalState && stack.length > 0) originalState = VisageUtilities.extractVisualState(token.document);
-
-        const currentState = VisageComposer.resolveTextureState(currentStack, originalState);
-        const anticipatedState = VisageComposer.resolveTextureState(stack, originalState);
-        const matrixChanged =
-            currentState.anchorX !== anticipatedState.anchorX ||
-            currentState.anchorY !== anticipatedState.anchorY ||
-            currentState.mirrorX !== anticipatedState.mirrorX ||
-            currentState.mirrorY !== anticipatedState.mirrorY;
+        // Call the single source of truth
+        const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
 
         const updateFlags = {};
         if (currentIdentity === maskId) updateFlags[`flags.${DATA_NAMESPACE}.-=identity`] = null;
@@ -448,21 +434,11 @@ export class Visage {
         const layer = stack.find((l) => l.id === layerId);
         if (!layer) return;
 
-        // --- Matrix Setup ---
-        let originalState = token.document.getFlag(DATA_NAMESPACE, "originalState");
-        if (!originalState) originalState = VisageUtilities.extractVisualState(token.document);
-        const currentState = VisageComposer.resolveTextureState(currentStack, originalState);
-
-        // Toggle State
         layer.disabled = !layer.disabled;
         const isVisible = !layer.disabled;
 
-        const anticipatedState = VisageComposer.resolveTextureState(stack, originalState);
-        const matrixChanged =
-            currentState.anchorX !== anticipatedState.anchorX ||
-            currentState.anchorY !== anticipatedState.anchorY ||
-            currentState.mirrorX !== anticipatedState.mirrorX ||
-            currentState.mirrorY !== anticipatedState.mirrorY;
+        // Call the single source of truth
+        const { anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
 
         await token.document.update({ [`flags.${DATA_NAMESPACE}.activeStack`]: stack });
         await VisageComposer.compose(token);
@@ -523,5 +499,36 @@ export class Visage {
         if (Visage.sequencerReady && VisageSequencer.updateStackOrder) {
             await VisageSequencer.updateStackOrder(token);
         }
+    }
+
+    /**
+     * Evaluates the visual matrix difference between the current stack and the anticipated stack.
+     * Centralises the logic for detecting scale, anchor, and mirror changes.
+     * @param {TokenDocument} tokenDocument - The document of the target token.
+     * @param {Array<Object>} currentStack - The stack currently active on the token.
+     * @param {Array<Object>} newStack - The anticipated stack after changes are applied.
+     * @returns {Object} { originalState, anticipatedState, matrixChanged }
+     * @private
+     */
+    static _evaluateMatrixDiff(tokenDocument, currentStack, newStack) {
+        let originalState = tokenDocument.getFlag(DATA_NAMESPACE, "originalState");
+
+        // Safely extract the original state if it doesn't exist yet
+        if (!originalState && newStack.length > 0) {
+            originalState = VisageUtilities.extractVisualState(tokenDocument);
+        }
+
+        const currentState = VisageComposer.resolveTextureState(currentStack, originalState);
+        const anticipatedState = VisageComposer.resolveTextureState(newStack, originalState);
+
+        const matrixChanged =
+            currentState.anchorX !== anticipatedState.anchorX ||
+            currentState.anchorY !== anticipatedState.anchorY ||
+            currentState.mirrorX !== anticipatedState.mirrorX ||
+            currentState.mirrorY !== anticipatedState.mirrorY ||
+            currentState.scaleX !== anticipatedState.scaleX ||
+            currentState.scaleY !== anticipatedState.scaleY;
+
+        return { originalState, anticipatedState, matrixChanged };
     }
 }
