@@ -15,9 +15,7 @@ export class VisageUtilities {
      */
     static log(message, force = false) {
         // Integrate with _dev-mode module if available for standard debug toggling
-        const shouldLog =
-            force ||
-            game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID);
+        const shouldLog = force || game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID);
         if (shouldLog) console.log(`${MODULE_ID} | ${message}`);
     }
 
@@ -101,43 +99,24 @@ export class VisageUtilities {
             // Handle S3 Bucket parsing logic
             if (/\.s3\./i.test(processingPath)) {
                 source = "s3";
-                const { bucket, keyPrefix } =
-                    FilePickerClass.parseS3URL(processingPath);
+                const { bucket, keyPrefix } = FilePickerClass.parseS3URL(processingPath);
                 if (!bucket) return null;
                 browseOptions.bucket = bucket;
 
                 const lastSlash = keyPrefix.lastIndexOf("/");
-                directory =
-                    lastSlash >= 0 ? keyPrefix.slice(0, lastSlash + 1) : "";
-                pattern =
-                    lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
+                directory = lastSlash >= 0 ? keyPrefix.slice(0, lastSlash + 1) : "";
+                pattern = lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
             }
             // Handle Core Icons (Public)
-            else if (
-                processingPath.startsWith("icons/") ||
-                processingPath.startsWith("systems/") ||
-                processingPath.startsWith("modules/")
-            ) {
+            else if (processingPath.startsWith("icons/") || processingPath.startsWith("systems/") || processingPath.startsWith("modules/")) {
                 if (processingPath.startsWith("icons/")) source = "public";
                 const lastSlash = processingPath.lastIndexOf("/");
-                directory =
-                    lastSlash >= 0
-                        ? processingPath.slice(0, lastSlash + 1)
-                        : "";
-                pattern =
-                    lastSlash >= 0
-                        ? processingPath.slice(lastSlash + 1)
-                        : processingPath;
+                directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
+                pattern = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
             } else {
                 const lastSlash = processingPath.lastIndexOf("/");
-                directory =
-                    lastSlash >= 0
-                        ? processingPath.slice(0, lastSlash + 1)
-                        : "";
-                pattern =
-                    lastSlash >= 0
-                        ? processingPath.slice(lastSlash + 1)
-                        : processingPath;
+                directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
+                pattern = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
             }
 
             // Forge initialisation
@@ -158,17 +137,10 @@ export class VisageUtilities {
 
             // Convert wildcard pattern to a strict RegExp
             const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(
-                `^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`,
-                "i",
-            );
+            const regex = new RegExp(`^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
 
             // Perform the browse call to get file list
-            const content = await FilePickerClass.browse(
-                source,
-                directory,
-                browseOptions,
-            );
+            const content = await FilePickerClass.browse(source, directory, browseOptions);
             if (!content?.files?.length) return null;
 
             // Filter files returned by the server against our wildcard pattern
@@ -185,19 +157,13 @@ export class VisageUtilities {
 
             if (matches.length) {
                 // Return a random selection from the matched files
-                const choice =
-                    matches[Math.floor(Math.random() * matches.length)];
+                const choice = matches[Math.floor(Math.random() * matches.length)];
                 return choice;
             } else {
-                console.warn(
-                    `Visage | Wildcard Resolution Failed: No files matched pattern '${pattern}' in directory '${directory}' (Source: ${source})`,
-                );
+                console.warn(`Visage | Wildcard Resolution Failed: No files matched pattern '${pattern}' in directory '${directory}' (Source: ${source})`);
             }
         } catch (err) {
-            console.warn(
-                `Visage | Error resolving wildcard path: ${path}`,
-                err,
-            );
+            console.warn(`Visage | Error resolving wildcard path: ${path}`, err);
         }
 
         return null;
@@ -218,9 +184,7 @@ export class VisageUtilities {
         const source = data._source || data;
 
         // Fallback helper for nested properties which might not be in _source if they haven't been updated yet
-        const get = (key) =>
-            foundry.utils.getProperty(source, key) ??
-            foundry.utils.getProperty(data, key);
+        const get = (key) => foundry.utils.getProperty(source, key) ?? foundry.utils.getProperty(data, key);
 
         // Safely extract Ring data (Foundry V12+ Dynamic Token Rings)
         const ringData = source.ring?.toObject?.() ?? source.ring ?? {};
@@ -343,43 +307,28 @@ export class VisageUtilities {
             visage: {
                 version: module.version,
                 sequencerActive: game.modules.get("sequencer")?.active || false,
-                jb2aActive:
-                    game.modules.get("JB2A_DnD5e")?.active ||
-                    game.modules.get("jb2a_patreon")?.active ||
-                    false,
-                activeModules: game.modules
-                    .filter((m) => m.active)
-                    .map((m) => m.id),
+                jb2aActive: game.modules.get("JB2A_DnD5e")?.active || game.modules.get("jb2a_patreon")?.active || false,
+                activeModules: game.modules.filter((m) => m.active).map((m) => m.id),
             },
             data: {
-                globalLibrary:
-                    game.settings.get("visage", "globalVisages") || {},
+                globalLibrary: game.settings.get("visage", "globalVisages") || {},
             },
         };
 
         if (canvas.ready && canvas.tokens.controlled.length > 0) {
-            diagnosticData.data.selectedTokens = canvas.tokens.controlled.map(
-                (t) => ({
-                    name: t.name,
-                    actorId: t.actor?.id,
-                    localVisages:
-                        t.actor?.flags?.visage?.alternateVisages || {},
-                    activeStack: t.document.flags?.visage?.activeStack || [],
-                    identity: t.document.flags?.visage?.identity || null,
-                }),
-            );
+            diagnosticData.data.selectedTokens = canvas.tokens.controlled.map((t) => ({
+                name: t.name,
+                actorId: t.actor?.id,
+                localVisages: t.actor?.flags?.visage?.alternateVisages || {},
+                activeStack: t.document.flags?.visage?.activeStack || [],
+                identity: t.document.flags?.visage?.identity || null,
+            }));
         }
 
         const filename = `Visage_Diagnostics_${Date.now()}.json`;
-        foundry.utils.saveDataToFile(
-            JSON.stringify(diagnosticData, null, 2),
-            "application/json",
-            filename,
-        );
+        foundry.utils.saveDataToFile(JSON.stringify(diagnosticData, null, 2), "application/json", filename);
 
         // Using the new localization key
-        ui.notifications.info(
-            game.i18n.localize("VISAGE.Notifications.ExportSuccess"),
-        );
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.ExportSuccess"));
     }
 }

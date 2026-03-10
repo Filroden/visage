@@ -103,27 +103,23 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             addVisual: VisageEditor.prototype._onAddVisual,
             addAudio: VisageEditor.prototype._onAddAudio,
             editEffect: VisageEditor.prototype._onEditEffect,
-            closeEffectInspector:
-                VisageEditor.prototype._onCloseEffectInspector,
+            closeEffectInspector: VisageEditor.prototype._onCloseEffectInspector,
             deleteEffect: VisageEditor.prototype._onDeleteEffect,
             toggleEffect: VisageEditor.prototype._onToggleEffect,
             toggleLoop: VisageEditor.prototype._onToggleLoop,
             replayPreview: VisageEditor.prototype._onReplayPreview,
-            openSequencerDatabase:
-                VisageEditor.prototype._onOpenSequencerDatabase,
+            openSequencerDatabase: VisageEditor.prototype._onOpenSequencerDatabase,
             toggleLight: VisageEditor.prototype._onToggleLight,
             editLight: VisageEditor.prototype._onEditLight,
             toggleRing: VisageEditor.prototype._onToggleRing,
             editRing: VisageEditor.prototype._onEditRing,
-            toggleDelayDirection:
-                VisageEditor.prototype._onToggleDelayDirection,
+            toggleDelayDirection: VisageEditor.prototype._onToggleDelayDirection,
             toggleAutomation: VisageEditor.prototype._onToggleAutomation,
             toggleLogic: VisageEditor.prototype._onToggleLogic,
             addCondition: VisageEditor.prototype._onAddCondition,
             editCondition: VisageEditor.prototype._onEditCondition,
             deleteCondition: VisageEditor.prototype._onDeleteCondition,
-            closeConditionInspector:
-                VisageEditor.prototype._onCloseConditionInspector,
+            closeConditionInspector: VisageEditor.prototype._onCloseConditionInspector,
             openAttributePicker: VisageEditor.prototype._onOpenAttributePicker,
             toggleCondition: VisageEditor.prototype._onToggleCondition,
             openTimeline: VisageEditor.prototype._onOpenTimeline,
@@ -203,10 +199,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             resolvedPath: resolvedPath,
         });
         const inspectorData = this._buildInspectorContext();
-        const stageData = this._buildStagePreviewContext(
-            data.changes || {},
-            context,
-        );
+        const stageData = this._buildStagePreviewContext(data.changes || {}, context);
 
         // 3. Collect Global Categories & Tags
         const allVisages = VisageData.globals;
@@ -214,8 +207,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const tagSet = new Set();
         allVisages.forEach((v) => {
             if (v.category) categorySet.add(v.category);
-            if (v.tags && Array.isArray(v.tags))
-                v.tags.forEach((t) => tagSet.add(t));
+            if (v.tags && Array.isArray(v.tags)) v.tags.forEach((t) => tagSet.add(t));
         });
 
         // 4. Input Preparation Helpers
@@ -242,20 +234,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     };
                     const modeStr = c.mode === "percent" ? "%" : "";
                     // Fallback to 0 only if value is null/undefined to preserve "false" or empty strings
-                    const displayValue =
-                        c.value !== null && c.value !== undefined ? c.value : 0;
+                    const displayValue = c.value !== null && c.value !== undefined ? c.value : 0;
 
                     c.summary = `${c.path || "..."} ${opMap[c.operator] || ""} ${displayValue}${modeStr}`;
                 } else if (c.type === "status") {
                     c.summary = `${c.statusId || "..."} (${c.operator === "active" ? "Applied" : "Removed"})`;
                 } else if (c.type === "event") {
                     if (c.eventId === "elevation" || c.eventId === "darkness") {
-                        const op =
-                            c.operator === "gt"
-                                ? ">"
-                                : c.operator === "lt"
-                                  ? "<"
-                                  : "==";
+                        const op = c.operator === "gt" ? ">" : c.operator === "lt" ? "<" : "==";
                         c.summary = `${c.eventId} ${op} ${c.value || 0}`;
                     } else if (c.eventId === "region") {
                         c.summary = `Region: ${c.regionId || "?"} (${c.operator === "active" ? "Inside" : "Outside"})`;
@@ -295,8 +281,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 active: this._ringData.enabled,
             },
             ringSubjectTexture: {
-                active:
-                    this._ringData.enabled && !!this._ringData.subject?.texture,
+                active: this._ringData.enabled && !!this._ringData.subject?.texture,
             },
             inspector: inspectorData,
             automation: this._automationData,
@@ -310,27 +295,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 active: c.scale != null,
             },
             anchor: {
-                active:
-                    c.texture?.anchorX != null || c.texture?.anchorY != null,
+                active: c.texture?.anchorX != null || c.texture?.anchorY != null,
                 x: c.texture?.anchorX ?? 0.5,
                 y: c.texture?.anchorY ?? 0.5,
             },
             isFlippedX: { value: c.mirrorX, active: c.mirrorX != null },
             isFlippedY: { value: c.mirrorY, active: c.mirrorY != null },
             alpha: {
-                value:
-                    c.alpha !== undefined && c.alpha !== null
-                        ? Math.round(c.alpha * 100)
-                        : 100,
+                value: c.alpha !== undefined && c.alpha !== null ? Math.round(c.alpha * 100) : 100,
                 active: c.alpha != null,
             },
             lockRotation: {
-                value:
-                    c.lockRotation === true
-                        ? "true"
-                        : c.lockRotation === false
-                          ? "false"
-                          : "",
+                value: c.lockRotation === true ? "true" : c.lockRotation === false ? "false" : "",
                 active: true,
             },
             width: prep(c.width, 1),
@@ -348,43 +324,27 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
         // Form Event Delegation
-        const debouncedUpdate = foundry.utils.debounce(
-            () => this._updatePreview(),
-            50,
-        );
+        const debouncedUpdate = foundry.utils.debounce(() => this._updatePreview(), 50);
         this.element.addEventListener("change", (e) => {
             this._markDirty();
 
             // If the user changes an Inspector type/mode, we must fully re-render to swap the dynamic form fields
-            if (
-                e.target.name === "inspector.eventId" ||
-                e.target.name === "inspector.dataType" ||
-                e.target.name === "inspector.mode"
-            ) {
+            if (e.target.name === "inspector.eventId" || e.target.name === "inspector.dataType" || e.target.name === "inspector.mode") {
                 this.render();
                 return;
             }
 
-            if (
-                e.target.matches(
-                    "select, input[type='text'], input[type='checkbox'], input[type='radio']",
-                )
-            )
-                this._updatePreview();
+            if (e.target.matches("select, input[type='text'], input[type='checkbox'], input[type='radio']")) this._updatePreview();
         });
 
         // Setup Range Sliders
-        this.element
-            .querySelectorAll('input[type="range"]')
-            .forEach((slider) => {
-                slider.addEventListener("input", () => {
-                    this._markDirty();
-                    debouncedUpdate();
-                });
-                slider.addEventListener("dblclick", (ev) =>
-                    this._resetSliderDefault(ev),
-                );
+        this.element.querySelectorAll('input[type="range"]').forEach((slider) => {
+            slider.addEventListener("input", () => {
+                this._markDirty();
+                debouncedUpdate();
             });
+            slider.addEventListener("dblclick", (ev) => this._resetSliderDefault(ev));
+        });
 
         // Bind Sub-systems
         this.element.addEventListener("input", () => this._markDirty());
@@ -424,11 +384,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Text input debouncing
         let textTimer;
         this.element.addEventListener("input", (e) => {
-            if (
-                e.target.matches(
-                    "input[type='text'], input[type='number'], color-picker, range-picker",
-                )
-            ) {
+            if (e.target.matches("input[type='text'], input[type='number'], color-picker, range-picker")) {
                 clearTimeout(textTimer);
                 textTimer = setTimeout(() => this._updatePreview(), 200);
             }
@@ -436,20 +392,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Tabs & Viewport Init
         this.element.querySelectorAll(".visage-tabs .item").forEach((t) => {
-            t.addEventListener("click", (e) =>
-                this._activateTab(e.currentTarget.dataset.tab),
-            );
+            t.addEventListener("click", (e) => this._activateTab(e.currentTarget.dataset.tab));
         });
         if (this._activeTab) this._activateTab(this._activeTab);
         if (this._activeEffectId || this._editingLight || this._editingRing) {
-            this.element
-                .querySelector(".effects-tab-container")
-                ?.classList.add("editing");
+            this.element.querySelector(".effects-tab-container")?.classList.add("editing");
         }
         if (this._activeConditionId) {
-            this.element
-                .querySelector(".triggers-tab-container")
-                ?.classList.add("editing");
+            this.element.querySelector(".triggers-tab-container")?.classList.add("editing");
         }
 
         this._updatePreview();
@@ -458,12 +408,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._applyStageTransform();
 
         if (this._showGrid) {
-            this.element
-                .querySelector(".visage-live-preview-stage")
-                ?.classList.add("show-grid");
-            const btn = this.element.querySelector(
-                '[data-action="toggleGrid"] i',
-            );
+            this.element.querySelector(".visage-live-preview-stage")?.classList.add("show-grid");
+            const btn = this.element.querySelector('[data-action="toggleGrid"] i');
             if (btn) btn.className = "visage-icon grid-off";
         }
 
@@ -476,30 +422,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _getInitialData() {
         if (this.visageId) {
-            const data = this.isLocal
-                ? VisageData.getLocal(this.actor).find(
-                      (v) => v.id === this.visageId,
-                  )
-                : VisageData.getGlobal(this.visageId);
+            const data = this.isLocal ? VisageData.getLocal(this.actor).find((v) => v.id === this.visageId) : VisageData.getGlobal(this.visageId);
             if (data) this._currentLabel = data.label;
             return data;
         } else {
             this._currentLabel = "";
             if (this.isLocal) {
-                const token =
-                    canvas.tokens.get(this.tokenId) ||
-                    this.actor.prototypeToken;
-                const data = VisageData.getDefaultAsVisage(
-                    token.document || token,
-                );
+                const token = canvas.tokens.get(this.tokenId) || this.actor.prototypeToken;
+                const data = VisageData.getDefaultAsVisage(token.document || token);
                 data.label = "New Visage";
                 data.id = null;
                 return data;
             } else {
                 return {
-                    label: game.i18n.localize(
-                        "VISAGE.GlobalEditor.TitleNew.Global",
-                    ),
+                    label: game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global"),
                     category: "",
                     tags: [],
                     changes: {},
@@ -513,8 +449,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const c = data.changes || {};
 
         // Effects Sync
-        if (this._effects === null)
-            this._effects = c.effects ? foundry.utils.deepClone(c.effects) : [];
+        if (this._effects === null) this._effects = c.effects ? foundry.utils.deepClone(c.effects) : [];
 
         // Light Data Sync
         if (this._lightData === null) {
@@ -528,9 +463,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 priority: 0,
                 animation: { type: "", speed: 5, intensity: 5 },
             };
-            this._lightData = c.light
-                ? { active: !!this.visageId, ...defaultLight, ...c.light }
-                : { active: false, ...defaultLight };
+            this._lightData = c.light ? { active: !!this.visageId, ...defaultLight, ...c.light } : { active: false, ...defaultLight };
         }
 
         // Dynamic Ring Sync
@@ -551,47 +484,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Automation Sync
         if (this._automationData === null) {
-            this._automationData = data.automation
-                ? foundry.utils.deepClone(data.automation)
-                : VisageData.getDefaultAutomation();
+            this._automationData = data.automation ? foundry.utils.deepClone(data.automation) : VisageData.getDefaultAutomation();
         }
     }
 
     _buildInspectorContext() {
         const formatEffect = (e) => ({
             ...e,
-            icon:
-                e.type === "audio"
-                    ? "visage-icon audio"
-                    : e.type === "macro"
-                      ? "visage-icon macro"
-                      : "visage-icon visual",
+            icon: e.type === "audio" ? "visage-icon audio" : e.type === "macro" ? "visage-icon macro" : "visage-icon visual",
             metaLabel:
                 e.type === "audio"
                     ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((e.opacity ?? 1) * 100)}%`
                     : e.type === "macro"
-                      ? e.uuid ||
-                        game.i18n.localize("VISAGE.Editor.Effects.NoUUID")
+                      ? e.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID")
                       : `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1) * 100)}%`,
         });
 
         const inspectorData = {
-            hasEffects:
-                this._effects.length > 0 ||
-                this._lightData.active ||
-                this._ringData.enabled,
-            effectsAbove: this._effects
-                .filter((e) => e.type === "visual" && e.zOrder === "above")
-                .map(formatEffect),
-            effectsBelow: this._effects
-                .filter((e) => e.type === "visual" && e.zOrder === "below")
-                .map(formatEffect),
-            effectsAudio: this._effects
-                .filter((e) => e.type === "audio")
-                .map(formatEffect),
-            effectsMacro: this._effects
-                .filter((e) => e.type === "macro")
-                .map(formatEffect),
+            hasEffects: this._effects.length > 0 || this._lightData.active || this._ringData.enabled,
+            effectsAbove: this._effects.filter((e) => e.type === "visual" && e.zOrder === "above").map(formatEffect),
+            effectsBelow: this._effects.filter((e) => e.type === "visual" && e.zOrder === "below").map(formatEffect),
+            effectsAudio: this._effects.filter((e) => e.type === "audio").map(formatEffect),
+            effectsMacro: this._effects.filter((e) => e.type === "macro").map(formatEffect),
             type: null,
         };
 
@@ -606,9 +520,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 animation: this._lightData.animation,
             });
         } else if (this._activeEffectId) {
-            const effect = this._effects.find(
-                (e) => e.id === this._activeEffectId,
-            );
+            const effect = this._effects.find((e) => e.id === this._activeEffectId);
             if (effect) {
                 foundry.utils.mergeObject(inspectorData, {
                     id: effect.id,
@@ -629,9 +541,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 });
             }
         } else if (this._activeConditionId) {
-            const condition = this._automationData.conditions.find(
-                (c) => c.id === this._activeConditionId,
-            );
+            const condition = this._automationData.conditions.find((c) => c.id === this._activeConditionId);
             if (condition) {
                 inspectorData.conditionId = condition.id;
                 inspectorData.condition = condition;
@@ -642,13 +552,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _buildStagePreviewContext(c, context) {
         const gridDist = canvas.scene?.grid?.distance || 5;
-        const lMax = Math.max(
-            this._lightData?.dim || 0,
-            this._lightData?.bright || 0,
-        );
+        const lMax = Math.max(this._lightData?.dim || 0, this._lightData?.bright || 0);
         const sizeRatio = lMax > 0 ? (lMax * 2) / gridDist / (c.width || 1) : 1;
-        const brightPct =
-            lMax > 0 ? ((this._lightData?.bright || 0) / lMax) * 100 : 0;
+        const brightPct = lMax > 0 ? ((this._lightData?.bright || 0) / lMax) * 100 : 0;
         const speed = this._lightData.animation?.speed ?? 5;
 
         return {
@@ -675,9 +581,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     // ==========================================
 
     _prepareSaveData() {
-        const formData = new foundry.applications.ux.FormDataExtended(
-            this.element,
-        ).object;
+        const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
 
         // 1. Sync internal state from form
         this._syncStateFromForm(formData);
@@ -689,21 +593,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _syncStateFromForm(formData) {
         const getVal = (key, type = String) => {
             const val = foundry.utils.getProperty(formData, key);
-            return val === "" || val === null || val === undefined
-                ? null
-                : type(val);
+            return val === "" || val === null || val === undefined ? null : type(val);
         };
 
         // Light Sync
         if (this._editingLight) {
-            [
-                "dim",
-                "bright",
-                "alpha",
-                "angle",
-                "luminosity",
-                "priority",
-            ].forEach((k) => {
+            ["dim", "bright", "alpha", "angle", "luminosity", "priority"].forEach((k) => {
                 const v = getVal(`light.${k}`, Number);
                 if (v !== null) this._lightData[k] = v;
             });
@@ -714,62 +609,44 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (animType !== null) {
                 this._lightData.animation = this._lightData.animation || {};
                 this._lightData.animation.type = animType;
-                this._lightData.animation.speed =
-                    getVal("light.animation.speed", Number) ?? 5;
-                this._lightData.animation.intensity =
-                    getVal("light.animation.intensity", Number) ?? 5;
+                this._lightData.animation.speed = getVal("light.animation.speed", Number) ?? 5;
+                this._lightData.animation.intensity = getVal("light.animation.intensity", Number) ?? 5;
             }
         }
 
         // Effect Sync
         const renderedEffectId = formData["inspector.effectId"];
         if (renderedEffectId) {
-            const activeEffect = this._effects.find(
-                (e) => e.id === renderedEffectId,
-            );
+            const activeEffect = this._effects.find((e) => e.id === renderedEffectId);
             if (activeEffect) {
-                activeEffect.label =
-                    getVal("effectLabel") ?? activeEffect.label;
+                activeEffect.label = getVal("effectLabel") ?? activeEffect.label;
                 activeEffect.path = getVal("effectPath") ?? activeEffect.path;
 
                 if (activeEffect.type === "visual") {
                     const scaleVal = getVal("effectScale", Number);
-                    if (scaleVal !== null && !isNaN(scaleVal))
-                        activeEffect.scale = scaleVal / 100;
+                    if (scaleVal !== null && !isNaN(scaleVal)) activeEffect.scale = scaleVal / 100;
 
                     const opacityVal = getVal("effectOpacity", Number);
-                    if (opacityVal !== null && !isNaN(opacityVal))
-                        activeEffect.opacity = opacityVal;
+                    if (opacityVal !== null && !isNaN(opacityVal)) activeEffect.opacity = opacityVal;
 
-                    activeEffect.blendMode =
-                        getVal("effectBlendMode") ?? activeEffect.blendMode;
+                    activeEffect.blendMode = getVal("effectBlendMode") ?? activeEffect.blendMode;
 
                     const rotationVal = getVal("effectRotation", Number);
-                    if (rotationVal !== null && !isNaN(rotationVal))
-                        activeEffect.rotation = rotationVal;
+                    if (rotationVal !== null && !isNaN(rotationVal)) activeEffect.rotation = rotationVal;
 
-                    activeEffect.rotationRandom =
-                        !!formData.effectRotationRandom;
-                    activeEffect.zOrder =
-                        getVal("effectZIndex") ?? activeEffect.zOrder;
-                    activeEffect.delay =
-                        getVal("effectDelay", Number) ?? activeEffect.delay;
+                    activeEffect.rotationRandom = !!formData.effectRotationRandom;
+                    activeEffect.zOrder = getVal("effectZIndex") ?? activeEffect.zOrder;
+                    activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
                 } else if (activeEffect.type === "audio") {
                     const volVal = getVal("effectVolume", Number);
-                    if (volVal !== null && !isNaN(volVal))
-                        activeEffect.opacity = volVal;
+                    if (volVal !== null && !isNaN(volVal)) activeEffect.opacity = volVal;
 
-                    activeEffect.delay =
-                        getVal("effectDelay", Number) ?? activeEffect.delay;
-                    activeEffect.fadeIn =
-                        getVal("effectFadeIn", Number) ?? activeEffect.fadeIn;
-                    activeEffect.fadeOut =
-                        getVal("effectFadeOut", Number) ?? activeEffect.fadeOut;
+                    activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
+                    activeEffect.fadeIn = getVal("effectFadeIn", Number) ?? activeEffect.fadeIn;
+                    activeEffect.fadeOut = getVal("effectFadeOut", Number) ?? activeEffect.fadeOut;
                 } else if (activeEffect.type === "macro") {
-                    activeEffect.uuid =
-                        getVal("effectUuid") ?? activeEffect.uuid;
-                    activeEffect.delay =
-                        getVal("effectDelay", Number) ?? activeEffect.delay;
+                    activeEffect.uuid = getVal("effectUuid") ?? activeEffect.uuid;
+                    activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
                 }
             }
         }
@@ -778,8 +655,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this._editingRing && formData.ringColor !== undefined) {
             let effectsMask = 0;
             for (const [k, v] of Object.entries(formData)) {
-                if (k.startsWith("effect_") && v === true)
-                    effectsMask |= parseInt(k.split("_")[1]);
+                if (k.startsWith("effect_") && v === true) effectsMask |= parseInt(k.split("_")[1]);
             }
             this._ringData.colors.ring = formData.ringColor;
             this._ringData.colors.background = formData.ringBackgroundColor;
@@ -790,39 +666,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Automation Sync
         if (this._automationData) {
-            this._automationData.enabled =
-                formData["automation.enabled"] ?? false;
+            this._automationData.enabled = formData["automation.enabled"] ?? false;
 
             // Sync Action and Priority
-            if (!this._automationData.onEnter)
-                this._automationData.onEnter = { action: "apply", priority: 0 };
-            this._automationData.onEnter.action =
-                formData["automation.onEnter.action"] ??
-                this._automationData.onEnter.action;
-            this._automationData.onEnter.priority =
-                getVal("automation.onEnter.priority", Number) ??
-                this._automationData.onEnter.priority;
+            if (!this._automationData.onEnter) this._automationData.onEnter = { action: "apply", priority: 0 };
+            this._automationData.onEnter.action = formData["automation.onEnter.action"] ?? this._automationData.onEnter.action;
+            this._automationData.onEnter.priority = getVal("automation.onEnter.priority", Number) ?? this._automationData.onEnter.priority;
 
             const renderedConditionId = formData["inspector.conditionId"];
             if (renderedConditionId) {
-                const cond = this._automationData.conditions.find(
-                    (c) => c.id === renderedConditionId,
-                );
+                const cond = this._automationData.conditions.find((c) => c.id === renderedConditionId);
                 if (cond) {
                     if (cond.type === "attribute") {
                         cond.path = getVal("inspector.path") ?? cond.path;
                         // Grab the data type
-                        cond.dataType =
-                            getVal("inspector.dataType") ??
-                            cond.dataType ??
-                            "number";
-                        cond.operator =
-                            getVal("inspector.operator") ?? cond.operator;
+                        cond.dataType = getVal("inspector.dataType") ?? cond.dataType ?? "number";
+                        cond.operator = getVal("inspector.operator") ?? cond.operator;
                         cond.mode = getVal("inspector.mode") ?? cond.mode;
-                        cond.denominatorPath =
-                            getVal("inspector.denominatorPath") ??
-                            cond.denominatorPath ??
-                            "";
+                        cond.denominatorPath = getVal("inspector.denominatorPath") ?? cond.denominatorPath ?? "";
                         // Parse value based on the chosen data type
                         if (cond.dataType === "boolean") {
                             cond.value = getVal("inspector.value") === "true";
@@ -834,41 +695,27 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                             if (val !== null && !isNaN(val)) cond.value = val;
                         }
                     } else if (cond.type === "status") {
-                        cond.statusId =
-                            getVal("inspector.statusId") ?? cond.statusId;
-                        cond.customStatus =
-                            getVal("inspector.customStatus") ??
-                            cond.customStatus;
-                        cond.operator =
-                            getVal("inspector.operator") ?? cond.operator;
+                        cond.statusId = getVal("inspector.statusId") ?? cond.statusId;
+                        cond.customStatus = getVal("inspector.customStatus") ?? cond.customStatus;
+                        cond.operator = getVal("inspector.operator") ?? cond.operator;
                     } else if (cond.type === "event") {
-                        const newEventId =
-                            getVal("inspector.eventId") ?? cond.eventId;
+                        const newEventId = getVal("inspector.eventId") ?? cond.eventId;
 
                         // Safety: If the user changes the event type, reset the variables so math doesn't break
                         if (cond.eventId !== newEventId) {
-                            cond.operator =
-                                newEventId === "elevation" ||
-                                newEventId === "darkness"
-                                    ? "gt"
-                                    : "active";
+                            cond.operator = newEventId === "elevation" || newEventId === "darkness" ? "gt" : "active";
                             cond.value = newEventId === "darkness" ? 0.5 : 0;
                             cond.regionId = "";
                         }
 
                         cond.eventId = newEventId;
-                        cond.operator =
-                            getVal("inspector.operator") ?? cond.operator;
+                        cond.operator = getVal("inspector.operator") ?? cond.operator;
 
-                        if (
-                            cond.eventId === "elevation" ||
-                            cond.eventId === "darkness"
-                        ) {
+                        if (cond.eventId === "elevation" || cond.eventId === "darkness") {
                             const val = getVal("inspector.value", Number);
                             if (val !== null && !isNaN(val)) cond.value = val;
                         } else if (cond.eventId === "region") {
-                            cond.regionId =
-                                getVal("inspector.regionId") ?? cond.regionId;
+                            cond.regionId = getVal("inspector.regionId") ?? cond.regionId;
                         }
                     }
                 }
@@ -879,36 +726,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _buildChangesPayload(formData) {
         const getVal = (key, type = String) => {
             const val = foundry.utils.getProperty(formData, key);
-            return val === "" || val === null || val === undefined
-                ? null
-                : type(val);
+            return val === "" || val === null || val === undefined ? null : type(val);
         };
         const changes = {};
 
         // A. Omit inactive token properties by explicitly sending 'null' so Foundry deletes them
         if (formData.nameOverride_active) changes.name = formData.nameOverride;
         else changes.name = null;
-        if (formData.scale_active)
-            changes.scale = getVal("scale", Number) / 100;
+        if (formData.scale_active) changes.scale = getVal("scale", Number) / 100;
         else changes.scale = null;
-        if (formData.isFlippedX !== "")
-            changes.mirrorX = formData.isFlippedX === "true";
+        if (formData.isFlippedX !== "") changes.mirrorX = formData.isFlippedX === "true";
         else changes.mirrorX = null;
-        if (formData.isFlippedY !== "")
-            changes.mirrorY = formData.isFlippedY === "true";
+        if (formData.isFlippedY !== "") changes.mirrorY = formData.isFlippedY === "true";
         else changes.mirrorY = null;
-        if (formData.alpha_active)
-            changes.alpha = getVal("alpha", Number) / 100;
+        if (formData.alpha_active) changes.alpha = getVal("alpha", Number) / 100;
         else changes.alpha = null;
         if (formData.width_active) changes.width = getVal("width", Number);
         else changes.width = null;
         if (formData.height_active) changes.height = getVal("height", Number);
         else changes.height = null;
-        if (formData.lockRotation !== "")
-            changes.lockRotation = formData.lockRotation === "true";
+        if (formData.lockRotation !== "") changes.lockRotation = formData.lockRotation === "true";
         else changes.lockRotation = null;
-        if (formData.disposition_active)
-            changes.disposition = getVal("disposition", Number);
+        if (formData.disposition_active) changes.disposition = getVal("disposition", Number);
         else changes.disposition = null;
         if (formData.portrait_active) changes.portrait = formData.portrait;
         else changes.portrait = null;
@@ -945,9 +784,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             id: this.visageId,
             label: formData.label,
             category: formData.category,
-            tags: formData.tags
-                ? formData.tags.split(",").filter((t) => t.trim())
-                : [],
+            tags: formData.tags ? formData.tags.split(",").filter((t) => t.trim()) : [],
             mode: formData.mode,
             public: formData.public === "true",
             automation: cleanAutomation,
@@ -958,26 +795,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onSave(event) {
         event.preventDefault();
         const payload = this._prepareSaveData();
-        if (!payload.label)
-            return ui.notifications.warn(
-                game.i18n.localize("VISAGE.Notifications.LabelRequired"),
-            );
+        if (!payload.label) return ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.LabelRequired"));
 
         try {
             await VisageData.save(payload, this.isLocal ? this.actor : null);
-            ui.notifications.info(
-                game.i18n.format(
-                    this.visageId
-                        ? "VISAGE.Notifications.Updated"
-                        : "VISAGE.Notifications.Created",
-                    { name: payload.label },
-                ),
-            );
+            ui.notifications.info(game.i18n.format(this.visageId ? "VISAGE.Notifications.Updated" : "VISAGE.Notifications.Created", { name: payload.label }));
             this.close();
         } catch (err) {
-            ui.notifications.error(
-                game.i18n.localize("VISAGE.Notifications.SaveFailed"),
-            );
+            ui.notifications.error(game.i18n.localize("VISAGE.Notifications.SaveFailed"));
             console.error(err);
         }
     }
@@ -993,12 +818,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onResetSettings() {
         // Uncheck all intents
-        this.element
-            .querySelectorAll('input[type="checkbox"][name$="_active"]')
-            .forEach((cb) => {
-                cb.checked = false;
-                this._onToggleField(null, cb);
-            });
+        this.element.querySelectorAll('input[type="checkbox"][name$="_active"]').forEach((cb) => {
+            cb.checked = false;
+            this._onToggleField(null, cb);
+        });
 
         // Clear Memory
         this._ringData = {
@@ -1021,9 +844,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this._updatePreview();
         this.render();
-        ui.notifications.info(
-            game.i18n.localize("VISAGE.Notifications.SettingsReset"),
-        );
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.SettingsReset"));
     }
 
     // ==========================================
@@ -1033,10 +854,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onToggleField(event, target) {
         const fieldName = target.dataset.target;
         const group = target.closest(".form-group");
-        const inputs =
-            fieldName === "anchor"
-                ? group.querySelectorAll('[name="anchorX"], [name="anchorY"]')
-                : group.querySelectorAll(`[name="${fieldName}"]`);
+        const inputs = fieldName === "anchor" ? group.querySelectorAll('[name="anchorX"], [name="anchorY"]') : group.querySelectorAll(`[name="${fieldName}"]`);
 
         inputs.forEach((input) => (input.disabled = !target.checked));
         const button = group.querySelector("button.file-picker-button");
@@ -1047,10 +865,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async _onOpenFilePicker(event, target) {
-        const input =
-            target.previousElementSibling?.tagName === "BUTTON"
-                ? target.parentElement.querySelector("input")
-                : target.previousElementSibling;
+        const input = target.previousElementSibling?.tagName === "BUTTON" ? target.parentElement.querySelector("input") : target.previousElementSibling;
         let source = "data";
         const browseOptions = {};
 
@@ -1064,8 +879,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     /* Ignore */
                 }
             }
-            if (foundry.applications.apps.FilePicker.sources?.forgevtt)
-                source = "forgevtt";
+            if (foundry.applications.apps.FilePicker.sources?.forgevtt) source = "forgevtt";
         }
 
         const fp = new foundry.applications.apps.FilePicker.implementation({
@@ -1097,21 +911,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _activateTab(tabName) {
         this._activeTab = tabName;
-        this.element
-            .querySelectorAll(".visage-tabs .item")
-            .forEach((n) =>
-                n.classList.toggle("active", n.dataset.tab === tabName),
-            );
-        this.element
-            .querySelectorAll(".visage-tab-content .tab")
-            .forEach((c) => {
-                const isActive = c.dataset.tab === tabName;
-                c.classList.toggle("active", isActive);
-                if (isActive && tabName === "effects")
-                    c.querySelector(".effects-tab-container")?.classList.remove(
-                        "active",
-                    );
-            });
+        this.element.querySelectorAll(".visage-tabs .item").forEach((n) => n.classList.toggle("active", n.dataset.tab === tabName));
+        this.element.querySelectorAll(".visage-tab-content .tab").forEach((c) => {
+            const isActive = c.dataset.tab === tabName;
+            c.classList.toggle("active", isActive);
+            if (isActive && tabName === "effects") c.querySelector(".effects-tab-container")?.classList.remove("active");
+        });
     }
 
     // -- Sub-Editors --
@@ -1149,19 +954,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
     _onToggleDelayDirection(event, target) {
-        const btns = this.element.querySelectorAll(
-            ".delay-direction-toggle button",
-        );
+        const btns = this.element.querySelectorAll(".delay-direction-toggle button");
         btns.forEach((b) => b.classList.remove("active"));
         target.classList.add("active");
-        const seconds =
-            parseFloat(
-                this.element.querySelector('range-picker[name="delayValue"]')
-                    .value,
-            ) || 0;
-        this._delayData =
-            Math.round(seconds * 1000) *
-            (target.dataset.value === "after" ? 1 : -1);
+        const seconds = parseFloat(this.element.querySelector('range-picker[name="delayValue"]').value) || 0;
+        this._delayData = Math.round(seconds * 1000) * (target.dataset.value === "after" ? 1 : -1);
         this._markDirty();
     }
     _onToggleAutomation(event, target) {
@@ -1207,9 +1004,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingRing = false;
 
         // Ensure UI focuses the inspector
-        this.element
-            .querySelector(".triggers-tab-container")
-            ?.classList.add("editing");
+        this.element.querySelector(".triggers-tab-container")?.classList.add("editing");
 
         this._markDirty();
         this.render();
@@ -1225,17 +1020,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         event.stopPropagation(); // Prevent _onEditCondition from firing
         const id = target.closest(".effect-card").dataset.id;
 
-        this._automationData.conditions =
-            this._automationData.conditions.filter((c) => c.id !== id);
+        this._automationData.conditions = this._automationData.conditions.filter((c) => c.id !== id);
         if (this._activeConditionId === id) this._activeConditionId = null;
 
         this._markDirty();
         this.render();
     }
     async _onCloseConditionInspector() {
-        this.element
-            .querySelector(".triggers-tab-container")
-            ?.classList.remove("editing");
+        this.element.querySelector(".triggers-tab-container")?.classList.remove("editing");
         this._activeConditionId = null;
         await this.render();
     }
@@ -1258,11 +1050,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // If the world is completely empty, we must abort.
         if (!referenceActor) {
-            return ui.notifications.warn(
-                game.i18n.localize(
-                    "VISAGE.Notifications.Error.NoActorForAttributes",
-                ),
-            );
+            return ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.Error.NoActorForAttributes"));
         }
 
         // If we used a fallback (Global Editor), politely inform the GM
@@ -1282,26 +1070,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             actor: referenceActor,
             isLocal: this.isLocal,
             onSelect: (path) => {
-                const pathInput = this.element.querySelector(
-                    `input[name="${targetInputName}"]`,
-                );
+                const pathInput = this.element.querySelector(`input[name="${targetInputName}"]`);
                 if (pathInput) {
                     pathInput.value = path;
-                    pathInput.dispatchEvent(
-                        new Event("input", { bubbles: true }),
-                    );
-                    pathInput.dispatchEvent(
-                        new Event("change", { bubbles: true }),
-                    );
+                    pathInput.dispatchEvent(new Event("input", { bubbles: true }));
+                    pathInput.dispatchEvent(new Event("change", { bubbles: true }));
                 }
             },
         }).render(true);
     }
     _onToggleCondition(event, target) {
         const id = target.closest(".effect-card").dataset.id;
-        const condition = this._automationData.conditions.find(
-            (c) => c.id === id,
-        );
+        const condition = this._automationData.conditions.find((c) => c.id === id);
 
         if (condition) {
             condition.disabled = !condition.disabled;
@@ -1373,6 +1153,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const macroDoc = await fromUuid(uuid);
         if (!macroDoc) return;
 
+        // PRESERVE DOM STATE: Capture any unsaved text input before forcing a re-render
+        this._preservedData = this._prepareSaveData();
+
         const newEffect = {
             id: foundry.utils.randomID(16),
             type: "macro",
@@ -1403,9 +1186,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
     _onToggleEffect(event, target) {
-        const effect = this._effects.find(
-            (e) => e.id === target.closest(".effect-card").dataset.id,
-        );
+        const effect = this._effects.find((e) => e.id === target.closest(".effect-card").dataset.id);
         if (effect) {
             effect.disabled = !effect.disabled;
             this._markDirty();
@@ -1413,9 +1194,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
     _onToggleLoop(event, target) {
-        const effect = this._effects.find(
-            (e) => e.id === target.closest(".effect-card").dataset.id,
-        );
+        const effect = this._effects.find((e) => e.id === target.closest(".effect-card").dataset.id);
         if (effect) {
             effect.loop = !(effect.loop ?? true);
             this._markDirty();
@@ -1438,9 +1217,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Let Media Controller handle killing the sound explicitly if deleted
         if (this._mediaController.audioPreviews.has(id)) {
-            this._mediaController._stopSound(
-                this._mediaController.audioPreviews.get(id),
-            );
+            this._mediaController._stopSound(this._mediaController.audioPreviews.get(id));
             this._mediaController.audioPreviews.delete(id);
         }
 
@@ -1448,39 +1225,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
     async _onCloseEffectInspector() {
-        this.element
-            .querySelector(".effects-tab-container")
-            ?.classList.remove("editing");
+        this.element.querySelector(".effects-tab-container")?.classList.remove("editing");
         this._activeEffectId = null;
         this._editingLight = false;
         this._editingRing = false;
         await this.render();
     }
     _onReplayPreview(event, target) {
-        target
-            .querySelector("i")
-            ?.animate(
-                [
-                    { transform: "rotate(0deg)" },
-                    { transform: "rotate(360deg)" },
-                ],
-                { duration: 500 },
-            );
+        target.querySelector("i")?.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], { duration: 500 });
         this._mediaController.stopAll();
         this._updatePreview();
     }
     _onOpenSequencerDatabase() {
         if (VisageUtilities.hasSequencer) {
             new Sequencer.DatabaseViewer().render(true);
-            ui.notifications.info(
-                game.i18n.localize(
-                    "VISAGE.Editor.Effects.DatabaseInstructions",
-                ),
-            );
-        } else
-            ui.notifications.warn(
-                game.i18n.localize("VISAGE.Editor.Effects.DependencyTitle"),
-            );
+            ui.notifications.info(game.i18n.localize("VISAGE.Editor.Effects.DatabaseInstructions"));
+        } else ui.notifications.warn(game.i18n.localize("VISAGE.Editor.Effects.DependencyTitle"));
     }
 
     // ==========================================
@@ -1498,27 +1258,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const previewData = await this._buildPreviewTemplateData(changes);
 
         // 3. Render and Inject HTML
-        const html = await foundry.applications.handlebars.renderTemplate(
-            "modules/visage/templates/parts/visage-preview.hbs",
-            previewData,
-        );
-        this._injectPreviewHTML(
-            html,
-            previewData.imgTransform,
-            previewData.ringTransform,
-            previewData.originStyle,
-            changes,
-        );
+        const html = await foundry.applications.handlebars.renderTemplate("modules/visage/templates/parts/visage-preview.hbs", previewData);
+        this._injectPreviewHTML(html, previewData.imgTransform, previewData.ringTransform, previewData.originStyle, changes, previewData);
 
         // 4. Update UI Badges & Audio
         const rawPath = VisageData.getRepresentativeImage(changes);
-        this._updateUIBadges(
-            VisageData.toPresentation(
-                { changes },
-                { isWildcard: rawPath.includes("*") || rawPath.includes("?") },
-            ).meta,
-            changes,
-        );
+        this._updateUIBadges(VisageData.toPresentation({ changes }, { isWildcard: rawPath.includes("*") || rawPath.includes("?") }).meta, changes);
         this._mediaController.syncAudio(this._effects || [], this.rendered);
     }
 
@@ -1526,21 +1271,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const el = this.element;
         if (changes.light) {
             this._lightData = { ...this._lightData, ...changes.light };
-            const meta = el.querySelector(
-                '.effect-card.pinned-light[data-action="editLight"] .effect-meta',
-            );
-            if (meta && this._lightData.active)
-                meta.textContent = `${this._lightData.dim} / ${this._lightData.bright} • ${this._lightData.color}`;
+            const meta = el.querySelector('.effect-card.pinned-light[data-action="editLight"] .effect-meta');
+            if (meta && this._lightData.active) meta.textContent = `${this._lightData.dim} / ${this._lightData.bright} • ${this._lightData.color}`;
         }
 
         if (this._activeEffectId && this._effects) {
-            const activeEffect = this._effects.find(
-                (e) => e.id === this._activeEffectId,
-            );
+            const activeEffect = this._effects.find((e) => e.id === this._activeEffectId);
             if (activeEffect) {
-                const card = el.querySelector(
-                    `.effect-card[data-id="${activeEffect.id}"]`,
-                );
+                const card = el.querySelector(`.effect-card[data-id="${activeEffect.id}"]`);
                 if (card) {
                     const nameEl = card.querySelector(".effect-name");
                     if (nameEl) nameEl.textContent = activeEffect.label;
@@ -1550,10 +1288,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                             activeEffect.type === "audio"
                                 ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((activeEffect.opacity ?? 1) * 100)}%`
                                 : activeEffect.type === "macro"
-                                  ? activeEffect.uuid ||
-                                    game.i18n.localize(
-                                        "VISAGE.Editor.Effects.NoUUID",
-                                    )
+                                  ? activeEffect.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID")
                                   : `${activeEffect.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((activeEffect.scale ?? 1) * 100)}%`;
                     }
                 }
@@ -1565,10 +1300,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Transformations Math
         const ringEnabled = changes.ring && changes.ring.enabled;
         const globalScale = changes.scale || 1.0;
-        const subjectScale =
-            ringEnabled && changes.ring.subject?.texture
-                ? parseFloat(changes.ring.subject.scale) || 1.0
-                : 1.0;
+        const subjectScale = ringEnabled && changes.ring.subject?.texture ? parseFloat(changes.ring.subject.scale) || 1.0 : 1.0;
         const flipX = !!changes.mirrorX;
         const flipY = !!changes.mirrorY;
         const anchorX = changes.texture?.anchorX ?? 0.5;
@@ -1578,41 +1310,27 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const imgScaleX = globalScale * subjectScale * (flipX ? -1 : 1);
         const imgScaleY = globalScale * subjectScale * (flipY ? -1 : 1);
 
+        const effectOffsetX = (0.5 - anchorX) * 100 * (flipX ? -1 : 1);
+        const effectOffsetY = (0.5 - anchorY) * 100 * (flipY ? -1 : 1);
+
         const originStyle = `${translateX}% ${translateY}%`;
         const imgTransform = `translate(-${translateX}%, -${translateY}%) scale(${imgScaleX}, ${imgScaleY})`;
         const ringTransform = `translate(-${translateX}%, -${translateY}%) scale(${globalScale * 0.75})`;
 
         // Visual Stack Sorting
-        const activeVisuals = (this._effects || []).filter(
-            (e) => !e.disabled && e.type === "visual" && e.path,
-        );
-        const effectsBelow = activeVisuals
-            .filter((e) => e.zOrder === "below")
-            .map((e) => this._mediaController.prepareEffectStyle(e));
-        const effectsAbove = activeVisuals
-            .filter((e) => e.zOrder === "above")
-            .map((e) => this._mediaController.prepareEffectStyle(e));
+        const activeVisuals = (this._effects || []).filter((e) => !e.disabled && e.type === "visual" && e.path);
+        const effectsBelow = activeVisuals.filter((e) => e.zOrder === "below").map((e) => this._mediaController.prepareEffectStyle(e));
+        const effectsAbove = activeVisuals.filter((e) => e.zOrder === "above").map((e) => this._mediaController.prepareEffectStyle(e));
 
         // Path Resolution
-        const rawPath =
-            ringEnabled && changes.ring?.subject?.texture
-                ? changes.ring.subject.texture
-                : changes.texture?.src || "";
+        const rawPath = ringEnabled && changes.ring?.subject?.texture ? changes.ring.subject.texture : changes.texture?.src || "";
         const resolved = await VisageUtilities.resolvePath(rawPath);
-        const context = VisageData.toPresentation(
-            { changes },
-            { isWildcard: rawPath.includes("*") },
-        );
+        const context = VisageData.toPresentation({ changes }, { isWildcard: rawPath.includes("*") });
 
         // Lighting Math
         const lData = changes.light || {};
         const lMax = Math.max(lData.dim || 0, lData.bright || 0);
-        const sizeRatio =
-            lMax > 0
-                ? (lMax * 2) /
-                  (canvas.scene?.grid?.distance || 5) /
-                  (changes.width || 1)
-                : 1;
+        const sizeRatio = lMax > 0 ? (lMax * 2) / (canvas.scene?.grid?.distance || 5) / (changes.width || 1) : 1;
         const brightPct = lMax > 0 ? ((lData.bright || 0) / lMax) * 100 : 0;
 
         return {
@@ -1630,12 +1348,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             ringColor: context.meta.ringColor,
             ringBkg: context.meta.ringBkg,
             hasLight: lData.active,
-            lightColor:
-                lData.luminosity < 0 ? "#000000" : lData.color || "#ffffff",
-            lightAlpha: Math.min(
-                1,
-                (lData.alpha ?? 0.5) * (Math.abs(lData.luminosity ?? 0.5) * 2),
-            ),
+            lightColor: lData.luminosity < 0 ? "#000000" : lData.color || "#ffffff",
+            lightAlpha: Math.min(1, (lData.alpha ?? 0.5) * (Math.abs(lData.luminosity ?? 0.5) * 2)),
             lightDim: lData.dim,
             lightBright: lData.bright,
             lightSizePct: sizeRatio * 100,
@@ -1643,13 +1357,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             lightAngle: lData.angle ?? 360,
             lightRotation: flipY ? 0 : 180,
             lightAnimType: lData.animation?.type || "",
-            lightAnimDuration:
-                Math.max(0.5, (11 - (lData.animation?.speed ?? 5)) * 0.35) +
-                "s",
+            lightAnimDuration: Math.max(0.5, (11 - (lData.animation?.speed ?? 5)) * 0.35) + "s",
             lightAnimIntensity: (lData.animation?.intensity ?? 5) / 10,
             forceFlipX: context.isFlippedX,
             forceFlipY: context.isFlippedY,
             wrapperClass: "visage-preview-content stage-mode",
+            effectOffsetX,
+            effectOffsetY,
             effectsBelow,
             effectsAbove,
             originStyle,
@@ -1658,13 +1372,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
-    _injectPreviewHTML(
-        html,
-        imgTransform,
-        ringTransform,
-        originStyle,
-        changes,
-    ) {
+    _injectPreviewHTML(html, imgTransform, ringTransform, originStyle, changes, previewData) {
         const stage = this.element.querySelector(".visage-live-preview-stage");
         if (!stage) return;
 
@@ -1679,9 +1387,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (overlay) stage.appendChild(overlay);
 
         // Apply Transforms
-        const newImg = stage.querySelector(
-            ".visage-preview-img, .visage-preview-video, .fallback-icon",
-        );
+        const newImg = stage.querySelector(".visage-preview-img, .visage-preview-video, .fallback-icon");
         if (newImg) {
             newImg.style.transform = imgTransform;
             newImg.style.transformOrigin = originStyle;
@@ -1701,12 +1407,19 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // Apply grid dimension variables
-        const newContent = stage.querySelector(
-            ".visage-preview-content.stage-mode",
-        );
+        const newContent = stage.querySelector(".visage-preview-content.stage-mode");
         if (newContent) {
             newContent.style.setProperty("--visage-dim-w", changes.width || 1);
             newContent.style.setProperty("--visage-dim-h", changes.height || 1);
+        }
+
+        // --- Shift the effect containers ---
+        if (previewData) {
+            const effects = stage.querySelectorAll(".visage-preview-content > [class*='effect']");
+            effects.forEach((eff) => {
+                eff.style.marginLeft = `${previewData.effectOffsetX}%`;
+                eff.style.marginTop = `${previewData.effectOffsetY}%`;
+            });
         }
 
         this._applyStageTransform();
@@ -1722,33 +1435,23 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (!container) return;
             container.classList.toggle("inactive", !slotData.active);
             const valueSpan = container.querySelector(".meta-value");
-            if (valueSpan && slotData.val !== undefined)
-                valueSpan.textContent = slotData.val;
+            if (valueSpan && slotData.val !== undefined) valueSpan.textContent = slotData.val;
         };
 
         updateSlot(".meta-item:has(.visage-icon.scale)", meta.slots.scale);
         updateSlot(".meta-item:has(.visage-icon.dimensions)", meta.slots.dim);
         updateSlot(".meta-item:has(.visage-icon.lock)", meta.slots.lock);
-        updateSlot(
-            ".meta-item:has(.visage-icon.wildcard)",
-            meta.slots.wildcard,
-        );
+        updateSlot(".meta-item:has(.visage-icon.wildcard)", meta.slots.wildcard);
 
         const dispContainer = el.querySelector(".meta-item.disposition-item");
         if (dispContainer && meta.slots.disposition) {
-            dispContainer.classList.toggle(
-                "inactive",
-                meta.slots.disposition.class === "none",
-            );
+            dispContainer.classList.toggle("inactive", meta.slots.disposition.class === "none");
 
-            const textSpan = dispContainer.querySelector(
-                ".visage-disposition-text",
-            );
+            const textSpan = dispContainer.querySelector(".visage-disposition-text");
             if (textSpan) {
                 textSpan.textContent = meta.slots.disposition.val;
                 textSpan.className = "visage-disposition-text";
-                if (meta.slots.disposition.class)
-                    textSpan.classList.add(meta.slots.disposition.class);
+                if (meta.slots.disposition.class) textSpan.classList.add(meta.slots.disposition.class);
             }
         }
 
@@ -1759,8 +1462,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 const img = container.querySelector("img");
                 if (img) {
                     if (slotData.src) img.src = slotData.src;
-                    if (slotData.cls !== undefined)
-                        img.className = `visage-icon-nav ${slotData.cls}`;
+                    if (slotData.cls !== undefined) img.className = `visage-icon-nav ${slotData.cls}`;
                 }
             }
         };
@@ -1771,11 +1473,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // -- Viewport Controls --
     _applyStageTransform() {
-        const content = this.element.querySelector(
-            ".visage-preview-content.stage-mode",
-        );
-        if (content)
-            content.style.transform = `translate(${this._viewState.x}px, ${this._viewState.y}px) scale(${this._viewState.scale})`;
+        const content = this.element.querySelector(".visage-preview-content.stage-mode");
+        if (content) content.style.transform = `translate(${this._viewState.x}px, ${this._viewState.y}px) scale(${this._viewState.scale})`;
     }
     _onZoomIn() {
         this._viewState.scale = Math.min(this._viewState.scale + 0.25, 5.0);
@@ -1796,10 +1495,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const stage = this.element.querySelector(".visage-live-preview-stage");
         if (stage) stage.classList.toggle("show-grid", this._showGrid);
         const icon = target.querySelector("i");
-        if (icon)
-            icon.className = this._showGrid
-                ? "visage-icon grid-off"
-                : "visage-icon grid-on";
+        if (icon) icon.className = this._showGrid ? "visage-icon grid-off" : "visage-icon grid-on";
     }
 
     // ==========================================
@@ -1815,9 +1511,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // 1. Add the isInit flag
         const update = (isInit = false) => {
-            hidden.value = Array.from(
-                pillsDiv.querySelectorAll(".visage-tag-pill"),
-            )
+            hidden.value = Array.from(pillsDiv.querySelectorAll(".visage-tag-pill"))
                 .map((p) => p.dataset.tag)
                 .join(",");
 
@@ -1881,13 +1575,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 "wheel",
                 (e) => {
                     e.preventDefault();
-                    this._viewState.scale = Math.min(
-                        Math.max(
-                            this._viewState.scale - Math.sign(e.deltaY) * 0.1,
-                            0.1,
-                        ),
-                        5.0,
-                    );
+                    this._viewState.scale = Math.min(Math.max(this._viewState.scale - Math.sign(e.deltaY) * 0.1, 0.1), 5.0);
                     this._applyStageTransform();
                 },
                 { passive: false },
@@ -1895,9 +1583,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _bindDynamicListeners() {
-        const content = this.element.querySelector(
-            ".visage-preview-content.stage-mode",
-        );
+        const content = this.element.querySelector(".visage-preview-content.stage-mode");
         if (!content) return;
         content.onmousedown = (e) => {
             if (e.button !== 0 && e.button !== 1) return;
@@ -1919,9 +1605,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             window.addEventListener("mouseup", () => {
                 if (this._viewState.isDragging) {
                     this._viewState.isDragging = false;
-                    const c = this.element.querySelector(
-                        ".visage-preview-content.stage-mode",
-                    );
+                    const c = this.element.querySelector(".visage-preview-content.stage-mode");
                     if (c) c.style.cursor = "grab";
                 }
             });
@@ -1936,12 +1620,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (name.includes("alpha") || name.includes("luminosity")) def = 0.5;
         if (name.includes("speed") || name.includes("intensity")) def = 5;
         if (name.includes("angle")) def = 360;
-        if (
-            name.includes("Volume") ||
-            name.includes("Opacity") ||
-            name.includes("ringSubjectScale")
-        )
-            def = 1;
+        if (name.includes("Volume") || name.includes("Opacity") || name.includes("ringSubjectScale")) def = 1;
         ev.target.value = def;
         const display = ev.target.nextElementSibling;
         if (display && display.tagName === "OUTPUT") display.value = def;
@@ -1963,13 +1642,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 const name = e.name || e.label;
 
                 // Only add it if it's not already in the list
-                if (
-                    name &&
-                    !effects.some(
-                        (existing) =>
-                            existing.value.toLowerCase() === name.toLowerCase(),
-                    )
-                ) {
+                if (name && !effects.some((existing) => existing.value.toLowerCase() === name.toLowerCase())) {
                     effects.push({
                         value: name,
                         label: `${name} (Active on Actor)`,
@@ -2014,10 +1687,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _getLocalizedLightAnim() {
         const animType = this._lightData?.animation?.type || "";
         const animKey = `VISAGE.LightAnim.${animType.charAt(0).toUpperCase() + animType.slice(1)}`;
-        let localizedAnim =
-            animType && game.i18n.has(animKey)
-                ? game.i18n.localize(animKey)
-                : animType;
+        let localizedAnim = animType && game.i18n.has(animKey) ? game.i18n.localize(animKey) : animType;
         return localizedAnim.replace(" (*)", "");
     }
 }

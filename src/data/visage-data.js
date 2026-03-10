@@ -77,16 +77,14 @@ export class VisageData {
      */
     static getLocal(actor) {
         if (!actor) return [];
-        const sourceData =
-            actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY] || {};
+        const sourceData = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY] || {};
         const results = [];
 
         for (const [key, data] of Object.entries(sourceData)) {
             if (!data) continue;
 
             // Handle legacy data structure where ID might not be in the body
-            const id =
-                key.length === 16 ? key : data.id || foundry.utils.randomID(16);
+            const id = key.length === 16 ? key : data.id || foundry.utils.randomID(16);
             if (data.changes) {
                 results.push({
                     id: id,
@@ -95,9 +93,7 @@ export class VisageData {
                     tags: Array.isArray(data.tags) ? data.tags : [],
                     mode: data.mode || "identity",
                     changes: foundry.utils.deepClone(data.changes),
-                    automation: data.automation
-                        ? foundry.utils.deepClone(data.automation)
-                        : undefined,
+                    automation: data.automation ? foundry.utils.deepClone(data.automation) : undefined,
                     deleted: !!data.deleted,
                 });
             }
@@ -116,15 +112,10 @@ export class VisageData {
      */
     static async save(payload, actor = null) {
         if (!actor && !game.user.isGM) {
-            ui.notifications.error(
-                "VISAGE.Notifications.Error.PermissionDenied",
-                { localize: true },
-            );
+            ui.notifications.error("VISAGE.Notifications.Error.PermissionDenied", { localize: true });
             return;
         }
-        return actor
-            ? this._saveLocal(payload, actor)
-            : this._saveGlobal(payload);
+        return actor ? this._saveLocal(payload, actor) : this._saveGlobal(payload);
     }
 
     /**
@@ -169,8 +160,7 @@ export class VisageData {
     static async destroy(id, actor = null) {
         if (actor) {
             await actor.update({
-                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]:
-                    null,
+                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null,
             });
             Hooks.callAll("visageDataChanged");
             return;
@@ -197,10 +187,7 @@ export class VisageData {
         const existing = all[id];
 
         // --- AUTOMATION CLEANUP (GLOBAL) ---
-        if (
-            existing?.automation?.enabled &&
-            (!data.automation || !data.automation.enabled)
-        ) {
+        if (existing?.automation?.enabled && (!data.automation || !data.automation.enabled)) {
             const VisageApi = game.modules.get(MODULE_ID)?.api;
             if (VisageApi) {
                 canvas.tokens.placeables.forEach((t) => {
@@ -221,9 +208,7 @@ export class VisageData {
             deleted: false,
             deletedAt: null,
             changes: foundry.utils.deepClone(data.changes || {}),
-            automation: data.automation
-                ? foundry.utils.deepClone(data.automation)
-                : undefined,
+            automation: data.automation ? foundry.utils.deepClone(data.automation) : undefined,
         };
 
         // Scrub the entire constructed entry to catch root-level automation and nested changes
@@ -253,17 +238,11 @@ export class VisageData {
         const id = data.id || foundry.utils.randomID(16);
 
         // --- AUTOMATION CLEANUP (LOCAL) ---
-        const existing =
-            actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY]?.[id];
-        if (
-            existing?.automation?.enabled &&
-            (!data.automation || !data.automation.enabled)
-        ) {
+        const existing = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY]?.[id];
+        if (existing?.automation?.enabled && (!data.automation || !data.automation.enabled)) {
             const VisageApi = game.modules.get(MODULE_ID)?.api;
             if (VisageApi) {
-                canvas.tokens.placeables
-                    .filter((t) => t.actor?.id === actor.id)
-                    .forEach((t) => VisageApi.remove(t.id, id));
+                canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id).forEach((t) => VisageApi.remove(t.id, id));
             }
         }
 
@@ -274,9 +253,7 @@ export class VisageData {
             tags: data.tags,
             mode: data.mode || "identity",
             changes: foundry.utils.deepClone(data.changes || {}),
-            automation: data.automation
-                ? foundry.utils.deepClone(data.automation)
-                : undefined,
+            automation: data.automation ? foundry.utils.deepClone(data.automation) : undefined,
             updated: Date.now(),
         };
 
@@ -286,8 +263,7 @@ export class VisageData {
         // Explicitly delete old bloat first to bypass Foundry's Deep Merge resurrection
         if (existing) {
             await actor.update({
-                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]:
-                    null,
+                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null,
             });
         }
 
@@ -296,9 +272,7 @@ export class VisageData {
             [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry,
         });
 
-        console.log(
-            `Visage | Saved Local Visage for ${actor.name}: ${entry.label}`,
-        );
+        console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
         Hooks.callAll("visageDataChanged");
     }
 
@@ -315,24 +289,13 @@ export class VisageData {
         // 1. Smart-Scrub: Remove blocks ONLY if they are disabled AND untouched/empty
 
         // Light: Delete if disabled AND emits no light (dim and bright are 0 or missing)
-        if (
-            obj.light &&
-            (obj.light.active === false || obj.light.active === "false")
-        ) {
+        if (obj.light && (obj.light.active === false || obj.light.active === "false")) {
             if (!obj.light.dim && !obj.light.bright) delete obj.light;
         }
 
         // Automation: Delete if disabled AND has no condition triggers built
-        if (
-            obj.automation &&
-            (obj.automation.enabled === false ||
-                obj.automation.enabled === "false")
-        ) {
-            if (
-                !obj.automation.conditions ||
-                obj.automation.conditions.length === 0
-            )
-                delete obj.automation;
+        if (obj.automation && (obj.automation.enabled === false || obj.automation.enabled === "false")) {
+            if (!obj.automation.conditions || obj.automation.conditions.length === 0) delete obj.automation;
         }
 
         // Strip legacy global delay (migrated to individual effects in v4.1)
@@ -374,9 +337,7 @@ export class VisageData {
             mode: data.mode || (source === "local" ? "identity" : "overlay"),
             source: source,
             changes: foundry.utils.deepClone(data.changes || {}),
-            automation: data.automation
-                ? foundry.utils.deepClone(data.automation)
-                : undefined,
+            automation: data.automation ? foundry.utils.deepClone(data.automation) : undefined,
         };
 
         // Clean legacy data on the fly (new data is already scrubbed before saving)
@@ -384,16 +345,12 @@ export class VisageData {
 
         // Resolve Wildcard Paths
         if (layer.changes?.texture?.src) {
-            const resolved = await VisageUtilities.resolvePath(
-                layer.changes.texture.src,
-            );
+            const resolved = await VisageUtilities.resolvePath(layer.changes.texture.src);
             layer.changes.texture.src = resolved || layer.changes.texture.src;
         }
 
         if (layer.changes?.portrait) {
-            const resolvedPortrait = await VisageUtilities.resolvePath(
-                layer.changes.portrait,
-            );
+            const resolvedPortrait = await VisageUtilities.resolvePath(layer.changes.portrait);
             if (resolvedPortrait) layer.changes.portrait = resolvedPortrait;
         }
 
@@ -424,22 +381,14 @@ export class VisageData {
         if (!tokenDoc) return null;
 
         // Retrieve cached original state, otherwise snapshot now
-        let sourceData =
-            tokenDoc.flags?.[MODULE_ID]?.originalState ||
-            VisageUtilities.extractVisualState(tokenDoc);
+        let sourceData = tokenDoc.flags?.[MODULE_ID]?.originalState || VisageUtilities.extractVisualState(tokenDoc);
 
         const src = sourceData.texture?.src || tokenDoc.texture.src;
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1.0;
 
-        const ringData = sourceData.ring?.toObject
-            ? sourceData.ring.toObject()
-            : sourceData.ring || {};
-        const lightData = sourceData.light?.toObject
-            ? sourceData.light.toObject()
-            : sourceData.light ||
-              tokenDoc.light?.toObject?.() ||
-              tokenDoc.light;
+        const ringData = sourceData.ring?.toObject ? sourceData.ring.toObject() : sourceData.ring || {};
+        const lightData = sourceData.light?.toObject ? sourceData.light.toObject() : sourceData.light || tokenDoc.light?.toObject?.() || tokenDoc.light;
         const portrait = sourceData.portrait || tokenDoc.actor?.img || null;
 
         return {
@@ -494,8 +443,7 @@ export class VisageData {
         const tx = c.texture || {};
 
         // 1. Path & Media Resolutions
-        const resolvedPath =
-            options.resolvedPath || this.getRepresentativeImage(c);
+        const resolvedPath = options.resolvedPath || this.getRepresentativeImage(c);
         const cleanPath = VisageUtilities.cleanPath(resolvedPath);
         const isVideo = options.isVideo ?? VisageUtilities.isVideo(cleanPath);
 
@@ -515,30 +463,20 @@ export class VisageData {
         const ringCtx = this.prepareRingContext(c.ring);
 
         // 4. Boolean Activity Flags
-        const isScaleActive =
-            (c.scale !== undefined && c.scale !== null) ||
-            Math.abs(bakedScaleX) !== 1.0;
-        const isDimActive =
-            (c.width !== undefined && c.width !== null) ||
-            (c.height !== undefined && c.height !== null);
+        const isScaleActive = (c.scale !== undefined && c.scale !== null) || Math.abs(bakedScaleX) !== 1.0;
+        const isDimActive = (c.width !== undefined && c.width !== null) || (c.height !== undefined && c.height !== null);
         const isAnchorActive = anchorXVal !== 0.5 || anchorYVal !== 0.5;
         const isWildcard = options.isWildcard ?? false;
 
-        const showDataChip =
-            isScaleActive || isDimActive || isAnchorActive || isWildcard;
+        const showDataChip = isScaleActive || isDimActive || isAnchorActive || isWildcard;
 
         // 5. Tooltips (Effects & Portraits)
         const activeEffects = (c.effects || []).filter((e) => !e.disabled);
-        const showEffectsBadge =
-            activeEffects.length > 0 ||
-            (c.light && (c.light.dim > 0 || c.light.bright > 0)) ||
-            (c.delay !== undefined && c.delay !== 0);
+        const showEffectsBadge = activeEffects.length > 0 || (c.light && (c.light.dim > 0 || c.light.bright > 0)) || (c.delay !== undefined && c.delay !== 0);
 
         let portraitTooltip = "";
         if (c.portrait) {
-            const displayPortrait = VisageUtilities.cleanPath(
-                options.resolvedPortrait || c.portrait,
-            );
+            const displayPortrait = VisageUtilities.cleanPath(options.resolvedPortrait || c.portrait);
             portraitTooltip = `<img src='${displayPortrait}' class='visage-tooltip-image' alt='Portrait' />`;
         }
 
@@ -573,9 +511,7 @@ export class VisageData {
                 showDispositionChip: dispData.class !== "none",
                 tokenName: c.name || null,
                 showEffectsBadge,
-                effectsTooltip: showEffectsBadge
-                    ? this._getTooltipContent(c, activeEffects)
-                    : "",
+                effectsTooltip: showEffectsBadge ? this._getTooltipContent(c, activeEffects) : "",
                 hasPortrait: !!c.portrait,
                 portraitTooltip,
                 slots: {
@@ -592,21 +528,12 @@ export class VisageData {
                         val: `${anchorXVal} / ${anchorYVal}`,
                     },
                     alpha: {
-                        active:
-                            c.alpha !== undefined &&
-                            c.alpha !== null &&
-                            c.alpha !== 1.0,
+                        active: c.alpha !== undefined && c.alpha !== null && c.alpha !== 1.0,
                         val: `${Math.round(alpha * 100)}%`,
                     },
                     lock: {
-                        active:
-                            c.lockRotation !== undefined &&
-                            c.lockRotation !== null,
-                        val: c.lockRotation
-                            ? game.i18n.localize("VISAGE.RotationLock.Locked")
-                            : game.i18n.localize(
-                                  "VISAGE.RotationLock.Unlocked",
-                              ),
+                        active: c.lockRotation !== undefined && c.lockRotation !== null,
+                        val: c.lockRotation ? game.i18n.localize("VISAGE.RotationLock.Locked") : game.i18n.localize("VISAGE.RotationLock.Unlocked"),
                     },
                     flipH: mirrorData.x.slot,
                     flipV: mirrorData.y.slot,
@@ -683,8 +610,7 @@ export class VisageData {
      */
     static getRepresentativeImage(changes) {
         if (!changes) return "";
-        if (changes.ring?.enabled && changes.ring.subject?.texture)
-            return changes.ring.subject.texture;
+        if (changes.ring?.enabled && changes.ring.subject?.texture) return changes.ring.subject.texture;
         return changes.texture?.src || "";
     }
 
@@ -693,27 +619,15 @@ export class VisageData {
     /** @private */
     static _getMirrorData(changes, bakedScaleX, bakedScaleY) {
         const pathIcon = "modules/visage/icons/navigation.svg";
-        const isFlippedX =
-            changes.mirrorX !== undefined && changes.mirrorX !== null
-                ? changes.mirrorX
-                : bakedScaleX < 0;
-        const isFlippedY =
-            changes.mirrorY !== undefined && changes.mirrorY !== null
-                ? changes.mirrorY
-                : bakedScaleY < 0;
+        const isFlippedX = changes.mirrorX !== undefined && changes.mirrorX !== null ? changes.mirrorX : bakedScaleX < 0;
+        const isFlippedY = changes.mirrorY !== undefined && changes.mirrorY !== null ? changes.mirrorY : bakedScaleY < 0;
 
         return {
             x: {
                 flipped: isFlippedX,
-                active:
-                    (changes.mirrorX !== undefined &&
-                        changes.mirrorX !== null) ||
-                    bakedScaleX < 0,
+                active: (changes.mirrorX !== undefined && changes.mirrorX !== null) || bakedScaleX < 0,
                 slot: {
-                    active:
-                        (changes.mirrorX !== undefined &&
-                            changes.mirrorX !== null) ||
-                        bakedScaleX < 0,
+                    active: (changes.mirrorX !== undefined && changes.mirrorX !== null) || bakedScaleX < 0,
                     src: pathIcon,
                     cls: isFlippedX ? "visage-rotate-270" : "visage-rotate-90",
                     val: game.i18n.localize("VISAGE.Mirror.Badge.H"),
@@ -721,15 +635,9 @@ export class VisageData {
             },
             y: {
                 flipped: isFlippedY,
-                active:
-                    (changes.mirrorY !== undefined &&
-                        changes.mirrorY !== null) ||
-                    bakedScaleY < 0,
+                active: (changes.mirrorY !== undefined && changes.mirrorY !== null) || bakedScaleY < 0,
                 slot: {
-                    active:
-                        (changes.mirrorY !== undefined &&
-                            changes.mirrorY !== null) ||
-                        bakedScaleY < 0,
+                    active: (changes.mirrorY !== undefined && changes.mirrorY !== null) || bakedScaleY < 0,
                     src: pathIcon,
                     cls: isFlippedY ? "visage-rotate-180" : "visage-rotate-0",
                     val: game.i18n.localize("VISAGE.Mirror.Badge.V"),
@@ -766,9 +674,7 @@ export class VisageData {
             if (c.light.animation?.type) {
                 const type = c.light.animation.type;
                 const key = `VISAGE.LightAnim.${type.charAt(0).toUpperCase() + type.slice(1)}`;
-                const label = game.i18n.has(key)
-                    ? game.i18n.localize(key)
-                    : type;
+                const label = game.i18n.has(key) ? game.i18n.localize(key) : type;
                 animLabel = ` • ${label.replace(" (*)", "")}`;
             }
             content += `
@@ -783,21 +689,13 @@ export class VisageData {
         if (activeEffects.length > 0) {
             content += activeEffects
                 .map((e) => {
-                    const icon =
-                        e.type === "audio"
-                            ? "visage-icon audio"
-                            : e.type === "macro"
-                              ? "visage-icon macro"
-                              : "visage-icon visual";
+                    const icon = e.type === "audio" ? "visage-icon audio" : e.type === "macro" ? "visage-icon macro" : "visage-icon visual";
 
                     const meta =
                         e.type === "audio"
                             ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((e.opacity ?? 0.8) * 100)}%`
                             : e.type === "macro"
-                              ? e.uuid ||
-                                game.i18n.localize(
-                                    "VISAGE.Editor.Effects.NoUUID",
-                                )
+                              ? e.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID")
                               : `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1.0) * 100)}%`;
 
                     return `
@@ -834,9 +732,7 @@ export class VisageData {
             tags: source.tags ? [...source.tags] : [],
             mode: source.mode,
             changes: foundry.utils.deepClone(source.changes),
-            automation: source.automation
-                ? foundry.utils.deepClone(source.automation)
-                : undefined,
+            automation: source.automation ? foundry.utils.deepClone(source.automation) : undefined,
         };
 
         await this._saveGlobal(payload);
@@ -853,18 +749,11 @@ export class VisageData {
      * @param {string} visageId - The ID of the Visage to commit.
      */
     static async commitToDefault(tokenOrId, visageId) {
-        const token =
-            typeof tokenOrId === "string"
-                ? canvas.tokens.get(tokenOrId)
-                : tokenOrId;
-        if (!token || !token.actor)
-            return ui.notifications.warn("Visage | No actor found.");
+        const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
+        if (!token || !token.actor) return ui.notifications.warn("Visage | No actor found.");
 
-        const targetVisage = this.getLocal(token.actor).find(
-            (v) => v.id === visageId,
-        );
-        if (!targetVisage)
-            return ui.notifications.warn("Visage | Target Visage not found.");
+        const targetVisage = this.getLocal(token.actor).find((v) => v.id === visageId);
+        if (!targetVisage) return ui.notifications.warn("Visage | Target Visage not found.");
 
         const currentDefault = this.getDefaultAsVisage(token.document);
         if (!currentDefault) return;
@@ -882,29 +771,23 @@ export class VisageData {
         );
 
         // 2. Prepare new default data
-        const newDefaultData = foundry.utils.mergeObject(
-            foundry.utils.deepClone(currentDefault.changes),
-            foundry.utils.deepClone(targetVisage.changes),
-            { inplace: false, insertKeys: true, overwrite: true },
-        );
+        const newDefaultData = foundry.utils.mergeObject(foundry.utils.deepClone(currentDefault.changes), foundry.utils.deepClone(targetVisage.changes), {
+            inplace: false,
+            insertKeys: true,
+            overwrite: true,
+        });
 
         // 3. Construct update payload
         const updatePayload = {};
         if (newDefaultData.name) updatePayload.name = newDefaultData.name;
         if (newDefaultData.texture) {
-            if (newDefaultData.texture.src)
-                updatePayload["texture.src"] = newDefaultData.texture.src;
-            if (newDefaultData.texture.scaleX !== undefined)
-                updatePayload["texture.scaleX"] = newDefaultData.texture.scaleX;
-            if (newDefaultData.texture.scaleY !== undefined)
-                updatePayload["texture.scaleY"] = newDefaultData.texture.scaleY;
+            if (newDefaultData.texture.src) updatePayload["texture.src"] = newDefaultData.texture.src;
+            if (newDefaultData.texture.scaleX !== undefined) updatePayload["texture.scaleX"] = newDefaultData.texture.scaleX;
+            if (newDefaultData.texture.scaleY !== undefined) updatePayload["texture.scaleY"] = newDefaultData.texture.scaleY;
         }
-        if (newDefaultData.width !== undefined)
-            updatePayload.width = newDefaultData.width;
-        if (newDefaultData.height !== undefined)
-            updatePayload.height = newDefaultData.height;
-        if (newDefaultData.disposition !== undefined)
-            updatePayload.disposition = newDefaultData.disposition;
+        if (newDefaultData.width !== undefined) updatePayload.width = newDefaultData.width;
+        if (newDefaultData.height !== undefined) updatePayload.height = newDefaultData.height;
+        if (newDefaultData.disposition !== undefined) updatePayload.disposition = newDefaultData.disposition;
         if (newDefaultData.ring) updatePayload.ring = newDefaultData.ring;
         if (newDefaultData.light) updatePayload.light = newDefaultData.light;
 
@@ -913,8 +796,7 @@ export class VisageData {
         }
 
         // 4. Apply Updates
-        if (token.document.isLinked)
-            await token.actor.update({ prototypeToken: updatePayload });
+        if (token.document.isLinked) await token.actor.update({ prototypeToken: updatePayload });
         else await token.document.update(updatePayload);
 
         // 5. Update the "Original State" flag
@@ -951,11 +833,7 @@ export class VisageData {
         let dirty = false;
 
         for (const [id, entry] of Object.entries(all)) {
-            if (
-                entry.deleted &&
-                entry.deletedAt &&
-                now - entry.deletedAt > RETENTION_MS
-            ) {
+            if (entry.deleted && entry.deletedAt && now - entry.deletedAt > RETENTION_MS) {
                 delete all[id];
                 dirty = true;
             }

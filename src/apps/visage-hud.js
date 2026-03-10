@@ -54,41 +54,39 @@ export async function handleTokenHUD(app, html, data) {
                 return;
             }
 
-            // --- Position Calculation ---
+            // --- Position Calculation (Smart Flip) ---
             const buttonRect = button.getBoundingClientRect();
+            const hudElement = document.getElementById("token-hud");
+
+            // Look for the specific right-hand column. If it's missing, fall back to the main wrapper.
+            const rightCol = hudElement.querySelector(".col.right");
+            const trueRightEdge = rightCol ? rightCol.getBoundingClientRect().right : hudElement.getBoundingClientRect().right;
+
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
-            // GAP LOGIC (Horizontal)
-            // We want the HUD's Right Edge to be exactly 32px to the left of the button.
-            // Formula: Distance from Screen Right = (Screen Width - Button Left) + Gap
+            // We can return to a single, unified gap because we are now measuring from the true, scaled edges.
             const gap = 32;
-            const rightPos = viewportWidth - buttonRect.left + gap;
+            const estimatedHudWidth = 550;
+            let uiPosition = {};
 
-            // ANCHOR LOGIC (Vertical)
-            // If space is tight (< 500px), anchor to BOTTOM (grow up).
-            // Otherwise, anchor to TOP (grow down).
-            let uiPosition = { right: rightPos };
+            // 1. HORIZONTAL LOGIC (Smart Flip)
+            if (buttonRect.left > estimatedHudWidth + gap) {
+                // [CASE A] Normal: Spawn on the Left of the button
+                uiPosition.right = viewportWidth - buttonRect.left + gap;
+            } else {
+                // [CASE B] Pinched: Spawn on the Right of the true right edge
+                uiPosition.left = trueRightEdge + gap;
+            }
 
+            // 2. VERTICAL LOGIC (Grow Up/Down)
             const minComfortableSpace = 500;
             const spaceBelow = viewportHeight - buttonRect.top;
 
             if (spaceBelow < minComfortableSpace) {
-                // [CASE A] Low on screen: Anchor BOTTOM (grow upwards)
-                // Logic: Align the bottom of the UI with the bottom of the button.
-                // CSS 'bottom' is the distance from the viewport bottom edge.
-                // We use buttonRect.bottom to capture the exact bottom edge of the button (including its 35px height).
                 uiPosition.bottom = viewportHeight - buttonRect.bottom;
             } else {
-                // [CASE B] High on screen: Anchor TOP (grow downwards)
-                // Logic: Align the top of the UI with the top of the button.
                 uiPosition.top = buttonRect.top;
-            }
-
-            // Close existing if open
-            if (Visage.apps[selectorId]) {
-                Visage.apps[selectorId].close();
-                return;
             }
 
             const selectorApp = new VisageSelector({
@@ -96,7 +94,7 @@ export async function handleTokenHUD(app, html, data) {
                 tokenId: token.id,
                 sceneId: sceneId,
                 id: selectorId,
-                uiPosition: uiPosition, // Pass our safe custom object
+                uiPosition: uiPosition, // Pass our safely calculated object
             });
 
             selectorApp.render(true);

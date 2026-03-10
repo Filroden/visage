@@ -35,8 +35,7 @@ export class VisageComposer {
         // 1. Retrieve Context
         // Determine which stack to process: the one currently on the token, or a temporary override.
         const allFlags = token.document.flags[MODULE_ID] || {};
-        const currentStack =
-            stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
+        const currentStack = stackOverride ?? (allFlags.activeStack || allFlags.stack || []);
 
         // 2. Revert Condition
         // If the stack is empty and we aren't forcing a specific base,
@@ -86,16 +85,10 @@ export class VisageComposer {
             let handledScale = false;
 
             // Anchor Override (Atomic)
-            if (
-                c.texture?.anchorX !== undefined &&
-                c.texture.anchorX !== null
-            ) {
+            if (c.texture?.anchorX !== undefined && c.texture.anchorX !== null) {
                 currentAnchorX = c.texture.anchorX;
             }
-            if (
-                c.texture?.anchorY !== undefined &&
-                c.texture.anchorY !== null
-            ) {
+            if (c.texture?.anchorY !== undefined && c.texture.anchorY !== null) {
                 currentAnchorY = c.texture.anchorY;
             }
 
@@ -110,10 +103,8 @@ export class VisageComposer {
             // C. Mirroring (Atomic Override)
             // Applies explicit intent (True/False).
             // If undefined, the state from the previous layer (or base) persists.
-            if (c.mirrorX !== undefined && c.mirrorX !== null)
-                currentMirrorX = c.mirrorX;
-            if (c.mirrorY !== undefined && c.mirrorY !== null)
-                currentMirrorY = c.mirrorY;
+            if (c.mirrorX !== undefined && c.mirrorX !== null) currentMirrorX = c.mirrorX;
+            if (c.mirrorY !== undefined && c.mirrorY !== null) currentMirrorY = c.mirrorY;
 
             // D. Dynamic Ring
             if (c.ring && c.ring.enabled) {
@@ -129,21 +120,17 @@ export class VisageComposer {
             if (c.name) finalData.name = c.name;
 
             // G. Dimensions
-            if (c.width !== undefined && c.width !== null)
-                finalData.width = c.width;
-            if (c.height !== undefined && c.height !== null)
-                finalData.height = c.height;
+            if (c.width !== undefined && c.width !== null) finalData.width = c.width;
+            if (c.height !== undefined && c.height !== null) finalData.height = c.height;
 
             // H. Opacity
-            if (c.alpha !== undefined && c.alpha !== null)
-                finalData.alpha = c.alpha;
+            if (c.alpha !== undefined && c.alpha !== null) finalData.alpha = c.alpha;
 
             // I. Rotation Lock
-            if (c.lockRotation !== undefined && c.lockRotation !== null)
-                finalData.lockRotation = c.lockRotation;
+            if (c.lockRotation !== undefined && c.lockRotation !== null) finalData.lockRotation = c.lockRotation;
 
-            // J. Light Source (V3.2)
-            if (c.light) finalData.light = c.light;
+            // J. Light Source
+            if (c.light && c.light.active) finalData.light = c.light;
         }
 
         // 5. Reconstruction Phase
@@ -262,5 +249,43 @@ export class VisageComposer {
 
         // 3. Fallback to Current Image (Safety catch for first-time application)
         return currentActorImage;
+    }
+
+    /**
+     * Calculates the final texture orientation, scale, and anchor state based on the current stack priority.
+     * Iterates from the bottom of the stack (Identity) up to the top (Overlays).
+     * @param {Array<Object>} stack - The active Visage stack.
+     * @param {Object} [originalState] - The snapshot of the token before Visage was applied.
+     * @returns {Object} { anchorX, anchorY, scaleX, scaleY, mirrorX, mirrorY }
+     */
+    static resolveTextureState(stack, originalState) {
+        let anchorX = originalState?.texture?.anchorX ?? 0.5;
+        let anchorY = originalState?.texture?.anchorY ?? 0.5;
+
+        // Capture absolute scale, ignoring the sign which denotes the mirror state
+        let scaleX = Math.abs(originalState?.texture?.scaleX ?? 1);
+        let scaleY = Math.abs(originalState?.texture?.scaleY ?? 1);
+
+        let mirrorX = (originalState?.texture?.scaleX ?? 1) < 0;
+        let mirrorY = (originalState?.texture?.scaleY ?? 1) < 0;
+
+        for (const layer of stack) {
+            if (layer.disabled) continue;
+            const c = layer.changes || {};
+
+            if (c.texture?.anchorX !== undefined && c.texture.anchorX !== null) anchorX = c.texture.anchorX;
+            if (c.texture?.anchorY !== undefined && c.texture.anchorY !== null) anchorY = c.texture.anchorY;
+
+            // Capture atomic scale overrides
+            if (c.scale !== undefined && c.scale !== null) {
+                scaleX = c.scale;
+                scaleY = c.scale;
+            }
+
+            if (c.mirrorX !== undefined && c.mirrorX !== null) mirrorX = c.mirrorX;
+            if (c.mirrorY !== undefined && c.mirrorY !== null) mirrorY = c.mirrorY;
+        }
+
+        return { anchorX, anchorY, scaleX, scaleY, mirrorX, mirrorY };
     }
 }

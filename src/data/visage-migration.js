@@ -50,9 +50,7 @@ async function _migrateV3(DATA_NAMESPACE) {
         for (const [key, data] of Object.entries(alternates)) {
             // If missing 'mode', default to 'identity' (classic Visage behavior)
             if (!data.mode) {
-                updates[
-                    `flags.${DATA_NAMESPACE}.alternateVisages.${key}.mode`
-                ] = "identity";
+                updates[`flags.${DATA_NAMESPACE}.alternateVisages.${key}.mode`] = "identity";
                 hasUpdates = true;
             }
         }
@@ -95,9 +93,7 @@ async function _migrateV3(DATA_NAMESPACE) {
         console.log(`Migrated ${globalsMigrated} Global Entries.`);
     }
 
-    console.log(
-        `Migration Complete. Actors: ${actorsMigrated}, Globals: ${globalsMigrated}`,
-    );
+    console.log(`Migration Complete. Actors: ${actorsMigrated}, Globals: ${globalsMigrated}`);
     console.groupEnd();
 }
 
@@ -143,15 +139,13 @@ async function _migrateV2(DATA_NAMESPACE) {
         }
 
         // B. Clean Data Structure inside 'alternateVisages'
-        const targetContainer =
-            updates[`flags.${DATA_NAMESPACE}.${newKey}`] || flags[newKey];
+        const targetContainer = updates[`flags.${DATA_NAMESPACE}.${newKey}`] || flags[newKey];
         if (targetContainer) {
             for (const [id, entry] of Object.entries(targetContainer)) {
                 const cleaned = cleanVisageData(entry);
                 // Simple diff check (stringified) to avoid unnecessary database writes
                 if (JSON.stringify(cleaned) !== JSON.stringify(entry)) {
-                    updates[`flags.${DATA_NAMESPACE}.${newKey}.${id}`] =
-                        cleaned;
+                    updates[`flags.${DATA_NAMESPACE}.${newKey}.${id}`] = cleaned;
                     hasUpdates = true;
                 }
             }

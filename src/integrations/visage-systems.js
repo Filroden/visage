@@ -14,10 +14,7 @@ export class VisageSystems {
      * @param {Object} context - Calculated values from the composer (currentScaleX, etc).
      */
     static process(finalData, base, context) {
-        const allowOverrides = game.settings.get(
-            MODULE_ID,
-            "allowSystemOverrides",
-        );
+        const allowOverrides = game.settings.get(MODULE_ID, "allowSystemOverrides");
         if (!allowOverrides) return;
 
         const systemId = game.system.id;
@@ -41,8 +38,7 @@ export class VisageSystems {
         const finalWidth = finalData.width ?? baseWidth;
         const finalHeight = finalData.height ?? baseHeight;
 
-        const modifiesDimensions =
-            finalWidth !== baseWidth || finalHeight !== baseHeight;
+        const modifiesDimensions = finalWidth !== baseWidth || finalHeight !== baseHeight;
 
         // 2. Scale
         // Compare the Composer's calculated scale (context) against the Base state
@@ -50,8 +46,7 @@ export class VisageSystems {
         const baseScaleY = base.texture?.scaleY ?? 1;
 
         // Direct comparison (Assuming consistent data types from the Composer)
-        const modifiesScale =
-            context.scaleX !== baseScaleX || context.scaleY !== baseScaleY;
+        const modifiesScale = context.scaleX !== baseScaleX || context.scaleY !== baseScaleY;
 
         // 3. Apply Flags
         if (modifiesDimensions || modifiesScale) {

@@ -58,15 +58,11 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token) return;
 
-        const currentFormKey =
-            token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
-        const currentStack =
-            token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
+        const currentFormKey = token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
+        const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
         // Filter stack to keep only the active Identity layer
-        const newStack = currentStack.filter(
-            (layer) => layer.id === currentFormKey,
-        );
+        const newStack = currentStack.filter((layer) => layer.id === currentFormKey);
         await VisageComposer.compose(token, newStack);
     }
 
@@ -79,8 +75,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const token = canvas.tokens.get(this.tokenId);
         if (!token || !token.actor) return { identities: [], overlays: [] };
 
-        const currentFormKey =
-            token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
+        const currentFormKey = token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
 
         // =======================================================
         // PART A: THE DEFAULT IDENTITY
@@ -129,16 +124,12 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
                 // Resolve representative image for the icon (checking for wildcards)
                 const rawPath = VisageData.getRepresentativeImage(v.changes);
-                const isWildcard =
-                    (rawPath || "").includes("*") ||
-                    (rawPath || "").includes("?");
+                const isWildcard = (rawPath || "").includes("*") || (rawPath || "").includes("?");
 
                 // Resolve portrait if present
                 let resolvedPortrait = undefined;
                 if (v.changes.portrait) {
-                    resolvedPortrait = await Visage.resolvePath(
-                        v.changes.portrait,
-                    );
+                    resolvedPortrait = await Visage.resolvePath(v.changes.portrait);
                 }
 
                 // Convert to presentation format
@@ -147,17 +138,13 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                     isWildcard: isWildcard,
                     resolvedPortrait: resolvedPortrait,
                     // We optimistically resolve the path here for the icon
-                    resolvedPath: await Visage.resolvePath(
-                        v.changes?.texture?.src,
-                    ),
+                    resolvedPath: await Visage.resolvePath(v.changes?.texture?.src),
                 });
 
                 presentational.key = v.id;
 
                 // Apply Theme Class (Blue for Global, Gold for Local)
-                presentational.themeClass = isGlobal
-                    ? "visage-theme-global"
-                    : "visage-theme-local";
+                presentational.themeClass = isGlobal ? "visage-theme-global" : "visage-theme-local";
 
                 return presentational;
             }),
@@ -171,33 +158,22 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         // =======================================================
 
         // Identity List: Start with Default, then append stored identities
-        const identities = [
-            defaultForm,
-            ...processedItems.filter((v) => v.mode === "identity"),
-        ];
+        const identities = [defaultForm, ...processedItems.filter((v) => v.mode === "identity")];
 
         // If a global identity is currently active but isn't in the identities list
         // (e.g., it's a private GM Visage or the player hid public globals),
         // fetch it and inject it so the player knows why their token is changed.
-        if (
-            currentFormKey !== "default" &&
-            !identities.some((i) => i.isActive)
-        ) {
+        if (currentFormKey !== "default" && !identities.some((i) => i.isActive)) {
             const globalIdentity = VisageData.getGlobal(currentFormKey);
             if (globalIdentity) {
-                const globalPresentation = VisageData.toPresentation(
-                    globalIdentity,
-                    {
-                        isActive: true,
-                        isGlobal: true,
-                    },
-                );
+                const globalPresentation = VisageData.toPresentation(globalIdentity, {
+                    isActive: true,
+                    isGlobal: true,
+                });
 
                 globalPresentation.key = currentFormKey;
                 globalPresentation.themeClass = "visage-theme-global"; // Triggers the Blue Border
-                globalPresentation.resolvedPath = await Visage.resolvePath(
-                    globalIdentity.changes?.texture?.src,
-                );
+                globalPresentation.resolvedPath = await Visage.resolvePath(globalIdentity.changes?.texture?.src);
 
                 // Inject it right after the "Default" tile so it sits at the front
                 identities.splice(1, 0, globalPresentation);
@@ -214,16 +190,11 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const activeStack = flags.activeStack || flags.stack || [];
 
         // Filter out the current identity from the sidebar stack (it's shown in the main grid)
-        const visibleStack = activeStack.filter(
-            (layer) => layer.id !== currentFormKey,
-        );
+        const visibleStack = activeStack.filter((layer) => layer.id !== currentFormKey);
 
         const stackDisplay = visibleStack
             .map((layer) => {
-                const img =
-                    layer.changes.img ||
-                    layer.changes.texture?.src ||
-                    "icons/svg/aura.svg";
+                const img = layer.changes.img || layer.changes.texture?.src || "icons/svg/aura.svg";
 
                 // Determine theme for stack items
                 // We check if this ID exists in the Global registry to color it Blue
@@ -233,9 +204,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                     id: layer.id,
                     label: layer.label,
                     icon: img,
-                    themeClass: isGlobal
-                        ? "visage-theme-global"
-                        : "visage-theme-local",
+                    themeClass: isGlobal ? "visage-theme-global" : "visage-theme-local",
                     disabled: layer.disabled,
                 };
             })
@@ -306,12 +275,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         if (formKey) {
             if (formKey === "default") {
                 const token = canvas.tokens.get(this.tokenId);
-                const currentIdentity = token.document.getFlag(
-                    MODULE_ID,
-                    "identity",
-                );
-                if (currentIdentity)
-                    await Visage.remove(this.tokenId, currentIdentity);
+                const currentIdentity = token.document.getFlag(MODULE_ID, "identity");
+                if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
             } else {
                 // Visage.apply handles mode logic (Identity Swap vs Overlay Stack) automatically
                 await Visage.apply(this.tokenId, formKey);
@@ -346,8 +311,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         else if (action === "openConfig") this._onOpenConfig(event, target);
         else if (action === "revertGlobal") this._onRevertGlobal(event, target);
         else if (action === "removeLayer") this._onRemoveLayer(event, target);
-        else if (action === "toggleVisibility")
-            this._onToggleVisibility(event, target);
+        else if (action === "toggleVisibility") this._onToggleVisibility(event, target);
     }
 
     async _onToggleLayerVisibility(event, target) {
@@ -404,9 +368,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                     // But the array is Bottom-to-Top.
 
                     // Get all IDs in the visual order (Top to Bottom)
-                    const allItems = [
-                        ...list.querySelectorAll("li.stack-item"),
-                    ];
+                    const allItems = [...list.querySelectorAll("li.stack-item")];
                     const srcIndex = allItems.indexOf(dragSrcEl);
                     const targetIndex = allItems.indexOf(item);
 
@@ -419,9 +381,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
                     // 2. Calculate New Logic Order (Bottom to Top)
                     // We grab the DOM order again, map to IDs, then REVERSE it to match logic stack
-                    const newVisualOrder = [
-                        ...list.querySelectorAll("li.stack-item"),
-                    ].map((li) => li.dataset.layerId);
+                    const newVisualOrder = [...list.querySelectorAll("li.stack-item")].map((li) => li.dataset.layerId);
                     const newLogicOrder = newVisualOrder.reverse();
 
                     // 3. Save
@@ -451,8 +411,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
             // Ignore clicks on the HUD button that spawned this (prevents immediate re-opening)
             const hudBtn = document.querySelector(".visage-button");
-            if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target)))
-                return;
+            if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
 
             // Ignore clicks on other Visage windows (Gallery/Editor)
             const dirApp = ev.target.closest(".visage-gallery");
@@ -474,11 +433,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _unbindDismissListeners() {
         if (this._onDocPointerDown) {
-            document.removeEventListener(
-                "pointerdown",
-                this._onDocPointerDown,
-                true,
-            );
+            document.removeEventListener("pointerdown", this._onDocPointerDown, true);
             this._onDocPointerDown = null;
         }
         if (this._onTokenUpdate) {

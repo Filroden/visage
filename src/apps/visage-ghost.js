@@ -28,11 +28,7 @@ export function handleGhostEdit(app, html, data) {
     if (!doc || !doc.flags?.[MODULE_ID]) return;
 
     // BYPASS: Ignore Mass Edit applications to prevent hook/DOM conflicts
-    if (
-        app.constructor.name.includes("Mass") ||
-        app.options?.id?.includes("mass")
-    )
-        return;
+    if (app.constructor.name.includes("Mass") || app.options?.id?.includes("mass")) return;
 
     const originalState = doc.flags[MODULE_ID].originalState;
     if (!originalState) return;
@@ -131,22 +127,15 @@ export function handleGhostEdit(app, html, data) {
 
                 // Handle <range-picker> custom elements (Foundry V11+)
                 if (input.tagName === "RANGE-PICKER") {
-                    const rangeInput = input.querySelector(
-                        'input[type="range"]',
-                    );
-                    const numberInput = input.querySelector(
-                        'input[type="number"]',
-                    );
+                    const rangeInput = input.querySelector('input[type="range"]');
+                    const numberInput = input.querySelector('input[type="number"]');
                     if (rangeInput) rangeInput.value = value;
                     if (numberInput) numberInput.value = value;
                 }
                 // Update legacy range slider text display
                 else if (input.type === "range") {
                     const rangeDisplay = input.nextElementSibling;
-                    if (
-                        rangeDisplay &&
-                        rangeDisplay.classList.contains("range-value")
-                    ) {
+                    if (rangeDisplay && rangeDisplay.classList.contains("range-value")) {
                         rangeDisplay.textContent = value;
                     }
                 }
@@ -156,9 +145,7 @@ export function handleGhostEdit(app, html, data) {
         // --- Image Previews ---
         // Manually update the <img> tag so the user *sees* the original image, not just the file path text.
         if (name === "texture.src" || name === "img") {
-            const group =
-                input.closest(".form-group") ||
-                input.closest(".form-group-stacked");
+            const group = input.closest(".form-group") || input.closest(".form-group-stacked");
             const preview = group?.querySelector("img");
             if (preview) preview.src = value;
             const thumb = group?.querySelector(".file-picker-image");
