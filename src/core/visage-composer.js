@@ -129,8 +129,8 @@ export class VisageComposer {
             // I. Rotation Lock
             if (c.lockRotation !== undefined && c.lockRotation !== null) finalData.lockRotation = c.lockRotation;
 
-            // J. Light Source (V3.2)
-            if (c.light) finalData.light = c.light;
+            // J. Light Source
+            if (c.light && c.light.active) finalData.light = c.light;
         }
 
         // 5. Reconstruction Phase
