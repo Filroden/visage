@@ -1,4 +1,5 @@
 import { VisageUtilities } from "../utils/visage-utilities.js";
+import { VisageComposer } from "../core/visage-composer.js";
 
 /**
  * Handles interactions with the Sequencer module to play and stop visual/audio effects on tokens.
@@ -22,7 +23,7 @@ export class VisageSequencer {
      * @param {boolean} isBaseLayer
      * @param {boolean} isRestore - If true, non-looping (one-shot) effects are skipped.
      */
-    static async apply(token, layer, isBaseLayer = false, isRestore = false) {
+    static async apply(token, layer, isBaseLayer = false, isRestore = false, anticipatedState = null) {
         if (!VisageUtilities.hasSequencer) return;
 
         const effects = layer.changes?.effects || [];
@@ -44,11 +45,22 @@ export class VisageSequencer {
         // --- THE ZERO ANCHOR MATH ---
         // Find the most negative delay across all active effects. If none are negative, offset is 0.
         const allActive = [...visuals, ...audios];
-        const minDelaySeconds = Math.min(
-            0,
-            ...allActive.map((e) => e.delay || 0),
-        );
+        const minDelaySeconds = Math.min(0, ...allActive.map((e) => e.delay || 0));
         const offsetMS = Math.abs(minDelaySeconds) * 1000;
+
+        // --- Anticipated State Resolution ---
+        // If the state wasn't passed down the pipeline (e.g., during a restore), calculate it from live flags.
+        if (!anticipatedState) {
+            const stack = token.document?.getFlag("visage", "activeStack") || [];
+            const originalState = token.document?.getFlag("visage", "originalState") || {};
+            anticipatedState = VisageComposer.resolveTextureState(stack, originalState);
+        }
+
+        const { anchorX, anchorY, mirrorX: flipX, mirrorY: flipY } = anticipatedState;
+
+        // --- Invert the anchor if the token is flipped ---
+        const seqAnchorX = flipX ? 1.0 - anchorX : anchorX;
+        const seqAnchorY = flipY ? 1.0 - anchorY : anchorY;
 
         // --- A. VISUALS (Sequencer) ---
         if (visuals.length > 0) {
@@ -61,19 +73,28 @@ export class VisageSequencer {
                     if (!path || typeof path !== "string") continue;
 
                     const isLoop = effect.loop ?? true;
-                    // Apply the true start time
                     const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
+                    const effectScale = effect.scale ?? 1.0;
+
+                    // --- Dampen the anchor shift based on effect scale ---
+                    // This ensures a 300% scaled effect physically moves the exact
+                    // same number of pixels as the 100% scaled token art.
+                    const finalAnchorX = 0.5 - (0.5 - seqAnchorX) / effectScale;
+                    const finalAnchorY = 0.5 - (0.5 - seqAnchorY) / effectScale;
 
                     let seqEffect = sequence
                         .effect()
                         .file(path)
                         .attachTo(token)
-                        .scaleToObject(effect.scale ?? 1.0)
+                        .scaleToObject(effectScale)
+                        .anchor({ x: finalAnchorX, y: finalAnchorY })
+                        .mirrorX(flipX)
+                        .mirrorY(flipY)
                         .opacity(effect.opacity ?? 1.0)
                         .rotate(effect.rotation ?? 0)
                         .belowTokens(effect.zOrder === "below")
-                        .delay(trueDelayMS) // <-- FIXED: True relative delay
-                        .name(tag)
+                        .delay(trueDelayMS)
+                        .name(`${tag}|${effect.id}`)
                         .origin(layer.id);
 
                     if (isLoop) {
@@ -145,7 +166,7 @@ export class VisageSequencer {
             try {
                 await Sequencer.EffectManager.endEffects({
                     object: token,
-                    name: tag,
+                    name: `${tag}*`,
                 });
             } catch (e) {
                 /* Ignore */
@@ -170,9 +191,7 @@ export class VisageSequencer {
                     } else if (item && typeof item.stop === "function") {
                         const fadeOut = item.visageFadeOut || 0;
                         if (fadeOut > 0 && item.playing) {
-                            this._fadeAudio(item, item.volume, 0, fadeOut).then(
-                                () => item.stop(),
-                            );
+                            this._fadeAudio(item, item.volume, 0, fadeOut).then(() => item.stop());
                         } else {
                             item.volume = 0;
                             item.stop();
@@ -190,27 +209,20 @@ export class VisageSequencer {
     static async revert(tokenOrId) {
         if (!VisageUtilities.hasSequencer) return;
 
-        const token =
-            typeof tokenOrId === "string"
-                ? canvas.tokens.get(tokenOrId)
-                : tokenOrId;
-        const tokenId =
-            typeof tokenOrId === "string" ? tokenOrId : tokenOrId?.id;
+        const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
+        const tokenId = typeof tokenOrId === "string" ? tokenOrId : tokenOrId?.id;
 
         // 1. Kill Visuals
         if (token) {
             try {
                 await Sequencer.EffectManager.endEffects({
                     object: token,
-                    name: "visage-base",
+                    name: "visage-base*",
                 });
                 const effects = Sequencer.EffectManager.getEffects({
                     object: token,
                 });
-                const targets = effects.filter(
-                    (e) =>
-                        e.data.name && e.data.name.startsWith("visage-mask-"),
-                );
+                const targets = effects.filter((e) => e.data.name && e.data.name.startsWith("visage-mask-"));
                 for (const effect of targets) {
                     await Sequencer.EffectManager.endEffects({
                         object: token,
@@ -234,10 +246,7 @@ export class VisageSequencer {
                                     s.stop();
                                 }
                             });
-                        } else if (
-                            soundOrPromise &&
-                            typeof soundOrPromise.stop === "function"
-                        ) {
+                        } else if (soundOrPromise && typeof soundOrPromise.stop === "function") {
                             soundOrPromise.volume = 0;
                             soundOrPromise.stop();
                         }
@@ -271,10 +280,7 @@ export class VisageSequencer {
                             s.stop();
                         }
                     });
-                } else if (
-                    soundOrPromise &&
-                    typeof soundOrPromise.stop === "function"
-                ) {
+                } else if (soundOrPromise && typeof soundOrPromise.stop === "function") {
                     soundOrPromise.volume = 0;
                     soundOrPromise.stop();
                 }
@@ -322,9 +328,7 @@ export class VisageSequencer {
             if (!path || typeof path !== "string") return;
 
             const isLoop = effect.loop ?? true;
-            const targetVol = Number.isFinite(effect.opacity)
-                ? effect.opacity
-                : 0.8;
+            const targetVol = Number.isFinite(effect.opacity) ? effect.opacity : 0.8;
 
             // Calculate true start time
             const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
@@ -344,10 +348,7 @@ export class VisageSequencer {
 
                 const handleSoundLoad = (sound) => {
                     const currentInstances = this._activeSounds.get(soundKey);
-                    if (
-                        !currentInstances ||
-                        currentInstances !== activeInstances
-                    ) {
+                    if (!currentInstances || currentInstances !== activeInstances) {
                         if (sound) {
                             try {
                                 sound.volume = 0;
@@ -361,23 +362,17 @@ export class VisageSequencer {
 
                     if (sound) {
                         sound.visageFadeOut = fadeOutMS;
-                        const idx = currentInstances.findIndex(
-                            (i) =>
-                                i === playResult || i.playResult === playResult,
-                        );
+                        const idx = currentInstances.findIndex((i) => i === playResult || i.playResult === playResult);
                         if (idx > -1) currentInstances[idx] = sound;
 
-                        if (fadeInMS > 0)
-                            this._fadeAudio(sound, 0, targetVol, fadeInMS);
+                        if (fadeInMS > 0) this._fadeAudio(sound, 0, targetVol, fadeInMS);
 
                         if (!isLoop) {
                             sound.addEventListener("end", () => {
-                                const latestInstances =
-                                    this._activeSounds.get(soundKey);
+                                const latestInstances = this._activeSounds.get(soundKey);
                                 if (latestInstances) {
                                     const sIdx = latestInstances.indexOf(sound);
-                                    if (sIdx > -1)
-                                        latestInstances.splice(sIdx, 1);
+                                    if (sIdx > -1) latestInstances.splice(sIdx, 1);
                                 }
                             });
                         }
@@ -414,15 +409,12 @@ export class VisageSequencer {
             const entry = this._resolveSequencerRecursively(rawPath);
             if (entry) {
                 let file;
-                if (Array.isArray(entry))
-                    file = entry[Math.floor(Math.random() * entry.length)];
+                if (Array.isArray(entry)) file = entry[Math.floor(Math.random() * entry.length)];
                 else {
                     file = entry.file;
-                    if (Array.isArray(file))
-                        file = file[Math.floor(Math.random() * file.length)];
+                    if (Array.isArray(file)) file = file[Math.floor(Math.random() * file.length)];
                 }
-                if (file && typeof file === "object" && file.file)
-                    file = file.file;
+                if (file && typeof file === "object" && file.file) file = file.file;
                 if (typeof file === "string") return file;
             }
             return null;
@@ -439,13 +431,54 @@ export class VisageSequencer {
         try {
             const children = Sequencer.Database.getEntriesUnder(path);
             if (children && children.length > 0) {
-                const randomKey =
-                    children[Math.floor(Math.random() * children.length)];
+                const randomKey = children[Math.floor(Math.random() * children.length)];
                 return this._resolveSequencerRecursively(randomKey, depth + 1);
             }
         } catch (e) {
             /* The path might not have children; ignore and return null */
         }
         return null;
+    }
+
+    /**
+     * Seamlessly updates the physical matrix (anchor/flip) of active Sequencer effects
+     * without tearing them down, restarting loops, or interrupting audio.
+     * @param {Token} token - The target token.
+     * @param {string} layerId - The ID of the Visage layer to update.
+     * @param {Object} anticipatedState - The resolved matrix state.
+     */
+    static refreshMatrix(token, layerId, anticipatedState) {
+        if (!VisageUtilities.hasSequencer) return;
+
+        const { anchorX, anchorY, mirrorX: flipX, mirrorY: flipY } = anticipatedState;
+        const seqAnchorX = flipX ? 1.0 - anchorX : anchorX;
+        const seqAnchorY = flipY ? 1.0 - anchorY : anchorY;
+
+        // Fetch the original layer data so we know the scales of the running effects
+        const currentStack = token.document.getFlag("visage", "activeStack") || [];
+        const layer = currentStack.find((l) => l.id === layerId);
+        const visuals = layer?.changes?.effects || [];
+
+        const activeEffects = Sequencer.EffectManager.getEffects({ object: token, origin: layerId });
+
+        for (const effect of activeEffects) {
+            // Extract the original effect ID from the custom name tag
+            const nameParts = (effect.data?.name || effect.name || "").split("|");
+            const effectId = nameParts.length === 2 ? nameParts[1] : null;
+
+            // Look up the scale (default to 1.0 if something goes wrong)
+            const visageEffect = visuals.find((v) => v.id === effectId);
+            const effectScale = visageEffect?.scale ?? 1.0;
+
+            // Apply the dampened formula
+            const finalAnchorX = 0.5 - (0.5 - seqAnchorX) / effectScale;
+            const finalAnchorY = 0.5 - (0.5 - seqAnchorY) / effectScale;
+
+            effect.update({
+                anchor: { x: finalAnchorX, y: finalAnchorY },
+                mirrorX: flipX,
+                mirrorY: flipY,
+            });
+        }
     }
 }

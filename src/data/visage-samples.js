@@ -91,22 +91,16 @@ export class VisageSamples extends HandlebarsApplicationMixin(ApplicationV2) {
      * Iterates over selected packs, fetches the JSON (with lang fallback), and imports data.
      */
     async _onSubmit(event, form, formData) {
-        const selectedIds = Object.keys(formData.object).filter(
-            (k) => formData.object[k],
-        );
+        const selectedIds = Object.keys(formData.object).filter((k) => formData.object[k]);
 
         if (selectedIds.length === 0) {
-            return ui.notifications.warn(
-                game.i18n.localize("VISAGE.Notifications.Samples.NoneSelected"),
-            );
+            return ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.Samples.NoneSelected"));
         }
 
         let totalImported = 0;
         let totalSkipped = 0;
 
-        ui.notifications.info(
-            game.i18n.localize("VISAGE.Notifications.Samples.Start"),
-        );
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.Samples.Start"));
 
         for (const packId of selectedIds) {
             const packDef = VisageSamples.PACKS.find((p) => p.id === packId);
@@ -135,19 +129,14 @@ export class VisageSamples extends HandlebarsApplicationMixin(ApplicationV2) {
                     }
 
                     if (cleanEntry.category) {
-                        cleanEntry.category = game.i18n.localize(
-                            cleanEntry.category,
-                        );
+                        cleanEntry.category = game.i18n.localize(cleanEntry.category);
                     }
 
                     await VisageData.save(cleanEntry, null); // null actor = Global
                     totalImported++;
                 }
             } catch (err) {
-                console.error(
-                    `Visage | Failed to import pack ${packDef.id}:`,
-                    err,
-                );
+                console.error(`Visage | Failed to import pack ${packDef.id}:`, err);
                 ui.notifications.error(
                     game.i18n.format("VISAGE.Notifications.Samples.Error", {
                         label: game.i18n.localize(packDef.label),

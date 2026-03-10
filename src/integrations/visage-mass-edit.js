@@ -21,9 +21,7 @@ export class VisageMassEdit {
      * Intercepts Mass Edit rendering. Prompts GM to revert tokens to protect base data.
      */
     static async _onRenderMassEdit(app, html, data) {
-        const isMassEdit =
-            app.constructor.name.includes("Mass") ||
-            app.options?.id?.includes("mass");
+        const isMassEdit = app.constructor.name.includes("Mass") || app.options?.id?.includes("mass");
         if (!isMassEdit) return;
 
         if (this.isPrompting) return;
@@ -69,17 +67,11 @@ export class VisageMassEdit {
                 // Force Close Mass Edit to purge stale disguise data
                 app.close();
 
-                ui.notifications.info(
-                    game.i18n.localize(
-                        "VISAGE.Notifications.MassEditReverting",
-                    ),
-                );
+                ui.notifications.info(game.i18n.localize("VISAGE.Notifications.MassEditReverting"));
 
                 for (const doc of visagedDocs) {
                     const identity = doc.getFlag(DATA_NAMESPACE, "identity");
-                    const activeStack = foundry.utils.deepClone(
-                        doc.getFlag(DATA_NAMESPACE, "activeStack") || [],
-                    );
+                    const activeStack = foundry.utils.deepClone(doc.getFlag(DATA_NAMESPACE, "activeStack") || []);
 
                     this.pendingRestores.set(doc.id, { identity, activeStack });
 
@@ -87,14 +79,9 @@ export class VisageMassEdit {
                     await Visage.revert(doc.object || doc.id);
                 }
 
-                ui.notifications.info(
-                    game.i18n.localize("VISAGE.Notifications.MassEditReverted"),
-                );
+                ui.notifications.info(game.i18n.localize("VISAGE.Notifications.MassEditReverted"));
             } else {
-                ui.notifications.warn(
-                    game.i18n.localize("VISAGE.Warnings.MassEditActive"),
-                    { permanent: true },
-                );
+                ui.notifications.warn(game.i18n.localize("VISAGE.Warnings.MassEditActive"), { permanent: true });
             }
         } finally {
             this.isPrompting = false;
@@ -107,9 +94,7 @@ export class VisageMassEdit {
             return;
         }
 
-        ui.notifications.info(
-            game.i18n.localize("VISAGE.Notifications.MassEditRestoring"),
-        );
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.MassEditRestoring"));
 
         for (const [tokenId, savedState] of this.pendingRestores.entries()) {
             const token = canvas.tokens.get(tokenId);
@@ -122,9 +107,7 @@ export class VisageMassEdit {
                 });
             }
 
-            const overlays = savedState.activeStack.filter(
-                (layer) => layer.id !== savedState.identity,
-            );
+            const overlays = savedState.activeStack.filter((layer) => layer.id !== savedState.identity);
             for (const overlay of overlays) {
                 await Visage.apply(token, overlay.id, {
                     switchIdentity: false,
@@ -133,9 +116,7 @@ export class VisageMassEdit {
             }
         }
 
-        ui.notifications.info(
-            game.i18n.localize("VISAGE.Notifications.MassEditRestored"),
-        );
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.MassEditRestored"));
         this.pendingRestores.clear();
     }
 
@@ -143,9 +124,7 @@ export class VisageMassEdit {
      * Intercepts Mass Edit closing. Prompts GM to restore the removed Visages.
      */
     static async _onCloseMassEdit(app, html) {
-        const isMassEdit =
-            app.constructor.name.includes("Mass") ||
-            app.options?.id?.includes("mass");
+        const isMassEdit = app.constructor.name.includes("Mass") || app.options?.id?.includes("mass");
         if (!isMassEdit) return;
 
         // If this close event fired within 1000ms of us forcing the window closed, ignore it completely

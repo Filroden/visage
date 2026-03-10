@@ -42,10 +42,7 @@ export class VisageAutomation {
         });
 
         Hooks.on("updateScene", (scene, changes) => {
-            if (
-                changes.environment?.darknessLevel !== undefined ||
-                changes.environment?.globalLight?.enabled !== undefined
-            ) {
+            if (changes.environment?.darknessLevel !== undefined || changes.environment?.globalLight?.enabled !== undefined) {
                 setTimeout(() => {
                     for (const tokenId of this._registry.keys()) {
                         const t = canvas.tokens.get(tokenId);
@@ -71,29 +68,16 @@ export class VisageAutomation {
         if (!canvas.ready) return;
 
         // Fetch all automated Global Visages to act as "Universal Rules"
-        const globalAutomations = VisageData.globals.filter(
-            (v) =>
-                !v.deleted &&
-                v.automation?.enabled &&
-                v.automation?.conditions?.length > 0,
-        );
+        const globalAutomations = VisageData.globals.filter((v) => !v.deleted && v.automation?.enabled && v.automation?.conditions?.length > 0);
 
         for (const token of canvas.tokens.placeables) {
             if (!token.actor) continue;
 
             const localVisages = VisageData.getLocal(token.actor);
-            const automatedVisages = localVisages.filter(
-                (v) =>
-                    !v.deleted &&
-                    v.automation?.enabled &&
-                    v.automation?.conditions?.length > 0,
-            );
+            const automatedVisages = localVisages.filter((v) => !v.deleted && v.automation?.enabled && v.automation?.conditions?.length > 0);
 
             // Combine the token's specific local automations with the universal global automations
-            const combinedAutomations = [
-                ...automatedVisages,
-                ...globalAutomations,
-            ];
+            const combinedAutomations = [...automatedVisages, ...globalAutomations];
 
             if (combinedAutomations.length > 0) {
                 this._registry.set(token.id, {
@@ -110,9 +94,7 @@ export class VisageAutomation {
 
     static _onUpdateActor(actor, changes, options, userId) {
         // Find tokens on the canvas linked to this actor that are in our registry
-        const linkedTokens = canvas.tokens.placeables.filter(
-            (t) => t.actor?.id === actor.id && this._registry.has(t.id),
-        );
+        const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && this._registry.has(t.id));
         if (!linkedTokens.length) return;
 
         // In the next step, we will pass these tokens to the Evaluation Loop
@@ -122,16 +104,11 @@ export class VisageAutomation {
     }
 
     static _onStatusChange(effect, options, userId) {
-        const actor =
-            effect.parent?.documentName === "Item"
-                ? effect.parent.parent
-                : effect.parent;
+        const actor = effect.parent?.documentName === "Item" ? effect.parent.parent : effect.parent;
 
         if (!actor || actor.documentName !== "Actor") return;
 
-        const linkedTokens = canvas.tokens.placeables.filter(
-            (t) => t.actor?.id === actor.id && this._registry.has(t.id),
-        );
+        const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && this._registry.has(t.id));
         if (!linkedTokens.length) return;
 
         for (const token of linkedTokens) {
@@ -149,13 +126,7 @@ export class VisageAutomation {
     static _onUpdateToken(tokenDoc, changes, options, userId) {
         // We only care if elevation or position changed.
         // This acts as our throttle to prevent evaluating on every minor token update.
-        if (
-            changes.elevation === undefined &&
-            changes.x === undefined &&
-            changes.y === undefined &&
-            changes.delta === undefined
-        )
-            return;
+        if (changes.elevation === undefined && changes.x === undefined && changes.y === undefined && changes.delta === undefined) return;
 
         if (this._registry.has(tokenDoc.id)) {
             const token = tokenDoc.object;
@@ -188,21 +159,15 @@ export class VisageAutomation {
             let results = [];
             for (const cond of auto.conditions) {
                 if (cond.disabled) continue;
-                if (cond.type === "attribute")
-                    results.push(this._evalAttribute(actor, cond));
-                else if (cond.type === "status")
-                    results.push(this._evalStatus(actor, cond));
-                else if (cond.type === "event")
-                    results.push(this._evalEvent(token, cond));
+                if (cond.type === "attribute") results.push(this._evalAttribute(actor, cond));
+                else if (cond.type === "status") results.push(this._evalStatus(actor, cond));
+                else if (cond.type === "event") results.push(this._evalEvent(token, cond));
             }
 
             if (results.length === 0) continue;
 
             // 2. Apply Logic (AND / OR)
-            const isTrue =
-                auto.logic === "AND"
-                    ? results.every((r) => r === true)
-                    : results.some((r) => r === true);
+            const isTrue = auto.logic === "AND" ? results.every((r) => r === true) : results.some((r) => r === true);
 
             // 3. True Declarative State Check
             // We bypass the fragile in-memory cache and check the exact canvas state!
@@ -258,9 +223,7 @@ export class VisageAutomation {
                 });
 
             // Combine winners
-            const finalApplies = winningIdentity
-                ? [winningIdentity, ...overlays]
-                : overlays;
+            const finalApplies = winningIdentity ? [winningIdentity, ...overlays] : overlays;
 
             for (const visage of finalApplies) {
                 const isActive = await VisageApi.isActive(token.id, visage.id);
@@ -303,8 +266,7 @@ export class VisageAutomation {
 
             if (condition.operator === "eq") return checkVal === targetVal;
             if (condition.operator === "neq") return checkVal !== targetVal;
-            if (condition.operator === "includes")
-                return checkVal.includes(targetVal);
+            if (condition.operator === "includes") return checkVal.includes(targetVal);
             return false;
         }
 
@@ -317,18 +279,14 @@ export class VisageAutomation {
 
         // 2. Handle Percentage Calculations
         if (condition.mode === "percent") {
-            const maxPath =
-                condition.denominatorPath ||
-                condition.path.replace(/\.value$/, ".max");
+            const maxPath = condition.denominatorPath || condition.path.replace(/\.value$/, ".max");
             const maxVal = foundry.utils.getProperty(actor, maxPath);
             const numMaxVal = Number(maxVal);
 
             if (!isNaN(numMaxVal) && numMaxVal > 0) {
                 checkVal = (checkVal / numMaxVal) * 100;
             } else {
-                console.warn(
-                    `Visage | Cannot calculate percentage for ${condition.path} - no valid max found at ${maxPath}`,
-                );
+                console.warn(`Visage | Cannot calculate percentage for ${condition.path} - no valid max found at ${maxPath}`);
                 return false;
             }
         }
@@ -397,11 +355,7 @@ export class VisageAutomation {
      */
     static _evalEvent(token, condition) {
         if (condition.eventId === "combat") {
-            const isActive = game.combats.some(
-                (c) =>
-                    c.started &&
-                    c.combatants.some((cb) => cb.tokenId === token.id),
-            );
+            const isActive = game.combats.some((c) => c.started && c.combatants.some((cb) => cb.tokenId === token.id));
             return condition.operator === "active" ? isActive : !isActive;
         } else if (condition.eventId === "targeted") {
             // A token is targeted if any user has a targeting reticle on it
@@ -432,11 +386,7 @@ export class VisageAutomation {
         } else if (condition.eventId === "region") {
             if (!condition.regionId) return false;
             const regionSet = token.document?.regions || [];
-            const inRegion = Array.from(regionSet).some(
-                (r) =>
-                    r.id === condition.regionId ||
-                    r.name === condition.regionId,
-            );
+            const inRegion = Array.from(regionSet).some((r) => r.id === condition.regionId || r.name === condition.regionId);
             return condition.operator === "active" ? inRegion : !inRegion;
         }
 

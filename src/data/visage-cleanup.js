@@ -38,10 +38,8 @@ async function getRevertData(token) {
         // Restore dimensions and scaling
         if (original.width !== undefined) updates["width"] = original.width;
         if (original.height !== undefined) updates["height"] = original.height;
-        if (original.texture?.scaleX !== undefined)
-            updates["texture.scaleX"] = original.texture.scaleX;
-        if (original.texture?.scaleY !== undefined)
-            updates["texture.scaleY"] = original.texture.scaleY;
+        if (original.texture?.scaleX !== undefined) updates["texture.scaleX"] = original.texture.scaleX;
+        if (original.texture?.scaleY !== undefined) updates["texture.scaleY"] = original.texture.scaleY;
 
         // Restore Ring Data
         if (original.ring) updates["ring"] = original.ring;
@@ -51,10 +49,8 @@ async function getRevertData(token) {
 
         // Restore other properties
         if (original.name) updates["name"] = original.name;
-        if (original.displayName !== undefined)
-            updates["displayName"] = original.displayName;
-        if (original.disposition !== undefined)
-            updates["disposition"] = original.disposition;
+        if (original.displayName !== undefined) updates["displayName"] = original.displayName;
+        if (original.disposition !== undefined) updates["disposition"] = original.disposition;
     }
 
     return updates;
@@ -89,9 +85,7 @@ export async function cleanseSceneTokens() {
             }),
         );
     } else {
-        ui.notifications.info(
-            game.i18n.localize("VISAGE.Notifications.CleanupSceneEmpty"),
-        );
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.CleanupSceneEmpty"));
     }
 }
 
@@ -107,9 +101,7 @@ export async function cleanseSceneTokens() {
 export async function cleanseAllTokens() {
     let count = 0;
 
-    ui.notifications.info(
-        game.i18n.localize("VISAGE.Notifications.CleanupGlobalStart"),
-    );
+    ui.notifications.info(game.i18n.localize("VISAGE.Notifications.CleanupGlobalStart"));
 
     // 1. Iterate over every Scene (Handle Tokens & Unlinked Actors)
     // We must handle unlinked actors inside the scene loop because they do not exist in game.actors.
@@ -125,9 +117,7 @@ export async function cleanseAllTokens() {
             if (!token.actorLink && token.actor) {
                 if (token.actor.flags?.[DATA_NAMESPACE]) {
                     const deleteKey = `flags.-=${DATA_NAMESPACE}`;
-                    unlinkedPromises.push(
-                        token.actor.update({ [deleteKey]: null }),
-                    );
+                    unlinkedPromises.push(token.actor.update({ [deleteKey]: null }));
                 }
             }
 
@@ -143,8 +133,7 @@ export async function cleanseAllTokens() {
 
         // Execute per-scene bulk updates to prevent database locks
         if (unlinkedPromises.length > 0) await Promise.all(unlinkedPromises);
-        if (tokenUpdates.length > 0)
-            await scene.updateEmbeddedDocuments("Token", tokenUpdates);
+        if (tokenUpdates.length > 0) await scene.updateEmbeddedDocuments("Token", tokenUpdates);
     }
 
     // 2. Clean Actors in the Sidebar (Handle Linked Actors)
