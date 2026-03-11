@@ -40,6 +40,7 @@ export default [
                 Sequencer: "readonly",
                 Sequence: "readonly",
                 Trowel: "readonly",
+                TokenMagic: "readonly",
             },
         },
         rules: {

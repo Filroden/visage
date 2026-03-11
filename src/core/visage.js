@@ -2,6 +2,7 @@ import { VisageComposer } from "./visage-composer.js";
 import { VisageData } from "../data/visage-data.js";
 import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageSequencer } from "../integrations/visage-sequencer.js";
+import { VisageTokenMagic } from "../integrations/visage-tmfx.js";
 import { MODULE_ID, DATA_NAMESPACE } from "./visage-constants.js";
 import { VisageMassEdit } from "../integrations/visage-mass-edit.js";
 
@@ -218,6 +219,20 @@ export class Visage {
             }
         };
 
+        // Task D: Token Magic FX
+        const runTMFX = (offsetMS, activeFX) => {
+            if (!VisageTokenMagic.isActive) return;
+
+            const tmfxEffects = activeFX.filter((e) => e.type === "tmfx" && e.tmfxPreset);
+            for (const effect of tmfxEffects) {
+                const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
+                setTimeout(() => {
+                    // Note: 'token' here is the Placeable Object (canvas.tokens.get), which TMFX requires
+                    VisageTokenMagic.applyEffect(token, layer.id, effect);
+                }, trueDelayMS);
+            }
+        };
+
         // 4. Execute with Transition Timing
 
         // Calculate the Token Swap Offset (Zero Anchor) based on the most negative effect delay
@@ -229,8 +244,9 @@ export class Visage {
         // inside VisageSequencer, so we always fire them immediately.
         runVisualFX();
 
-        // Macros calculate their own relative start times against the anchor
+        // Macros and filters calculate their own relative start times against the anchor
         runMacros(offsetMS, activeEffects);
+        runTMFX(offsetMS, activeEffects);
 
         // Delay the actual token image/data swap if we have negative delays (pre-effects)
         if (offsetMS > 0) {
@@ -289,6 +305,12 @@ export class Visage {
             }
         }
 
+        // Stop Token Magic FX
+        if (VisageTokenMagic.isActive) {
+            const removedLayer = currentStack.find((l) => l.id === maskId);
+            if (removedLayer) await VisageTokenMagic.removeLayer(token, removedLayer);
+        }
+
         if (token.actor) {
             const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, originalState?.portrait);
             if (targetPortrait && token.actor.img !== targetPortrait) {
@@ -314,13 +336,16 @@ export class Visage {
         const flags = token.document.flags[MODULE_ID] || {};
         const originalPortrait = flags.originalState?.portrait;
 
-        // 1. Remove all Sequencer effects
+        // Remove all Sequencer effects
         if (Visage.sequencerReady) await VisageSequencer.revert(token);
 
-        // 2. Revert Token Data (Composer wipes flags here)
+        // Remove all Visage-owned TMFX filters
+        if (VisageTokenMagic.isActive) await VisageTokenMagic.revert(token);
+
+        // Revert Token Data (Composer wipes flags here)
         await VisageComposer.revertToDefault(token.document);
 
-        // 3. Revert Actor Portrait (using cached value)
+        // Revert Actor Portrait (using cached value)
         if (token.actor && originalPortrait && token.actor.img !== originalPortrait) {
             await token.actor.update({ img: originalPortrait });
         }
@@ -443,6 +468,7 @@ export class Visage {
         await token.document.update({ [`flags.${DATA_NAMESPACE}.activeStack`]: stack });
         await VisageComposer.compose(token);
 
+        // 1. Handle Sequencer Animations
         if (Visage.sequencerReady) {
             if (matrixChanged) {
                 for (const activeLayer of stack) {
@@ -461,6 +487,12 @@ export class Visage {
                 if (isVisible) await VisageSequencer.apply(token, layer, false, false, anticipatedState);
                 else await VisageSequencer.remove(token, layerId, false);
             }
+        }
+
+        // 2. Handle Token Magic FX Filters
+        if (VisageTokenMagic.isActive) {
+            if (isVisible) await VisageTokenMagic.applyLayer(token, layer);
+            else await VisageTokenMagic.removeLayer(token, layer);
         }
     }
 

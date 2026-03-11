@@ -685,18 +685,26 @@ export class VisageData {
             </div>`;
         }
 
-        // B. Sequencer Effects (Middle)
+        // B. Effects (Visual, Audio, Macro, TMFX)
         if (activeEffects.length > 0) {
             content += activeEffects
                 .map((e) => {
-                    const icon = e.type === "audio" ? "visage-icon audio" : e.type === "macro" ? "visage-icon macro" : "visage-icon visual";
+                    let icon, meta;
 
-                    const meta =
-                        e.type === "audio"
-                            ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((e.opacity ?? 0.8) * 100)}%`
-                            : e.type === "macro"
-                              ? e.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID")
-                              : `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1.0) * 100)}%`;
+                    if (e.type === "audio") {
+                        icon = "visage-icon audio";
+                        meta = `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((e.opacity ?? 0.8) * 100)}%`;
+                    } else if (e.type === "macro") {
+                        icon = "visage-icon macro";
+                        meta = e.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID");
+                    } else if (e.type === "tmfx") {
+                        icon = "visage-icon filter-fx";
+                        meta = e.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset");
+                    } else {
+                        // Visual
+                        icon = "visage-icon visual";
+                        meta = `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1.0) * 100)}%`;
+                    }
 
                     return `
                 <div class='visage-tooltip-row'>
