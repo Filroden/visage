@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Jetonlar güvenli bir şekilde eski haline döndürüldü! Değişikliklerinizi yapmak için Mass Edit'i yeniden açın. Ardından Visage'larınızı geri yüklemeniz istenecektir.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | Jeton görünümleri geri yükleniyor...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Jeton görünümleri geri yüklendi.",
-    "VISAGE.Warnings.MassEditActive": "Visage | Aktif Visage'ları olan jetonlara Mass Edit uyguluyorsunuz! Mass Edit, mevcut Visage'larını temel verileri olarak okur. Burada herhangi bir jeton ayarını değiştirmek, orijinal jeton verilerinin kalıcı olarak mevcut Visage'larıyla üzerine yazılmasına neden olabilir."
+    "VISAGE.Warnings.MassEditActive": "Visage | Aktif Visage'ları olan jetonlara Mass Edit uyguluyorsunuz! Mass Edit, mevcut Visage'larını temel verileri olarak okur. Burada herhangi bir jeton ayarını değiştirmek, orijinal jeton verilerinin kalıcı olarak mevcut Visage'larıyla üzerine yazılmasına neden olabilir.",
+    "VISAGE.Editor.Effects.AddTmfx": "Filtre Ekle",
+    "VISAGE.Editor.Groups.Tmfx": "TokenMagic Filtreleri",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL filtreleri (TokenMagic gibi) tuval üzerinde fiziksel bir jeton gerektirir ve bu HTML penceresinde önizlenemez. Efekti görmek için Visage'ı uygulayın.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Filtre Ön Ayarı",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Bir Filtre Ön Ayarı Seçin..."
 }

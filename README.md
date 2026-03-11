@@ -47,7 +47,7 @@ While other modules focus on transient animations (a sword swinging or a firebal
   * **Attributes:** e.g., Apply a bloody portrait when HP drops below 50%. Built with a  searchable Attribute Picker that works with any game system.
   * **Status Effects:** e.g., Apply a glowing forcefield when the "Mage Armour" effect is present.
   * **Game Events:** React to Scene Darkness, Global Illumination, elevation changes, Region entry/exit, Combat states or even the token being targeted.
-* **Integrated Media Pipeline:** Visage seamlessly hooks into the **[Sequencer](https://foundryvtt.com/packages/sequencer)** module. Bind particle effects, looping animations, and sound effects to your Visages. When the Visage is removed, the audio and visual effects stop automatically.
+* **Integrated Media Pipeline:** Visage seamlessly hooks into the **[Sequencer](https://foundryvtt.com/packages/sequencer)** and **[Token Magic FX](https://foundryvtt.com/packages/tokenmagic)** modules. Bind particle animations, looping sound effects, and WebGL shaders to your Visages. When the Visage is removed, the audio, visuals, and filters clean themselves up automatically.
 * **Dynamic Token Ring Support:** Fully supports Foundry's Dynamic Token Rings. Override subject textures, background colours, and toggle ring effects (Pulse, Wave, Invisibility) on the fly.
 * **Global & Local Libraries:** GMs can build a "Global Library" of universal effects to use across the world. Set some of these Visages to "public" and they become visible for players to use. Players have a "Local Library" tied to their specific character sheet for their personal transformations.
 
@@ -80,6 +80,7 @@ If you encounter an issue, please use the **Export Diagnostic Log** button locat
 To get the absolute most out of Visage, I highly recommend installing the following modules:
 
 * **[Sequencer](https://foundryvtt.com/packages/sequencer)**: Required if you wish to attach visual or audio effects to a Visage.
+* **[Token Magic FX](https://foundryvtt.com/packages/tokenmagic)**: Allows you to attach advanced WebGL filters and shader presets to your Visages.
 * **[JB2A - Jules & Ben's Animated Assets](https://foundryvtt.com/packages/JB2A_DnD5e)**: Provides a massive library of visual assets pre-registered into the Sequencer Database.
 * **[PSFX - Peri's Sound Effects](https://foundryvtt.com/packages/psfx)**: The audio equivalent to JB2A. Amazing sound effects perfectly formatted for VTT use.
 * **[FA Nexus](https://foundryvtt.com/packages/fa-nexus)**: An in-game asset browser for Forgotten Adventures' extensive top-down token library.

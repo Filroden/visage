@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "\u200F\u2068Visage\u2069 | تمت إعادة الرموز بأمان! أعد فتح \u2068Mass Edit\u2069 لإجراء تغييراتك. سيُطلب منك بعد ذلك استعادة الـ \u2068Visages\u2069 الخاصة بك.",
     "VISAGE.Notifications.MassEditRestoring": "\u200F\u2068Visage\u2069 | جاري استعادة مظاهر الرموز...",
     "VISAGE.Notifications.MassEditRestored": "\u200F\u2068Visage\u2069 | تمت استعادة مظاهر الرموز.",
-    "VISAGE.Warnings.MassEditActive": "\u200F\u2068Visage\u2069 | أنت تطبق \u2068Mass Edit\u2069 على رموز ذات \u2068Visages\u2069 نشطة! يقرأ \u2068Mass Edit\u2069 الـ \u2068Visages\u2069 الحالية كبياناتها الأساسية. قد يؤدي تعديل أي إعدادات للرمز هنا إلى الكتابة فوق بيانات الرمز الأصلية بشكل دائم باستخدام الـ \u2068Visages\u2069 الحالية."
+    "VISAGE.Warnings.MassEditActive": "\u200F\u2068Visage\u2069 | أنت تطبق \u2068Mass Edit\u2069 على رموز ذات \u2068Visages\u2069 نشطة! يقرأ \u2068Mass Edit\u2069 الـ \u2068Visages\u2069 الحالية كبياناتها الأساسية. قد يؤدي تعديل أي إعدادات للرمز هنا إلى الكتابة فوق بيانات الرمز الأصلية بشكل دائم باستخدام الـ \u2068Visages\u2069 الحالية.",
+    "VISAGE.Editor.Effects.AddTmfx": "\u200Fإضافة فلتر",
+    "VISAGE.Editor.Groups.Tmfx": "\u200Fفلاتر \u2068TokenMagic\u2069",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "\u200Fتتطلب فلاتر \u2068WebGL\u2069 (مثل \u2068TokenMagic\u2069) رمزًا فعليًا على اللوحة القماشية ولا يمكن معاينتها في نافذة \u2068HTML\u2069 هذه. قم بتطبيق \u2068Visage\u2069 لرؤية التأثير.",
+    "VISAGE.Editor.Effects.TmfxPreset": "\u200Fإعداد مسبق للفلتر",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "\u200Fحدد إعدادًا مسبقًا للفلتر..."
 }

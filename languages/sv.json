@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Tokens säkert återställda! Öppna Mass Edit igen för att göra dina ändringar. Du kommer sedan att uppmanas att återställa dina Visages.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | Återställer token-utseenden...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Token-utseenden återställda.",
-    "VISAGE.Warnings.MassEditActive": "Visage | Du använder Mass Edit på tokens med aktiva Visages! Mass Edit läser deras nuvarande Visages som deras basdata. Om du ändrar några token-inställningar här kan den ursprungliga token-datan permanent skrivas över med deras nuvarande Visages."
+    "VISAGE.Warnings.MassEditActive": "Visage | Du använder Mass Edit på tokens med aktiva Visages! Mass Edit läser deras nuvarande Visages som deras basdata. Om du ändrar några token-inställningar här kan den ursprungliga token-datan permanent skrivas över med deras nuvarande Visages.",
+    "VISAGE.Editor.Effects.AddTmfx": "Lägg till Filter",
+    "VISAGE.Editor.Groups.Tmfx": "TokenMagic-filter",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL-filter (som TokenMagic) kräver ett fysiskt token på canvasen och kan inte förhandsgranskas i detta HTML-fönster. Applicera Visage för att se effekten.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Filterförinställning",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Välj en Filterförinställning..."
 }

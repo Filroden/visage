@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Nappulat palautettu turvallisesti! Avaa Mass Edit uudelleen tehdäksesi muutoksesi. Tämän jälkeen sinua pyydetään palauttamaan Visagesi.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | Palautetaan nappuloiden ulkoasuja...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Nappuloiden ulkoasut palautettu.",
-    "VISAGE.Warnings.MassEditActive": "Visage | Käytät Mass Edit -toimintoa nappuloihin, joilla on aktiivisia Visageja! Mass Edit lukee niiden nykyiset Visaget niiden perustietoina. Nappuloiden asetusten muokkaaminen tässä voi korvata nappulan alkuperäiset tiedot pysyvästi niiden nykyisillä Visageilla."
+    "VISAGE.Warnings.MassEditActive": "Visage | Käytät Mass Edit -toimintoa nappuloihin, joilla on aktiivisia Visageja! Mass Edit lukee niiden nykyiset Visaget niiden perustietoina. Nappuloiden asetusten muokkaaminen tässä voi korvata nappulan alkuperäiset tiedot pysyvästi niiden nykyisillä Visageilla.",
+    "VISAGE.Editor.Effects.AddTmfx": "Lisää Suodatin",
+    "VISAGE.Editor.Groups.Tmfx": "TokenMagic-suodattimet",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL-suodattimet (kuten TokenMagic) vaativat fyysisen nappulan kankaalle, eikä niitä voi esikatsella tässä HTML-ikkunassa. Käytä Visagea nähdäksesi efektin.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Suodattimen Esiasetus",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Valitse Suodattimen Esiasetus..."
 }

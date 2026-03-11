@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | トークンは安全に元に戻されました！ 変更を加えるには Mass Edit を再度開いてください。その後、Visage を復元するように求められます。",
     "VISAGE.Notifications.MassEditRestoring": "Visage | トークンの外見を復元しています...",
     "VISAGE.Notifications.MassEditRestored": "Visage | トークンの外見が復元されました。",
-    "VISAGE.Warnings.MassEditActive": "Visage | アクティブな Visage を持つトークンを Mass Edit しています！ Mass Edit は現在の Visage をベースデータとして読み込みます。ここでトークン設定を変更すると、元のトークンデータが現在の Visage で永久に上書きされる可能性があります。"
+    "VISAGE.Warnings.MassEditActive": "Visage | アクティブな Visage を持つトークンを Mass Edit しています！ Mass Edit は現在の Visage をベースデータとして読み込みます。ここでトークン設定を変更すると、元のトークンデータが現在の Visage で永久に上書きされる可能性があります。",
+    "VISAGE.Editor.Effects.AddTmfx": "フィルターを追加",
+    "VISAGE.Editor.Groups.Tmfx": "TokenMagic フィルター",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL フィルター (TokenMagic など) はキャンバス上に物理的なトークンを必要とするため、この HTML ウィンドウでプレビューすることはできません。エフェクトを表示するには Visage を適用してください。",
+    "VISAGE.Editor.Effects.TmfxPreset": "フィルタープリセット",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "フィルタープリセットを選択..."
 }

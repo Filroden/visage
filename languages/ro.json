@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Jetoane readuse în siguranță! Redeschide Mass Edit pentru a face modificările. Apoi ți se va cere să îți restaurezi Visage-urile.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | Se restaurează aspectul jetoanelor...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Aspectul jetoanelor a fost restaurat.",
-    "VISAGE.Warnings.MassEditActive": "Visage | Aplici Mass Edit pe jetoane cu Visage-uri active! Mass Edit citește Visage-urile lor actuale ca date de bază. Modificarea oricăror setări ale jetonului aici poate suprascrie permanent datele originale ale jetonului cu Visage-urile lor actuale."
+    "VISAGE.Warnings.MassEditActive": "Visage | Aplici Mass Edit pe jetoane cu Visage-uri active! Mass Edit citește Visage-urile lor actuale ca date de bază. Modificarea oricăror setări ale jetonului aici poate suprascrie permanent datele originale ale jetonului cu Visage-urile lor actuale.",
+    "VISAGE.Editor.Effects.AddTmfx": "Adaugă Filtru",
+    "VISAGE.Editor.Groups.Tmfx": "Filtre TokenMagic",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "Filtrele WebGL (precum TokenMagic) necesită un jeton fizic pe planșă și nu pot fi previzualizate în această fereastră HTML. Aplică Visage pentru a vedea efectul.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Presetare Filtru",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Selectează o Presetare de Filtru..."
 }

@@ -49,6 +49,25 @@
             </div>
         {{/if}}
 
+        {{!-- TMFX TRACK --}}
+        {{#if hasTmfx}}
+            <div class="timeline-track tmfx-track">
+                <div class="track-header" data-tooltip="{{localize 'VISAGE.Editor.Groups.Tmfx'}}">
+                    <i class="visage-icon filter-fx"></i>
+                </div>
+                <div class="track-lanes" style="height: {{tmfxHeight}}px;">
+                    {{#each tmfxEffects}}
+                        <div class="timeline-block" 
+                             data-id="{{this.id}}" 
+                             style="inset-inline-start: {{this.position}}%; top: {{this.top}}px;"
+                             data-tooltip="{{this.label}} ({{this.delay}}s)">
+                            <span class="block-label">{{this.label}}</span>
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+        {{/if}}
+
         {{!-- MACRO TRACK --}}
         <div class="timeline-track macro-track">
             <div class="track-header" data-tooltip="{{localize 'VISAGE.Editor.Groups.Macro'}}">

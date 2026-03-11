@@ -3,9 +3,7 @@ import { MODULE_ID } from "../../core/visage-constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-export class VisageMediaTimeline extends HandlebarsApplicationMixin(
-    ApplicationV2,
-) {
+export class VisageMediaTimeline extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(options = {}) {
         super(options);
         // The parent Editor instance this timeline controls
@@ -35,8 +33,7 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(
 
     static PARTS = {
         timeline: {
-            template:
-                "modules/visage/templates/helpers/visage-media-timeline.hbs",
+            template: "modules/visage/templates/helpers/visage-media-timeline.hbs",
         },
     };
 
@@ -47,38 +44,24 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(
         if (!this.editor) return {};
 
         // Robust data extraction from the Editor's Single Source of Truth
-        const editorData =
-            typeof this.editor._prepareSaveData === "function"
-                ? this.editor._prepareSaveData()
-                : this.editor._preservedData;
+        const editorData = typeof this.editor._prepareSaveData === "function" ? this.editor._prepareSaveData() : this.editor._preservedData;
 
         const rawEffects = editorData?.changes?.effects || [];
 
         // Bulletproof filter to catch both booleans and strings
         const activeEffects = rawEffects.filter((e) => {
-            const isDisabled =
-                e.disabled === true ||
-                String(e.disabled).toLowerCase() === "true";
+            const isDisabled = e.disabled === true || String(e.disabled).toLowerCase() === "true";
             return !isDisabled;
         });
 
-        const visualEffects = activeEffects.filter(
-            (e) => String(e.type).toLowerCase() === "visual",
-        );
-        const audioEffects = activeEffects.filter(
-            (e) => String(e.type).toLowerCase() === "audio",
-        );
-        const macroEffects = activeEffects.filter(
-            (e) => String(e.type).toLowerCase() === "macro",
-        );
+        const visualEffects = activeEffects.filter((e) => String(e.type).toLowerCase() === "visual");
+        const audioEffects = activeEffects.filter((e) => String(e.type).toLowerCase() === "audio");
+        const macroEffects = activeEffects.filter((e) => String(e.type).toLowerCase() === "macro");
+        const tmfxEffects = activeEffects.filter((e) => String(e.type).toLowerCase() === "tmfx");
 
         // Calculate Rulers (Every 1 second)
         const ticks = [];
-        for (
-            let t = Math.ceil(this.timeMin);
-            t <= Math.floor(this.timeMax);
-            t++
-        ) {
+        for (let t = Math.ceil(this.timeMin); t <= Math.floor(this.timeMax); t++) {
             ticks.push({
                 label: t === 0 ? "0.0s" : `${t > 0 ? "+" : ""}${t}.0s`,
                 position: this._timeToPercent(t),
@@ -90,15 +73,19 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(
         const processedVisual = this._packLanes(visualEffects);
         const processedAudio = this._packLanes(audioEffects);
         const processedMacro = this._packLanes(macroEffects);
+        const processedTmfx = this._packLanes(tmfxEffects);
 
         return {
             ticks,
             zeroPosition: this._timeToPercent(0),
             hasSequencer: !!VisageUtilities.hasSequencer,
+            hasTmfx: !!game.modules.get("tokenmagic")?.active,
             visualEffects: processedVisual.effects,
             visualHeight: Math.max(1, processedVisual.lanes) * this.LANE_HEIGHT,
             audioEffects: processedAudio.effects,
             audioHeight: Math.max(1, processedAudio.lanes) * this.LANE_HEIGHT,
+            tmfxEffects: processedTmfx.effects,
+            tmfxHeight: Math.max(1, processedTmfx.lanes) * this.LANE_HEIGHT,
             macroEffects: processedMacro.effects,
             macroHeight: Math.max(1, processedMacro.lanes) * this.LANE_HEIGHT,
         };
@@ -110,9 +97,7 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(
      */
     _packLanes(effects) {
         // Sort chronologically
-        const sorted = foundry.utils
-            .deepClone(effects)
-            .sort((a, b) => (a.delay || 0) - (b.delay || 0));
+        const sorted = foundry.utils.deepClone(effects).sort((a, b) => (a.delay || 0) - (b.delay || 0));
         const lanes = [];
 
         sorted.forEach((eff) => {
@@ -159,9 +144,7 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(
         const blocks = this.element.querySelectorAll(".timeline-block");
 
         blocks.forEach((block) => {
-            block.addEventListener("pointerdown", (e) =>
-                this._onDragStart(e, block, trackArea),
-            );
+            block.addEventListener("pointerdown", (e) => this._onDragStart(e, block, trackArea));
         });
     }
 
@@ -173,10 +156,7 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(
         const trackRect = trackArea.getBoundingClientRect();
 
         // ROBUST EXTRACTION: Safely get the active effects without crashing
-        const editorData =
-            typeof this.editor._prepareSaveData === "function"
-                ? this.editor._prepareSaveData()
-                : this.editor._preservedData || {};
+        const editorData = typeof this.editor._prepareSaveData === "function" ? this.editor._prepareSaveData() : this.editor._preservedData || {};
 
         const effectsArray = editorData?.changes?.effects || [];
         const effectRef = effectsArray.find((eff) => eff.id === effectId);
@@ -205,25 +185,17 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(
             window.removeEventListener("pointermove", onMove);
             window.removeEventListener("pointerup", onDrop);
 
-            const finalDelay = parseFloat(
-                block.dataset.tempDelay ?? startDelay,
-            );
+            const finalDelay = parseFloat(block.dataset.tempDelay ?? startDelay);
 
             if (finalDelay !== startDelay) {
-                if (!this.editor._preservedData)
-                    this.editor._preservedData = {};
-                if (!this.editor._preservedData.changes)
-                    this.editor._preservedData.changes = {};
+                if (!this.editor._preservedData) this.editor._preservedData = {};
+                if (!this.editor._preservedData.changes) this.editor._preservedData.changes = {};
                 if (!this.editor._preservedData.changes.effects) {
-                    this.editor._preservedData.changes.effects =
-                        foundry.utils.deepClone(effectsArray);
+                    this.editor._preservedData.changes.effects = foundry.utils.deepClone(effectsArray);
                 }
 
-                const memoryEffects =
-                    this.editor._preservedData.changes.effects;
-                const targetMemoryRef = memoryEffects.find(
-                    (eff) => eff.id === effectId,
-                );
+                const memoryEffects = this.editor._preservedData.changes.effects;
+                const targetMemoryRef = memoryEffects.find((eff) => eff.id === effectId);
 
                 if (targetMemoryRef) {
                     targetMemoryRef.delay = finalDelay;

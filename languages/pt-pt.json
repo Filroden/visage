@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Fichas revertidas em segurança! Reabra o Mass Edit para fazer as suas alterações. Em seguida, ser-lhe-á pedido para restaurar os seus Visages.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | A restaurar aparências das fichas...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Aparências das fichas restauradas.",
-    "VISAGE.Warnings.MassEditActive": "Visage | Está a usar o Mass Edit em fichas com Visages ativos! O Mass Edit lê os seus Visages atuais como os seus dados base. Modificar qualquer definição da ficha aqui pode substituir permanentemente os dados originais da ficha com os seus Visages atuais."
+    "VISAGE.Warnings.MassEditActive": "Visage | Está a usar o Mass Edit em fichas com Visages ativos! O Mass Edit lê os seus Visages atuais como os seus dados base. Modificar qualquer definição da ficha aqui pode substituir permanentemente os dados originais da ficha com os seus Visages atuais.",
+    "VISAGE.Editor.Effects.AddTmfx": "Adicionar Filtro",
+    "VISAGE.Editor.Groups.Tmfx": "Filtros do TokenMagic",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "Os filtros WebGL (como TokenMagic) requerem uma ficha física na tela e não podem ser pré-visualizados nesta janela HTML. Aplique o Visage para ver o efeito.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Predefinição de Filtro",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Selecione uma Predefinição de Filtro..."
 }

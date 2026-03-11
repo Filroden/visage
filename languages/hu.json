@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Bábuk biztonságosan visszaállítva! Nyisd meg újra a Mass Edit-et a változtatások elvégzéséhez. Ezután a rendszer kérni fogja a Visage-ok helyreállítását.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | Bábuk megjelenésének helyreállítása...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Bábuk megjelenése helyreállítva.",
-    "VISAGE.Warnings.MassEditActive": "Visage | Aktív Visage-okkal rendelkező bábukon használsz Mass Edit-et! A Mass Edit a jelenlegi Visage-okat olvassa be alapadatként. A bábu beállításainak itt történő módosítása véglegesen felülírhatja az eredeti bábuadatokat a jelenlegi Visage-okkal."
+    "VISAGE.Warnings.MassEditActive": "Visage | Aktív Visage-okkal rendelkező bábukon használsz Mass Edit-et! A Mass Edit a jelenlegi Visage-okat olvassa be alapadatként. A bábu beállításainak itt történő módosítása véglegesen felülírhatja az eredeti bábuadatokat a jelenlegi Visage-okkal.",
+    "VISAGE.Editor.Effects.AddTmfx": "Szűrő Hozzáadása",
+    "VISAGE.Editor.Groups.Tmfx": "TokenMagic Szűrők",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "A WebGL szűrőkhöz (mint a TokenMagic) fizikai bábu szükséges a vásznon, és nem lehet őket előnézetben megtekinteni ebben a HTML ablakban. Alkalmazd a Visage-ot az effekt megtekintéséhez.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Szűrő Előbeállítás",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Válassz egy Szűrő Előbeállítást..."
 }

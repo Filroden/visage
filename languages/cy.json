@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Tocynnau wedi'u dychwelyd yn ddiogel! Ailagorwch Mass Edit i wneud eich newidiadau. Yna fe'ch anogir i adfer eich Visages.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | Yn adfer ymddangosiadau tocynnau...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Ymddangosiadau tocynnau wedi'u hadfer.",
-    "VISAGE.Warnings.MassEditActive": "Visage | Rydych yn defnyddio Mass Edit ar docynnau sydd â Visages gweithredol! Mae Mass Edit yn darllen eu Visages presennol fel eu data sylfaen. Gall addasu unrhyw osodiadau tocyn yma drosysgrifo data gwreiddiol y tocyn yn barhaol gyda'u Visages presennol."
+    "VISAGE.Warnings.MassEditActive": "Visage | Rydych yn defnyddio Mass Edit ar docynnau sydd â Visages gweithredol! Mae Mass Edit yn darllen eu Visages presennol fel eu data sylfaen. Gall addasu unrhyw osodiadau tocyn yma drosysgrifo data gwreiddiol y tocyn yn barhaol gyda'u Visages presennol.",
+    "VISAGE.Editor.Effects.AddTmfx": "Ychwanegu Hidl",
+    "VISAGE.Editor.Groups.Tmfx": "Hidlau TokenMagic",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "Mae hidlau WebGL (fel TokenMagic) angen tocyn ffisegol ar y cynfas ac ni ellir eu rhagolwg yn y ffenestr HTML hon. Cymhwyswch y Visage i weld yr effaith.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Rhagosodiad Hidl",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Dewiswch Rhagosodiad Hidl..."
 }
