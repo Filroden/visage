@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | 图示已安全还原！重新打开 Mass Edit 以进行更改。然后将提示您恢复您的 Visage。",
     "VISAGE.Notifications.MassEditRestoring": "Visage | 正在恢复图示外观...",
     "VISAGE.Notifications.MassEditRestored": "Visage | 图示外观已恢复。",
-    "VISAGE.Warnings.MassEditActive": "Visage | 您正在对具有活动 Visage 的图示进行 Mass Edit！Mass Edit 会将其当前的 Visage 作为其基础数据读取。在此处修改任何图示设置可能会将其当前的 Visage 永久覆盖到原始图示数据上。"
+    "VISAGE.Warnings.MassEditActive": "Visage | 您正在对具有活动 Visage 的图示进行 Mass Edit！Mass Edit 会将其当前的 Visage 作为其基础数据读取。在此处修改任何图示设置可能会将其当前的 Visage 永久覆盖到原始图示数据上。",
+    "VISAGE.Editor.Effects.AddTmfx": "添加滤镜",
+    "VISAGE.Editor.Groups.Tmfx": "TokenMagic 滤镜",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL 滤镜（如 TokenMagic）需要在画布上有一个实际的图示，因此无法在此 HTML 窗口中预览。请应用 Visage 以查看效果。",
+    "VISAGE.Editor.Effects.TmfxPreset": "滤镜预设",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "选择一个滤镜预设..."
 }

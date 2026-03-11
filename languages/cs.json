@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Tokeny bezpečně vráceny! Znovu otevřete Mass Edit pro provedení změn. Poté budete vyzváni k obnovení vašich Visage.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | Obnovování vzhledu tokenů...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Vzhled tokenů obnoven.",
-    "VISAGE.Warnings.MassEditActive": "Visage | Používáte Mass Edit na tokeny s aktivními Visage! Mass Edit čte jejich současné Visage jako základní data. Úprava jakýchkoli nastavení tokenu zde může trvale přepsat původní data tokenu jejich současnými Visage."
+    "VISAGE.Warnings.MassEditActive": "Visage | Používáte Mass Edit na tokeny s aktivními Visage! Mass Edit čte jejich současné Visage jako základní data. Úprava jakýchkoli nastavení tokenu zde může trvale přepsat původní data tokenu jejich současnými Visage.",
+    "VISAGE.Editor.Effects.AddTmfx": "Přidat Filtr",
+    "VISAGE.Editor.Groups.Tmfx": "Filtry TokenMagic",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "Filtry WebGL (jako TokenMagic) vyžadují fyzický token na plátně a nelze si je prohlédnout v tomto HTML okně. Aplikujte Visage, abyste viděli efekt.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Předvolba Filtru",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Vyberte Předvolbu Filtru..."
 }

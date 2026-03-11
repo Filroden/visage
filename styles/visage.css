@@ -1171,6 +1171,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.attribute-picker      { -webkit-mask-image: url('../icons/list_alt_check.svg'); mask-image: url('../icons/list_alt_check.svg'); }
 .visage-icon.timeline      { -webkit-mask-image: url('../icons/view_timeline.svg'); mask-image: url('../icons/view_timeline.svg'); }
 .visage-icon.macro      { -webkit-mask-image: url('../icons/code.svg'); mask-image: url('../icons/code.svg'); }
+.visage-icon.filter-fx      { -webkit-mask-image: url('../icons/filter_fx.svg'); mask-image: url('../icons/filter_fx.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {

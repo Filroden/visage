@@ -491,5 +491,12 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Tokens safely reverted! Re-open Mass Edit to make your changes. You will then be prompted to restore your Visages.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | Restoring token appearances...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Token appearances restored.",
-    "VISAGE.Warnings.MassEditActive": "Visage | You are Mass Editing tokens with active Visages! Mass Edit reads their current Visages as their base data. Modifying any token settings here may permanently overwrite the original token data with their current Visages."
+    "VISAGE.Warnings.MassEditActive": "Visage | You are Mass Editing tokens with active Visages! Mass Edit reads their current Visages as their base data. Modifying any token settings here may permanently overwrite the original token data with their current Visages.",
+
+    "_comment_V4_4_KEYS": "--- V4.4 KEYS ---",
+    "VISAGE.Editor.Effects.AddTmfx": "Add Filter",
+    "VISAGE.Editor.Groups.Tmfx": "TokenMagic Filters",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL filters (like TokenMagic) require a physical token on the canvas and cannot be previewed in this HTML window. Apply the Visage to view the effect.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Filter Preset",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Select a Filter Preset..."
 }

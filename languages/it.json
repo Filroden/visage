@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Pedine ripristinate in modo sicuro! Riapri Mass Edit per apportare le tue modifiche. Ti verrà poi chiesto di ripristinare i tuoi Visage.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | Ripristino dell'aspetto delle pedine...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Aspetto delle pedine ripristinato.",
-    "VISAGE.Warnings.MassEditActive": "Visage | Stai applicando Mass Edit a pedine con Visage attivi! Mass Edit legge i loro Visage attuali come dati di base. Modificare le impostazioni della pedina qui potrebbe sovrascrivere permanentemente i dati originali della pedina con i loro Visage attuali."
+    "VISAGE.Warnings.MassEditActive": "Visage | Stai applicando Mass Edit a pedine con Visage attivi! Mass Edit legge i loro Visage attuali come dati di base. Modificare le impostazioni della pedina qui potrebbe sovrascrivere permanentemente i dati originali della pedina con i loro Visage attuali.",
+    "VISAGE.Editor.Effects.AddTmfx": "Aggiungi Filtro",
+    "VISAGE.Editor.Groups.Tmfx": "Filtri TokenMagic",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "I filtri WebGL (come TokenMagic) richiedono una pedina fisica sulla scena e non possono essere visualizzati in anteprima in questa finestra HTML. Applica il Visage per vedere l'effetto.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Preimpostazione Filtro",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Seleziona una Preimpostazione Filtro..."
 }

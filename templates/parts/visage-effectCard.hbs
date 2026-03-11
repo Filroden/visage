@@ -15,7 +15,7 @@
 
     <div class="effect-controls">
         {{!-- Loop Toggle (Hidden for Macros) --}}
-        {{#unless (eq this.type 'macro')}}
+        {{#unless (or (eq this.type 'macro') (eq this.type 'tmfx'))}}
             <button type="button" class="effect-btn {{#if this.loop}}active{{/if}}" 
                     data-action="toggleLoop" 
                     data-effect-id="{{this.id}}"

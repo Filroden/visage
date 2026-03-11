@@ -21,6 +21,7 @@ import { VisageDragDropManager } from "./helpers/visage-drag-drop.js";
 import { VisageMediaController } from "./helpers/visage-media-controller.js";
 import { VisageAttributePicker } from "./helpers/visage-attribute-picker.js";
 import { VisageMediaTimeline } from "./helpers/visage-media-timeline.js";
+import { VisageTokenMagic } from "../integrations/visage-tmfx.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -123,6 +124,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             openAttributePicker: VisageEditor.prototype._onOpenAttributePicker,
             toggleCondition: VisageEditor.prototype._onToggleCondition,
             openTimeline: VisageEditor.prototype._onOpenTimeline,
+            addTmfx: VisageEditor.prototype._onAddTmfx,
             addMacro: VisageEditor.prototype._onAddMacro,
         },
     };
@@ -314,6 +316,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             disposition: prep(c.disposition, 0),
             nameOverride: prep(c.name, ""),
             hasSequencer: VisageUtilities.hasSequencer,
+            hasTmfx: VisageTokenMagic.isActive,
+            tmfxPresets: VisageTokenMagic.getAvailablePresets(),
             preview: stageData,
         };
     }
@@ -491,13 +495,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _buildInspectorContext() {
         const formatEffect = (e) => ({
             ...e,
-            icon: e.type === "audio" ? "visage-icon audio" : e.type === "macro" ? "visage-icon macro" : "visage-icon visual",
+            icon: e.type === "audio" ? "visage-icon audio" : e.type === "macro" ? "visage-icon macro" : e.type === "tmfx" ? "visage-icon magic-wand" : "visage-icon visual",
             metaLabel:
                 e.type === "audio"
                     ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((e.opacity ?? 1) * 100)}%`
                     : e.type === "macro"
                       ? e.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID")
-                      : `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1) * 100)}%`,
+                      : e.type === "tmfx"
+                        ? e.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset")
+                        : `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1) * 100)}%`,
         });
 
         const inspectorData = {
@@ -506,6 +512,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             effectsBelow: this._effects.filter((e) => e.type === "visual" && e.zOrder === "below").map(formatEffect),
             effectsAudio: this._effects.filter((e) => e.type === "audio").map(formatEffect),
             effectsMacro: this._effects.filter((e) => e.type === "macro").map(formatEffect),
+            effectsTmfx: this._effects.filter((e) => e.type === "tmfx").map(formatEffect), // <-- ADD THIS LINE
             type: null,
         };
 
@@ -646,6 +653,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     activeEffect.fadeOut = getVal("effectFadeOut", Number) ?? activeEffect.fadeOut;
                 } else if (activeEffect.type === "macro") {
                     activeEffect.uuid = getVal("effectUuid") ?? activeEffect.uuid;
+                    activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
+                } else if (activeEffect.type === "tmfx") {
+                    activeEffect.tmfxPreset = getVal("effectTmfxPreset") ?? activeEffect.tmfxPreset;
                     activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
                 }
             }
@@ -1131,6 +1141,23 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+    _onAddTmfx() {
+        const newEffect = {
+            id: foundry.utils.randomID(16),
+            type: "tmfx",
+            label: "New TMFX Filter",
+            tmfxPreset: "",
+            delay: 0,
+            disabled: false,
+        };
+        this._effects.push(newEffect);
+        this._activeEffectId = newEffect.id;
+        this._activeConditionId = null;
+        this._editingLight = false;
+        this._editingRing = false;
+        this._markDirty();
+        this.render();
+    }
     _onAddMacro() {
         const newEffect = {
             id: foundry.utils.randomID(16),
@@ -1289,7 +1316,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                                 ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((activeEffect.opacity ?? 1) * 100)}%`
                                 : activeEffect.type === "macro"
                                   ? activeEffect.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID")
-                                  : `${activeEffect.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((activeEffect.scale ?? 1) * 100)}%`;
+                                  : activeEffect.type === "tmfx"
+                                    ? activeEffect.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset")
+                                    : `${activeEffect.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((activeEffect.scale ?? 1) * 100)}%`;
                     }
                 }
             }

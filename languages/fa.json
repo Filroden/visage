@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "\u200F\u2068Visage\u2069 | مهره‌ها با موفقیت بازگردانده شدند! برای اعمال تغییرات خود، \u2068Mass Edit\u2069 را دوباره باز کنید. سپس از شما خواسته می‌شود \u2068Visage\u2069های خود را بازیابی کنید.",
     "VISAGE.Notifications.MassEditRestoring": "\u200F\u2068Visage\u2069 | در حال بازیابی ظاهر مهره‌ها...",
     "VISAGE.Notifications.MassEditRestored": "\u200F\u2068Visage\u2069 | ظاهر مهره‌ها بازیابی شد.",
-    "VISAGE.Warnings.MassEditActive": "\u200F\u2068Visage\u2069 | شما در حال اعمال \u2068Mass Edit\u2069 روی مهره‌های دارای \u2068Visage\u2069 فعال هستید! \u2068Mass Edit\u2069، \u2068Visage\u2069های فعلی آن‌ها را به عنوان داده‌های پایه می‌خواند. تغییر هر یک از تنظیمات مهره در اینجا ممکن است داده‌های اصلی مهره را به طور دائم با \u2068Visage\u2069های فعلی آن‌ها بازنویسی کند."
+    "VISAGE.Warnings.MassEditActive": "\u200F\u2068Visage\u2069 | شما در حال اعمال \u2068Mass Edit\u2069 روی مهره‌های دارای \u2068Visage\u2069 فعال هستید! \u2068Mass Edit\u2069، \u2068Visage\u2069های فعلی آن‌ها را به عنوان داده‌های پایه می‌خواند. تغییر هر یک از تنظیمات مهره در اینجا ممکن است داده‌های اصلی مهره را به طور دائم با \u2068Visage\u2069های فعلی آن‌ها بازنویسی کند.",
+    "VISAGE.Editor.Effects.AddTmfx": "\u200Fافزودن فیلتر",
+    "VISAGE.Editor.Groups.Tmfx": "\u200Fفیلترهای \u2068TokenMagic\u2069",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "\u200Fفیلترهای \u2068WebGL\u2069 (مانند \u2068TokenMagic\u2069) به یک مهره فیزیکی روی بوم نیاز دارند و در این پنجره \u2068HTML\u2069 قابل پیش‌نمایش نیستند. برای مشاهده اثر، \u2068Visage\u2069 را اعمال کنید.",
+    "VISAGE.Editor.Effects.TmfxPreset": "\u200Fپیش‌تنظیم فیلتر",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "\u200Fیک پیش‌تنظیم فیلتر انتخاب کنید..."
 }

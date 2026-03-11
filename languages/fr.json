@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "Visage | Pions rétablis en toute sécurité ! Rouvrez Mass Edit pour effectuer vos modifications. Il vous sera ensuite demandé de restaurer vos Visages.",
     "VISAGE.Notifications.MassEditRestoring": "Visage | Restauration de l'apparence des pions...",
     "VISAGE.Notifications.MassEditRestored": "Visage | Apparence des pions restaurée.",
-    "VISAGE.Warnings.MassEditActive": "Visage | Vous appliquez Mass Edit à des pions avec des Visages actifs ! Mass Edit lit leurs Visages actuels comme leurs données de base. Modifier un paramètre de pion ici peut écraser définitivement les données originales du pion avec leurs Visages actuels."
+    "VISAGE.Warnings.MassEditActive": "Visage | Vous appliquez Mass Edit à des pions avec des Visages actifs ! Mass Edit lit leurs Visages actuels comme leurs données de base. Modifier un paramètre de pion ici peut écraser définitivement les données originales du pion avec leurs Visages actuels.",
+    "VISAGE.Editor.Effects.AddTmfx": "Ajouter un Filtre",
+    "VISAGE.Editor.Groups.Tmfx": "Filtres TokenMagic",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "Les filtres WebGL (comme TokenMagic) nécessitent un pion physique sur le canevas et ne peuvent pas être prévisualisés dans cette fenêtre HTML. Appliquez le Visage pour voir l'effet.",
+    "VISAGE.Editor.Effects.TmfxPreset": "Préréglage de Filtre",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Sélectionnez un Préréglage de Filtre..."
 }

@@ -429,5 +429,10 @@
     "VISAGE.Notifications.MassEditReverted": "\u200F\u2068Visage\u2069 | טוקנים הוחזרו למצבם המקורי בבטחה! פתח מחדש את \u2068Mass Edit\u2069 כדי לבצע את השינויים שלך. לאחר מכן תתבקש לשחזר את ה-\u2068Visages\u2069 שלך.",
     "VISAGE.Notifications.MassEditRestoring": "\u200F\u2068Visage\u2069 | משחזר מראה טוקנים...",
     "VISAGE.Notifications.MassEditRestored": "\u200F\u2068Visage\u2069 | מראה הטוקנים שוחזר.",
-    "VISAGE.Warnings.MassEditActive": "\u200F\u2068Visage\u2069 | אתה מחיל \u2068Mass Edit\u2069 על טוקנים עם \u2068Visages\u2069 פעילים! \u2068Mass Edit\u2069 קורא את ה-\u2068Visages\u2069 הנוכחיים שלהם כנתוני הבסיס. שינוי כלשהו בהגדרות הטוקן כאן עשוי לדרוס לצמיתות את נתוני הטוקן המקוריים עם ה-\u2068Visages\u2069 הנוכחיים שלהם."
+    "VISAGE.Warnings.MassEditActive": "\u200F\u2068Visage\u2069 | אתה מחיל \u2068Mass Edit\u2069 על טוקנים עם \u2068Visages\u2069 פעילים! \u2068Mass Edit\u2069 קורא את ה-\u2068Visages\u2069 הנוכחיים שלהם כנתוני הבסיס. שינוי כלשהו בהגדרות הטוקן כאן עשוי לדרוס לצמיתות את נתוני הטוקן המקוריים עם ה-\u2068Visages\u2069 הנוכחיים שלהם.",
+    "VISAGE.Editor.Effects.AddTmfx": "\u200Fהוסף מסנן",
+    "VISAGE.Editor.Groups.Tmfx": "\u200Fמסנני \u2068TokenMagic\u2069",
+    "VISAGE.Editor.Effects.TmfxPreviewHint": "\u200Fמסנני \u2068WebGL\u2069 (כמו \u2068TokenMagic\u2069) דורשים טוקן פיזי על לוח הציור ולא ניתן להציג אותם בתצוגה מקדימה בחלון \u2068HTML\u2069 זה. החל את \u2068Visage\u2069 כדי לראות את האפקט.",
+    "VISAGE.Editor.Effects.TmfxPreset": "\u200Fהגדרה מראש למסנן",
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "\u200Fבחר הגדרה מראש למסנן..."
 }
