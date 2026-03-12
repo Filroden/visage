@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Čas Začátku",
     "VISAGE.Editor.Triggers.EndTime": "Čas Konce",
     "VISAGE.Editor.Triggers.TimeInside": "Uvnitř Časového Okna",
-    "VISAGE.Editor.Triggers.TimeOutside": "Mimo Časové Okno"
+    "VISAGE.Editor.Triggers.TimeOutside": "Mimo Časové Okno",
+    "VISAGE.Editor.Triggers.EventWeather": "Počasí Scény",
+    "VISAGE.Editor.Triggers.WeatherId": "Typ Počasí",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Vlastní nebo Žádné --",
+    "VISAGE.Editor.Triggers.CustomWeather": "Nebo Vlastní ID Počasí",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "např. 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "Je Aktivní",
+    "VISAGE.Editor.Triggers.WeatherInactive": "Není Aktivní"
 }

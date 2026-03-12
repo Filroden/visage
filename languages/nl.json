@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Starttijd",
     "VISAGE.Editor.Triggers.EndTime": "Eindtijd",
     "VISAGE.Editor.Triggers.TimeInside": "Binnen Tijdvenster",
-    "VISAGE.Editor.Triggers.TimeOutside": "Buiten Tijdvenster"
+    "VISAGE.Editor.Triggers.TimeOutside": "Buiten Tijdvenster",
+    "VISAGE.Editor.Triggers.EventWeather": "Scène Weer",
+    "VISAGE.Editor.Triggers.WeatherId": "Weertype",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Aangepast of Geen --",
+    "VISAGE.Editor.Triggers.CustomWeather": "Of Aangepaste Weer ID",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "bijv. 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "Is Actief",
+    "VISAGE.Editor.Triggers.WeatherInactive": "Is Niet Actief"
 }

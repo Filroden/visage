@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Kezdési Idő",
     "VISAGE.Editor.Triggers.EndTime": "Befejezési Idő",
     "VISAGE.Editor.Triggers.TimeInside": "Időablakon Belül",
-    "VISAGE.Editor.Triggers.TimeOutside": "Időablakon Kívül"
+    "VISAGE.Editor.Triggers.TimeOutside": "Időablakon Kívül",
+    "VISAGE.Editor.Triggers.EventWeather": "Jelenet Időjárása",
+    "VISAGE.Editor.Triggers.WeatherId": "Időjárás Típusa",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Egyéni vagy Nincs --",
+    "VISAGE.Editor.Triggers.CustomWeather": "Vagy Egyéni Időjárás ID",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "pl. 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "Aktív",
+    "VISAGE.Editor.Triggers.WeatherInactive": "Nem Aktív"
 }

@@ -509,5 +509,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Start Time",
     "VISAGE.Editor.Triggers.EndTime": "End Time",
     "VISAGE.Editor.Triggers.TimeInside": "Inside Time Window",
-    "VISAGE.Editor.Triggers.TimeOutside": "Outside Time Window"
+    "VISAGE.Editor.Triggers.TimeOutside": "Outside Time Window",
+    "VISAGE.Editor.Triggers.EventWeather": "Scene Weather",
+    "VISAGE.Editor.Triggers.WeatherId": "Weather Type",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Custom or None --",
+    "VISAGE.Editor.Triggers.CustomWeather": "Or Custom Weather ID",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "e.g., 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "Is Active",
+    "VISAGE.Editor.Triggers.WeatherInactive": "Is Not Active"
 }

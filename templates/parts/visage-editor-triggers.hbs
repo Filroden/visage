@@ -243,6 +243,7 @@
                             <option value="region" {{visageSelected (eq inspector.condition.eventId "region")}}>{{localize "VISAGE.Editor.Triggers.EventRegion"}}</option>
                             <option value="targeted" {{visageSelected (eq inspector.condition.eventId "targeted")}}>{{localize "VISAGE.Editor.Triggers.EventTargeted"}}</option>
                             <option value="time" {{visageSelected (eq inspector.condition.eventId "time")}}>{{localize "VISAGE.Editor.Triggers.EventTime"}}</option>
+                            <option value="weather" {{visageSelected (eq inspector.condition.eventId "weather")}}>{{localize "VISAGE.Editor.Triggers.EventWeather"}}</option>
                         </select>
                     </div>
                 </div>
@@ -314,6 +315,38 @@
                         <select name="inspector.operator">
                             <option value="active" {{visageSelected (eq inspector.condition.operator "active")}}>{{localize "VISAGE.Editor.Triggers.TimeInside"}}</option>
                             <option value="inactive" {{visageSelected (eq inspector.condition.operator "inactive")}}>{{localize "VISAGE.Editor.Triggers.TimeOutside"}}</option>
+                        </select>
+                    </div>
+                </div>
+            {{/if}}
+
+            {{!-- Dynamic Fields: Scene Weather (Hybrid Dropdown + String) --}}
+            {{#if (eq inspector.condition.eventId 'weather')}}
+                <div class="form-group stacked">
+                    <label>{{localize "VISAGE.Editor.Triggers.WeatherId"}} (Core)</label>
+                    <div class="visage-form-fields">
+                        <select name="inspector.weatherId">
+                            <option value="">{{localize "VISAGE.Editor.Triggers.SelectWeather"}}</option>
+                            {{#each weatherEffects}}
+                                <option value="{{this.value}}" {{visageSelected (eq ../inspector.condition.weatherId this.value)}}>{{this.label}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group stacked">
+                    <label>{{localize "VISAGE.Editor.Triggers.CustomWeather"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="text" name="inspector.customWeather" value="{{inspector.condition.customWeather}}" placeholder="{{localize 'VISAGE.Editor.Triggers.CustomWeatherPlaceholder'}}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>{{localize "VISAGE.Editor.Triggers.State"}}</label>
+                    <div class="visage-form-fields">
+                        <select name="inspector.operator">
+                            <option value="active" {{visageSelected (eq inspector.condition.operator "active")}}>{{localize "VISAGE.Editor.Triggers.WeatherActive"}}</option>
+                            <option value="inactive" {{visageSelected (eq inspector.condition.operator "inactive")}}>{{localize "VISAGE.Editor.Triggers.WeatherInactive"}}</option>
                         </select>
                     </div>
                 </div>

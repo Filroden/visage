@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "\u200Fשעת התחלה",
     "VISAGE.Editor.Triggers.EndTime": "\u200Fשעת סיום",
     "VISAGE.Editor.Triggers.TimeInside": "\u200Fבתוך חלון הזמן",
-    "VISAGE.Editor.Triggers.TimeOutside": "\u200Fמחוץ לחלון הזמן"
+    "VISAGE.Editor.Triggers.TimeOutside": "\u200Fמחוץ לחלון הזמן",
+    "VISAGE.Editor.Triggers.EventWeather": "\u200Fמזג אוויר בסצנה",
+    "VISAGE.Editor.Triggers.WeatherId": "\u200Fסוג מזג אוויר",
+    "VISAGE.Editor.Triggers.SelectWeather": "\u200F-- מותאם אישית או ללא --",
+    "VISAGE.Editor.Triggers.CustomWeather": "\u200Fאו מזהה מזג אוויר מותאם אישית",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "\u200Fלדוגמה, '\u2068fxmaster.sandstorm\u2069'",
+    "VISAGE.Editor.Triggers.WeatherActive": "\u200Fפעיל",
+    "VISAGE.Editor.Triggers.WeatherInactive": "\u200Fלא פעיל"
 }

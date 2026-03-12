@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "开始时间",
     "VISAGE.Editor.Triggers.EndTime": "结束时间",
     "VISAGE.Editor.Triggers.TimeInside": "在时间窗口内",
-    "VISAGE.Editor.Triggers.TimeOutside": "在时间窗口外"
+    "VISAGE.Editor.Triggers.TimeOutside": "在时间窗口外",
+    "VISAGE.Editor.Triggers.EventWeather": "场景天气",
+    "VISAGE.Editor.Triggers.WeatherId": "天气类型",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- 自定义或无 --",
+    "VISAGE.Editor.Triggers.CustomWeather": "或自定义天气 ID",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "例如 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "已激活",
+    "VISAGE.Editor.Triggers.WeatherInactive": "未激活"
 }

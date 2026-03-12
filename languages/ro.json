@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Ora de Începere",
     "VISAGE.Editor.Triggers.EndTime": "Ora de Sfârșit",
     "VISAGE.Editor.Triggers.TimeInside": "În Interiorul Ferestrei de Timp",
-    "VISAGE.Editor.Triggers.TimeOutside": "În Afara Ferestrei de Timp"
+    "VISAGE.Editor.Triggers.TimeOutside": "În Afara Ferestrei de Timp",
+    "VISAGE.Editor.Triggers.EventWeather": "Vreme Scenă",
+    "VISAGE.Editor.Triggers.WeatherId": "Tip Vreme",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Personalizat sau Niciunul --",
+    "VISAGE.Editor.Triggers.CustomWeather": "Sau ID Vreme Personalizat",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "ex. 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "Este Activă",
+    "VISAGE.Editor.Triggers.WeatherInactive": "Nu Este Activă"
 }

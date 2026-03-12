@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "\u200Fزمان شروع",
     "VISAGE.Editor.Triggers.EndTime": "\u200Fزمان پایان",
     "VISAGE.Editor.Triggers.TimeInside": "\u200Fداخل پنجره زمانی",
-    "VISAGE.Editor.Triggers.TimeOutside": "\u200Fخارج از پنجره زمانی"
+    "VISAGE.Editor.Triggers.TimeOutside": "\u200Fخارج از پنجره زمانی",
+    "VISAGE.Editor.Triggers.EventWeather": "\u200Fآب و هوای صحنه",
+    "VISAGE.Editor.Triggers.WeatherId": "\u200Fنوع آب و هوا",
+    "VISAGE.Editor.Triggers.SelectWeather": "\u200F-- سفارشی یا هیچکدام --",
+    "VISAGE.Editor.Triggers.CustomWeather": "\u200Fیا شناسه آب و هوای سفارشی",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "\u200Fمثال، '\u2068fxmaster.sandstorm\u2069'",
+    "VISAGE.Editor.Triggers.WeatherActive": "\u200Fفعال است",
+    "VISAGE.Editor.Triggers.WeatherInactive": "\u200Fفعال نیست"
 }

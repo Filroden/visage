@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "시작 시간",
     "VISAGE.Editor.Triggers.EndTime": "종료 시간",
     "VISAGE.Editor.Triggers.TimeInside": "시간대 내부",
-    "VISAGE.Editor.Triggers.TimeOutside": "시간대 외부"
+    "VISAGE.Editor.Triggers.TimeOutside": "시간대 외부",
+    "VISAGE.Editor.Triggers.EventWeather": "장면 날씨",
+    "VISAGE.Editor.Triggers.WeatherId": "날씨 유형",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- 사용자 지정 또는 없음 --",
+    "VISAGE.Editor.Triggers.CustomWeather": "또는 사용자 지정 날씨 ID",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "예: 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "활성",
+    "VISAGE.Editor.Triggers.WeatherInactive": "비활성"
 }

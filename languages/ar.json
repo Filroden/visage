@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "\u200Fوقت البدء",
     "VISAGE.Editor.Triggers.EndTime": "\u200Fوقت الانتهاء",
     "VISAGE.Editor.Triggers.TimeInside": "\u200Fداخل النافذة الزمنية",
-    "VISAGE.Editor.Triggers.TimeOutside": "\u200Fخارج النافذة الزمنية"
+    "VISAGE.Editor.Triggers.TimeOutside": "\u200Fخارج النافذة الزمنية",
+    "VISAGE.Editor.Triggers.EventWeather": "\u200Fطقس المشهد",
+    "VISAGE.Editor.Triggers.WeatherId": "\u200Fنوع الطقس",
+    "VISAGE.Editor.Triggers.SelectWeather": "\u200F-- مخصص أو لا شيء --",
+    "VISAGE.Editor.Triggers.CustomWeather": "\u200Fأو معرف طقس مخصص",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "\u200Fمثال، '\u2068fxmaster.sandstorm\u2069'",
+    "VISAGE.Editor.Triggers.WeatherActive": "\u200Fنشط",
+    "VISAGE.Editor.Triggers.WeatherInactive": "\u200Fغير نشط"
 }

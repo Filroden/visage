@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Aloitusaika",
     "VISAGE.Editor.Triggers.EndTime": "Lopetusaika",
     "VISAGE.Editor.Triggers.TimeInside": "Aikaikkunan Sisällä",
-    "VISAGE.Editor.Triggers.TimeOutside": "Aikaikkunan Ulkopuolella"
+    "VISAGE.Editor.Triggers.TimeOutside": "Aikaikkunan Ulkopuolella",
+    "VISAGE.Editor.Triggers.EventWeather": "Kohtauksen Sää",
+    "VISAGE.Editor.Triggers.WeatherId": "Säätyyppi",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Mukautettu tai Ei Mitään --",
+    "VISAGE.Editor.Triggers.CustomWeather": "Tai Mukautettu Sää-ID",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "esim. 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "On Aktiivinen",
+    "VISAGE.Editor.Triggers.WeatherInactive": "Ei Ole Aktiivinen"
 }

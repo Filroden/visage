@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Başlangıç Saati",
     "VISAGE.Editor.Triggers.EndTime": "Bitiş Saati",
     "VISAGE.Editor.Triggers.TimeInside": "Zaman Aralığı İçinde",
-    "VISAGE.Editor.Triggers.TimeOutside": "Zaman Aralığı Dışında"
+    "VISAGE.Editor.Triggers.TimeOutside": "Zaman Aralığı Dışında",
+    "VISAGE.Editor.Triggers.EventWeather": "Sahne Hava Durumu",
+    "VISAGE.Editor.Triggers.WeatherId": "Hava Durumu Türü",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Özel veya Hiçbiri --",
+    "VISAGE.Editor.Triggers.CustomWeather": "Veya Özel Hava Durumu ID",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "örn. 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "Aktif",
+    "VISAGE.Editor.Triggers.WeatherInactive": "Aktif Değil"
 }

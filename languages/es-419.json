@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Hora de Inicio",
     "VISAGE.Editor.Triggers.EndTime": "Hora de Finalización",
     "VISAGE.Editor.Triggers.TimeInside": "Dentro de la Ventana de Tiempo",
-    "VISAGE.Editor.Triggers.TimeOutside": "Fuera de la Ventana de Tiempo"
+    "VISAGE.Editor.Triggers.TimeOutside": "Fuera de la Ventana de Tiempo",
+    "VISAGE.Editor.Triggers.EventWeather": "Clima de la Escena",
+    "VISAGE.Editor.Triggers.WeatherId": "Tipo de Clima",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Personalizado o Ninguno --",
+    "VISAGE.Editor.Triggers.CustomWeather": "O ID de Clima Personalizado",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "ej. 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "Está Activo",
+    "VISAGE.Editor.Triggers.WeatherInactive": "No Está Activo"
 }

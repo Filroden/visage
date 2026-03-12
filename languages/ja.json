@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "開始時間",
     "VISAGE.Editor.Triggers.EndTime": "終了時間",
     "VISAGE.Editor.Triggers.TimeInside": "時間枠内",
-    "VISAGE.Editor.Triggers.TimeOutside": "時間枠外"
+    "VISAGE.Editor.Triggers.TimeOutside": "時間枠外",
+    "VISAGE.Editor.Triggers.EventWeather": "シーンの天候",
+    "VISAGE.Editor.Triggers.WeatherId": "天候タイプ",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- カスタム または なし --",
+    "VISAGE.Editor.Triggers.CustomWeather": "またはカスタム天候 ID",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "例: 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "アクティブ",
+    "VISAGE.Editor.Triggers.WeatherInactive": "非アクティブ"
 }

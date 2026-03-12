@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Amser Dechrau",
     "VISAGE.Editor.Triggers.EndTime": "Amser Gorffen",
     "VISAGE.Editor.Triggers.TimeInside": "Y Tu Mewn i'r Ffenestr Amser",
-    "VISAGE.Editor.Triggers.TimeOutside": "Y Tu Allan i'r Ffenestr Amser"
+    "VISAGE.Editor.Triggers.TimeOutside": "Y Tu Allan i'r Ffenestr Amser",
+    "VISAGE.Editor.Triggers.EventWeather": "Tywydd Golygfa",
+    "VISAGE.Editor.Triggers.WeatherId": "Math o Dywydd",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Personol neu Ddim Byd --",
+    "VISAGE.Editor.Triggers.CustomWeather": "Neu ID Tywydd Personol",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "e.e., 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "Yn Weithredol",
+    "VISAGE.Editor.Triggers.WeatherInactive": "Ddim Yn Weithredol"
 }

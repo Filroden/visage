@@ -44,17 +44,26 @@ export class VisageAutomation {
         });
 
         Hooks.on("updateScene", (scene, changes) => {
-            if (changes.environment?.darknessLevel !== undefined || changes.environment?.globalLight?.enabled !== undefined) {
+            if (scene.id !== canvas.scene?.id) return;
+
+            const expanded = foundry.utils.expandObject(changes);
+
+            // Added expanded.weather back to the check
+            if (
+                expanded.environment?.darknessLevel !== undefined ||
+                expanded.environment?.globalLight?.enabled !== undefined ||
+                expanded.environment?.weather !== undefined ||
+                expanded.weather !== undefined
+            ) {
                 setTimeout(() => {
                     for (const tokenId of this._registry.keys()) {
                         const t = canvas.tokens.get(tokenId);
                         if (t) this._evaluate(t);
                     }
-                }, 100);
+                }, 250);
             }
         });
 
-        // Add this to initialize()
         Hooks.on("updateWorldTime", (worldTime, dt) => {
             const currentMinute = Math.floor(worldTime / 60);
             if (this._lastEvaluatedMinute === currentMinute) return;
@@ -372,65 +381,90 @@ export class VisageAutomation {
      * @returns {boolean} True if the condition is met.
      */
     static _evalEvent(token, condition) {
-        if (condition.eventId === "combat") {
-            const isActive = game.combats.some((c) => c.started && c.combatants.some((cb) => cb.tokenId === token.id));
-            return condition.operator === "active" ? isActive : !isActive;
-        } else if (condition.eventId === "targeted") {
-            // A token is targeted if any user has a targeting reticle on it
-            const isActive = token.targeted.size > 0;
-            return condition.operator === "active" ? isActive : !isActive;
-        } else if (condition.eventId === "elevation") {
-            const el = Number(token.document.elevation) || 0;
-            const val = Number(condition.value) || 0;
-            if (condition.operator === "gt") return el > val;
-            if (condition.operator === "lt") return el < val;
-            return el === val;
-        } else if (condition.eventId === "globalLight") {
-            const env = canvas.scene?.environment;
-            let isLit = false;
-            if (env && env.globalLight?.enabled) {
-                const dark = env.darknessLevel || 0;
-                const min = env.globalLight.darkness?.min ?? 0;
-                const max = env.globalLight.darkness?.max ?? 1;
-                isLit = dark >= min && dark <= max;
+        switch (condition.eventId) {
+            case "combat": {
+                const isActive = game.combats.some((c) => c.started && c.combatants.some((cb) => cb.tokenId === token.id));
+                return condition.operator === "active" ? isActive : !isActive;
             }
-            return condition.operator === "active" ? isLit : !isLit;
-        } else if (condition.eventId === "darkness") {
-            const dark = Number(canvas.scene?.environment?.darknessLevel) || 0;
-            const val = Number(condition.value) || 0;
-            if (condition.operator === "gt") return dark > val;
-            if (condition.operator === "lt") return dark < val;
-            return dark === val;
-        } else if (condition.eventId === "region") {
-            if (!condition.regionId) return false;
-            const regionSet = token.document?.regions || [];
-            const inRegion = Array.from(regionSet).some((r) => r.id === condition.regionId || r.name === condition.regionId);
-            return condition.operator === "active" ? inRegion : !inRegion;
-        } else if (condition.eventId === "time") {
-            if (!condition.startTime || !condition.endTime) return false;
 
-            const hoursPerDay = game.settings.get(MODULE_ID, "hoursPerDay");
-            const minsPerHour = game.settings.get(MODULE_ID, "minutesPerHour");
-            const secsPerDay = hoursPerDay * minsPerHour * 60;
+            case "targeted": {
+                // A token is targeted if any user has a targeting reticle on it
+                const isActive = token.targeted.size > 0;
+                return condition.operator === "active" ? isActive : !isActive;
+            }
 
-            // Isolate the current time of day in seconds
-            const timeOfDay = game.time.worldTime % secsPerDay;
+            case "elevation": {
+                const el = Number(token.document.elevation) || 0;
+                const val = Number(condition.value) || 0;
+                if (condition.operator === "gt") return el > val;
+                if (condition.operator === "lt") return el < val;
+                return el === val;
+            }
 
-            // Helper to convert the string "HH:MM" into seconds
-            const toSecs = (timeStr) => {
-                const [h, m] = timeStr.split(":").map(Number);
-                return h * minsPerHour * 60 + m * 60;
-            };
+            case "globalLight": {
+                const env = canvas.scene?.environment;
+                let isLit = false;
+                if (env && env.globalLight?.enabled) {
+                    const dark = env.darknessLevel || 0;
+                    const min = env.globalLight.darkness?.min ?? 0;
+                    const max = env.globalLight.darkness?.max ?? 1;
+                    isLit = dark >= min && dark <= max;
+                }
+                return condition.operator === "active" ? isLit : !isLit;
+            }
 
-            const startSecs = toSecs(condition.startTime);
-            const endSecs = toSecs(condition.endTime);
+            case "darkness": {
+                const dark = Number(canvas.scene?.environment?.darknessLevel) || 0;
+                const val = Number(condition.value) || 0;
+                if (condition.operator === "gt") return dark > val;
+                if (condition.operator === "lt") return dark < val;
+                return dark === val;
+            }
 
-            // If start is greater than end (e.g. 20:00 to 06:00), we use OR logic to span midnight
-            const isBetween = startSecs <= endSecs ? timeOfDay >= startSecs && timeOfDay < endSecs : timeOfDay >= startSecs || timeOfDay < endSecs;
+            case "region": {
+                if (!condition.regionId) return false;
+                const regionSet = token.document?.regions || [];
+                const inRegion = Array.from(regionSet).some((r) => r.id === condition.regionId || r.name === condition.regionId);
+                return condition.operator === "active" ? inRegion : !inRegion;
+            }
 
-            return condition.operator === "active" ? isBetween : !isBetween;
+            case "time": {
+                if (!condition.startTime || !condition.endTime) return false;
+
+                const hoursPerDay = game.settings.get(MODULE_ID, "hoursPerDay");
+                const minsPerHour = game.settings.get(MODULE_ID, "minutesPerHour");
+                const secsPerDay = hoursPerDay * minsPerHour * 60;
+
+                // Isolate the current time of day in seconds
+                const timeOfDay = game.time.worldTime % secsPerDay;
+
+                // Helper to convert the string "HH:MM" into seconds
+                const toSecs = (timeStr) => {
+                    const [h, m] = timeStr.split(":").map(Number);
+                    return h * minsPerHour * 60 + m * 60;
+                };
+
+                const startSecs = toSecs(condition.startTime);
+                const endSecs = toSecs(condition.endTime);
+
+                // If start is greater than end (e.g. 20:00 to 06:00), we use OR logic to span midnight
+                const isBetween = startSecs <= endSecs ? timeOfDay >= startSecs && timeOfDay < endSecs : timeOfDay >= startSecs || timeOfDay < endSecs;
+
+                return condition.operator === "active" ? isBetween : !isBetween;
+            }
+
+            case "weather": {
+                const targetWeather = condition.customWeather || condition.weatherId;
+                if (!targetWeather) return false;
+
+                const currentWeather = canvas.scene?.weather || "";
+                const isMatch = currentWeather === targetWeather;
+
+                return condition.operator === "active" ? isMatch : !isMatch;
+            }
+
+            default:
+                return false;
         }
-
-        return false;
     }
 }

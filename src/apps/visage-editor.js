@@ -250,6 +250,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     } else if (c.eventId === "time") {
                         const opTxt = c.operator === "active" ? "Between" : "Not Between";
                         c.summary = `${opTxt} ${c.startTime || "00:00"} & ${c.endTime || "00:00"}`;
+                    } else if (c.eventId === "weather") {
+                        c.summary = `Weather: ${c.customWeather || c.weatherId || "?"} (${c.operator === "active" ? "Active" : "Inactive"})`;
                     } else {
                         c.summary = `${c.eventId} (${c.operator === "active" ? "Active" : "Inactive"})`;
                     }
@@ -291,6 +293,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             inspector: inspectorData,
             automation: this._automationData,
             statusEffects: this._getStatusEffectOptions(),
+            weatherEffects: this._getWeatherOptions(),
             delay: {
                 value: Math.abs(this._delayData) / 1000,
                 direction: this._delayData >= 0 ? "after" : "before",
@@ -548,6 +551,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     fadeIn: effect.fadeIn || 0,
                     fadeOut: effect.fadeOut || 0,
                     uuid: effect.uuid || "",
+                    tmfxPreset: effect.tmfxPreset || "",
                 });
             }
         } else if (this._activeConditionId) {
@@ -721,6 +725,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                             cond.regionId = "";
                             cond.startTime = newEventId === "time" ? "06:00" : "";
                             cond.endTime = newEventId === "time" ? "18:00" : "";
+                            cond.weatherId = newEventId === "weather" ? "" : "";
+                            cond.customWeather = newEventId === "weather" ? "" : "";
                         }
 
                         cond.eventId = newEventId;
@@ -736,6 +742,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         if (cond.eventId === "time") {
                             cond.startTime = getVal("inspector.startTime") ?? cond.startTime;
                             cond.endTime = getVal("inspector.endTime") ?? cond.endTime;
+                        }
+                        if (cond.eventId === "weather") {
+                            cond.weatherId = getVal("inspector.weatherId") ?? cond.weatherId;
+                            cond.customWeather = getVal("inspector.customWeather") ?? cond.customWeather;
                         }
                     }
                 }
@@ -1691,6 +1701,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // Sort alphabetically by the localized label for better UX
+        effects.sort((a, b) => a.label.localeCompare(b.label));
+        return effects;
+    }
+
+    _getWeatherOptions() {
+        const effects = [];
+        // Extract weather types from the global configuration
+        for (const [key, config] of Object.entries(CONFIG.weatherEffects || {})) {
+            const label = game.i18n.localize(config.label || config.name || key);
+            effects.push({ value: key, label: label });
+        }
         effects.sort((a, b) => a.label.localeCompare(b.label));
         return effects;
     }

@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Время Начала",
     "VISAGE.Editor.Triggers.EndTime": "Время Окончания",
     "VISAGE.Editor.Triggers.TimeInside": "Внутри Временного Окна",
-    "VISAGE.Editor.Triggers.TimeOutside": "Вне Временного Окна"
+    "VISAGE.Editor.Triggers.TimeOutside": "Вне Временного Окна",
+    "VISAGE.Editor.Triggers.EventWeather": "Погода Сцены",
+    "VISAGE.Editor.Triggers.WeatherId": "Тип Погоды",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Пользовательская или Нет --",
+    "VISAGE.Editor.Triggers.CustomWeather": "Или Пользовательский ID Погоды",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "напр. 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "Активна",
+    "VISAGE.Editor.Triggers.WeatherInactive": "Не Активна"
 }

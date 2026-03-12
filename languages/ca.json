@@ -443,5 +443,12 @@
     "VISAGE.Editor.Triggers.StartTime": "Hora d'Inici",
     "VISAGE.Editor.Triggers.EndTime": "Hora de Finalització",
     "VISAGE.Editor.Triggers.TimeInside": "Dins la Finestra de Temps",
-    "VISAGE.Editor.Triggers.TimeOutside": "Fora la Finestra de Temps"
+    "VISAGE.Editor.Triggers.TimeOutside": "Fora la Finestra de Temps",
+    "VISAGE.Editor.Triggers.EventWeather": "Clima de l'Escena",
+    "VISAGE.Editor.Triggers.WeatherId": "Tipus de Clima",
+    "VISAGE.Editor.Triggers.SelectWeather": "-- Personalitzat o Cap --",
+    "VISAGE.Editor.Triggers.CustomWeather": "O ID de Clima Personalitzat",
+    "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "ex. 'fxmaster.sandstorm'",
+    "VISAGE.Editor.Triggers.WeatherActive": "Està Actiu",
+    "VISAGE.Editor.Triggers.WeatherInactive": "No Està Actiu"
 }
