@@ -434,5 +434,14 @@
     "VISAGE.Editor.Groups.Tmfx": "TokenMagic 필터",
     "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL 필터(TokenMagic 등)는 캔버스에 물리적 토큰이 필요하며 이 HTML 창에서 미리 볼 수 없습니다. 효과를 보려면 Visage를 적용하세요.",
     "VISAGE.Editor.Effects.TmfxPreset": "필터 사전 설정",
-    "VISAGE.Editor.Effects.TmfxSelectPreset": "필터 사전 설정 선택..."
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "필터 사전 설정 선택...",
+    "VISAGE.Settings.HoursPerDay.Name": "하루의 시간",
+    "VISAGE.Settings.HoursPerDay.Hint": "사용자 지정 달력을 사용하는 경우 하루의 총 시간을 정의하세요. 이는 시간 기반 Visage 자동화를 계산하는 데 사용됩니다.",
+    "VISAGE.Settings.MinutesPerHour.Name": "1시간의 분",
+    "VISAGE.Settings.MinutesPerHour.Hint": "당신의 세계에서 표준 1시간의 분을 정의하세요.",
+    "VISAGE.Editor.Triggers.EventTime": "시간대",
+    "VISAGE.Editor.Triggers.StartTime": "시작 시간",
+    "VISAGE.Editor.Triggers.EndTime": "종료 시간",
+    "VISAGE.Editor.Triggers.TimeInside": "시간대 내부",
+    "VISAGE.Editor.Triggers.TimeOutside": "시간대 외부"
 }

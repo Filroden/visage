@@ -434,5 +434,14 @@
     "VISAGE.Editor.Groups.Tmfx": "TokenMagic Filtreleri",
     "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL filtreleri (TokenMagic gibi) tuval üzerinde fiziksel bir jeton gerektirir ve bu HTML penceresinde önizlenemez. Efekti görmek için Visage'ı uygulayın.",
     "VISAGE.Editor.Effects.TmfxPreset": "Filtre Ön Ayarı",
-    "VISAGE.Editor.Effects.TmfxSelectPreset": "Bir Filtre Ön Ayarı Seçin..."
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Bir Filtre Ön Ayarı Seçin...",
+    "VISAGE.Settings.HoursPerDay.Name": "Bir Gündeki Saatler",
+    "VISAGE.Settings.HoursPerDay.Hint": "Özel bir takvim kullanıyorsanız, bir gündeki toplam saatleri tanımlayın. Bu, zamana dayalı Visage otomasyonlarını hesaplamak için kullanılır.",
+    "VISAGE.Settings.MinutesPerHour.Name": "Bir Saatteki Dakikalar",
+    "VISAGE.Settings.MinutesPerHour.Hint": "Dünyanız için standart bir saatteki dakika sayısını tanımlayın.",
+    "VISAGE.Editor.Triggers.EventTime": "Günün Saati",
+    "VISAGE.Editor.Triggers.StartTime": "Başlangıç Saati",
+    "VISAGE.Editor.Triggers.EndTime": "Bitiş Saati",
+    "VISAGE.Editor.Triggers.TimeInside": "Zaman Aralığı İçinde",
+    "VISAGE.Editor.Triggers.TimeOutside": "Zaman Aralığı Dışında"
 }

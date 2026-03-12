@@ -498,5 +498,16 @@
     "VISAGE.Editor.Groups.Tmfx": "TokenMagic Filters",
     "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL filters (like TokenMagic) require a physical token on the canvas and cannot be previewed in this HTML window. Apply the Visage to view the effect.",
     "VISAGE.Editor.Effects.TmfxPreset": "Filter Preset",
-    "VISAGE.Editor.Effects.TmfxSelectPreset": "Select a Filter Preset..."
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Select a Filter Preset...",
+
+    "_comment_V4_5_KEYS": "--- V4.5 KEYS ---",
+    "VISAGE.Settings.HoursPerDay.Name": "Hours in a Day",
+    "VISAGE.Settings.HoursPerDay.Hint": "If you are using a custom calendar, define the total hours in a day. This is used to calculate time-based Visage automations.",
+    "VISAGE.Settings.MinutesPerHour.Name": "Minutes in an Hour",
+    "VISAGE.Settings.MinutesPerHour.Hint": "Define the number of minutes in a standard hour for your world.",
+    "VISAGE.Editor.Triggers.EventTime": "Time of Day",
+    "VISAGE.Editor.Triggers.StartTime": "Start Time",
+    "VISAGE.Editor.Triggers.EndTime": "End Time",
+    "VISAGE.Editor.Triggers.TimeInside": "Inside Time Window",
+    "VISAGE.Editor.Triggers.TimeOutside": "Outside Time Window"
 }

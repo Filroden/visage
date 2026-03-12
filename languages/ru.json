@@ -434,5 +434,14 @@
     "VISAGE.Editor.Groups.Tmfx": "Фильтры TokenMagic",
     "VISAGE.Editor.Effects.TmfxPreviewHint": "Для фильтров WebGL (таких как TokenMagic) требуется физический токен на сцене, их нельзя предварительно просмотреть в этом HTML-окне. Примените Visage, чтобы увидеть эффект.",
     "VISAGE.Editor.Effects.TmfxPreset": "Пресет Фильтра",
-    "VISAGE.Editor.Effects.TmfxSelectPreset": "Выберите Пресет Фильтра..."
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Выберите Пресет Фильтра...",
+    "VISAGE.Settings.HoursPerDay.Name": "Часов в Дне",
+    "VISAGE.Settings.HoursPerDay.Hint": "Если вы используете пользовательский календарь, определите общее количество часов в дне. Это используется для расчета автоматизаций Visage, основанных на времени.",
+    "VISAGE.Settings.MinutesPerHour.Name": "Минут в Часе",
+    "VISAGE.Settings.MinutesPerHour.Hint": "Определите количество минут в стандартном часе для вашего мира.",
+    "VISAGE.Editor.Triggers.EventTime": "Время Суток",
+    "VISAGE.Editor.Triggers.StartTime": "Время Начала",
+    "VISAGE.Editor.Triggers.EndTime": "Время Окончания",
+    "VISAGE.Editor.Triggers.TimeInside": "Внутри Временного Окна",
+    "VISAGE.Editor.Triggers.TimeOutside": "Вне Временного Окна"
 }

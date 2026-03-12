@@ -434,5 +434,14 @@
     "VISAGE.Editor.Groups.Tmfx": "TokenMagic-suodattimet",
     "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL-suodattimet (kuten TokenMagic) vaativat fyysisen nappulan kankaalle, eikä niitä voi esikatsella tässä HTML-ikkunassa. Käytä Visagea nähdäksesi efektin.",
     "VISAGE.Editor.Effects.TmfxPreset": "Suodattimen Esiasetus",
-    "VISAGE.Editor.Effects.TmfxSelectPreset": "Valitse Suodattimen Esiasetus..."
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Valitse Suodattimen Esiasetus...",
+    "VISAGE.Settings.HoursPerDay.Name": "Tunteja Päivässä",
+    "VISAGE.Settings.HoursPerDay.Hint": "Jos käytät mukautettua kalenteria, määritä päivän kokonaistuntimäärä. Tätä käytetään aikaperusteisten Visage-automaatioiden laskemiseen.",
+    "VISAGE.Settings.MinutesPerHour.Name": "Minuutteja Tunnissa",
+    "VISAGE.Settings.MinutesPerHour.Hint": "Määritä minuuttien määrä maailmasi vakiotunnissa.",
+    "VISAGE.Editor.Triggers.EventTime": "Vuorokaudenaika",
+    "VISAGE.Editor.Triggers.StartTime": "Aloitusaika",
+    "VISAGE.Editor.Triggers.EndTime": "Lopetusaika",
+    "VISAGE.Editor.Triggers.TimeInside": "Aikaikkunan Sisällä",
+    "VISAGE.Editor.Triggers.TimeOutside": "Aikaikkunan Ulkopuolella"
 }

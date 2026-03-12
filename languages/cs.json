@@ -434,5 +434,14 @@
     "VISAGE.Editor.Groups.Tmfx": "Filtry TokenMagic",
     "VISAGE.Editor.Effects.TmfxPreviewHint": "Filtry WebGL (jako TokenMagic) vyžadují fyzický token na plátně a nelze si je prohlédnout v tomto HTML okně. Aplikujte Visage, abyste viděli efekt.",
     "VISAGE.Editor.Effects.TmfxPreset": "Předvolba Filtru",
-    "VISAGE.Editor.Effects.TmfxSelectPreset": "Vyberte Předvolbu Filtru..."
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Vyberte Předvolbu Filtru...",
+    "VISAGE.Settings.HoursPerDay.Name": "Hodiny ve Dni",
+    "VISAGE.Settings.HoursPerDay.Hint": "Pokud používáte vlastní kalendář, definujte celkový počet hodin ve dni. To se používá k výpočtu časových automatizací Visage.",
+    "VISAGE.Settings.MinutesPerHour.Name": "Minuty v Hodině",
+    "VISAGE.Settings.MinutesPerHour.Hint": "Definujte počet minut ve standardní hodině pro váš svět.",
+    "VISAGE.Editor.Triggers.EventTime": "Denní Doba",
+    "VISAGE.Editor.Triggers.StartTime": "Čas Začátku",
+    "VISAGE.Editor.Triggers.EndTime": "Čas Konce",
+    "VISAGE.Editor.Triggers.TimeInside": "Uvnitř Časového Okna",
+    "VISAGE.Editor.Triggers.TimeOutside": "Mimo Časové Okno"
 }

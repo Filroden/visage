@@ -247,6 +247,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         c.summary = `${c.eventId} ${op} ${c.value || 0}`;
                     } else if (c.eventId === "region") {
                         c.summary = `Region: ${c.regionId || "?"} (${c.operator === "active" ? "Inside" : "Outside"})`;
+                    } else if (c.eventId === "time") {
+                        const opTxt = c.operator === "active" ? "Between" : "Not Between";
+                        c.summary = `${opTxt} ${c.startTime || "00:00"} & ${c.endTime || "00:00"}`;
                     } else {
                         c.summary = `${c.eventId} (${c.operator === "active" ? "Active" : "Inactive"})`;
                     }
@@ -716,6 +719,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                             cond.operator = newEventId === "elevation" || newEventId === "darkness" ? "gt" : "active";
                             cond.value = newEventId === "darkness" ? 0.5 : 0;
                             cond.regionId = "";
+                            cond.startTime = newEventId === "time" ? "06:00" : "";
+                            cond.endTime = newEventId === "time" ? "18:00" : "";
                         }
 
                         cond.eventId = newEventId;
@@ -724,8 +729,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         if (cond.eventId === "elevation" || cond.eventId === "darkness") {
                             const val = getVal("inspector.value", Number);
                             if (val !== null && !isNaN(val)) cond.value = val;
-                        } else if (cond.eventId === "region") {
+                        }
+                        if (cond.eventId === "region") {
                             cond.regionId = getVal("inspector.regionId") ?? cond.regionId;
+                        }
+                        if (cond.eventId === "time") {
+                            cond.startTime = getVal("inspector.startTime") ?? cond.startTime;
+                            cond.endTime = getVal("inspector.endTime") ?? cond.endTime;
                         }
                     }
                 }

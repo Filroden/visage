@@ -11,18 +11,13 @@ import { VisageData } from "./src/data/visage-data.js";
 import { VisageEditor } from "./src/apps/visage-editor.js";
 import { VisageGallery } from "./src/apps/visage-gallery.js";
 import { handleTokenHUD } from "./src/apps/visage-hud.js";
-import {
-    cleanseSceneTokens,
-    cleanseAllTokens,
-} from "./src/data/visage-cleanup.js";
 import { migrateWorldData } from "./src/data/visage-migration.js";
 import { handleGhostEdit } from "./src/apps/visage-ghost.js";
 import { MODULE_ID } from "./src/core/visage-constants.js";
 import { VisageSequencer } from "./src/integrations/visage-sequencer.js";
-import { VisageSamples } from "./src/data/visage-samples.js";
 import { VisageAutomation } from "./src/core/visage-automation.js";
-import { VisageUtilities } from "./src/utils/visage-utilities.js";
 import { VisageMassEdit } from "./src/integrations/visage-mass-edit.js";
+import { VisageSettings } from "./src/core/visage-settings.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -99,6 +94,7 @@ Hooks.once("init", () => {
     try {
         Visage.initialize();
         VisageData.registerSettings();
+        VisageSettings.register();
 
         // Expose API classes to the global scope and module API for third-party integration.
         window.VisageData = VisageData;
@@ -112,12 +108,8 @@ Hooks.once("init", () => {
         // Register Handlebars helpers for logic and data formatting in templates
         Handlebars.registerHelper("visageNeq", (a, b) => a !== b);
         Handlebars.registerHelper("visageEq", (a, b) => a === b);
-        Handlebars.registerHelper("visageSelected", (condition) =>
-            condition ? "selected" : "",
-        );
-        Handlebars.registerHelper("visageJson", (context) =>
-            JSON.stringify(context),
-        );
+        Handlebars.registerHelper("visageSelected", (condition) => (condition ? "selected" : ""));
+        Handlebars.registerHelper("visageJson", (context) => JSON.stringify(context));
         Handlebars.registerHelper("visagePercent", (value) => {
             const num = Number(value);
             if (isNaN(num)) return "0%";
@@ -141,8 +133,6 @@ Hooks.once("init", () => {
             "modules/visage/templates/helpers/visage-attribute-picker.hbs",
             "modules/visage/templates/helpers/visage-media-timeline.hbs",
         ]);
-
-        registerSettings();
 
         /**
          * Inject "Visage" option into the Actor Directory context menu.
@@ -168,13 +158,10 @@ Hooks.once("init", () => {
         };
 
         // Hook into both standard and enriched directory context menus
-        Hooks.on("getActorContextOptions", (html, options) =>
-            addSidebarOption(options),
-        );
+        Hooks.on("getActorContextOptions", (html, options) => addSidebarOption(options));
         Hooks.on("getActorDirectoryEntryContext", (html, options) => {
             // Prevent duplicate entries if other modules trigger this hook multiple times
-            if (!options.some((o) => o.name === "VISAGE.Title"))
-                addSidebarOption(options);
+            if (!options.some((o) => o.name === "VISAGE.Title")) addSidebarOption(options);
         });
 
         /**
@@ -217,10 +204,7 @@ Hooks.once("init", () => {
                 const target = event.target.closest("[data-tooltip]");
                 if (target && target.closest(".visage")) {
                     if (!target.hasAttribute("data-tooltip-class")) {
-                        target.setAttribute(
-                            "data-tooltip-class",
-                            "visage-tooltip",
-                        );
+                        target.setAttribute("data-tooltip-class", "visage-tooltip");
                     }
                 }
             },
@@ -248,8 +232,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
     // Locate the Token Layer controls.
     // Handles system-specific control structures (arrays vs objects).
     let tokenLayer = null;
-    if (Array.isArray(controls))
-        tokenLayer = controls.find((c) => c.name === "token");
+    if (Array.isArray(controls)) tokenLayer = controls.find((c) => c.name === "token");
     else {
         for (const key in controls) {
             const layer = controls[key];
@@ -271,8 +254,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
         button: true,
         // Using onChange ensures compatibility with newer Foundry versions (V13+)
         onChange: () => {
-            if (!globalDirectoryInstance)
-                globalDirectoryInstance = new VisageGallery();
+            if (!globalDirectoryInstance) globalDirectoryInstance = new VisageGallery();
             globalDirectoryInstance.render(true);
         },
     };
@@ -280,112 +262,6 @@ Hooks.on("getSceneControlButtons", (controls) => {
     if (Array.isArray(tokenLayer.tools)) tokenLayer.tools.push(visageTool);
     else tokenLayer.tools["visage-gallery"] = visageTool;
 });
-
-/**
- * Registers global and world-scope settings for the module.
- * Includes debugging tools, cleanup utilities, and migration triggers.
- */
-function registerSettings() {
-    game.settings.registerMenu(MODULE_ID, "sampleManager", {
-        name: "VISAGE.Settings.SampleManager.Name",
-        label: "VISAGE.Settings.SampleManager.Label",
-        hint: "VISAGE.Settings.SampleManager.Hint",
-        icon: "visage-icon open",
-        type: VisageSamples,
-        restricted: true,
-    });
-
-    // Register Diagnostic Export Menu Button
-    game.settings.registerMenu(MODULE_ID, "exportDiagnostics", {
-        name: "VISAGE.Settings.ExportLog.Name",
-        hint: "VISAGE.Settings.ExportLog.Hint",
-        label: "VISAGE.Settings.ExportLog.Label",
-        type: class extends foundry.applications.api.ApplicationV2 {
-            render(force, options) {
-                VisageUtilities.exportDiagnostics();
-                return this;
-            }
-        },
-        restricted: false,
-    });
-
-    game.settings.register(MODULE_ID, "allowSystemOverrides", {
-        name: "VISAGE.Settings.AllowSystemOverrides.Name",
-        hint: "VISAGE.Settings.AllowSystemOverrides.Hint",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: true,
-    });
-
-    game.settings.register(MODULE_ID, "disableWelcome", {
-        name: "VISAGE.Settings.DisableWelcome.Name",
-        hint: "VISAGE.Settings.DisableWelcome.Hint",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: false,
-    });
-
-    game.settings.register(MODULE_ID, "cleanseScene", {
-        name: "VISAGE.Settings.CleanseScene.Name",
-        hint: "VISAGE.Settings.CleanseScene.Hint",
-        scope: "world",
-        config: true,
-        restricted: true,
-        type: Boolean,
-        default: false,
-        onChange: (value) => {
-            if (value) {
-                cleanseSceneTokens();
-                // Reset toggle immediately after execution
-                game.settings.set(MODULE_ID, "cleanseScene", false);
-            }
-        },
-    });
-
-    game.settings.register(MODULE_ID, "cleanseAll", {
-        name: "VISAGE.Settings.CleanseAll.Name",
-        hint: "VISAGE.Settings.CleanseAll.Hint",
-        scope: "world",
-        config: true,
-        restricted: true,
-        type: Boolean,
-        default: false,
-        onChange: (value) => {
-            if (value) {
-                cleanseAllTokens();
-                game.settings.set(MODULE_ID, "cleanseAll", false);
-            }
-        },
-    });
-
-    // Hidden setting to track data versioning for auto-migrations
-    game.settings.register(MODULE_ID, "worldVersion", {
-        name: "World Data Version",
-        scope: "world",
-        config: false,
-        type: String,
-        default: "0.0.0",
-    });
-
-    // --- Manual Migration Trigger ---
-    game.settings.register(MODULE_ID, "manualMigration", {
-        name: "VISAGE.Settings.ManualMigration.Name",
-        hint: "VISAGE.Settings.ManualMigration.Hint",
-        scope: "world",
-        config: true,
-        restricted: true,
-        type: Boolean,
-        default: false,
-        onChange: (value) => {
-            if (value) {
-                migrateWorldData();
-                game.settings.set(MODULE_ID, "manualMigration", false);
-            }
-        },
-    });
-}
 
 /* -------------------------------------------- */
 /* Ready & Runtime Hooks                       */
@@ -406,19 +282,12 @@ Hooks.once("ready", async () => {
     // RECENT MESSAGE GUARD
     // Look at the last 5 messages in the chat log
     const recentMessages = game.messages.contents.slice(-5);
-    const alreadyPosted = recentMessages.some(
-        (m) =>
-            m.content.includes("visage-chat-card") &&
-            m.content.includes("https://foundryvtt.com/packages/visage"),
-    );
+    const alreadyPosted = recentMessages.some((m) => m.content.includes("visage-chat-card") && m.content.includes("https://foundryvtt.com/packages/visage"));
 
     if (!disableWelcome && !alreadyPosted) {
-        const visageHtml = await renderTemplate(
-            "modules/visage/templates/parts/visage-chat-welcome.hbs",
-            {
-                version: currentVersion,
-            },
-        );
+        const visageHtml = await renderTemplate("modules/visage/templates/parts/visage-chat-welcome.hbs", {
+            version: currentVersion,
+        });
 
         await ChatMessage.create({
             user: game.user.id,
@@ -441,15 +310,8 @@ Hooks.once("ready", async () => {
         // Check if a migration is required based on the version difference
         if (foundry.utils.isNewerVersion(currentVersion, lastVersion)) {
             // Trigger data migration if the previous version is older than the schema change
-            if (
-                foundry.utils.isNewerVersion(
-                    NEEDS_MIGRATION_VERSION,
-                    lastVersion,
-                )
-            ) {
-                console.log(
-                    `Visage | Detected legacy data (v${lastVersion}). Migrating to v${NEEDS_MIGRATION_VERSION}...`,
-                );
+            if (foundry.utils.isNewerVersion(NEEDS_MIGRATION_VERSION, lastVersion)) {
+                console.log(`Visage | Detected legacy data (v${lastVersion}). Migrating to v${NEEDS_MIGRATION_VERSION}...`);
 
                 // Await migration before updating version
                 await migrateWorldData();
@@ -471,11 +333,7 @@ Visage.apps = {};
  * @param {Application} app - The application instance being rendered.
  */
 Hooks.on("renderApplication", (app) => {
-    if (
-        app instanceof VisageSelector ||
-        app instanceof VisageEditor ||
-        app instanceof VisageGallery
-    ) {
+    if (app instanceof VisageSelector || app instanceof VisageEditor || app instanceof VisageGallery) {
         const appId = app.id || app.options?.id;
         if (appId) Visage.apps[appId] = app;
     }
@@ -486,11 +344,7 @@ Hooks.on("renderApplication", (app) => {
  * @param {Application} app - The application instance being closed.
  */
 Hooks.on("closeApplication", (app) => {
-    if (
-        app instanceof VisageSelector ||
-        app instanceof VisageEditor ||
-        app instanceof VisageGallery
-    ) {
+    if (app instanceof VisageSelector || app instanceof VisageEditor || app instanceof VisageGallery) {
         const appId = app.id || app.options?.id;
         if (appId && Visage.apps[appId]) delete Visage.apps[appId];
     }
@@ -517,13 +371,7 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
 
     // Calculate intersection to find the token under the cursor
     const target = canvas.tokens.placeables.find((t) => {
-        return (
-            t.visible &&
-            data.x >= t.x &&
-            data.x < t.x + t.w &&
-            data.y >= t.y &&
-            data.y < t.y + t.h
-        );
+        return t.visible && data.x >= t.x && data.x < t.x + t.w && data.y >= t.y && data.y < t.y + t.h;
     });
 
     if (target) {
@@ -579,9 +427,7 @@ Hooks.on("deleteToken", async (tokenDoc, options, userId) => {
 
         // Restore if we have a record of the original and it differs from current
         if (originalPortrait && actor.img !== originalPortrait) {
-            console.log(
-                `Visage | Reverting Actor Portrait for ${actor.name} upon token deletion.`,
-            );
+            console.log(`Visage | Reverting Actor Portrait for ${actor.name} upon token deletion.`);
             await actor.update({ img: originalPortrait });
         }
     }

@@ -434,5 +434,14 @@
     "VISAGE.Editor.Groups.Tmfx": "\u200Fמסנני \u2068TokenMagic\u2069",
     "VISAGE.Editor.Effects.TmfxPreviewHint": "\u200Fמסנני \u2068WebGL\u2069 (כמו \u2068TokenMagic\u2069) דורשים טוקן פיזי על לוח הציור ולא ניתן להציג אותם בתצוגה מקדימה בחלון \u2068HTML\u2069 זה. החל את \u2068Visage\u2069 כדי לראות את האפקט.",
     "VISAGE.Editor.Effects.TmfxPreset": "\u200Fהגדרה מראש למסנן",
-    "VISAGE.Editor.Effects.TmfxSelectPreset": "\u200Fבחר הגדרה מראש למסנן..."
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "\u200Fבחר הגדרה מראש למסנן...",
+    "VISAGE.Settings.HoursPerDay.Name": "\u200Fשעות ביממה",
+    "VISAGE.Settings.HoursPerDay.Hint": "\u200Fאם אתה משתמש בלוח שנה מותאם אישית, הגדר את סך השעות ביממה. זה משמש לחישוב אוטומציות \u2068Visage\u2069 מבוססות זמן.",
+    "VISAGE.Settings.MinutesPerHour.Name": "\u200Fדקות בשעה",
+    "VISAGE.Settings.MinutesPerHour.Hint": "\u200Fהגדר את מספר הדקות בשעה רגילה לעולם שלך.",
+    "VISAGE.Editor.Triggers.EventTime": "\u200Fשעה ביום",
+    "VISAGE.Editor.Triggers.StartTime": "\u200Fשעת התחלה",
+    "VISAGE.Editor.Triggers.EndTime": "\u200Fשעת סיום",
+    "VISAGE.Editor.Triggers.TimeInside": "\u200Fבתוך חלון הזמן",
+    "VISAGE.Editor.Triggers.TimeOutside": "\u200Fמחוץ לחלון הזמן"
 }

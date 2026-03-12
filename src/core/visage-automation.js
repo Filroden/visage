@@ -13,6 +13,8 @@ export class VisageAutomation {
      */
     static _registry = new Map();
 
+    static _lastEvaluatedMinute = null;
+
     /**
      * Initializes the Automation Engine.
      * Called once during the `ready` hook.
@@ -50,6 +52,22 @@ export class VisageAutomation {
                     }
                 }, 100);
             }
+        });
+
+        // Add this to initialize()
+        Hooks.on("updateWorldTime", (worldTime, dt) => {
+            const currentMinute = Math.floor(worldTime / 60);
+            if (this._lastEvaluatedMinute === currentMinute) return;
+
+            this._lastEvaluatedMinute = currentMinute;
+
+            // Slight delay allows other modules to finish writing data
+            setTimeout(() => {
+                for (const tokenId of this._registry.keys()) {
+                    const token = canvas.tokens.get(tokenId);
+                    if (token) this._evaluate(token);
+                }
+            }, 100);
         });
 
         console.log("Visage | Automation Engine Initialized.");
@@ -388,6 +406,29 @@ export class VisageAutomation {
             const regionSet = token.document?.regions || [];
             const inRegion = Array.from(regionSet).some((r) => r.id === condition.regionId || r.name === condition.regionId);
             return condition.operator === "active" ? inRegion : !inRegion;
+        } else if (condition.eventId === "time") {
+            if (!condition.startTime || !condition.endTime) return false;
+
+            const hoursPerDay = game.settings.get(MODULE_ID, "hoursPerDay");
+            const minsPerHour = game.settings.get(MODULE_ID, "minutesPerHour");
+            const secsPerDay = hoursPerDay * minsPerHour * 60;
+
+            // Isolate the current time of day in seconds
+            const timeOfDay = game.time.worldTime % secsPerDay;
+
+            // Helper to convert the string "HH:MM" into seconds
+            const toSecs = (timeStr) => {
+                const [h, m] = timeStr.split(":").map(Number);
+                return h * minsPerHour * 60 + m * 60;
+            };
+
+            const startSecs = toSecs(condition.startTime);
+            const endSecs = toSecs(condition.endTime);
+
+            // If start is greater than end (e.g. 20:00 to 06:00), we use OR logic to span midnight
+            const isBetween = startSecs <= endSecs ? timeOfDay >= startSecs && timeOfDay < endSecs : timeOfDay >= startSecs || timeOfDay < endSecs;
+
+            return condition.operator === "active" ? isBetween : !isBetween;
         }
 
         return false;

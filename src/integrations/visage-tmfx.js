@@ -98,13 +98,17 @@ export class VisageTokenMagic {
         if (!this.isActive || !token) return;
 
         // TMFX stores active filters natively in the document flags
-        const flags = token.document.getFlag("tokenmagic", "filters") || [];
-        for (const flag of flags) {
-            const tmFilters = flag.tmFilters || [];
-            for (const tmf of tmFilters) {
-                if (tmf.filterId && tmf.filterId.startsWith("visage-")) {
-                    await TokenMagic.deleteFilters(token, tmf.filterId);
-                }
+        const filters = token.document.getFlag("tokenmagic", "filters") || [];
+
+        // Defensive cast ensures iteration works even if TMFX alters its storage schema
+        const filterArray = Array.isArray(filters) ? filters : Object.values(filters);
+
+        for (const filter of filterArray) {
+            // Accommodate both standard and legacy TMFX identifier keys
+            const id = filter.filterId || filter.tmFilterId;
+
+            if (id && typeof id === "string" && id.startsWith("visage-")) {
+                await TokenMagic.deleteFilters(token, id);
             }
         }
     }

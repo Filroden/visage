@@ -434,5 +434,14 @@
     "VISAGE.Editor.Groups.Tmfx": "\u200Fفیلترهای \u2068TokenMagic\u2069",
     "VISAGE.Editor.Effects.TmfxPreviewHint": "\u200Fفیلترهای \u2068WebGL\u2069 (مانند \u2068TokenMagic\u2069) به یک مهره فیزیکی روی بوم نیاز دارند و در این پنجره \u2068HTML\u2069 قابل پیش‌نمایش نیستند. برای مشاهده اثر، \u2068Visage\u2069 را اعمال کنید.",
     "VISAGE.Editor.Effects.TmfxPreset": "\u200Fپیش‌تنظیم فیلتر",
-    "VISAGE.Editor.Effects.TmfxSelectPreset": "\u200Fیک پیش‌تنظیم فیلتر انتخاب کنید..."
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "\u200Fیک پیش‌تنظیم فیلتر انتخاب کنید...",
+    "VISAGE.Settings.HoursPerDay.Name": "\u200Fساعات در یک روز",
+    "VISAGE.Settings.HoursPerDay.Hint": "\u200Fاگر از یک تقویم سفارشی استفاده می‌کنید، کل ساعات یک روز را تعریف کنید. این برای محاسبه خودکارسازی‌های \u2068Visage\u2069 مبتنی بر زمان استفاده می‌شود.",
+    "VISAGE.Settings.MinutesPerHour.Name": "\u200Fدقایق در یک ساعت",
+    "VISAGE.Settings.MinutesPerHour.Hint": "\u200Fتعداد دقایق یک ساعت استاندارد را برای دنیای خود تعریف کنید.",
+    "VISAGE.Editor.Triggers.EventTime": "\u200Fزمان از روز",
+    "VISAGE.Editor.Triggers.StartTime": "\u200Fزمان شروع",
+    "VISAGE.Editor.Triggers.EndTime": "\u200Fزمان پایان",
+    "VISAGE.Editor.Triggers.TimeInside": "\u200Fداخل پنجره زمانی",
+    "VISAGE.Editor.Triggers.TimeOutside": "\u200Fخارج از پنجره زمانی"
 }

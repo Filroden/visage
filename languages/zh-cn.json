@@ -434,5 +434,14 @@
     "VISAGE.Editor.Groups.Tmfx": "TokenMagic 滤镜",
     "VISAGE.Editor.Effects.TmfxPreviewHint": "WebGL 滤镜（如 TokenMagic）需要在画布上有一个实际的图示，因此无法在此 HTML 窗口中预览。请应用 Visage 以查看效果。",
     "VISAGE.Editor.Effects.TmfxPreset": "滤镜预设",
-    "VISAGE.Editor.Effects.TmfxSelectPreset": "选择一个滤镜预设..."
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "选择一个滤镜预设...",
+    "VISAGE.Settings.HoursPerDay.Name": "一天的小时数",
+    "VISAGE.Settings.HoursPerDay.Hint": "如果您使用的是自定义日历，请定义一天中的总小时数。这用于计算基于时间的 Visage 自动化。",
+    "VISAGE.Settings.MinutesPerHour.Name": "一小时的分钟数",
+    "VISAGE.Settings.MinutesPerHour.Hint": "为您世界中的标准一小时定义分钟数。",
+    "VISAGE.Editor.Triggers.EventTime": "时间",
+    "VISAGE.Editor.Triggers.StartTime": "开始时间",
+    "VISAGE.Editor.Triggers.EndTime": "结束时间",
+    "VISAGE.Editor.Triggers.TimeInside": "在时间窗口内",
+    "VISAGE.Editor.Triggers.TimeOutside": "在时间窗口外"
 }

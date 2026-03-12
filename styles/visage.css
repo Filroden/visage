@@ -157,6 +157,7 @@ li.context-item .visage-icon-domino {
 
 .visage input[type="text"],
 .visage input[type="number"],
+.visage input[type="time"],
 .visage select {
     background: var(--visage-color-bg-medium-solid);
     border: 1px solid var(--visage-color-border);
@@ -169,6 +170,7 @@ li.context-item .visage-icon-domino {
 
 .visage input[type="text"]:focus,
 .visage input[type="number"]:focus,
+.visage input[type="time"],
 .visage select:focus {
     border-color: var(--visage-color-accent);
     box-shadow: var(--filroden-shadow-focus);
@@ -178,6 +180,10 @@ li.context-item .visage-icon-domino {
     color: var(--filroden-color-text-placeholder-solid);
     opacity: 1;
     font-style: italic;
+}
+
+.visage input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
 }
 
 /* --- Buttons --- */

@@ -434,5 +434,14 @@
     "VISAGE.Editor.Groups.Tmfx": "Hidlau TokenMagic",
     "VISAGE.Editor.Effects.TmfxPreviewHint": "Mae hidlau WebGL (fel TokenMagic) angen tocyn ffisegol ar y cynfas ac ni ellir eu rhagolwg yn y ffenestr HTML hon. Cymhwyswch y Visage i weld yr effaith.",
     "VISAGE.Editor.Effects.TmfxPreset": "Rhagosodiad Hidl",
-    "VISAGE.Editor.Effects.TmfxSelectPreset": "Dewiswch Rhagosodiad Hidl..."
+    "VISAGE.Editor.Effects.TmfxSelectPreset": "Dewiswch Rhagosodiad Hidl...",
+    "VISAGE.Settings.HoursPerDay.Name": "Oriau mewn Diwrnod",
+    "VISAGE.Settings.HoursPerDay.Hint": "Os ydych chi'n defnyddio calendr personol, diffiniwch gyfanswm yr oriau mewn diwrnod. Defnyddir hyn i gyfrifo awtomatiaethau Visage sy'n seiliedig ar amser.",
+    "VISAGE.Settings.MinutesPerHour.Name": "Munudau mewn Awr",
+    "VISAGE.Settings.MinutesPerHour.Hint": "Diffiniwch nifer y munudau mewn awr safonol ar gyfer eich byd.",
+    "VISAGE.Editor.Triggers.EventTime": "Amser o'r Diwrnod",
+    "VISAGE.Editor.Triggers.StartTime": "Amser Dechrau",
+    "VISAGE.Editor.Triggers.EndTime": "Amser Gorffen",
+    "VISAGE.Editor.Triggers.TimeInside": "Y Tu Mewn i'r Ffenestr Amser",
+    "VISAGE.Editor.Triggers.TimeOutside": "Y Tu Allan i'r Ffenestr Amser"
 }
