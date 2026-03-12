@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Neu ID Tywydd Personol",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "e.e., 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Yn Weithredol",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Ddim Yn Weithredol"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Ddim Yn Weithredol",
+    "VISAGE.Editor.Triggers.EventFacing": "Cyfeiriad Tocyn",
+    "VISAGE.Editor.Triggers.AngleStart": "Ongl Dechrau (Graddau)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Ongl Gorffen (Graddau)",
+    "VISAGE.Editor.Triggers.FacingInside": "Yn Wynebu Rhwng",
+    "VISAGE.Editor.Triggers.FacingOutside": "Ddim Yn Wynebu Rhwng"
 }

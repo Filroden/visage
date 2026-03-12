@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "또는 사용자 지정 날씨 ID",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "예: 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "활성",
-    "VISAGE.Editor.Triggers.WeatherInactive": "비활성"
+    "VISAGE.Editor.Triggers.WeatherInactive": "비활성",
+    "VISAGE.Editor.Triggers.EventFacing": "토큰 방향",
+    "VISAGE.Editor.Triggers.AngleStart": "시작 각도 (도)",
+    "VISAGE.Editor.Triggers.AngleEnd": "종료 각도 (도)",
+    "VISAGE.Editor.Triggers.FacingInside": "범위 내를 향함",
+    "VISAGE.Editor.Triggers.FacingOutside": "범위 내를 향하지 않음"
 }

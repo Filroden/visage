@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Veya Özel Hava Durumu ID",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "örn. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Aktif",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Aktif Değil"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Aktif Değil",
+    "VISAGE.Editor.Triggers.EventFacing": "Jeton Yönü",
+    "VISAGE.Editor.Triggers.AngleStart": "Başlangıç Açısı (Derece)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Bitiş Açısı (Derece)",
+    "VISAGE.Editor.Triggers.FacingInside": "Arasına Bakıyor",
+    "VISAGE.Editor.Triggers.FacingOutside": "Arasına Bakmıyor"
 }

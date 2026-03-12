@@ -516,5 +516,11 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Or Custom Weather ID",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "e.g., 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Is Active",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Is Not Active"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Is Not Active",
+
+    "VISAGE.Editor.Triggers.EventFacing": "Token Facing",
+    "VISAGE.Editor.Triggers.AngleStart": "Start Angle (Degrees)",
+    "VISAGE.Editor.Triggers.AngleEnd": "End Angle (Degrees)",
+    "VISAGE.Editor.Triggers.FacingInside": "Is Facing Between",
+    "VISAGE.Editor.Triggers.FacingOutside": "Is Not Facing Between"
 }

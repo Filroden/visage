@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "\u200Fأو معرف طقس مخصص",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "\u200Fمثال، '\u2068fxmaster.sandstorm\u2069'",
     "VISAGE.Editor.Triggers.WeatherActive": "\u200Fنشط",
-    "VISAGE.Editor.Triggers.WeatherInactive": "\u200Fغير نشط"
+    "VISAGE.Editor.Triggers.WeatherInactive": "\u200Fغير نشط",
+    "VISAGE.Editor.Triggers.EventFacing": "\u200Fاتجاه الرمز",
+    "VISAGE.Editor.Triggers.AngleStart": "\u200Fزاوية البدء (درجات)",
+    "VISAGE.Editor.Triggers.AngleEnd": "\u200Fزاوية الانتهاء (درجات)",
+    "VISAGE.Editor.Triggers.FacingInside": "\u200Fيواجه بين",
+    "VISAGE.Editor.Triggers.FacingOutside": "\u200Fلا يواجه بين"
 }

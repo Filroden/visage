@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Lub Niestandardowe ID Pogody",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "np. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Jest Aktywna",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Nie Jest Aktywna"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Nie Jest Aktywna",
+    "VISAGE.Editor.Triggers.EventFacing": "Zwrócenie Tokena",
+    "VISAGE.Editor.Triggers.AngleStart": "Kąt Początkowy (Stopnie)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Kąt Końcowy (Stopnie)",
+    "VISAGE.Editor.Triggers.FacingInside": "Jest Zwrócony Pomiędzy",
+    "VISAGE.Editor.Triggers.FacingOutside": "Nie Jest Zwrócony Pomiędzy"
 }

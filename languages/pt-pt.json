@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Ou ID de Clima Personalizado",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "ex. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Está Ativo",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Não Está Ativo"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Não Está Ativo",
+    "VISAGE.Editor.Triggers.EventFacing": "Orientação da Ficha",
+    "VISAGE.Editor.Triggers.AngleStart": "Ângulo de Início (Graus)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Ângulo de Fim (Graus)",
+    "VISAGE.Editor.Triggers.FacingInside": "Está Orientada Entre",
+    "VISAGE.Editor.Triggers.FacingOutside": "Não Está Orientada Entre"
 }

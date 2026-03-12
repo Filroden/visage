@@ -13,6 +13,12 @@ export class VisageAutomation {
      */
     static _registry = new Map();
 
+    /**
+     * A queue to debounce rapid token updates (like scroll-wheel rotation) on a per-token basis.
+     * Structure: Map<tokenId, timeoutId>
+     */
+    static _evaluationQueue = new Map();
+
     static _lastEvaluatedMinute = null;
 
     /**
@@ -151,13 +157,25 @@ export class VisageAutomation {
     }
 
     static _onUpdateToken(tokenDoc, changes, options, userId) {
-        // We only care if elevation or position changed.
-        // This acts as our throttle to prevent evaluating on every minor token update.
-        if (changes.elevation === undefined && changes.x === undefined && changes.y === undefined && changes.delta === undefined) return;
+        // Throttle: We only care if elevation, position, or rotation changed.
+        if (changes.elevation === undefined && changes.x === undefined && changes.y === undefined && changes.delta === undefined && changes.rotation === undefined) return;
 
         if (this._registry.has(tokenDoc.id)) {
             const token = tokenDoc.object;
-            if (token) this._evaluate(token);
+            if (!token) return;
+
+            // Clear any existing pending evaluation for this specific token
+            if (this._evaluationQueue.has(token.id)) {
+                clearTimeout(this._evaluationQueue.get(token.id));
+            }
+
+            // Queue a new evaluation
+            const timeoutId = setTimeout(() => {
+                this._evaluationQueue.delete(token.id);
+                this._evaluate(token);
+            }, 40);
+
+            this._evaluationQueue.set(token.id, timeoutId);
         }
     }
 
@@ -391,6 +409,21 @@ export class VisageAutomation {
                 // A token is targeted if any user has a targeting reticle on it
                 const isActive = token.targeted.size > 0;
                 return condition.operator === "active" ? isActive : !isActive;
+            }
+
+            case "facing": {
+                if (condition.startAngle === undefined || condition.endAngle === undefined) return false;
+
+                // Normalize any angle into a clean 0-359 range
+                const currentAngle = ((token.document.rotation % 360) + 360) % 360;
+
+                const startAngle = Number(condition.startAngle) || 0;
+                const endAngle = Number(condition.endAngle) || 0;
+
+                // Wrap-around logic for passing the 0-degree mark
+                const isBetween = startAngle <= endAngle ? currentAngle >= startAngle && currentAngle <= endAngle : currentAngle >= startAngle || currentAngle <= endAngle;
+
+                return condition.operator === "active" ? isBetween : !isBetween;
             }
 
             case "elevation": {

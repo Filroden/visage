@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "或自定义天气 ID",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "例如 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "已激活",
-    "VISAGE.Editor.Triggers.WeatherInactive": "未激活"
+    "VISAGE.Editor.Triggers.WeatherInactive": "未激活",
+    "VISAGE.Editor.Triggers.EventFacing": "图示朝向",
+    "VISAGE.Editor.Triggers.AngleStart": "起始角度 (度)",
+    "VISAGE.Editor.Triggers.AngleEnd": "结束角度 (度)",
+    "VISAGE.Editor.Triggers.FacingInside": "朝向介于",
+    "VISAGE.Editor.Triggers.FacingOutside": "朝向不介于"
 }

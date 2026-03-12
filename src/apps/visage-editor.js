@@ -252,6 +252,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         c.summary = `${opTxt} ${c.startTime || "00:00"} & ${c.endTime || "00:00"}`;
                     } else if (c.eventId === "weather") {
                         c.summary = `Weather: ${c.customWeather || c.weatherId || "?"} (${c.operator === "active" ? "Active" : "Inactive"})`;
+                    } else if (c.eventId === "facing") {
+                        const state = c.operator === "active" ? "Inside" : "Outside";
+                        c.summary = `Facing: ${c.startAngle}° to ${c.endAngle}° (${state})`;
                     } else {
                         c.summary = `${c.eventId} (${c.operator === "active" ? "Active" : "Inactive"})`;
                     }
@@ -727,6 +730,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                             cond.endTime = newEventId === "time" ? "18:00" : "";
                             cond.weatherId = newEventId === "weather" ? "" : "";
                             cond.customWeather = newEventId === "weather" ? "" : "";
+                            cond.startAngle = newEventId === "facing" ? 0 : null;
+                            cond.endAngle = newEventId === "facing" ? 0 : null;
                         }
 
                         cond.eventId = newEventId;
@@ -746,6 +751,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         if (cond.eventId === "weather") {
                             cond.weatherId = getVal("inspector.weatherId") ?? cond.weatherId;
                             cond.customWeather = getVal("inspector.customWeather") ?? cond.customWeather;
+                        }
+                        if (cond.eventId === "facing") {
+                            cond.startAngle = Number(getVal("inspector.startAngle")) || 0;
+                            cond.endAngle = Number(getVal("inspector.endAngle")) || 0;
                         }
                     }
                 }

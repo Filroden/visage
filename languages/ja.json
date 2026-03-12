@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "またはカスタム天候 ID",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "例: 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "アクティブ",
-    "VISAGE.Editor.Triggers.WeatherInactive": "非アクティブ"
+    "VISAGE.Editor.Triggers.WeatherInactive": "非アクティブ",
+    "VISAGE.Editor.Triggers.EventFacing": "トークンの向き",
+    "VISAGE.Editor.Triggers.AngleStart": "開始角度 (度)",
+    "VISAGE.Editor.Triggers.AngleEnd": "終了角度 (度)",
+    "VISAGE.Editor.Triggers.FacingInside": "範囲内を向いている",
+    "VISAGE.Editor.Triggers.FacingOutside": "範囲内を向いていない"
 }

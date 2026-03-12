@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Of Aangepaste Weer ID",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "bijv. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Is Actief",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Is Niet Actief"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Is Niet Actief",
+    "VISAGE.Editor.Triggers.EventFacing": "Token Kijkrichting",
+    "VISAGE.Editor.Triggers.AngleStart": "Starthoek (Graden)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Eindhoek (Graden)",
+    "VISAGE.Editor.Triggers.FacingInside": "Kijkt Tussen",
+    "VISAGE.Editor.Triggers.FacingOutside": "Kijkt Niet Tussen"
 }

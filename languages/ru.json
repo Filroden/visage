@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Или Пользовательский ID Погоды",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "напр. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Активна",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Не Активна"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Не Активна",
+    "VISAGE.Editor.Triggers.EventFacing": "Направление Токена",
+    "VISAGE.Editor.Triggers.AngleStart": "Начальный Угол (Градусы)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Конечный Угол (Градусы)",
+    "VISAGE.Editor.Triggers.FacingInside": "Направлен Между",
+    "VISAGE.Editor.Triggers.FacingOutside": "Не Направлен Между"
 }

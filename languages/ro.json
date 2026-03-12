@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Sau ID Vreme Personalizat",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "ex. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Este Activă",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Nu Este Activă"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Nu Este Activă",
+    "VISAGE.Editor.Triggers.EventFacing": "Orientare Jeton",
+    "VISAGE.Editor.Triggers.AngleStart": "Unghi de Început (Grade)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Unghi de Sfârșit (Grade)",
+    "VISAGE.Editor.Triggers.FacingInside": "Este Orientat Între",
+    "VISAGE.Editor.Triggers.FacingOutside": "Nu Este Orientat Între"
 }

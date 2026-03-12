@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "O ID de Clima Personalitzat",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "ex. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Està Actiu",
-    "VISAGE.Editor.Triggers.WeatherInactive": "No Està Actiu"
+    "VISAGE.Editor.Triggers.WeatherInactive": "No Està Actiu",
+    "VISAGE.Editor.Triggers.EventFacing": "Orientació de la Fitxa",
+    "VISAGE.Editor.Triggers.AngleStart": "Angle d'Inici (Graus)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Angle de Finalització (Graus)",
+    "VISAGE.Editor.Triggers.FacingInside": "Està Orientada Entre",
+    "VISAGE.Editor.Triggers.FacingOutside": "No Està Orientada Entre"
 }

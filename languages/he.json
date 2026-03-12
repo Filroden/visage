@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "\u200Fאו מזהה מזג אוויר מותאם אישית",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "\u200Fלדוגמה, '\u2068fxmaster.sandstorm\u2069'",
     "VISAGE.Editor.Triggers.WeatherActive": "\u200Fפעיל",
-    "VISAGE.Editor.Triggers.WeatherInactive": "\u200Fלא פעיל"
+    "VISAGE.Editor.Triggers.WeatherInactive": "\u200Fלא פעיל",
+    "VISAGE.Editor.Triggers.EventFacing": "\u200Fכיוון טוקן",
+    "VISAGE.Editor.Triggers.AngleStart": "\u200Fזווית התחלה (מעלות)",
+    "VISAGE.Editor.Triggers.AngleEnd": "\u200Fזווית סיום (מעלות)",
+    "VISAGE.Editor.Triggers.FacingInside": "\u200Fפונה בין",
+    "VISAGE.Editor.Triggers.FacingOutside": "\u200Fלא פונה בין"
 }

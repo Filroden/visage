@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Nebo Vlastní ID Počasí",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "např. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Je Aktivní",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Není Aktivní"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Není Aktivní",
+    "VISAGE.Editor.Triggers.EventFacing": "Natočení Tokenu",
+    "VISAGE.Editor.Triggers.AngleStart": "Počáteční Úhel (Stupně)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Koncový Úhel (Stupně)",
+    "VISAGE.Editor.Triggers.FacingInside": "Směřuje Mezi",
+    "VISAGE.Editor.Triggers.FacingOutside": "Nesměřuje Mezi"
 }

@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Eller Anpassat Väder-ID",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "t.ex. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Är Aktivt",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Är Inte Aktivt"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Är Inte Aktivt",
+    "VISAGE.Editor.Triggers.EventFacing": "Token-riktning",
+    "VISAGE.Editor.Triggers.AngleStart": "Startvinkel (Grader)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Slutvinkel (Grader)",
+    "VISAGE.Editor.Triggers.FacingInside": "Är Riktad Mellan",
+    "VISAGE.Editor.Triggers.FacingOutside": "Är Inte Riktad Mellan"
 }

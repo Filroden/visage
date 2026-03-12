@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Vagy Egyéni Időjárás ID",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "pl. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Aktív",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Nem Aktív"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Nem Aktív",
+    "VISAGE.Editor.Triggers.EventFacing": "Bábu Iránya",
+    "VISAGE.Editor.Triggers.AngleStart": "Kezdőszög (Fok)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Zárószög (Fok)",
+    "VISAGE.Editor.Triggers.FacingInside": "Ebbe az Irányba Néz",
+    "VISAGE.Editor.Triggers.FacingOutside": "Nem Ebbe az Irányba Néz"
 }

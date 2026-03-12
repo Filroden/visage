@@ -131,15 +131,26 @@ export class Visage {
         // --- Calculate the Matrix Diff ---
         if (clearStack) {
             if (Visage.sequencerReady) await VisageSequencer.revert(token);
+            if (VisageTokenMagic.isActive) await VisageTokenMagic.revert(token); // FIX 1: Wipe all TMFX on clearStack
+
             stack = [];
             updateFlags[`flags.${DATA_NAMESPACE}.identity`] = layer.id;
         } else if (switchIdentity) {
             const currentIdentity = token.document.getFlag(DATA_NAMESPACE, "identity");
             if (currentIdentity) {
+                const oldIdentityLayer = stack.find((l) => l.id === currentIdentity); // Capture the old layer data
+
                 stack = stack.filter((l) => l.id !== currentIdentity);
                 if (Visage.sequencerReady) await VisageSequencer.remove(token, currentIdentity, true);
+                if (VisageTokenMagic.isActive && oldIdentityLayer) await VisageTokenMagic.removeLayer(token, oldIdentityLayer);
             }
             updateFlags[`flags.${DATA_NAMESPACE}.identity`] = layer.id;
+        }
+
+        // If we are actively overwriting an existing Visage with the same ID, wipe its old TMFX state first
+        const overwrittenLayer = stack.find((l) => l.id === layer.id);
+        if (overwrittenLayer && VisageTokenMagic.isActive) {
+            await VisageTokenMagic.removeLayer(token, overwrittenLayer);
         }
 
         stack = stack.filter((l) => l.id !== layer.id);

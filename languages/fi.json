@@ -450,5 +450,10 @@
     "VISAGE.Editor.Triggers.CustomWeather": "Tai Mukautettu Sää-ID",
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "esim. 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "On Aktiivinen",
-    "VISAGE.Editor.Triggers.WeatherInactive": "Ei Ole Aktiivinen"
+    "VISAGE.Editor.Triggers.WeatherInactive": "Ei Ole Aktiivinen",
+    "VISAGE.Editor.Triggers.EventFacing": "Nappulan Suunta",
+    "VISAGE.Editor.Triggers.AngleStart": "Aloituskulma (Asteet)",
+    "VISAGE.Editor.Triggers.AngleEnd": "Lopetuskulma (Asteet)",
+    "VISAGE.Editor.Triggers.FacingInside": "Osoittaa Välille",
+    "VISAGE.Editor.Triggers.FacingOutside": "Ei Osoita Välille"
 }
