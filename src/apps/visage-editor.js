@@ -247,6 +247,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         c.summary = `${c.eventId} ${op} ${c.value || 0}`;
                     } else if (c.eventId === "region") {
                         c.summary = `Region: ${c.regionId || "?"} (${c.operator === "active" ? "Inside" : "Outside"})`;
+                    } else if (c.eventId === "time") {
+                        const opTxt = c.operator === "active" ? "Between" : "Not Between";
+                        c.summary = `${opTxt} ${c.startTime || "00:00"} & ${c.endTime || "00:00"}`;
+                    } else if (c.eventId === "weather") {
+                        c.summary = `Weather: ${c.customWeather || c.weatherId || "?"} (${c.operator === "active" ? "Active" : "Inactive"})`;
+                    } else if (c.eventId === "facing") {
+                        const state = c.operator === "active" ? "Inside" : "Outside";
+                        c.summary = `Facing: ${c.startAngle}° to ${c.endAngle}° (${state})`;
                     } else {
                         c.summary = `${c.eventId} (${c.operator === "active" ? "Active" : "Inactive"})`;
                     }
@@ -288,6 +296,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             inspector: inspectorData,
             automation: this._automationData,
             statusEffects: this._getStatusEffectOptions(),
+            weatherEffects: this._getWeatherOptions(),
             delay: {
                 value: Math.abs(this._delayData) / 1000,
                 direction: this._delayData >= 0 ? "after" : "before",
@@ -545,6 +554,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     fadeIn: effect.fadeIn || 0,
                     fadeOut: effect.fadeOut || 0,
                     uuid: effect.uuid || "",
+                    tmfxPreset: effect.tmfxPreset || "",
                 });
             }
         } else if (this._activeConditionId) {
@@ -716,6 +726,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                             cond.operator = newEventId === "elevation" || newEventId === "darkness" ? "gt" : "active";
                             cond.value = newEventId === "darkness" ? 0.5 : 0;
                             cond.regionId = "";
+                            cond.startTime = newEventId === "time" ? "06:00" : "";
+                            cond.endTime = newEventId === "time" ? "18:00" : "";
+                            cond.weatherId = newEventId === "weather" ? "" : "";
+                            cond.customWeather = newEventId === "weather" ? "" : "";
+                            cond.startAngle = newEventId === "facing" ? 0 : null;
+                            cond.endAngle = newEventId === "facing" ? 0 : null;
                         }
 
                         cond.eventId = newEventId;
@@ -724,8 +740,21 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         if (cond.eventId === "elevation" || cond.eventId === "darkness") {
                             const val = getVal("inspector.value", Number);
                             if (val !== null && !isNaN(val)) cond.value = val;
-                        } else if (cond.eventId === "region") {
+                        }
+                        if (cond.eventId === "region") {
                             cond.regionId = getVal("inspector.regionId") ?? cond.regionId;
+                        }
+                        if (cond.eventId === "time") {
+                            cond.startTime = getVal("inspector.startTime") ?? cond.startTime;
+                            cond.endTime = getVal("inspector.endTime") ?? cond.endTime;
+                        }
+                        if (cond.eventId === "weather") {
+                            cond.weatherId = getVal("inspector.weatherId") ?? cond.weatherId;
+                            cond.customWeather = getVal("inspector.customWeather") ?? cond.customWeather;
+                        }
+                        if (cond.eventId === "facing") {
+                            cond.startAngle = Number(getVal("inspector.startAngle")) || 0;
+                            cond.endAngle = Number(getVal("inspector.endAngle")) || 0;
                         }
                     }
                 }
@@ -1681,6 +1710,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // Sort alphabetically by the localized label for better UX
+        effects.sort((a, b) => a.label.localeCompare(b.label));
+        return effects;
+    }
+
+    _getWeatherOptions() {
+        const effects = [];
+        // Extract weather types from the global configuration
+        for (const [key, config] of Object.entries(CONFIG.weatherEffects || {})) {
+            const label = game.i18n.localize(config.label || config.name || key);
+            effects.push({ value: key, label: label });
+        }
         effects.sort((a, b) => a.label.localeCompare(b.label));
         return effects;
     }

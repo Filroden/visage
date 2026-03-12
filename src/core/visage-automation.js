@@ -14,6 +14,14 @@ export class VisageAutomation {
     static _registry = new Map();
 
     /**
+     * A queue to debounce rapid token updates (like scroll-wheel rotation) on a per-token basis.
+     * Structure: Map<tokenId, timeoutId>
+     */
+    static _evaluationQueue = new Map();
+
+    static _lastEvaluatedMinute = null;
+
+    /**
      * Initializes the Automation Engine.
      * Called once during the `ready` hook.
      */
@@ -42,14 +50,39 @@ export class VisageAutomation {
         });
 
         Hooks.on("updateScene", (scene, changes) => {
-            if (changes.environment?.darknessLevel !== undefined || changes.environment?.globalLight?.enabled !== undefined) {
+            if (scene.id !== canvas.scene?.id) return;
+
+            const expanded = foundry.utils.expandObject(changes);
+
+            // Added expanded.weather back to the check
+            if (
+                expanded.environment?.darknessLevel !== undefined ||
+                expanded.environment?.globalLight?.enabled !== undefined ||
+                expanded.environment?.weather !== undefined ||
+                expanded.weather !== undefined
+            ) {
                 setTimeout(() => {
                     for (const tokenId of this._registry.keys()) {
                         const t = canvas.tokens.get(tokenId);
                         if (t) this._evaluate(t);
                     }
-                }, 100);
+                }, 250);
             }
+        });
+
+        Hooks.on("updateWorldTime", (worldTime, dt) => {
+            const currentMinute = Math.floor(worldTime / 60);
+            if (this._lastEvaluatedMinute === currentMinute) return;
+
+            this._lastEvaluatedMinute = currentMinute;
+
+            // Slight delay allows other modules to finish writing data
+            setTimeout(() => {
+                for (const tokenId of this._registry.keys()) {
+                    const token = canvas.tokens.get(tokenId);
+                    if (token) this._evaluate(token);
+                }
+            }, 100);
         });
 
         console.log("Visage | Automation Engine Initialized.");
@@ -124,13 +157,25 @@ export class VisageAutomation {
     }
 
     static _onUpdateToken(tokenDoc, changes, options, userId) {
-        // We only care if elevation or position changed.
-        // This acts as our throttle to prevent evaluating on every minor token update.
-        if (changes.elevation === undefined && changes.x === undefined && changes.y === undefined && changes.delta === undefined) return;
+        // Throttle: We only care if elevation, position, or rotation changed.
+        if (changes.elevation === undefined && changes.x === undefined && changes.y === undefined && changes.delta === undefined && changes.rotation === undefined) return;
 
         if (this._registry.has(tokenDoc.id)) {
             const token = tokenDoc.object;
-            if (token) this._evaluate(token);
+            if (!token) return;
+
+            // Clear any existing pending evaluation for this specific token
+            if (this._evaluationQueue.has(token.id)) {
+                clearTimeout(this._evaluationQueue.get(token.id));
+            }
+
+            // Queue a new evaluation
+            const timeoutId = setTimeout(() => {
+                this._evaluationQueue.delete(token.id);
+                this._evaluate(token);
+            }, 40);
+
+            this._evaluationQueue.set(token.id, timeoutId);
         }
     }
 
@@ -354,42 +399,105 @@ export class VisageAutomation {
      * @returns {boolean} True if the condition is met.
      */
     static _evalEvent(token, condition) {
-        if (condition.eventId === "combat") {
-            const isActive = game.combats.some((c) => c.started && c.combatants.some((cb) => cb.tokenId === token.id));
-            return condition.operator === "active" ? isActive : !isActive;
-        } else if (condition.eventId === "targeted") {
-            // A token is targeted if any user has a targeting reticle on it
-            const isActive = token.targeted.size > 0;
-            return condition.operator === "active" ? isActive : !isActive;
-        } else if (condition.eventId === "elevation") {
-            const el = Number(token.document.elevation) || 0;
-            const val = Number(condition.value) || 0;
-            if (condition.operator === "gt") return el > val;
-            if (condition.operator === "lt") return el < val;
-            return el === val;
-        } else if (condition.eventId === "globalLight") {
-            const env = canvas.scene?.environment;
-            let isLit = false;
-            if (env && env.globalLight?.enabled) {
-                const dark = env.darknessLevel || 0;
-                const min = env.globalLight.darkness?.min ?? 0;
-                const max = env.globalLight.darkness?.max ?? 1;
-                isLit = dark >= min && dark <= max;
+        switch (condition.eventId) {
+            case "combat": {
+                const isActive = game.combats.some((c) => c.started && c.combatants.some((cb) => cb.tokenId === token.id));
+                return condition.operator === "active" ? isActive : !isActive;
             }
-            return condition.operator === "active" ? isLit : !isLit;
-        } else if (condition.eventId === "darkness") {
-            const dark = Number(canvas.scene?.environment?.darknessLevel) || 0;
-            const val = Number(condition.value) || 0;
-            if (condition.operator === "gt") return dark > val;
-            if (condition.operator === "lt") return dark < val;
-            return dark === val;
-        } else if (condition.eventId === "region") {
-            if (!condition.regionId) return false;
-            const regionSet = token.document?.regions || [];
-            const inRegion = Array.from(regionSet).some((r) => r.id === condition.regionId || r.name === condition.regionId);
-            return condition.operator === "active" ? inRegion : !inRegion;
-        }
 
-        return false;
+            case "targeted": {
+                // A token is targeted if any user has a targeting reticle on it
+                const isActive = token.targeted.size > 0;
+                return condition.operator === "active" ? isActive : !isActive;
+            }
+
+            case "facing": {
+                if (condition.startAngle === undefined || condition.endAngle === undefined) return false;
+
+                // Normalize any angle into a clean 0-359 range
+                const currentAngle = ((token.document.rotation % 360) + 360) % 360;
+
+                const startAngle = Number(condition.startAngle) || 0;
+                const endAngle = Number(condition.endAngle) || 0;
+
+                // Wrap-around logic for passing the 0-degree mark
+                const isBetween = startAngle <= endAngle ? currentAngle >= startAngle && currentAngle <= endAngle : currentAngle >= startAngle || currentAngle <= endAngle;
+
+                return condition.operator === "active" ? isBetween : !isBetween;
+            }
+
+            case "elevation": {
+                const el = Number(token.document.elevation) || 0;
+                const val = Number(condition.value) || 0;
+                if (condition.operator === "gt") return el > val;
+                if (condition.operator === "lt") return el < val;
+                return el === val;
+            }
+
+            case "globalLight": {
+                const env = canvas.scene?.environment;
+                let isLit = false;
+                if (env && env.globalLight?.enabled) {
+                    const dark = env.darknessLevel || 0;
+                    const min = env.globalLight.darkness?.min ?? 0;
+                    const max = env.globalLight.darkness?.max ?? 1;
+                    isLit = dark >= min && dark <= max;
+                }
+                return condition.operator === "active" ? isLit : !isLit;
+            }
+
+            case "darkness": {
+                const dark = Number(canvas.scene?.environment?.darknessLevel) || 0;
+                const val = Number(condition.value) || 0;
+                if (condition.operator === "gt") return dark > val;
+                if (condition.operator === "lt") return dark < val;
+                return dark === val;
+            }
+
+            case "region": {
+                if (!condition.regionId) return false;
+                const regionSet = token.document?.regions || [];
+                const inRegion = Array.from(regionSet).some((r) => r.id === condition.regionId || r.name === condition.regionId);
+                return condition.operator === "active" ? inRegion : !inRegion;
+            }
+
+            case "time": {
+                if (!condition.startTime || !condition.endTime) return false;
+
+                const hoursPerDay = game.settings.get(MODULE_ID, "hoursPerDay");
+                const minsPerHour = game.settings.get(MODULE_ID, "minutesPerHour");
+                const secsPerDay = hoursPerDay * minsPerHour * 60;
+
+                // Isolate the current time of day in seconds
+                const timeOfDay = game.time.worldTime % secsPerDay;
+
+                // Helper to convert the string "HH:MM" into seconds
+                const toSecs = (timeStr) => {
+                    const [h, m] = timeStr.split(":").map(Number);
+                    return h * minsPerHour * 60 + m * 60;
+                };
+
+                const startSecs = toSecs(condition.startTime);
+                const endSecs = toSecs(condition.endTime);
+
+                // If start is greater than end (e.g. 20:00 to 06:00), we use OR logic to span midnight
+                const isBetween = startSecs <= endSecs ? timeOfDay >= startSecs && timeOfDay < endSecs : timeOfDay >= startSecs || timeOfDay < endSecs;
+
+                return condition.operator === "active" ? isBetween : !isBetween;
+            }
+
+            case "weather": {
+                const targetWeather = condition.customWeather || condition.weatherId;
+                if (!targetWeather) return false;
+
+                const currentWeather = canvas.scene?.weather || "";
+                const isMatch = currentWeather === targetWeather;
+
+                return condition.operator === "active" ? isMatch : !isMatch;
+            }
+
+            default:
+                return false;
+        }
     }
 }
