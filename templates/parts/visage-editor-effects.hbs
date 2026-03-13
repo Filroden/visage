@@ -138,9 +138,9 @@
                 {{/if}}
             {{else}}
                 <div class="empty-placeholder visage-missing-dependency">
-                    <i class="visage-icon extension-off" style="width: 5rem;height: 5rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                    <h3 style="margin-bottom: 0.5rem; color: var(--visage-color-text-main);">{{localize "VISAGE.Editor.Effects.DependencyTitle"}}</h3>
-                    <p style="max-width: 300px; line-height: 1.5;">{{localize "VISAGE.Editor.Effects.DependencyHint"}}</p>
+                    <i class="visage-icon extension-off"></i>
+                    <h3>{{localize "VISAGE.Editor.Effects.DependencyTitle"}}</h3>
+                    <p>{{localize "VISAGE.Editor.Effects.DependencyHint"}}</p>
                 </div>
             {{/if}}
 
@@ -438,8 +438,8 @@
 
             {{!-- TMFX SPECIFIC --}}
             {{#if (eq inspector.type 'tmfx')}}
-                <div class="visage-warning-banner" style="background: rgba(255, 200, 0, 0.1); border-left: 3px solid orange; padding: 10px; margin-bottom: 15px;">
-                    <p style="margin: 0; font-size: 0.9em; color: var(--visage-color-text-main);">
+                <div class="visage-warning-banner">
+                    <p>
                         <i class="visage-icon info"></i> TokenMagic WebGL filters require a physical token on the canvas and cannot be previewed in this HTML window.
                     </p>
                 </div>
@@ -455,7 +455,22 @@
                     <label>TMFX Preset</label>
                     <div class="visage-form-fields">
                         <select name="effectTmfxPreset">
-                            {{selectOptions tmfxPresets selected=inspector.tmfxPreset blank="Select a Filter Preset..."}}
+                            <option value="">{{localize "VISAGE.Editor.Effects.SelectPreset"}}</option>
+                            
+                            <optgroup label="{{localize 'VISAGE.Editor.Effects.CorePresets'}}">
+                                {{#each tmfxPresets.corePresets}}
+                                    <option value="{{this.id}}" {{visageSelected (eq ../inspector.tmfxPreset this.id)}}>{{this.name}}</option>
+                                {{/each}}
+                            </optgroup>
+                            
+                            {{#if tmfxPresets.galleryPresets.length}}
+                            <optgroup label="{{localize 'VISAGE.Editor.Effects.CommunityGallery'}}">
+                                {{#each tmfxPresets.galleryPresets}}
+                                    <option value="{{this.id}}" {{visageSelected (eq ../inspector.tmfxPreset this.id)}}>{{this.name}}</option>
+                                {{/each}}
+                            </optgroup>
+                            {{/if}}
+                            
                         </select>
                     </div>
                 </div>

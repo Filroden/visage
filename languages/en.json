@@ -517,10 +517,13 @@
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "e.g., 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Is Active",
     "VISAGE.Editor.Triggers.WeatherInactive": "Is Not Active",
-
     "VISAGE.Editor.Triggers.EventFacing": "Token Facing",
     "VISAGE.Editor.Triggers.AngleStart": "Start Angle (Degrees)",
     "VISAGE.Editor.Triggers.AngleEnd": "End Angle (Degrees)",
     "VISAGE.Editor.Triggers.FacingInside": "Is Facing Between",
-    "VISAGE.Editor.Triggers.FacingOutside": "Is Not Facing Between"
+    "VISAGE.Editor.Triggers.FacingOutside": "Is Not Facing Between",
+
+    "VISAGE.Editor.Effects.SelectPreset": "Select a Filter Preset...",
+    "VISAGE.Editor.Effects.CorePresets": "Core Presets",
+    "VISAGE.Editor.Effects.CommunityGallery": "Community Gallery"
 }

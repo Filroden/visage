@@ -1286,6 +1286,11 @@ li.context-item .visage-icon-domino {
     color: var(--visage-color-text-main-solid) !important;
 }
 
+.visage.visage-editor select optgroup {
+    background-color: var(--visage-color-bg-medium-solid) !important; 
+    color: var(--visage-color-accent) !important;
+}
+
 /* --- Checkboxes & Input Groups --- */
 
 .visage .checkbox-input-group {
@@ -1903,7 +1908,7 @@ li.context-item .visage-icon-domino {
     display: none; /* Tabs serve as legends */
 }
 
-.visage-missing-dependency {
+.visage .visage-missing-dependency {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1911,6 +1916,23 @@ li.context-item .visage-icon-domino {
     text-align: center;
     color: var(--visage-color-text-muted);
     padding: 2rem;
+}
+
+.visage .visage-missing-dependency i {
+    width: 5rem;
+    height: 5rem;
+    margin-bottom: var(--filroden-space-l);
+    opacity: 0.5;
+}
+
+.visage .visage-missing-dependency h3 {
+    margin-bottom: var(--filroden-space-s);
+    color: var(--visage-color-text-main);
+}
+
+.visage .visage-missing-dependency p {
+    max-width: 300px;
+    line-height: 1.5;
 }
 
 /* Fade Grid (Inspector) - Mimics .mirroring-grid */
@@ -2565,6 +2587,19 @@ li.context-item .visage-icon-domino {
 
 .visage .behaviors-grid .form-group select {
     width: 100%;
+}
+
+.visage .visage-warning-banner {
+    background: var(--visage-color-bg-medium-solid);
+    border-left: 3px solid var(--filroden-color-warning);
+    padding: var(--filroden-space-m);
+    margin-bottom: var(--filroden-space-l);
+}
+
+.visage .visage-warning-banner p {
+    margin: 0;
+    font-size: var(--filroden-font-size-xs);
+    color: var(--visage-color-text-main);
 }
 
 

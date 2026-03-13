@@ -326,7 +326,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             nameOverride: prep(c.name, ""),
             hasSequencer: VisageUtilities.hasSequencer,
             hasTmfx: VisageTokenMagic.isActive,
-            tmfxPresets: VisageTokenMagic.getAvailablePresets(),
+            tmfxPresets: await VisageTokenMagic.getAvailablePresets(),
             preview: stageData,
         };
     }
