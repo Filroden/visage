@@ -285,7 +285,7 @@ Hooks.once("ready", async () => {
     const alreadyPosted = recentMessages.some((m) => m.content.includes("visage-chat-card") && m.content.includes("https://foundryvtt.com/packages/visage"));
 
     if (!disableWelcome && !alreadyPosted) {
-        const visageHtml = await renderTemplate("modules/visage/templates/parts/visage-chat-welcome.hbs", {
+        const visageHtml = await foundry.applications.handlebars.renderTemplate("modules/visage/templates/parts/visage-chat-welcome.hbs", {
             version: currentVersion,
         });
 
