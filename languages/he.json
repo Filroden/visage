@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "\u200Fזווית התחלה (מעלות)",
     "VISAGE.Editor.Triggers.AngleEnd": "\u200Fזווית סיום (מעלות)",
     "VISAGE.Editor.Triggers.FacingInside": "\u200Fפונה בין",
-    "VISAGE.Editor.Triggers.FacingOutside": "\u200Fלא פונה בין"
+    "VISAGE.Editor.Triggers.FacingOutside": "\u200Fלא פונה בין",
+    "VISAGE.Editor.Effects.SelectPreset": "\u200Fבחר הגדרה מראש למסנן...",
+    "VISAGE.Editor.Effects.CorePresets": "\u200Fהגדרות מראש של הליבה",
+    "VISAGE.Editor.Effects.CommunityGallery": "\u200Fגלריית הקהילה",
+    "VISAGE.Editor.Effects.TmfxPayload": "\u200F\u2068Payload JSON\u2069 מותאם אישית",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "\u200Fהדבק כאן את מערך הפרמטרים הגולמי של \u2068TMFX\u2069. פעולה זו תדרוס כל הגדרה מראש שנבחרה לעיל.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "\u200Fעצב כ-\u2068JSON\u2069",
+    "VISAGE.Notifications.TmfxFormatSuccess": "\u200F\u2068Visage\u2069 | ה-\u2068Payload\u2069 עבר עיצוב בהצלחה ל-\u2068JSON\u2069 קפדני.",
+    "VISAGE.Notifications.TmfxFormatError": "\u200F\u2068Visage\u2069 | לא ניתן לעצב את ה-\u2068Payload\u2069. ודא שהוא מערך או אובייקט \u2068JavaScript\u2069 חוקי.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "\u200F\u2068Visage\u2069 | \u2068JSON\u2069 לא חוקי ב-\u2068Payload\u2069 מותאם אישית עבור האפקט: '\u2068{label}\u2069'. אנא בדוק את העיצוב שלך."
 }

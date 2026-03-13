@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Angle d'Inici (Graus)",
     "VISAGE.Editor.Triggers.AngleEnd": "Angle de Finalització (Graus)",
     "VISAGE.Editor.Triggers.FacingInside": "Està Orientada Entre",
-    "VISAGE.Editor.Triggers.FacingOutside": "No Està Orientada Entre"
+    "VISAGE.Editor.Triggers.FacingOutside": "No Està Orientada Entre",
+    "VISAGE.Editor.Effects.SelectPreset": "Selecciona un Ajust Preestablert de Filtre...",
+    "VISAGE.Editor.Effects.CorePresets": "Ajusts Preestablerts Principals",
+    "VISAGE.Editor.Effects.CommunityGallery": "Galeria de la Comunitat",
+    "VISAGE.Editor.Effects.TmfxPayload": "Payload JSON Personalitzat",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Enganxa aquí la matriu de paràmetres TMFX en brut. Això anul·larà qualsevol ajust preestablert seleccionat a dalt.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Formatar com a JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload formatat amb èxit a JSON estricte.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | No s'ha pogut formatar el payload. Assegura't que és una matriu o objecte JavaScript vàlid.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | JSON no vàlid al Payload Personalitzat per a l'efecte: '{label}'. Si us plau, comprova el teu format."
 }

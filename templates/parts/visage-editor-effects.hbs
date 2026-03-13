@@ -475,6 +475,19 @@
                     </div>
                 </div>
 
+                <div class="form-group stacked custom-payload-group">
+                    <label>{{localize "VISAGE.Editor.Effects.TmfxPayload"}}</label>
+                    <p class="hint">{{localize "VISAGE.Editor.Effects.TmfxPayloadHint"}}</p>
+                    
+                    <div class="payload-button-row">
+                        <button type="button" data-action="formatTmfxPayload" class="format-json-btn">
+                            <i class="visage-icon wand-stars"></i> {{localize "VISAGE.Editor.Effects.TmfxFormatJson"}}
+                        </button>
+                    </div>
+                    
+                    <textarea class="visage-scrollable" name="effectTmfxPayload" rows="6" placeholder='[{ "filterType": "glow", "color": 0xFF0000 }]'></textarea>
+                </div>
+
                 <div class="form-group">
                     <label>{{localize "VISAGE.Editor.Effects.Delay"}}</label>
                     <div class="visage-form-fields">

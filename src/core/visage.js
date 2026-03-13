@@ -234,7 +234,8 @@ export class Visage {
         const runTMFX = (offsetMS, activeFX) => {
             if (!VisageTokenMagic.isActive) return;
 
-            const tmfxEffects = activeFX.filter((e) => e.type === "tmfx" && e.tmfxPreset);
+            const tmfxEffects = activeFX.filter((e) => e.type === "tmfx" && (e.tmfxPreset || e.tmfxPayload));
+
             for (const effect of tmfxEffects) {
                 const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
                 setTimeout(() => {

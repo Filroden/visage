@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Počáteční Úhel (Stupně)",
     "VISAGE.Editor.Triggers.AngleEnd": "Koncový Úhel (Stupně)",
     "VISAGE.Editor.Triggers.FacingInside": "Směřuje Mezi",
-    "VISAGE.Editor.Triggers.FacingOutside": "Nesměřuje Mezi"
+    "VISAGE.Editor.Triggers.FacingOutside": "Nesměřuje Mezi",
+    "VISAGE.Editor.Effects.SelectPreset": "Vyberte Předvolbu Filtru...",
+    "VISAGE.Editor.Effects.CorePresets": "Základní Předvolby",
+    "VISAGE.Editor.Effects.CommunityGallery": "Galerie Komunity",
+    "VISAGE.Editor.Effects.TmfxPayload": "Vlastní JSON Payload",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Vložte sem surové pole parametrů TMFX. Tím přepíšete jakoukoli předvolbu vybranou výše.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Formátovat jako JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload úspěšně zformátován na striktní JSON.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Nelze zformátovat payload. Ujistěte se, že jde o platné pole nebo objekt JavaScriptu.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | Neplatný JSON ve Vlastním Payloadu pro efekt: '{label}'. Zkontrolujte prosím své formátování."
 }

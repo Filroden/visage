@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Startvinkel (Grader)",
     "VISAGE.Editor.Triggers.AngleEnd": "Slutvinkel (Grader)",
     "VISAGE.Editor.Triggers.FacingInside": "Är Riktad Mellan",
-    "VISAGE.Editor.Triggers.FacingOutside": "Är Inte Riktad Mellan"
+    "VISAGE.Editor.Triggers.FacingOutside": "Är Inte Riktad Mellan",
+    "VISAGE.Editor.Effects.SelectPreset": "Välj en Filterförinställning...",
+    "VISAGE.Editor.Effects.CorePresets": "Kärnförinställningar",
+    "VISAGE.Editor.Effects.CommunityGallery": "Gemensenskapsgalleri",
+    "VISAGE.Editor.Effects.TmfxPayload": "Anpassad JSON-payload",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Klistra in den råa TMFX-parametermatrisen här. Detta åsidosätter eventuell förinställning som valts ovan.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Formatera som JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload formaterades framgångsrikt till strikt JSON.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Kunde inte formatera payload. Se till att det är en giltig JavaScript-matris eller objekt.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | Ogiltig JSON i anpassad payload för effekt: '{label}'. Vänligen kontrollera din formatering."
 }

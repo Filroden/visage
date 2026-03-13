@@ -158,7 +158,8 @@ li.context-item .visage-icon-domino {
 .visage input[type="text"],
 .visage input[type="number"],
 .visage input[type="time"],
-.visage select {
+.visage select,
+.visage textarea {
     background: var(--visage-color-bg-medium-solid);
     border: 1px solid var(--visage-color-border);
     color: var(--visage-color-text-main-solid);
@@ -171,12 +172,14 @@ li.context-item .visage-icon-domino {
 .visage input[type="text"]:focus,
 .visage input[type="number"]:focus,
 .visage input[type="time"],
-.visage select:focus {
+.visage select:focus,
+.visage textarea:focus {
     border-color: var(--visage-color-accent);
     box-shadow: var(--filroden-shadow-focus);
 }
 
-.visage input::placeholder {
+.visage input::placeholder,
+.visage textarea::placeholder {
     color: var(--filroden-color-text-placeholder-solid);
     opacity: 1;
     font-style: italic;
@@ -184,6 +187,12 @@ li.context-item .visage-icon-domino {
 
 .visage input[type="time"]::-webkit-calendar-picker-indicator {
     display: none;
+}
+
+.visage textarea {
+    resize: vertical;
+    font-family: monospace;
+    line-height: 1.4;
 }
 
 /* --- Buttons --- */
@@ -2041,7 +2050,7 @@ li.context-item .visage-icon-domino {
 
 /* State: Default (List visible, Inspector hidden to right) */
 .visage .view-list { transform: translateX(0); z-index: 1; }
-.visage .view-inspector { transform: translateX(100%); z-index: 2; }
+.visage .view-inspector { transform: translateX(100%); z-index: 2; overflow-y: auto;}
 
 /* State: Editing (List hidden to left, Inspector visible) */
 .visage .effects-tab-container.editing .view-list,
@@ -2600,6 +2609,43 @@ li.context-item .visage-icon-domino {
     margin: 0;
     font-size: var(--filroden-font-size-xs);
     color: var(--visage-color-text-main);
+}
+
+/* --- Custom TMFX Payload Layout --- */
+.visage .custom-payload-group {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--filroden-space-s);
+    margin-top: var(--filroden-space-m);
+}
+
+.visage .custom-payload-group label {
+    margin: 0;
+}
+
+.visage .custom-payload-group .hint {
+    margin: 0 0 var(--filroden-space-xs) 0;
+}
+
+.visage .custom-payload-group .payload-button-row {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.visage .custom-payload-group .format-json-btn {
+    width: max-content;
+    padding: var(--filroden-space-xs) var(--filroden-space-m);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--filroden-space-xs);
+    font-weight: normal;
+}
+
+.visage .custom-payload-group textarea {
+    width: 100%;
+    min-height: 120px;
 }
 
 

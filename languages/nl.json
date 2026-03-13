@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Starthoek (Graden)",
     "VISAGE.Editor.Triggers.AngleEnd": "Eindhoek (Graden)",
     "VISAGE.Editor.Triggers.FacingInside": "Kijkt Tussen",
-    "VISAGE.Editor.Triggers.FacingOutside": "Kijkt Niet Tussen"
+    "VISAGE.Editor.Triggers.FacingOutside": "Kijkt Niet Tussen",
+    "VISAGE.Editor.Effects.SelectPreset": "Selecteer een Filter Preset...",
+    "VISAGE.Editor.Effects.CorePresets": "Kern Presets",
+    "VISAGE.Editor.Effects.CommunityGallery": "Community Galerij",
+    "VISAGE.Editor.Effects.TmfxPayload": "Aangepaste JSON Payload",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Plak hier de ruwe TMFX-parameterarray. Dit overschrijft elke hierboven geselecteerde preset.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Formatteren als JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload succesvol geformatteerd naar strikte JSON.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Kan payload niet formatteren. Zorg ervoor dat het een geldige JavaScript-array of -object is.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | Ongeldige JSON in Aangepaste Payload voor effect: '{label}'. Controleer je opmaak."
 }

@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "開始角度 (度)",
     "VISAGE.Editor.Triggers.AngleEnd": "終了角度 (度)",
     "VISAGE.Editor.Triggers.FacingInside": "範囲内を向いている",
-    "VISAGE.Editor.Triggers.FacingOutside": "範囲内を向いていない"
+    "VISAGE.Editor.Triggers.FacingOutside": "範囲内を向いていない",
+    "VISAGE.Editor.Effects.SelectPreset": "フィルタープリセットを選択...",
+    "VISAGE.Editor.Effects.CorePresets": "コアプリセット",
+    "VISAGE.Editor.Effects.CommunityGallery": "コミュニティギャラリー",
+    "VISAGE.Editor.Effects.TmfxPayload": "カスタム JSON ペイロード",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "ここに生の TMFX パラメータ配列を貼り付けます。これは、上で選択したどのプリセットよりも優先されます。",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "JSON としてフォーマット",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | ペイロードが厳密な JSON に正常にフォーマットされました。",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | ペイロードをフォーマットできませんでした。有効な JavaScript 配列またはオブジェクトであることを確認してください。",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | エフェクト '{label}' のカスタムペイロードの JSON が無効です。フォーマットを確認してください。"
 }

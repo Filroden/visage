@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Ângulo de Início (Graus)",
     "VISAGE.Editor.Triggers.AngleEnd": "Ângulo de Fim (Graus)",
     "VISAGE.Editor.Triggers.FacingInside": "Está Orientada Entre",
-    "VISAGE.Editor.Triggers.FacingOutside": "Não Está Orientada Entre"
+    "VISAGE.Editor.Triggers.FacingOutside": "Não Está Orientada Entre",
+    "VISAGE.Editor.Effects.SelectPreset": "Selecione uma Predefinição de Filtro...",
+    "VISAGE.Editor.Effects.CorePresets": "Predefinições Principais",
+    "VISAGE.Editor.Effects.CommunityGallery": "Galeria da Comunidade",
+    "VISAGE.Editor.Effects.TmfxPayload": "Payload JSON Personalizado",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Cole aqui o array de parâmetros TMFX bruto. Isto substituirá qualquer predefinição selecionada acima.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Formatar como JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload formatado com sucesso para JSON estrito.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Não foi possível formatar o payload. Certifique-se de que é um array ou objeto JavaScript válido.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | JSON inválido no Payload Personalizado para o efeito: '{label}'. Por favor, verifique a sua formatação."
 }

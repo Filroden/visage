@@ -79,10 +79,22 @@ export class VisageTokenMagic {
      * Applies a single TMFX preset (Used by Visage.apply to respect delays)
      */
     static async applyEffect(token, layerId, effect) {
-        if (!this.isActive || !token || !effect.tmfxPreset) return;
+        if (!this.isActive || !token) return;
+        if (!effect.tmfxPreset && !effect.tmfxPayload) return;
 
-        const payload = await this._resolvePresetPayload(effect.tmfxPreset);
-        const rawParams = typeof payload === "string" ? TokenMagic.getPreset(payload) : payload;
+        let rawParams = null;
+
+        if (effect.tmfxPayload) {
+            try {
+                rawParams = JSON.parse(effect.tmfxPayload);
+            } catch (e) {
+                console.warn(`Visage | Dropping effect ${effect.id}: Invalid TMFX custom payload JSON.`, e);
+                return;
+            }
+        } else if (effect.tmfxPreset) {
+            const payload = await this._resolvePresetPayload(effect.tmfxPreset);
+            rawParams = typeof payload === "string" ? TokenMagic.getPreset(payload) : payload;
+        }
 
         if (!rawParams) return;
 
@@ -115,13 +127,22 @@ export class VisageTokenMagic {
 
         const tmfxEffects = (layer.changes?.effects || []).filter((e) => e.type === "tmfx");
         for (const effect of tmfxEffects) {
-            if (!effect.tmfxPreset) continue;
+            if (!effect.tmfxPreset && !effect.tmfxPayload) continue;
 
-            const payload = await this._resolvePresetPayload(effect.tmfxPreset);
-            const rawParams = typeof payload === "string" ? TokenMagic.getPreset(payload) : payload;
+            let rawParams = null;
+            if (effect.tmfxPayload) {
+                try {
+                    rawParams = JSON.parse(effect.tmfxPayload);
+                } catch (e) {
+                    // Silently fail parsing on removal; we will rely on the fallback count below
+                }
+            } else if (effect.tmfxPreset) {
+                const payload = await this._resolvePresetPayload(effect.tmfxPreset);
+                rawParams = typeof payload === "string" ? TokenMagic.getPreset(payload) : payload;
+            }
 
-            // Failsafe: If the URL fails to resolve (e.g. offline), we assume a maximum
-            // of 10 sub-filters to guarantee the orphaned effect is forcefully cleansed.
+            // Failsafe: If the URL fails to resolve (e.g. offline) or the JSON is suddenly unparseable,
+            // we assume a maximum of 10 sub-filters to guarantee the orphaned effect is forcefully cleansed.
             const count = rawParams ? (Array.isArray(rawParams) ? rawParams.length : 1) : 10;
 
             for (let index = 0; index < count; index++) {

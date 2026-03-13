@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Ongl Dechrau (Graddau)",
     "VISAGE.Editor.Triggers.AngleEnd": "Ongl Gorffen (Graddau)",
     "VISAGE.Editor.Triggers.FacingInside": "Yn Wynebu Rhwng",
-    "VISAGE.Editor.Triggers.FacingOutside": "Ddim Yn Wynebu Rhwng"
+    "VISAGE.Editor.Triggers.FacingOutside": "Ddim Yn Wynebu Rhwng",
+    "VISAGE.Editor.Effects.SelectPreset": "Dewiswch Rhagosodiad Hidl...",
+    "VISAGE.Editor.Effects.CorePresets": "Rhagosodiadau Craidd",
+    "VISAGE.Editor.Effects.CommunityGallery": "Oriel y Gymuned",
+    "VISAGE.Editor.Effects.TmfxPayload": "Payload JSON Personol",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Gludwch yr amrye ddata paramedrau TMFX amrwd yma. Bydd hyn yn diystyru unrhyw ragosodiad a ddewiswyd uchod.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Fformatio fel JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload wedi'i fformatio'n llwyddiannus i JSON caeth.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Methu fformatio'r payload. Sicrhewch ei fod yn arae neu wrthrych JavaScript dilys.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | JSON annilys yn y Payload Personol ar gyfer yr effaith: '{label}'. Gwiriwch eich fformatio."
 }
