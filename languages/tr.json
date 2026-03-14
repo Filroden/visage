@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Başlangıç Açısı (Derece)",
     "VISAGE.Editor.Triggers.AngleEnd": "Bitiş Açısı (Derece)",
     "VISAGE.Editor.Triggers.FacingInside": "Arasına Bakıyor",
-    "VISAGE.Editor.Triggers.FacingOutside": "Arasına Bakmıyor"
+    "VISAGE.Editor.Triggers.FacingOutside": "Arasına Bakmıyor",
+    "VISAGE.Editor.Effects.SelectPreset": "Bir Filtre Ön Ayarı Seçin...",
+    "VISAGE.Editor.Effects.CorePresets": "Temel Ön Ayarlar",
+    "VISAGE.Editor.Effects.CommunityGallery": "Topluluk Galerisi",
+    "VISAGE.Editor.Effects.TmfxPayload": "Özel JSON Payload'ı",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Ham TMFX parametre dizisini buraya yapıştırın. Bu, yukarıda seçilen herhangi bir ön ayarı geçersiz kılacaktır.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "JSON olarak Biçimlendir",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload başarıyla katı JSON formatına dönüştürüldü.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Payload biçimlendirilemedi. Geçerli bir JavaScript dizisi veya nesnesi olduğundan emin olun.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | '{label}' efekti için Özel Payload'da geçersiz JSON. Lütfen biçimlendirmenizi kontrol edin."
 }

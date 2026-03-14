@@ -186,16 +186,6 @@ export class VisageData {
         const timestamp = Date.now();
         const existing = all[id];
 
-        // --- AUTOMATION CLEANUP (GLOBAL) ---
-        if (existing?.automation?.enabled && (!data.automation || !data.automation.enabled)) {
-            const VisageApi = game.modules.get(MODULE_ID)?.api;
-            if (VisageApi) {
-                canvas.tokens.placeables.forEach((t) => {
-                    VisageApi.remove(t.id, id);
-                });
-            }
-        }
-
         const entry = {
             id: id,
             label: data.label || "New Mask",
@@ -211,11 +201,26 @@ export class VisageData {
             automation: data.automation ? foundry.utils.deepClone(data.automation) : undefined,
         };
 
-        // Scrub the entire constructed entry to catch root-level automation and nested changes
+        // Scrub the entire constructed entry
         this._scrubPayload(entry);
 
+        // 1. Update Database FIRST
         all[id] = entry;
         await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
+
+        // 2. Clear Watcher Memory SECOND (By firing the change hook)
+        Hooks.callAll("visageDataChanged");
+
+        // 3. Clean the Canvas THIRD
+        if (existing?.automation?.enabled && (!data.automation || !data.automation.enabled)) {
+            const VisageApi = game.modules.get(MODULE_ID)?.api;
+            if (VisageApi) {
+                for (const t of canvas.tokens.placeables) {
+                    await VisageApi.remove(t.id, id);
+                }
+            }
+        }
+
         return entry;
     }
 
@@ -236,15 +241,7 @@ export class VisageData {
     /** @private */
     static async _saveLocal(data, actor) {
         const id = data.id || foundry.utils.randomID(16);
-
-        // --- AUTOMATION CLEANUP (LOCAL) ---
         const existing = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY]?.[id];
-        if (existing?.automation?.enabled && (!data.automation || !data.automation.enabled)) {
-            const VisageApi = game.modules.get(MODULE_ID)?.api;
-            if (VisageApi) {
-                canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id).forEach((t) => VisageApi.remove(t.id, id));
-            }
-        }
 
         const entry = {
             id: id,
@@ -257,23 +254,34 @@ export class VisageData {
             updated: Date.now(),
         };
 
-        // Scrub the entire constructed entry to catch root-level automation and nested changes
+        // Scrub the entire constructed entry
         this._scrubPayload(entry);
 
-        // Explicitly delete old bloat first to bypass Foundry's Deep Merge resurrection
+        // 1. Update Database FIRST
         if (existing) {
             await actor.update({
                 [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null,
             });
         }
-
-        // Save the new perfectly clean entry
         await actor.update({
             [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry,
         });
 
         console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
+
+        // 2. Clear Watcher Memory SECOND
         Hooks.callAll("visageDataChanged");
+
+        // 3. Clean the Canvas THIRD
+        if (existing?.automation?.enabled && (!data.automation || !data.automation.enabled)) {
+            const VisageApi = game.modules.get(MODULE_ID)?.api;
+            if (VisageApi) {
+                const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id);
+                for (const t of linkedTokens) {
+                    await VisageApi.remove(t.id, id);
+                }
+            }
+        }
     }
 
     // ==========================================

@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "起始角度 (度)",
     "VISAGE.Editor.Triggers.AngleEnd": "結束角度 (度)",
     "VISAGE.Editor.Triggers.FacingInside": "朝向介於",
-    "VISAGE.Editor.Triggers.FacingOutside": "朝向不介於"
+    "VISAGE.Editor.Triggers.FacingOutside": "朝向不介於",
+    "VISAGE.Editor.Effects.SelectPreset": "選擇一個濾鏡預設...",
+    "VISAGE.Editor.Effects.CorePresets": "核心預設",
+    "VISAGE.Editor.Effects.CommunityGallery": "社群庫",
+    "VISAGE.Editor.Effects.TmfxPayload": "自訂 JSON Payload",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "在此處貼上原始的 TMFX 參數陣列。這將覆蓋上方選擇的任何預設。",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "格式化為 JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload 已成功格式化為嚴格的 JSON。",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | 無法格式化 Payload。請確保它是有效的 JavaScript 陣列或物件。",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | 效果 '{label}' 的自訂 Payload 中存在無效的 JSON。請檢查您的格式。"
 }

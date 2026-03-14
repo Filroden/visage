@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Unghi de Început (Grade)",
     "VISAGE.Editor.Triggers.AngleEnd": "Unghi de Sfârșit (Grade)",
     "VISAGE.Editor.Triggers.FacingInside": "Este Orientat Între",
-    "VISAGE.Editor.Triggers.FacingOutside": "Nu Este Orientat Între"
+    "VISAGE.Editor.Triggers.FacingOutside": "Nu Este Orientat Între",
+    "VISAGE.Editor.Effects.SelectPreset": "Selectează o Presetare de Filtru...",
+    "VISAGE.Editor.Effects.CorePresets": "Presetări de Bază",
+    "VISAGE.Editor.Effects.CommunityGallery": "Galeria Comunității",
+    "VISAGE.Editor.Effects.TmfxPayload": "Payload JSON Personalizat",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Lipește aici matricea brută a parametrilor TMFX. Aceasta va suprascrie orice presetare selectată mai sus.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Formatează ca JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload formatat cu succes la JSON strict.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Nu s-a putut formata payload-ul. Asigură-te că este un tablou sau un obiect JavaScript valid.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | JSON invalid în Payload Personalizat pentru efectul: '{label}'. Te rugăm să verifici formatarea."
 }

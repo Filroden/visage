@@ -517,10 +517,18 @@
     "VISAGE.Editor.Triggers.CustomWeatherPlaceholder": "e.g., 'fxmaster.sandstorm'",
     "VISAGE.Editor.Triggers.WeatherActive": "Is Active",
     "VISAGE.Editor.Triggers.WeatherInactive": "Is Not Active",
-
     "VISAGE.Editor.Triggers.EventFacing": "Token Facing",
     "VISAGE.Editor.Triggers.AngleStart": "Start Angle (Degrees)",
     "VISAGE.Editor.Triggers.AngleEnd": "End Angle (Degrees)",
     "VISAGE.Editor.Triggers.FacingInside": "Is Facing Between",
-    "VISAGE.Editor.Triggers.FacingOutside": "Is Not Facing Between"
+    "VISAGE.Editor.Triggers.FacingOutside": "Is Not Facing Between",
+    "VISAGE.Editor.Effects.SelectPreset": "Select a Filter Preset...",
+    "VISAGE.Editor.Effects.CorePresets": "Core Presets",
+    "VISAGE.Editor.Effects.CommunityGallery": "Community Gallery",
+    "VISAGE.Editor.Effects.TmfxPayload": "Custom JSON Payload",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Paste the raw TMFX parameters array here. This will override any preset selected above.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Format as JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload successfully formatted to strict JSON.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Could not format payload. Ensure it is a valid JavaScript array or object.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | Invalid JSON in Custom Payload for effect: '{label}'. Please check your formatting."
 }

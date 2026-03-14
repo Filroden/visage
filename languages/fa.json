@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "\u200Fزاویه شروع (درجه)",
     "VISAGE.Editor.Triggers.AngleEnd": "\u200Fزاویه پایان (درجه)",
     "VISAGE.Editor.Triggers.FacingInside": "\u200Fروبه‌رو است بین",
-    "VISAGE.Editor.Triggers.FacingOutside": "\u200Fروبه‌رو نیست بین"
+    "VISAGE.Editor.Triggers.FacingOutside": "\u200Fروبه‌رو نیست بین",
+    "VISAGE.Editor.Effects.SelectPreset": "\u200Fیک پیش‌تنظیم فیلتر انتخاب کنید...",
+    "VISAGE.Editor.Effects.CorePresets": "\u200Fپیش‌تنظیم‌های اصلی",
+    "VISAGE.Editor.Effects.CommunityGallery": "\u200Fگالری انجمن",
+    "VISAGE.Editor.Effects.TmfxPayload": "\u200F\u2068Payload JSON\u2069 سفارشی",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "\u200Fآرایه پارامترهای خام \u2068TMFX\u2069 را در اینجا جای‌گذاری کنید. این کار هر پیش‌تنظیمی را که در بالا انتخاب شده است، لغو می‌کند.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "\u200Fقالب‌بندی به عنوان \u2068JSON\u2069",
+    "VISAGE.Notifications.TmfxFormatSuccess": "\u200F\u2068Visage\u2069 | \u2068Payload\u2069 با موفقیت در قالب \u2068JSON\u2069 دقیق فرمت شد.",
+    "VISAGE.Notifications.TmfxFormatError": "\u200F\u2068Visage\u2069 | \u2068Payload\u2069 فرمت نشد. مطمئن شوید که یک آرایه یا شیء \u2068JavaScript\u2069 معتبر است.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "\u200F\u2068Visage\u2069 | \u2068JSON\u2069 نامعتبر در \u2068Payload\u2069 سفارشی برای اثر: '\u2068{label}\u2069'. لطفاً قالب‌بندی خود را بررسی کنید."
 }

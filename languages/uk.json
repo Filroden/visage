@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Початковий Кут (Градуси)",
     "VISAGE.Editor.Triggers.AngleEnd": "Кінцевий Кут (Градуси)",
     "VISAGE.Editor.Triggers.FacingInside": "Направлений Між",
-    "VISAGE.Editor.Triggers.FacingOutside": "Не Направлений Між"
+    "VISAGE.Editor.Triggers.FacingOutside": "Не Направлений Між",
+    "VISAGE.Editor.Effects.SelectPreset": "Виберіть Пресет Фільтра...",
+    "VISAGE.Editor.Effects.CorePresets": "Базові Пресети",
+    "VISAGE.Editor.Effects.CommunityGallery": "Галерея Спільноти",
+    "VISAGE.Editor.Effects.TmfxPayload": "Користувацький Payload JSON",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Вставте сюди сирий масив параметрів TMFX. Це перевизначить будь-який пресет, вибраний вище.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Форматувати як JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload успішно відформатовано у строгий JSON.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Не вдалося відформатувати payload. Переконайтеся, що це дійсний масив або об'єкт JavaScript.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | Недійсний JSON у Користувацькому Payload для ефекту: '{label}'. Будь ласка, перевірте форматування."
 }

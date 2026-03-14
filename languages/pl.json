@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Kąt Początkowy (Stopnie)",
     "VISAGE.Editor.Triggers.AngleEnd": "Kąt Końcowy (Stopnie)",
     "VISAGE.Editor.Triggers.FacingInside": "Jest Zwrócony Pomiędzy",
-    "VISAGE.Editor.Triggers.FacingOutside": "Nie Jest Zwrócony Pomiędzy"
+    "VISAGE.Editor.Triggers.FacingOutside": "Nie Jest Zwrócony Pomiędzy",
+    "VISAGE.Editor.Effects.SelectPreset": "Wybierz Preset Filtra...",
+    "VISAGE.Editor.Effects.CorePresets": "Podstawowe Presety",
+    "VISAGE.Editor.Effects.CommunityGallery": "Galeria Społeczności",
+    "VISAGE.Editor.Effects.TmfxPayload": "Niestandardowy Payload JSON",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Wklej tutaj surową tablicę parametrów TMFX. Zastąpi to dowolny preset wybrany powyżej.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Formatuj jako JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload pomyślnie sformatowany do ścisłego JSON.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Nie można sformatować payloadu. Upewnij się, że jest to prawidłowa tablica lub obiekt JavaScript.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | Nieprawidłowy JSON w Niestandardowym Payloadzie dla efektu: '{label}'. Proszę sprawdzić formatowanie."
 }

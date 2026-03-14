@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Начальный Угол (Градусы)",
     "VISAGE.Editor.Triggers.AngleEnd": "Конечный Угол (Градусы)",
     "VISAGE.Editor.Triggers.FacingInside": "Направлен Между",
-    "VISAGE.Editor.Triggers.FacingOutside": "Не Направлен Между"
+    "VISAGE.Editor.Triggers.FacingOutside": "Не Направлен Между",
+    "VISAGE.Editor.Effects.SelectPreset": "Выберите Пресет Фильтра...",
+    "VISAGE.Editor.Effects.CorePresets": "Базовые Пресеты",
+    "VISAGE.Editor.Effects.CommunityGallery": "Галерея Сообщества",
+    "VISAGE.Editor.Effects.TmfxPayload": "Пользовательский Payload JSON",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Вставьте сюда сырой массив параметров TMFX. Это переопределит любой пресет, выбранный выше.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Форматировать как JSON",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | Payload успешно отформатирован в строгий JSON.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Не удалось отформатировать payload. Убедитесь, что это допустимый массив или объект JavaScript.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | Неверный JSON в Пользовательском Payload для эффекта: '{label}'. Пожалуйста, проверьте форматирование."
 }

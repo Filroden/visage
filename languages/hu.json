@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "Kezdőszög (Fok)",
     "VISAGE.Editor.Triggers.AngleEnd": "Zárószög (Fok)",
     "VISAGE.Editor.Triggers.FacingInside": "Ebbe az Irányba Néz",
-    "VISAGE.Editor.Triggers.FacingOutside": "Nem Ebbe az Irányba Néz"
+    "VISAGE.Editor.Triggers.FacingOutside": "Nem Ebbe az Irányba Néz",
+    "VISAGE.Editor.Effects.SelectPreset": "Válassz egy Szűrő Előbeállítást...",
+    "VISAGE.Editor.Effects.CorePresets": "Alap Előbeállítások",
+    "VISAGE.Editor.Effects.CommunityGallery": "Közösségi Galéria",
+    "VISAGE.Editor.Effects.TmfxPayload": "Egyéni JSON Payload",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "Illeszd be ide a nyers TMFX paraméter tömböt. Ez felülír minden feljebb kiválasztott előbeállítást.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "Formázás JSON-ként",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | A payload sikeresen szigorú JSON formátumra lett alakítva.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | Nem sikerült formázni a payloadot. Győződj meg róla, hogy érvényes JavaScript tömb vagy objektum.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | Érvénytelen JSON az Egyéni Payloadban a következő effektnél: '{label}'. Kérlek, ellenőrizd a formázást."
 }

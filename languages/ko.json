@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "시작 각도 (도)",
     "VISAGE.Editor.Triggers.AngleEnd": "종료 각도 (도)",
     "VISAGE.Editor.Triggers.FacingInside": "범위 내를 향함",
-    "VISAGE.Editor.Triggers.FacingOutside": "범위 내를 향하지 않음"
+    "VISAGE.Editor.Triggers.FacingOutside": "범위 내를 향하지 않음",
+    "VISAGE.Editor.Effects.SelectPreset": "필터 사전 설정 선택...",
+    "VISAGE.Editor.Effects.CorePresets": "코어 사전 설정",
+    "VISAGE.Editor.Effects.CommunityGallery": "커뮤니티 갤러리",
+    "VISAGE.Editor.Effects.TmfxPayload": "사용자 지정 JSON 페이로드",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "여기에 원시 TMFX 매개변수 배열을 붙여넣으세요. 이렇게 하면 위에서 선택한 모든 사전 설정을 덮어씁니다.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "JSON으로 포맷",
+    "VISAGE.Notifications.TmfxFormatSuccess": "Visage | 페이로드가 엄격한 JSON으로 성공적으로 포맷되었습니다.",
+    "VISAGE.Notifications.TmfxFormatError": "Visage | 페이로드를 포맷할 수 없습니다. 유효한 JavaScript 배열 또는 객체인지 확인하세요.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "Visage | 효과 '{label}'의 사용자 지정 페이로드에 잘못된 JSON이 있습니다. 형식을 확인하세요."
 }

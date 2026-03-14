@@ -455,5 +455,14 @@
     "VISAGE.Editor.Triggers.AngleStart": "\u200Fزاوية البدء (درجات)",
     "VISAGE.Editor.Triggers.AngleEnd": "\u200Fزاوية الانتهاء (درجات)",
     "VISAGE.Editor.Triggers.FacingInside": "\u200Fيواجه بين",
-    "VISAGE.Editor.Triggers.FacingOutside": "\u200Fلا يواجه بين"
+    "VISAGE.Editor.Triggers.FacingOutside": "\u200Fلا يواجه بين",
+    "VISAGE.Editor.Effects.SelectPreset": "\u200Fحدد إعدادًا مسبقًا للفلتر...",
+    "VISAGE.Editor.Effects.CorePresets": "\u200Fالإعدادات المسبقة الأساسية",
+    "VISAGE.Editor.Effects.CommunityGallery": "\u200Fمعرض المجتمع",
+    "VISAGE.Editor.Effects.TmfxPayload": "\u200F\u2068Payload JSON\u2069 مخصص",
+    "VISAGE.Editor.Effects.TmfxPayloadHint": "\u200Fالصق مصفوفة معلمات \u2068TMFX\u2069 الخام هنا. سيؤدي هذا إلى تجاوز أي إعداد مسبق محدد أعلاه.",
+    "VISAGE.Editor.Effects.TmfxFormatJson": "\u200Fتنسيق كـ \u2068JSON\u2069",
+    "VISAGE.Notifications.TmfxFormatSuccess": "\u200F\u2068Visage\u2069 | تم تنسيق الـ \u2068Payload\u2069 بنجاح إلى \u2068JSON\u2069 صارم.",
+    "VISAGE.Notifications.TmfxFormatError": "\u200F\u2068Visage\u2069 | تعذر تنسيق الـ \u2068Payload\u2069. تأكد من أنه مصفوفة أو كائن \u2068JavaScript\u2069 صالح.",
+    "VISAGE.Notifications.TmfxInvalidPayload": "\u200F\u2068Visage\u2069 | \u2068JSON\u2069 غير صالح في الـ \u2068Payload\u2069 المخصص للتأثير: '\u2068{label}\u2069'. يرجى التحقق من التنسيق الخاص بك."
 }

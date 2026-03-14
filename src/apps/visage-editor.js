@@ -126,6 +126,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             openTimeline: VisageEditor.prototype._onOpenTimeline,
             addTmfx: VisageEditor.prototype._onAddTmfx,
             addMacro: VisageEditor.prototype._onAddMacro,
+            formatTmfxPayload: VisageEditor.prototype._onFormatTmfxPayload,
         },
     };
 
@@ -326,7 +327,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             nameOverride: prep(c.name, ""),
             hasSequencer: VisageUtilities.hasSequencer,
             hasTmfx: VisageTokenMagic.isActive,
-            tmfxPresets: VisageTokenMagic.getAvailablePresets(),
+            tmfxPresets: await VisageTokenMagic.getAvailablePresets(),
             preview: stageData,
         };
     }
@@ -397,7 +398,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Text input debouncing
         let textTimer;
         this.element.addEventListener("input", (e) => {
-            if (e.target.matches("input[type='text'], input[type='number'], color-picker, range-picker")) {
+            if (e.target.matches("input[type='text'], input[type='number'], color-picker, range-picker, textarea")) {
                 clearTimeout(textTimer);
                 textTimer = setTimeout(() => this._updatePreview(), 200);
             }
@@ -413,6 +414,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
         if (this._activeConditionId) {
             this.element.querySelector(".triggers-tab-container")?.classList.add("editing");
+        }
+
+        const tmfxArea = this.element.querySelector('textarea[name="effectTmfxPayload"]');
+        if (tmfxArea && context.inspector?.tmfxPayload) {
+            tmfxArea.value = context.inspector.tmfxPayload;
         }
 
         this._updatePreview();
@@ -555,6 +561,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     fadeOut: effect.fadeOut || 0,
                     uuid: effect.uuid || "",
                     tmfxPreset: effect.tmfxPreset || "",
+                    tmfxPayload: effect.tmfxPayload || "",
                 });
             }
         } else if (this._activeConditionId) {
@@ -666,6 +673,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
                 } else if (activeEffect.type === "tmfx") {
                     activeEffect.tmfxPreset = getVal("effectTmfxPreset") ?? activeEffect.tmfxPreset;
+                    activeEffect.tmfxPayload = getVal("effectTmfxPayload") ?? activeEffect.tmfxPayload;
                     activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
                 }
             }
@@ -835,6 +843,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         event.preventDefault();
         const payload = this._prepareSaveData();
         if (!payload.label) return ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.LabelRequired"));
+
+        // Validate TMFX JSON Payloads
+        for (const effect of payload.changes.effects || []) {
+            if (effect.type === "tmfx" && effect.tmfxPayload) {
+                try {
+                    const parsed = JSON.parse(effect.tmfxPayload);
+                    if (typeof parsed !== "object") throw new Error("Payload must be an object or array.");
+                } catch (e) {
+                    return ui.notifications.error(
+                        game.i18n.format("VISAGE.Notifications.TmfxInvalidPayload", {
+                            label: effect.label,
+                        }),
+                    );
+                }
+            }
+        }
 
         try {
             await VisageData.save(payload, this.isLocal ? this.actor : null);
@@ -1176,6 +1200,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             type: "tmfx",
             label: "New TMFX Filter",
             tmfxPreset: "",
+            tmfxPayload: "",
             delay: 0,
             disabled: false,
         };
@@ -1186,6 +1211,60 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingRing = false;
         this._markDirty();
         this.render();
+    }
+    _onFormatTmfxPayload(event, target) {
+        const textarea = this.element.querySelector('textarea[name="effectTmfxPayload"]');
+        if (!textarea || !textarea.value.trim()) return;
+
+        try {
+            let rawValue = textarea.value.trim();
+
+            // Extractor: Isolate the core array/object from full macro text
+            const startMatch = rawValue.match(/[[{]/);
+            if (startMatch) {
+                const startIdx = startMatch.index;
+                const openChar = rawValue[startIdx];
+                const closeChar = openChar === "[" ? "]" : "}";
+                let count = 0;
+                let inString = false;
+                let stringChar = null;
+
+                for (let i = startIdx; i < rawValue.length; i++) {
+                    const char = rawValue[i];
+
+                    // Ignore brackets inside strings
+                    if ((char === '"' || char === "'" || char === "`") && rawValue[i - 1] !== "\\") {
+                        if (!inString) {
+                            inString = true;
+                            stringChar = char;
+                        } else if (stringChar === char) {
+                            inString = false;
+                            stringChar = null;
+                        }
+                    }
+
+                    if (!inString) {
+                        if (char === openChar) count++;
+                        else if (char === closeChar) count--;
+                    }
+
+                    if (count === 0 && !inString) {
+                        rawValue = rawValue.substring(startIdx, i + 1);
+                        break;
+                    }
+                }
+            }
+
+            const evaluated = new Function("return " + rawValue)();
+
+            textarea.value = JSON.stringify(evaluated, null, 2);
+
+            textarea.dispatchEvent(new Event("input", { bubbles: true }));
+            ui.notifications.info(game.i18n.localize("VISAGE.Notifications.TmfxFormatSuccess"));
+        } catch (e) {
+            ui.notifications.error(game.i18n.localize("VISAGE.Notifications.TmfxFormatError"));
+            console.warn("Visage | Auto-Format Error:", e);
+        }
     }
     _onAddMacro() {
         const newEffect = {
