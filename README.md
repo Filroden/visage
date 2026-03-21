@@ -1,11 +1,10 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-4.6.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-4.6.1-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v13-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
-![Languages](https://img.shields.io/badge/Languages-24-blueviolet)
 ![Download Count](https://img.shields.io/github/downloads/Filroden/visage/visage.zip)
 ![Download Count](https://img.shields.io/github/downloads/Filroden/visage/latest/visage.zip)
 ![Last Commit](https://img.shields.io/github/last-commit/Filroden/visage)
