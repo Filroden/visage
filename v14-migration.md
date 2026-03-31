@@ -125,3 +125,59 @@ Foundry V14 introduces significant changes to the game canvas, occlusion, and li
   * *Action:* Visage frequently alters `texture.anchorX`, `texture.anchorY`, and `scale`. Test tokens with heavily offset visual anchors to ensure they do not become visible to players too early or too late, as the underlying physical centre point remains static while the visual representation shifts.
 * **Regions API Updates:** V14 includes several additions and standardisations to the `RegionLayer` (e.g., `placeRegion`).
   * *Action:* Visage relies on checking region boundaries for its `RegionEnter` and `RegionExit` automation triggers. Verify that these specific event listeners still fire correctly under the new V14 region placement mechanics.
+
+## 5. Migrating Audio Management to Sequencer v4
+
+**Architectural Context:**
+In previous versions, Visage managed visual effects via the Sequencer module but had to rely on Foundry's core `AudioHelper` for sounds because Sequencer lacked support for persistent, looping audio. This required Visage to manually cache and garbage-collect audio instances using the `_activeSounds` Map.
+
+With the release of Sequencer v4.0.0 (supporting Foundry V14), sounds now natively support `.persist()`, `.attachTo()`, and advanced spatial audio parameters. This allows Visage to completely unify its visual and audio pipelines under Sequencer, drastically simplifying the code and delegating state management entirely to the Sequencer database.
+
+**Phase 1: UI & Data Architecture Updates**
+To expose the new spatial audio features to power users, the Visage Editor and Data models must be updated to store and sync these new properties.
+
+* **Editor Template (`src/apps/templates/visage-editor-effects.hbs`):**
+  Add new form inputs to the Audio Inspector panel for the following properties:
+  * **Fade In / Fade Out:** Number inputs (milliseconds) for smooth audio transitions.
+  * **Radius:** Number input (grid units) defining how far the sound travels.
+  * **Distance Easing / Panning:** Number inputs for `innerEaseDistance` and `outerEaseDistance` to allow dynamic panning as tokens move across the screen.
+  * **Constrained By Walls:** Boolean toggle to determine if the audio respects scene line-of-sight/wall occlusion.
+* **Data Model (`src/apps/visage-editor.js`):**
+  Update `_syncStateFromForm()` to capture these new inputs and ensure they are merged into the `activeEffect` payload before saving.
+
+**Phase 2: Refactoring Audio Application (`src/integrations/visage-sequencer.js`)**
+Delete the manual `_activeSounds` Map and replace the core `AudioHelper.play()` logic with a native `Sequence().sound()` chain, dynamically applying the newly captured UI parameters.
+
+*New V14 Application Concept:*
+
+```javascript
+let audioSeq = new Sequence()
+    .sound()
+    .file(effect.path)
+    .volume(effect.volume)
+    .name(tag)
+    .origin(layer?.uuid || ""); // Crucial for clean removal
+
+// Apply advanced V4 features if defined in the Visage effect payload
+if (effect.delay) audioSeq.delay(effect.delay);
+if (effect.fadeIn) audioSeq.fadeInAudio(effect.fadeIn);
+if (effect.fadeOut) audioSeq.fadeOutAudio(effect.fadeOut);
+
+if (effect.radius) audioSeq.radius(effect.radius);
+if (effect.constrainedByWalls) audioSeq.constrainedByWalls(effect.constrainedByWalls);
+
+if (effect.panSound) {
+    audioSeq.panSound({
+        innerEaseDistance: effect.innerEaseDistance || 10,
+        outerEaseDistance: effect.outerEaseDistance || 30
+    });
+}
+
+if (effect.loop) {
+    audioSeq.persist()
+            .attachTo(token, { bindVisibility: true, bindElevation: true }) 
+            .loopOptions({ loop: true }); 
+}
+
+audioSeq.play();
+```

@@ -1,0 +1,25 @@
+name: Guardrail - Block LTS Merges
+
+on:
+    pull_request:
+        branches:
+            - main
+
+# Give the action permission to leave a comment and close the PR
+permissions:
+    pull-requests: write
+
+jobs:
+    block-lts-merge:
+        runs-on: ubuntu-latest
+        # This job ONLY runs if the source branch name contains 'lts'
+        if: contains(github.head_ref, 'lts')
+
+        steps:
+            - name: Close PR and Warn
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_URL: ${{ github.event.pull_request.html_url }}
+              run: |
+                  gh pr comment $PR_URL --body "🚨 **CRITICAL INTERCEPT:** You are attempting to merge an LTS (v13) branch into the modern (v14) main branch. This Pull Request has been automatically closed to prevent overwriting newer code."
+                  gh pr close $PR_URL
