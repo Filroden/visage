@@ -296,10 +296,17 @@ export class Visage {
         const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
 
         const updateFlags = {};
-        if (currentIdentity === maskId) updateFlags[`flags.${DATA_NAMESPACE}.-=identity`] = null;
 
-        if (stack.length === 0) updateFlags[`flags.${DATA_NAMESPACE}.-=activeStack`] = null;
-        else updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
+        // Use V14 explicit deletion operators for atomic batch updates (Instantiate with 'new')
+        if (currentIdentity === maskId) {
+            updateFlags[`flags.${DATA_NAMESPACE}.identity`] = new foundry.data.operators.ForcedDeletion();
+        }
+
+        if (stack.length === 0) {
+            updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = new foundry.data.operators.ForcedDeletion();
+        } else {
+            updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
+        }
 
         await token.document.update(updateFlags);
         await VisageComposer.compose(token);
