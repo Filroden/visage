@@ -127,9 +127,7 @@ export class VisageData {
         if (!actor && !game.user.isGM) return;
 
         if (actor) {
-            await actor.update({
-                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true,
-            });
+            await actor.setFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}.deleted`, true);
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -143,9 +141,7 @@ export class VisageData {
      */
     static async restore(id, actor = null) {
         if (actor) {
-            await actor.update({
-                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false,
-            });
+            await actor.setFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}.deleted`, false);
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -159,9 +155,8 @@ export class VisageData {
      */
     static async destroy(id, actor = null) {
         if (actor) {
-            await actor.update({
-                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null,
-            });
+            // Use native unsetFlag for cleaner database operations
+            await actor.unsetFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}`);
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -259,13 +254,12 @@ export class VisageData {
 
         // 1. Update Database FIRST
         if (existing) {
-            await actor.update({
-                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null,
-            });
+            // Explicitly delete old bloat first to bypass Foundry's deep merge resurrection
+            await actor.unsetFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}`);
         }
-        await actor.update({
-            [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry,
-        });
+
+        // Write the new payload natively
+        await actor.setFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}`, entry);
 
         console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
 
