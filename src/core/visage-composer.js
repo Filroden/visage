@@ -192,9 +192,9 @@ export class VisageComposer {
         // We just remove the flags to ensure the token is marked as "clean".
         if (!flags.originalState) {
             const clearFlags = {
-                [`flags.${MODULE_ID}.-=activeStack`]: null,
-                [`flags.${MODULE_ID}.-=originalState`]: null,
-                [`flags.${MODULE_ID}.-=identity`]: null,
+                [`flags.${MODULE_ID}.activeStack`]: new foundry.data.operators.ForcedDeletion(),
+                [`flags.${MODULE_ID}.originalState`]: new foundry.data.operators.ForcedDeletion(),
+                [`flags.${MODULE_ID}.identity`]: new foundry.data.operators.ForcedDeletion(),
             };
             return tokenDoc.update(clearFlags, { visageUpdate: true });
         }
@@ -205,10 +205,10 @@ export class VisageComposer {
 
         const updateData = {
             ...original,
-            [`flags.${MODULE_ID}.-=activeStack`]: null,
-            [`flags.${MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
-            [`flags.${MODULE_ID}.-=originalState`]: null,
-            [`flags.${MODULE_ID}.-=identity`]: null,
+            [`flags.${MODULE_ID}.activeStack`]: new foundry.data.operators.ForcedDeletion(),
+            [`flags.${MODULE_ID}.stack`]: new foundry.data.operators.ForcedDeletion(), // Clean legacy key from V1
+            [`flags.${MODULE_ID}.originalState`]: new foundry.data.operators.ForcedDeletion(),
+            [`flags.${MODULE_ID}.identity`]: new foundry.data.operators.ForcedDeletion(),
         };
 
         // Enforce System Integrity
