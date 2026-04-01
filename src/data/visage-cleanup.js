@@ -38,6 +38,7 @@ async function getRevertData(token) {
         // Restore dimensions and scaling
         if (original.width !== undefined) updates["width"] = original.width;
         if (original.height !== undefined) updates["height"] = original.height;
+        if (original.depth !== undefined) updates["depth"] = original.depth;
         if (original.texture?.scaleX !== undefined) updates["texture.scaleX"] = original.texture.scaleX;
         if (original.texture?.scaleY !== undefined) updates["texture.scaleY"] = original.texture.scaleY;
 

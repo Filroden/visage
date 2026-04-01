@@ -2718,7 +2718,7 @@ li.context-item .visage-icon-domino {
 
 .visage-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
     gap: var(--filroden-space-m);
     align-content: start;
 }
@@ -3043,7 +3043,7 @@ li.context-item .visage-icon-domino {
 }
 
 .visage .card-zone-left {
-    width: 100px; 
+    width: 7.5rem;
     background: var(--visage-color-bg-medium-solid);
     border-inline-end: 1px solid rgba(255,255,255,0.05);
     display: flex;
@@ -3051,12 +3051,8 @@ li.context-item .visage-icon-domino {
     padding: var(--filroden-space-m);
     gap: var(--filroden-space-s);
     flex-shrink: 0;
-    border-top-left-radius: var(--filroden-radius-medium);
-    border-top-right-radius: 0;
-}
-.visage[dir="rtl"] .card-zone-left {
-    border-top-left-radius: 0;
-    border-top-right-radius: var(--filroden-radius-medium);
+    border-start-start-radius: var(--filroden-radius-medium);
+    border-start-end-radius: 0;
 }
 
 .visage .metadata-slot {
@@ -3065,6 +3061,7 @@ li.context-item .visage-icon-domino {
     gap: var(--filroden-space-s);
     font-size: var(--filroden-font-size-xs);
     color: var(--visage-color-text-main-solid);
+    min-width: 0;
     width: 100%;
     height: 1.25rem;
 }
@@ -3078,12 +3075,16 @@ li.context-item .visage-icon-domino {
     width: 1rem;
     text-align: center;
     font-size: var(--filroden-font-size-s);
+    flex-shrink: 0;
 }
 
 .visage .metadata-slot .slot-value {
     font-family: var(--filroden-font-family) !important;
     font-weight: var(--filroden-font-weight-bold);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .visage .metadata-slot.disposition-slot {
@@ -3307,12 +3308,8 @@ li.context-item .visage-icon-domino {
     justify-content: center;
     gap: var(--filroden-space-xs);
     padding: var(--filroden-space-xs) 0;
-    border-top-left-radius: 0;
-    border-top-right-radius: var(--filroden-radius-medium);
-}
-.visage[dir="rtl"] .card-zone-right {
-    border-top-right-radius: 0;
-    border-top-left-radius: var(--filroden-radius-medium);
+    border-start-start-radius: 0;
+    border-start-end-radius: var(--filroden-radius-medium);
 }
 
 .visage .card-zone-right button {

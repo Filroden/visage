@@ -103,7 +103,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             icon: "visage-icon-domino",
             resizable: true,
         },
-        position: { width: 1250, height: 700 },
+        position: { width: 1300, height: 700 },
         actions: {
             // CRUD Actions
             create: VisageGallery.prototype._onCreate,

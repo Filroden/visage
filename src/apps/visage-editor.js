@@ -323,6 +323,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             },
             width: prep(c.width, 1),
             height: prep(c.height, 1),
+            depth: prep(c.depth, 1),
             disposition: prep(c.disposition, 0),
             nameOverride: prep(c.name, ""),
             hasSequencer: VisageUtilities.hasSequencer,
@@ -792,6 +793,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         else changes.width = null;
         if (formData.height_active) changes.height = getVal("height", Number);
         else changes.height = null;
+        if (formData.depth_active) changes.depth = getVal("depth", Number);
+        else changes.depth = null;
         if (formData.lockRotation !== "") changes.lockRotation = formData.lockRotation === "true";
         else changes.lockRotation = null;
         if (formData.disposition_active) changes.disposition = getVal("disposition", Number);
