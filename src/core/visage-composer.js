@@ -122,6 +122,7 @@ export class VisageComposer {
             // G. Dimensions
             if (c.width !== undefined && c.width !== null) finalData.width = c.width;
             if (c.height !== undefined && c.height !== null) finalData.height = c.height;
+            if (c.depth !== undefined && c.depth !== null) finalData.depth = c.depth;
 
             // H. Opacity
             if (c.alpha !== undefined && c.alpha !== null) finalData.alpha = c.alpha;
