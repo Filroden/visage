@@ -1,8 +1,8 @@
 import { Visage } from "../core/visage.js";
 import { VisageGallery } from "./visage-gallery.js";
-import { VisageComposer } from "../core/visage-composer.js";
 import { VisageData } from "../data/visage-data.js";
 import { VisageUtilities } from "../utils/visage-utilities.js";
+import { VisageStackController } from "./helpers/visage-stack-controller.js";
 import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -49,22 +49,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             scrollable: [".visage-selector-grid-wrapper"],
         },
     };
-
-    /**
-     * Removes all active effects *except* the base identity.
-     * Useful for quickly cleaning up a messy stack of overlays.
-     */
-    async _onRevertGlobal(event, target) {
-        const token = canvas.tokens.get(this.tokenId);
-        if (!token) return;
-
-        const currentFormKey = token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
-        const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
-
-        // Filter stack to keep only the active Identity layer
-        const newStack = currentStack.filter((layer) => layer.id === currentFormKey);
-        await VisageComposer.compose(token, newStack);
-    }
 
     /**
      * Prepares the data context for the HUD.
@@ -278,7 +262,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 const currentIdentity = token.document.getFlag(MODULE_ID, "identity");
                 if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
             } else {
-                // Visage.apply handles mode logic (Identity Swap vs Overlay Stack) automatically
                 await Visage.apply(this.tokenId, formKey);
             }
             this.close();
@@ -300,23 +283,19 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         this.close();
     }
 
+    // Delegated to Controller
+    async _onRevertGlobal(event, target) {
+        await VisageStackController.revertGlobal(this.tokenId);
+    }
+
+    // Delegated to Controller
     async _onRemoveLayer(event, target) {
-        const layerId = target.dataset.layerId;
-        await Visage.remove(this.tokenId, layerId);
+        await VisageStackController.removeLayer(this.tokenId, target.dataset.layerId);
     }
 
-    _onClickAction(event, target) {
-        const action = target.dataset.action;
-        if (action === "selectVisage") this._onSelectVisage(event, target);
-        else if (action === "openConfig") this._onOpenConfig(event, target);
-        else if (action === "revertGlobal") this._onRevertGlobal(event, target);
-        else if (action === "removeLayer") this._onRemoveLayer(event, target);
-        else if (action === "toggleVisibility") this._onToggleVisibility(event, target);
-    }
-
+    // Delegated to Controller
     async _onToggleLayerVisibility(event, target) {
-        const layerId = target.dataset.layerId;
-        await Visage.toggleLayer(this.tokenId, layerId);
+        await VisageStackController.toggleLayerVisibility(this.tokenId, target.dataset.layerId);
     }
 
     async close(options) {
@@ -325,75 +304,11 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Handles Drag and Drop reordering for the stack list.
+     * Handles Drag and Drop reordering using the shared controller.
      */
     _bindDragDrop() {
         const list = this.element.querySelector(".visage-sortable-list");
-        if (!list) return;
-
-        let dragSrcEl = null;
-
-        const items = list.querySelectorAll("li.stack-item");
-        items.forEach((item) => {
-            item.addEventListener("dragstart", (e) => {
-                dragSrcEl = item;
-                e.dataTransfer.effectAllowed = "move";
-                e.dataTransfer.setData("text/html", item.outerHTML);
-                item.classList.add("dragging");
-            });
-
-            item.addEventListener("dragover", (e) => {
-                if (e.preventDefault) e.preventDefault();
-                return false;
-            });
-
-            item.addEventListener("dragenter", (e) => {
-                item.classList.add("over");
-            });
-
-            item.addEventListener("dragleave", (e) => {
-                item.classList.remove("over");
-            });
-
-            item.addEventListener("dragend", (e) => {
-                item.classList.remove("dragging");
-                items.forEach((i) => i.classList.remove("over"));
-            });
-
-            item.addEventListener("drop", async (e) => {
-                e.stopPropagation();
-                if (dragSrcEl !== item) {
-                    // 1. Visual Swap (Immediate Feedback)
-                    // Note: The stack list is visually REVERSED (Top layer at Top of list).
-                    // But the array is Bottom-to-Top.
-
-                    // Get all IDs in the visual order (Top to Bottom)
-                    const allItems = [...list.querySelectorAll("li.stack-item")];
-                    const srcIndex = allItems.indexOf(dragSrcEl);
-                    const targetIndex = allItems.indexOf(item);
-
-                    // Move in DOM
-                    if (srcIndex < targetIndex) {
-                        item.after(dragSrcEl);
-                    } else {
-                        item.before(dragSrcEl);
-                    }
-
-                    // 2. Calculate New Logic Order (Bottom to Top)
-                    // We grab the DOM order again, map to IDs, then REVERSE it to match logic stack
-                    const newVisualOrder = [...list.querySelectorAll("li.stack-item")].map((li) => li.dataset.layerId);
-                    const newLogicOrder = newVisualOrder.reverse();
-
-                    // 3. Save
-                    await Visage.reorderStack(this.tokenId, newLogicOrder);
-
-                    // Render is optional if the DOM swap looked correct,
-                    // but safer to re-render to ensure state is clean
-                    this.render();
-                }
-                return false;
-            });
-        });
+        VisageStackController.bindDragDrop(list, this.tokenId, () => this.render());
     }
 
     /**

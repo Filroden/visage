@@ -1,0 +1,23 @@
+<div class="effect-card {{#if this.isActive}}active{{/if}}" data-token-id="{{this.id}}" data-action="openTokenPanel">
+    
+    {{!-- Token Thumbnail --}}
+    <img src="{{this.img}}" class="token-thumbnail" alt="{{this.name}}" style="width: 2rem; height: 2rem; border-radius: 4px; object-fit: cover; margin-left: 0.5rem;">
+
+    <div class="effect-info">
+        <span class="effect-name">{{this.name}}</span>
+        <span class="effect-meta">
+            {{#if this.activeVisageCount}}
+                {{this.activeVisageCount}} Active Layer(s)
+            {{else}}
+                Base Appearance
+            {{/if}}
+        </span>
+    </div>
+
+    <div class="effect-controls">
+        {{!-- Ping Token Button --}}
+        <button type="button" class="effect-btn" data-action="pingToken" data-token-id="{{this.id}}" data-tooltip="Ping Token on Canvas">
+            <i class="visage-icon center-focus"></i>
+        </button>
+    </div>
+</div>

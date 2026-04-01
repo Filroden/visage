@@ -1,0 +1,29 @@
+<div class="visage-selector-grid-wrapper visage-scrollable">
+    {{!-- SECTION 1: IDENTITIES (Gold) --}}
+    {{#if identities.length}}
+    <div class="visage-section identity-section">
+        <h4 class="visage-section-header">
+            {{localize "VISAGE.Actions.ApplyIdentity"}}
+        </h4>
+        <div class="visage-selector">
+            {{#each identities}}
+                {{> "modules/visage/templates/parts/visage-tile.hbs" this}}
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+
+    {{!-- SECTION 2: OVERLAYS (Blue) --}}
+    {{#if overlays.length}}
+    <div class="visage-section overlay-section">
+        <h4 class="visage-section-header">
+            {{localize "VISAGE.Actions.ApplyOverlay"}}
+        </h4>
+        <div class="visage-selector">
+            {{#each overlays}}
+                {{> "modules/visage/templates/parts/visage-tile.hbs" this}}
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+</div>
