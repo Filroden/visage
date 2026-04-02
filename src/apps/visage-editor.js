@@ -469,7 +469,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const c = data.changes || {};
 
         // Effects Sync
-        if (this._effects === null) this._effects = c.effects ? foundry.utils.deepClone(c.effects) : [];
+        if (this._effects === null) this._effects = c.visageEffects ? foundry.utils.deepClone(c.visageEffects) : [];
 
         // Light Data Sync
         if (this._lightData === null) {
@@ -819,7 +819,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // B. Components always sent
         changes.light = this._lightData;
         changes.ring = this._ringData;
-        changes.effects = this._effects.filter((e) => !e.disabled);
+        changes.visageEffects = this._effects.filter((e) => !e.disabled);
 
         // Clean up transient UI properties from the automation data before saving
         const cleanAutomation = foundry.utils.deepClone(this._automationData);
@@ -848,7 +848,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!payload.label) return ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.LabelRequired"));
 
         // Validate TMFX JSON Payloads
-        for (const effect of payload.changes.effects || []) {
+        for (const effect of payload.changes.visageEffects || []) {
             if (effect.type === "tmfx" && effect.tmfxPayload) {
                 try {
                     const parsed = JSON.parse(effect.tmfxPayload);

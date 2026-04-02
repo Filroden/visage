@@ -158,6 +158,10 @@ export class VisageComposer {
             [`flags.${MODULE_ID}.originalState`]: base,
         };
 
+        // SANITY CHECK: Ensure we never accidentally pass our visageEffects array
+        // into the core 'effects' key of the document.
+        delete updateData.effects;
+
         // Ensure light is passed correctly (if it exists)
         // This is crucial because light is not part of the standard 'texture' object
         if (finalData.light) updateData.light = finalData.light;

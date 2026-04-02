@@ -474,7 +474,7 @@ export class VisageData {
         const showDataChip = isScaleActive || isDimActive || isAnchorActive;
 
         // 5. Tooltips (Effects & Portraits)
-        const activeEffects = (c.effects || []).filter((e) => !e.disabled);
+        const activeEffects = (c.visageEffects || []).filter((e) => !e.disabled);
         const showEffectsBadge = activeEffects.length > 0 || (c.light && (c.light.dim > 0 || c.light.bright > 0)) || (c.delay !== undefined && c.delay !== 0);
 
         let portraitTooltip = "";

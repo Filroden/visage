@@ -17,12 +17,99 @@ import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
  */
 export async function migrateWorldData() {
     // Step 1: Run Legacy v2.2 Migrations (Cleanup old image paths, baked scales)
-    // Ensures data is clean before adding new v3 properties.
     await _migrateV2(DATA_NAMESPACE);
 
     // Step 2: Run v3.0 Migration (Add 'mode' field for Identity vs Overlay)
-    // This is the critical step for the v3.0 "Unified Model" update.
     await _migrateV3(DATA_NAMESPACE);
+
+    // Step 3: Run v5.0 Migration (Renames 'effects' to 'visageEffects')
+    await _migrateV5(DATA_NAMESPACE);
+}
+
+/**
+ * Executes the v5.0 Schema Migration.
+ * Renames the 'effects' key to 'visageEffects' across all Actors and Global Settings
+ * to prevent data collisions with Foundry's native ActiveEffect embedded collection.
+ * @param {string} DATA_NAMESPACE - The data namespace.
+ * @private
+ */
+async function _migrateV5(DATA_NAMESPACE) {
+    ui.notifications.info("Visage: Migrating Data Schema (v5.0.0)...");
+    console.groupCollapsed("Visage | Schema Migration v5.0");
+
+    // Include unlinked "Synthetic Actors" on the canvas
+    const worldTokenMap = new Map();
+    for (const scene of game.scenes) {
+        for (const token of scene.tokens) {
+            if (!token.isLinked && token.actor) {
+                worldTokenMap.set(token.actor.id, token.actor);
+            }
+        }
+    }
+    const allActors = [...game.actors, ...worldTokenMap.values()];
+
+    // 1. Migrate Local Visages (Flags on Actors)
+    let actorsMigrated = 0;
+    for (const actor of allActors) {
+        const flagData = actor.flags[DATA_NAMESPACE] || {};
+        const alternates = flagData.alternateVisages || {};
+
+        let updates = {};
+        let hasUpdates = false;
+
+        for (const [key, data] of Object.entries(alternates)) {
+            // Check if the ghost key exists in the database
+            if (data.changes && data.changes.effects !== undefined) {
+                // Rescue the data to the new key ONLY if it hasn't been copied yet
+                if (data.changes.visageEffects === undefined) {
+                    updates[`flags.${DATA_NAMESPACE}.alternateVisages.${key}.changes.visageEffects`] = data.changes.effects;
+                }
+
+                // ALWAYS execute the ForcedDeletion to permanently kill the ghost key
+                updates[`flags.${DATA_NAMESPACE}.alternateVisages.${key}.changes.effects`] = new foundry.data.operators.ForcedDeletion();
+
+                hasUpdates = true;
+            }
+        }
+
+        if (hasUpdates) {
+            try {
+                await actor.update(updates);
+                actorsMigrated++;
+                console.log(`Migrated Actor Effects: ${actor.name}`);
+            } catch (err) {
+                console.warn(`Failed to migrate actor effects ${actor.name}:`, err);
+            }
+        }
+    }
+
+    // 2. Migrate Global Library (World Settings)
+    const globals = game.settings.get(MODULE_ID, VisageData.SETTING_KEY);
+    let globalUpdates = false;
+    let globalsMigrated = 0;
+
+    for (const [key, data] of Object.entries(globals)) {
+        if (data.changes && data.changes.effects !== undefined) {
+            if (data.changes.visageEffects === undefined) {
+                data.changes.visageEffects = data.changes.effects;
+            }
+
+            // Globals are plain JSON strings, so standard 'delete' is safe here
+            delete data.changes.effects;
+
+            globals[key] = data;
+            globalUpdates = true;
+            globalsMigrated++;
+        }
+    }
+
+    if (globalUpdates) {
+        await game.settings.set(MODULE_ID, VisageData.SETTING_KEY, globals);
+        console.log(`Migrated ${globalsMigrated} Global Entries.`);
+    }
+
+    console.log(`Migration Complete. Actors: ${actorsMigrated}, Globals: ${globalsMigrated}`);
+    console.groupEnd();
 }
 
 /**

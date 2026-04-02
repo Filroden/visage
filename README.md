@@ -47,7 +47,7 @@ While other modules focus on transient animations (a sword swinging or a firebal
 
 ### Key Features
 
-- **The Automation Engine (New in v4):** Stop manually applying effects! Configure Visage to listen in the background and automatically apply visuals when conditions are met. Trigger Visages based on:
+- **The Automation Engine:** Stop manually applying effects! Configure Visage to listen in the background and automatically apply visuals when conditions are met. Trigger Visages based on:
   - **Attributes:** e.g., Apply a bloody portrait when HP drops below 50%. Built with a  searchable Attribute Picker that works with any game system.
   - **Status Effects:** e.g., Apply a glowing forcefield when the "Mage Armour" effect is present.
   - **Game Events:** React to Scene Darkness, Global Illumination, elevation changes, Region entry/exit, Combat states or even the token being targeted.
@@ -91,4 +91,4 @@ To get the absolute most out of Visage, I highly recommend installing the follow
 
 ## Licence
 
-Software and associated documentation files in this repository are covered by an [MIT License](LICENSE.md).
+Software and associated documentation files in this repository are covered by an [MIT Licence](LICENSE.md).
