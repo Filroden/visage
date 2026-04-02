@@ -3554,6 +3554,14 @@ li.context-item .visage-icon-domino {
     overflow-y: auto;
 }
 
+.visage-token-panel .effect-card .token-thumbnail {
+    width: 2rem; 
+    height: 2rem; 
+    border-radius: var(--filroden-radius-small); 
+    object-fit: cover; 
+    margin-inline-start: var(--filroden-space-s);
+}
+
 
 /* ==========================================================================
    8. POPOUT MENU (Kebab Actions)

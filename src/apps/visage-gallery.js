@@ -49,24 +49,18 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             if (doc.id === this.actorId) this.render();
         };
 
-        // Listener for Token updates (to refresh active states in the gallery)
-        // Debounced slightly to avoid UI flicker during rapid updates.
+        // Listener for Token updates (debounced to prevent UI flicker)
+        this._debouncedTokenRender = foundry.utils.debounce(() => {
+            if (this.rendered) this.render();
+        }, 100);
+
         this._onTokenUpdate = (doc, changes, options, userId) => {
             let shouldRender = false;
 
-            // Render if it's the Local Gallery monitoring its specific token
             if (this.isLocal && this.tokenId === doc.id) shouldRender = true;
-
-            // Render if it's the Global Gallery and the Token Panel is open
-            // (Only care about tokens on the current active scene)
             if (!this.isLocal && this.tokenPanelOpen && doc.parent?.id === canvas.scene?.id) shouldRender = true;
 
-            if (shouldRender) {
-                if (this._tokenUpdateDebounce) clearTimeout(this._tokenUpdateDebounce);
-                this._tokenUpdateDebounce = setTimeout(() => {
-                    if (this.rendered) this.render();
-                }, 100);
-            }
+            if (shouldRender) this._debouncedTokenRender();
         };
 
         // Register appropriate hooks based on scope
@@ -125,7 +119,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             icon: "visage-icon-domino",
             resizable: true,
         },
-        position: { width: 1300, height: 700 },
+        position: { width: 1350, height: 700 },
         actions: {
             // CRUD Actions
             create: VisageGallery.prototype._onCreate,
@@ -358,43 +352,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         let selectedTokenData = null;
 
         if (!this.isLocal) {
-            // Gather all tokens on the active canvas
-            sceneTokens = canvas.tokens.placeables.map((t) => {
-                const flags = t.document.flags[MODULE_ID] || {};
-                const activeStack = flags.activeStack || flags.stack || [];
-                const currentIdentityKey = flags.identity || "default";
-
-                const baseName = flags.originalState?.name || t.document.name;
-
-                // Parse the stack for specific modes
-                let activeIdentityName = null;
-                let overlayCount = 0;
-
-                activeStack.forEach((layer) => {
-                    // Fallback to checking the ID against the flags just in case older data lacks the mode property
-                    if (layer.mode === "identity" || layer.id === currentIdentityKey) {
-                        activeIdentityName = layer.label;
-                    } else {
-                        overlayCount++;
-                    }
-                });
-
-                return {
-                    id: t.id,
-                    name: baseName,
-                    img: t.document.texture.src,
-                    activeIdentityName: activeIdentityName,
-                    overlayCount: overlayCount,
-                    hasActiveLayers: activeIdentityName !== null || overlayCount > 0, // Used for the checkbox filter
-                    isActive: this.selectedTokenId === t.id,
-                };
-            });
-
-            // Apply Filters
-            if (this.showOnlyActive) sceneTokens = sceneTokens.filter((t) => t.hasActiveLayers);
-            if (this.tokenSearch) sceneTokens = sceneTokens.filter((t) => t.name.toLowerCase().includes(this.tokenSearch.toLowerCase()));
-
-            // Prepare specific token details if drilled down
+            sceneTokens = this._prepareSceneTokens();
             if (this.selectedTokenId) {
                 selectedTokenData = await this._prepareTokenContext(this.selectedTokenId);
             }
@@ -464,41 +422,43 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         // 1. Sidebar Search Debounce
         const sidebarSearchInput = this.element.querySelector(".visage-sidebar .search-bar input");
         if (sidebarSearchInput) {
-            sidebarSearchInput.addEventListener("input", (e) => {
-                this.filters.search = e.target.value;
-                if (this._searchDebounce) clearTimeout(this._searchDebounce);
-                this._searchDebounce = setTimeout(() => {
-                    this.render();
-                    setTimeout(() => {
-                        const input = this.element.querySelector(".visage-sidebar .search-bar input");
-                        if (input) {
-                            input.focus();
-                            const len = input.value.length;
-                            input.setSelectionRange(len, len);
-                        }
-                    }, 50);
-                }, 300);
-            });
+            sidebarSearchInput.addEventListener(
+                "input",
+                foundry.utils.debounce(async (e) => {
+                    this.filters.search = e.target.value;
+
+                    // Wait until the DOM update finishes
+                    await this.render();
+
+                    const input = this.element.querySelector(".visage-sidebar .search-bar input");
+                    if (input) {
+                        input.focus();
+                        const len = input.value.length;
+                        input.setSelectionRange(len, len);
+                    }
+                }, 300),
+            );
         }
 
         // 2. Token Panel Search Debounce
         const tokenSearchInput = this.element.querySelector(".token-filters .search-bar input");
         if (tokenSearchInput) {
-            tokenSearchInput.addEventListener("input", (e) => {
-                this.tokenSearch = e.target.value;
-                if (this._tokenSearchDebounce) clearTimeout(this._tokenSearchDebounce);
-                this._tokenSearchDebounce = setTimeout(() => {
-                    this.render();
-                    setTimeout(() => {
-                        const input = this.element.querySelector(".token-filters .search-bar input");
-                        if (input) {
-                            input.focus();
-                            const len = input.value.length;
-                            input.setSelectionRange(len, len);
-                        }
-                    }, 50);
-                }, 300);
-            });
+            tokenSearchInput.addEventListener(
+                "input",
+                foundry.utils.debounce(async (e) => {
+                    this.tokenSearch = e.target.value;
+
+                    // Wait until the DOM update finishes
+                    await this.render();
+
+                    const input = this.element.querySelector(".token-filters .search-bar input");
+                    if (input) {
+                        input.focus();
+                        const len = input.value.length;
+                        input.setSelectionRange(len, len);
+                    }
+                }, 300),
+            );
         }
 
         // Enable Drag-and-Drop for Global Library items only
@@ -998,6 +958,54 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         const payload = foundry.utils.mergeObject(foundry.utils.deepClone(source), { "automation.enabled": newEnabled });
 
         await VisageData.save(payload, this.isLocal ? this.actor : null);
+    }
+
+    /**
+     * Helper Method: Generates and filters the list of all scene tokens for the Token Manager side panel.
+     */
+    _prepareSceneTokens() {
+        let sceneTokens = canvas.tokens.placeables.map((t) => {
+            const flags = t.document.flags[MODULE_ID] || {};
+            const activeStack = flags.activeStack || flags.stack || [];
+            const currentIdentityKey = flags.identity || "default";
+
+            // Grab the clean original name
+            const baseName = flags.originalState?.name || t.document.name;
+
+            // Parse the stack for specific modes
+            let activeIdentityName = null;
+            let overlayCount = 0;
+
+            activeStack.forEach((layer) => {
+                if (layer.mode === "identity" || layer.id === currentIdentityKey) {
+                    activeIdentityName = layer.label;
+                } else {
+                    overlayCount++;
+                }
+            });
+
+            return {
+                id: t.id,
+                name: baseName,
+                img: t.document.texture.src,
+                activeIdentityName: activeIdentityName,
+                overlayCount: overlayCount,
+                hasActiveLayers: activeIdentityName !== null || overlayCount > 0,
+                isActive: this.selectedTokenId === t.id,
+            };
+        });
+
+        // Apply Filters
+        if (this.showOnlyActive) {
+            sceneTokens = sceneTokens.filter((t) => t.hasActiveLayers);
+        }
+
+        if (this.tokenSearch) {
+            const term = this.tokenSearch.toLowerCase();
+            sceneTokens = sceneTokens.filter((t) => t.name.toLowerCase().includes(term));
+        }
+
+        return sceneTokens;
     }
 
     /**

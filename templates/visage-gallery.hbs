@@ -178,9 +178,9 @@
                 {{!-- LIST VIEW (All Scene Tokens) --}}
                 <div class="token-list-view">    
                     <div class="token-filters">
-                        <div class="search-bar">
+                        <div class="search-bar" style="margin-bottom: var(--filroden-space-s);">
                             <i class="visage-icon search"></i>
-                            <input type="text" name="tokenSearch" value="{{tokenSearch}}" placeholder="{{localize 'VISAGE.Gallery.SearchTokens'}}">
+                            <input type="text" value="{{tokenSearch}}" placeholder="{{localize 'VISAGE.Gallery.SearchTokens'}}">
                             {{#if tokenSearch}}
                             <a data-action="clearTokenSearch"><i class="visage-icon close"></i></a>
                             {{/if}}

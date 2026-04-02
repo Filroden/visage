@@ -42,7 +42,7 @@ export class VisageStackController {
     }
 
     /**
-     * Attaches Drag-and-Drop sorting listeners to a DOM list.
+     * Attaches Drag-and-Drop sorting listeners to a DOM list using Event Delegation.
      * @param {HTMLElement} listElement - The UL or DIV containing the draggable items.
      * @param {string} tokenId - The ID of the token being manipulated.
      * @param {Function} [onReorderComplete] - Optional callback to re-render the UI after sorting.
@@ -51,60 +51,70 @@ export class VisageStackController {
         if (!listElement) return;
 
         let dragSrcEl = null;
-        const items = listElement.querySelectorAll("li.stack-item");
 
-        items.forEach((item) => {
-            item.addEventListener("dragstart", (e) => {
-                dragSrcEl = item;
-                e.dataTransfer.effectAllowed = "move";
-                e.dataTransfer.setData("text/html", item.outerHTML);
-                item.classList.add("dragging");
-            });
+        listElement.addEventListener("dragstart", (e) => {
+            const item = e.target.closest("li.stack-item");
+            if (!item) return;
 
-            item.addEventListener("dragover", (e) => {
-                if (e.preventDefault) e.preventDefault();
-                return false;
-            });
+            dragSrcEl = item;
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/html", item.outerHTML);
+            item.classList.add("dragging");
+        });
 
-            item.addEventListener("dragenter", (e) => {
-                item.classList.add("over");
-            });
+        listElement.addEventListener("dragover", (e) => {
+            const item = e.target.closest("li.stack-item");
+            if (!item) return;
+            if (e.preventDefault) e.preventDefault();
+            return false;
+        });
 
-            item.addEventListener("dragleave", (e) => {
-                item.classList.remove("over");
-            });
+        listElement.addEventListener("dragenter", (e) => {
+            const item = e.target.closest("li.stack-item");
+            if (item && item !== dragSrcEl) item.classList.add("over");
+        });
 
-            item.addEventListener("dragend", (e) => {
-                item.classList.remove("dragging");
-                items.forEach((i) => i.classList.remove("over"));
-            });
+        listElement.addEventListener("dragleave", (e) => {
+            const item = e.target.closest("li.stack-item");
+            if (item) item.classList.remove("over");
+        });
 
-            item.addEventListener("drop", async (e) => {
-                e.stopPropagation();
-                if (dragSrcEl !== item) {
-                    // 1. Visual Swap
-                    const allItems = [...listElement.querySelectorAll("li.stack-item")];
-                    const srcIndex = allItems.indexOf(dragSrcEl);
-                    const targetIndex = allItems.indexOf(item);
+        listElement.addEventListener("dragend", (e) => {
+            const item = e.target.closest("li.stack-item");
+            if (item) item.classList.remove("dragging");
+            listElement.querySelectorAll("li.stack-item").forEach((i) => i.classList.remove("over"));
+        });
 
-                    if (srcIndex < targetIndex) {
-                        item.after(dragSrcEl);
-                    } else {
-                        item.before(dragSrcEl);
-                    }
+        listElement.addEventListener("drop", async (e) => {
+            e.stopPropagation();
+            const item = e.target.closest("li.stack-item");
 
-                    // 2. Calculate New Logic Order (Reversed)
-                    const newVisualOrder = [...listElement.querySelectorAll("li.stack-item")].map((li) => li.dataset.layerId);
-                    const newLogicOrder = newVisualOrder.reverse();
+            if (item && dragSrcEl && dragSrcEl !== item) {
+                // 1. Visual Swap
+                const allItems = [...listElement.querySelectorAll("li.stack-item")];
+                const srcIndex = allItems.indexOf(dragSrcEl);
+                const targetIndex = allItems.indexOf(item);
 
-                    // 3. Save to Database
-                    await Visage.reorderStack(tokenId, newLogicOrder);
-
-                    // 4. Fire Callback
-                    if (onReorderComplete) onReorderComplete();
+                if (srcIndex < targetIndex) {
+                    item.after(dragSrcEl);
+                } else {
+                    item.before(dragSrcEl);
                 }
-                return false;
-            });
+
+                // 2. Calculate New Logic Order (Reversed)
+                const newVisualOrder = [...listElement.querySelectorAll("li.stack-item")].map((li) => li.dataset.layerId);
+                const newLogicOrder = newVisualOrder.reverse();
+
+                // 3. Save to Database
+                await Visage.reorderStack(tokenId, newLogicOrder);
+
+                // 4. Fire Callback
+                if (onReorderComplete) onReorderComplete();
+            }
+
+            // Cleanup hover states
+            listElement.querySelectorAll("li.stack-item").forEach((i) => i.classList.remove("over"));
+            return false;
         });
     }
 }
