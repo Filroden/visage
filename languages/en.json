@@ -543,5 +543,10 @@
     "VISAGE.Samples.Items.TokenSize3x3x3": "Token Size (3 x 3 x 3)",
     "VISAGE.Samples.Items.TokenSize2x2x2": "Token Size (2 x 2 x 2)",
     "VISAGE.Samples.Items.TokenSize0_5x0_5x0_5": "Token Size (0.5 x 0.5 x 0.5)",
-    "VISAGE.Samples.Items.TokenSize1x1x1": "Token Size (1 x 1 x 1)"
+    "VISAGE.Samples.Items.TokenSize1x1x1": "Token Size (1 x 1 x 1)",
+    "VISAGE.Gallery.ManageTokens": "Manage Scene Tokens",
+    "VISAGE.Gallery.TokenManager": "Token Manager",
+    "VISAGE.Gallery.BackToList": "Back to Tokens",
+    "VISAGE.Gallery.FilterActive": "Active Visages Only",
+    "VISAGE.Gallery.SearchTokens": "Search scene tokens..."
 }

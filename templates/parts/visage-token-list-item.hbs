@@ -6,9 +6,17 @@
     <div class="effect-info">
         <span class="effect-name">{{this.name}}</span>
         <span class="effect-meta">
-            {{#if this.activeVisageCount}}
-                {{this.activeVisageCount}} Active Layer(s)
+            {{#if this.activeIdentityName}}
+                {{!-- Scenario A: Has an Identity (and maybe Overlays) --}}
+                <span class="identity-label" style="color: var(--filroden-color-text-accent);">{{this.activeIdentityName}}</span>
+                {{#if this.overlayCount}}
+                    <span class="overlay-count">(+{{this.overlayCount}} {{localize 'VISAGE.Mode.Overlay'}})</span>
+                {{/if}}
+            {{else if this.overlayCount}}
+                {{!-- Scenario B: Base token, but has Overlays --}}
+                Base Appearance <span class="overlay-count">(+{{this.overlayCount}} {{localize 'VISAGE.Mode.Overlay'}})</span>
             {{else}}
+                {{!-- Scenario C: Completely untouched token --}}
                 Base Appearance
             {{/if}}
         </span>
