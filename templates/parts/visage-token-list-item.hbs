@@ -1,0 +1,31 @@
+<div class="effect-card {{#if this.isActive}}active{{/if}}" data-token-id="{{this.id}}" data-action="openTokenPanel">
+    
+    {{!-- Token Thumbnail --}}
+    <img src="{{this.img}}" class="token-thumbnail" alt="{{this.name}}">
+
+    <div class="effect-info">
+        <span class="effect-name">{{this.name}}</span>
+        <span class="effect-meta">
+            {{#if this.activeIdentityName}}
+                {{!-- Scenario A: Has an Identity (and maybe Overlays) --}}
+                <span class="identity-label" style="color: var(--filroden-color-text-accent);">{{this.activeIdentityName}}</span>
+                {{#if this.overlayCount}}
+                    <span class="overlay-count">(+{{this.overlayCount}} {{localize 'VISAGE.Mode.Overlay'}})</span>
+                {{/if}}
+            {{else if this.overlayCount}}
+                {{!-- Scenario B: Base token, but has Overlays --}}
+                Base Appearance <span class="overlay-count">(+{{this.overlayCount}} {{localize 'VISAGE.Mode.Overlay'}})</span>
+            {{else}}
+                {{!-- Scenario C: Completely untouched token --}}
+                Base Appearance
+            {{/if}}
+        </span>
+    </div>
+
+    <div class="effect-controls">
+        {{!-- Ping Token Button --}}
+        <button type="button" class="effect-btn" data-action="pingToken" data-token-id="{{this.id}}" data-tooltip="Ping Token on Canvas">
+            <i class="visage-icon center-focus"></i>
+        </button>
+    </div>
+</div>
