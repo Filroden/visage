@@ -549,5 +549,6 @@
     "VISAGE.Gallery.BackToList": "Back to Tokens",
     "VISAGE.Gallery.FilterActive": "Active Visages Only",
     "VISAGE.Gallery.SearchTokens": "Search scene tokens...",
-    "VISAGE.Warnings.OrphanedToken": "This token is orphaned (Actor missing from sidebar). Visages cannot be managed for tokens without a valid Actor."
+    "VISAGE.Warnings.OrphanedToken": "This token is orphaned (Actor missing from sidebar). Visages cannot be managed for tokens without a valid Actor.",
+    "VISAGE.Directory.OpenLocalLibrary": "Open token's Local Library"
 }

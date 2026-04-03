@@ -157,6 +157,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             openTokenPanel: VisageGallery.prototype._onOpenTokenPanel,
             backToTokenList: VisageGallery.prototype._onBackToTokenList,
             pingToken: VisageGallery.prototype._onPingToken,
+            openLocalLibrary: VisageGallery.prototype._onOpenLocalLibrary,
             updateTokenSearch: VisageGallery.prototype._onUpdateTokenSearch,
             toggleActiveFilter: VisageGallery.prototype._onToggleActiveFilter,
             clearTokenSearch: VisageGallery.prototype._onClearTokenSearch,
@@ -1104,6 +1105,31 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         event.stopPropagation();
         const token = canvas.tokens.get(target.dataset.tokenId);
         if (token) canvas.ping(token.center);
+    }
+
+    _onOpenLocalLibrary(event, target) {
+        event.stopPropagation();
+
+        const tokenId = target.dataset.tokenId;
+        const token = canvas.tokens.get(tokenId);
+        if (!token || !token.actor) return;
+
+        const actorId = token.actor.id;
+        const sceneId = token.document.parent?.id;
+        const appId = `visage-gallery-${actorId}-${tokenId}`;
+
+        const existingApp = Object.values(ui.windows).find((app) => app.id === appId);
+
+        if (existingApp) {
+            existingApp.bringToFront();
+        } else {
+            new VisageGallery({
+                actorId: actorId,
+                tokenId: tokenId,
+                sceneId: sceneId,
+                id: appId,
+            }).render(true);
+        }
     }
 
     _onUpdateTokenSearch(event, target) {
