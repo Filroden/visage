@@ -270,8 +270,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onOpenConfig(event, target) {
         const appId = `visage-gallery-${this.actorId}-${this.tokenId}`;
-        if (Visage.apps[appId]) {
-            Visage.apps[appId].bringToTop();
+        const existingApp = Object.values(ui.windows).find((app) => app.id === appId);
+
+        if (existingApp) {
+            existingApp.bringToFront();
         } else {
             new VisageGallery({
                 actorId: this.actorId,

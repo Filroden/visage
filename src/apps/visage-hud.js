@@ -54,8 +54,9 @@ export async function handleTokenHUD(app, html, data) {
             const selectorId = `visage-selector-${actor.id}-${token.id}`;
 
             // Toggle Logic: Close if already open
-            if (Visage.apps[selectorId]) {
-                Visage.apps[selectorId].close();
+            const existingSelector = Object.values(ui.windows).find((app) => app.id === selectorId);
+            if (existingSelector) {
+                existingSelector.close();
                 return;
             }
 

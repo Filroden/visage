@@ -63,11 +63,36 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             if (shouldRender) this._debouncedTokenRender();
         };
 
+        // Scene Change Listener
+        this._onCanvasReady = () => {
+            if (this.rendered && !this.isLocal) {
+                // If the GM changes scenes, any previously selected token is no longer valid.
+                // Clear the selection so the side panel returns to the full list view safely.
+                this.selectedTokenId = null;
+                this.render();
+            }
+        };
+
+        // Token Creation/Deletion Listener
+        this._onTokenAddRemove = (doc) => {
+            // Only trigger a re-render if the Global Library's token panel is actively open
+            if (this.rendered && !this.isLocal && this.tokenPanelOpen) {
+                // If the currently selected token was just deleted, clear the selection
+                if (this.selectedTokenId === doc.id) {
+                    this.selectedTokenId = null;
+                }
+                this._debouncedTokenRender();
+            }
+        };
+
         // Register appropriate hooks based on scope
         if (this.isLocal) {
             Hooks.on("updateActor", this._onActorUpdate);
         } else {
             Hooks.on("visageDataChanged", this._onDataChanged);
+            Hooks.on("canvasReady", this._onCanvasReady);
+            Hooks.on("createToken", this._onTokenAddRemove);
+            Hooks.on("deleteToken", this._onTokenAddRemove);
         }
 
         // Token updates are now monitored in both modes
@@ -102,6 +127,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             Hooks.off("updateActor", this._onActorUpdate);
         } else {
             Hooks.off("visageDataChanged", this._onDataChanged);
+            Hooks.off("canvasReady", this._onCanvasReady);
+            Hooks.off("createToken", this._onTokenAddRemove);
+            Hooks.off("deleteToken", this._onTokenAddRemove);
         }
 
         // Always unbind the token hook
