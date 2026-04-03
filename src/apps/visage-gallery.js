@@ -39,6 +39,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             showBin: false,
         };
 
+        // Token Panel
+        this.tokenPanelOpen = false;
+        this.selectedTokenId = null;
+        this.tokenSearch = "";
+        this.showOnlyActive = false;
+
         // --- Reactivity Bindings ---
 
         // Listener for Global Data changes (Settings updates)
@@ -85,24 +91,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         };
 
-        // Register appropriate hooks based on scope
-        if (this.isLocal) {
-            Hooks.on("updateActor", this._onActorUpdate);
-        } else {
-            Hooks.on("visageDataChanged", this._onDataChanged);
-            Hooks.on("canvasReady", this._onCanvasReady);
-            Hooks.on("createToken", this._onTokenAddRemove);
-            Hooks.on("deleteToken", this._onTokenAddRemove);
-        }
-
-        // Token updates are now monitored in both modes
-        Hooks.on("updateToken", this._onTokenUpdate);
-
-        // Token Panel
-        this.tokenPanelOpen = false;
-        this.selectedTokenId = null;
-        this.tokenSearch = "";
-        this.showOnlyActive = false;
+        this._activeHooks = [];
     }
 
     /**
@@ -123,17 +112,17 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
      * Clean up hooks when the window is closed to prevent memory leaks.
      */
     async close(options) {
-        if (this.isLocal) {
-            Hooks.off("updateActor", this._onActorUpdate);
-        } else {
-            Hooks.off("visageDataChanged", this._onDataChanged);
-            Hooks.off("canvasReady", this._onCanvasReady);
-            Hooks.off("createToken", this._onTokenAddRemove);
-            Hooks.off("deleteToken", this._onTokenAddRemove);
+        // Automatically unhook everything registered by this UI
+        for (const hook of this._activeHooks) {
+            Hooks.off(hook.name, hook.id);
         }
+        this._activeHooks = []; // Clear the registry
 
-        // Always unbind the token hook
-        Hooks.off("updateToken", this._onTokenUpdate);
+        // Reset transient UI state so the library opens fresh next time
+        this.tokenPanelOpen = false;
+        this.selectedTokenId = null;
+        this.tokenSearch = "";
+        this.showOnlyActive = false;
 
         return super.close(options);
     }
@@ -428,13 +417,39 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
+    /**
+     * AppV2 Lifecycle: Fires when the application is rendered from a closed state.
+     * Perfect for binding hooks dynamically when the UI is actually alive.
+     */
+    _onFirstRender(context, options) {
+        super._onFirstRender(context, options);
+        this._bindHooks();
+    }
+
+    /**
+     * Registers and tracks all necessary Foundry hooks based on the gallery's scope.
+     */
+    _bindHooks() {
+        // Safety: Prevent double-binding if the window is already active
+        if (this._activeHooks.length > 0) return;
+
+        const register = (name, fn) => this._activeHooks.push({ name, id: Hooks.on(name, fn) });
+
+        if (this.isLocal) {
+            register("updateActor", this._onActorUpdate);
+        } else {
+            register("visageDataChanged", this._onDataChanged);
+            register("canvasReady", this._onCanvasReady);
+            register("createToken", this._onTokenAddRemove);
+            register("deleteToken", this._onTokenAddRemove);
+        }
+
+        // Token updates are monitored in both modes
+        register("updateToken", this._onTokenUpdate);
+    }
+
     _onRender(context, options) {
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
-
-        // Ensure hooks are bound
-        if (!this._dataListener) {
-            this._dataListener = Hooks.on("visageDataChanged", () => this.render());
-        }
 
         // Close Popover menus when clicking outside
         if (!this._clickListener) {
