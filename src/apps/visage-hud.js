@@ -21,15 +21,13 @@ export async function handleTokenHUD(app, html, data) {
     if (html.querySelector(".visage-button")) return;
 
     const token = app.object;
-    // Only allow owners to see the Visage controls to prevent players modifying tokens they don't own.
-    if (!token?.actor?.isOwner) return;
-
-    const actor = token.actor;
-    const sceneId = token.document.parent?.id;
-    if (!sceneId) return;
+    // Basic permission check: only show to those who can manage the token
+    if (!token?.document?.canUserModify(game.user, "update")) return;
 
     // 2. Render Button
-    const title = game.i18n.localize("VISAGE.Title");
+    const isOrphan = !token.actor;
+    const title = isOrphan ? game.i18n.localize("VISAGE.Warnings.OrphanedToken") : game.i18n.localize("VISAGE.Title");
+
     const buttonHtml = `
         <div class="control-icon visage-button" title="${title}">
             <img src="modules/visage/icons/domino_mask.svg" alt="${title}" class="visage-icon">
@@ -46,6 +44,13 @@ export async function handleTokenHUD(app, html, data) {
     // 3. Bind Event Listeners
     if (button) {
         button.addEventListener("click", () => {
+            if (isOrphan) {
+                // Proactive warning for the GM
+                return ui.notifications.warn(game.i18n.localize("VISAGE.Warnings.OrphanedToken"));
+            }
+
+            const actor = token.actor;
+            const sceneId = token.document.parent?.id;
             const selectorId = `visage-selector-${actor.id}-${token.id}`;
 
             // Toggle Logic: Close if already open
