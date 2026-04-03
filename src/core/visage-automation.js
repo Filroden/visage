@@ -76,9 +76,13 @@ export class VisageAutomation {
             const combinedAutomations = [...automatedVisages, ...globalAutomations];
 
             if (combinedAutomations.length > 0) {
+                // Preserve the region boundary cache to prevent false triggers on rebuild
+                const oldRecord = oldRegistry.get(token.id);
+
                 this._registry.set(token.id, {
                     actorId: token.actor.id,
                     visages: combinedAutomations,
+                    _lastRegionState: oldRecord ? oldRecord._lastRegionState : undefined,
                 });
             }
         }
