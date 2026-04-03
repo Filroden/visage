@@ -248,7 +248,7 @@ export class Visage {
         // 4. Execute with Transition Timing
 
         // Calculate the Token Swap Offset (Zero Anchor) based on the most negative effect delay
-        const activeEffects = (changes.visageEffects || []).filter((e) => !e.disabled);
+        const activeEffects = (changes.effects || []).filter((e) => !e.disabled);
         const minDelaySeconds = activeEffects.length ? Math.min(0, ...activeEffects.map((e) => e.delay || 0)) : 0;
         const offsetMS = Math.abs(minDelaySeconds) * 1000;
 

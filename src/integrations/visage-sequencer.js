@@ -27,16 +27,16 @@ export class VisageSequencer {
         if (!VisageUtilities.hasSequencer) return;
 
         // Safely check for the new key, falling back to the old key for tokens already active on the canvas
-        const visageEffects = layer.changes?.visageEffects || layer.changes?.effects || [];
+        const effects = layer.changes?.effects || [];
         const tag = isBaseLayer ? "visage-base" : `visage-mask-${layer.id}`;
 
         // 1. Clean Slate
         await this.remove(token, layer.id, isBaseLayer);
 
-        if (layer.disabled || !visageEffects.length) return;
+        if (layer.disabled || !effects.length) return;
 
-        let visuals = visageEffects.filter((e) => e.type === "visual" && !e.disabled);
-        let audios = visageEffects.filter((e) => e.type === "audio" && !e.disabled);
+        let visuals = effects.filter((e) => e.type === "visual" && !e.disabled);
+        let audios = effects.filter((e) => e.type === "audio" && !e.disabled);
 
         if (isRestore) {
             visuals = visuals.filter((e) => (e.loop ?? true) === true);
@@ -447,7 +447,7 @@ export class VisageSequencer {
         const layer = currentStack.find((l) => l.id === layerId);
 
         // Safely handle legacy stacks already on the canvas
-        const visuals = layer?.changes?.visageEffects || layer?.changes?.effects || [];
+        const visuals = layer?.changes?.effects || [];
 
         const activeEffects = Sequencer.EffectManager.getEffects({ object: token, origin: layerId });
 

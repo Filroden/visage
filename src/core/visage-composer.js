@@ -158,7 +158,7 @@ export class VisageComposer {
             [`flags.${MODULE_ID}.originalState`]: base,
         };
 
-        // SANITY CHECK: Ensure we never accidentally pass our visageEffects array
+        // SANITY CHECK: Ensure we never accidentally pass our effects array
         // into the core 'effects' key of the document.
         delete updateData.effects;
 
