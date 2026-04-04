@@ -93,9 +93,17 @@ export class VisageAutomation {
     // ==========================================
 
     static _onUpdateActor(actor, changes, options, userId) {
-        // Find tokens on the canvas linked to this actor that are in our registry
-        const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && this._registry.has(t.id));
-        if (!linkedTokens.length) return;
+        // 1. Handle Unlinked Tokens
+        if (actor.isToken) {
+            const tokenDoc = actor.token;
+            if (tokenDoc && this._registry.has(tokenDoc.id)) {
+                this._queueEvaluation(tokenDoc);
+            }
+            return;
+        }
+
+        // 2. Handle Linked Tokens
+        const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && t.document.actorLink && this._registry.has(t.id));
 
         for (const token of linkedTokens) {
             this._queueEvaluation(token.document);
@@ -104,14 +112,19 @@ export class VisageAutomation {
 
     static _onStatusChange(effect, options, userId) {
         const actor = effect.parent?.documentName === "Item" ? effect.parent.parent : effect.parent;
-
         if (!actor || actor.documentName !== "Actor") return;
 
-        const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && this._registry.has(t.id));
-        if (!linkedTokens.length) return;
-
-        for (const token of linkedTokens) {
-            this._queueEvaluation(token.document);
+        if (actor.isToken) {
+            // Unlinked Token
+            if (this._registry.has(actor.token.id)) {
+                this._queueEvaluation(actor.token);
+            }
+        } else {
+            // Linked Token
+            const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && t.document.actorLink && this._registry.has(t.id));
+            for (const token of linkedTokens) {
+                this._queueEvaluation(token.document);
+            }
         }
     }
 
@@ -125,8 +138,13 @@ export class VisageAutomation {
     static _onUpdateToken(tokenDoc, changes, options, userId) {
         if (!this._registry.has(tokenDoc.id)) return;
 
-        // 1. Throttle: We MUST track X and Y again to detect horizontal movement
-        if (changes.x === undefined && changes.y === undefined && changes.elevation === undefined && changes["-=elevation"] === undefined && changes.rotation === undefined) return;
+        // 1. Throttle: Spatial changes AND Unlinked Token attribute changes
+        const keys = Object.keys(changes);
+        const isRelevant = keys.some(
+            (k) => k === "x" || k === "y" || k === "elevation" || k === "-=elevation" || k === "rotation" || k === "delta" || k.startsWith("delta.") || k === "actorData" || k.startsWith("actorData."),
+        );
+
+        if (!isRelevant) return;
 
         // 2. The Boundary Bypass Cache
         // Safely extract the IDs of the Regions the token is currently standing in
@@ -138,12 +156,10 @@ export class VisageAutomation {
         // Retrieve the last known regions from our registry (or initialise it to current)
         const registryEntry = this._registry.get(tokenDoc.id);
         const previousRegionIds = registryEntry._lastRegionState ?? currentRegionIds;
-        registryEntry._lastRegionState = currentRegionIds; // Update the cache
+        registryEntry._lastRegionState = currentRegionIds;
 
         // 3. Evaluation Routing
         if (currentRegionIds !== previousRegionIds) {
-            // BOUNDARY CROSSED: The core database confirms we entered/exited a region!
-            // Bypass the animation queue and evaluate instantly so the trap triggers mid-stride.
             const token = tokenDoc.object;
             if (token) this._evaluate(token);
             return;
@@ -195,43 +211,29 @@ export class VisageAutomation {
     // ==========================================
 
     /**
-     * Safely queues a token for evaluation, recursively waiting for any active
-     * movement or PIXI drawing animations to finish before taking a state snapshot.
+     * Safely queues a token for evaluation.
+     * Uses a lightweight 50ms debounce to batch simultaneous database hooks
+     * (e.g., updateActor and updateToken firing concurrently)
      * @param {TokenDocument} tokenDoc - The document of the token to evaluate.
      */
     static _queueEvaluation(tokenDoc) {
         if (!this._registry.has(tokenDoc.id)) return;
 
-        // Clear any existing pending evaluation for this specific token
+        // 1. Clear any existing pending evaluation for this specific token
         if (this._evaluationQueue.has(tokenDoc.id)) {
             clearTimeout(this._evaluationQueue.get(tokenDoc.id));
         }
 
-        // Recursive polling function to handle mid-redraw detachment and animations
-        const attemptEvaluation = (attempts = 0) => {
-            // Failsafe: abort after ~1000ms to prevent infinite loops
-            if (attempts > 20) {
-                this._evaluationQueue.delete(tokenDoc.id);
-                return;
-            }
+        // 2. Set a rapid debounce. 50ms is enough to catch duplicate data packets
+        // without introducing any human-perceptible input lag.
+        const timeoutId = setTimeout(() => {
+            this._evaluationQueue.delete(tokenDoc.id);
 
+            // Fetch the freshest canvas object and evaluate instantly
             const freshToken = canvas.tokens.get(tokenDoc.id);
+            if (freshToken) this._evaluate(freshToken);
+        }, 50);
 
-            // Check animation state natively
-            const isAnimating = freshToken && freshToken.animationContexts && freshToken.animationContexts.size > 0;
-
-            if (freshToken && !isAnimating) {
-                this._evaluationQueue.delete(tokenDoc.id);
-                this._evaluate(freshToken);
-            } else {
-                // Token is animating or rebuilding. Re-queue and try again.
-                const timeoutId = setTimeout(() => attemptEvaluation(attempts + 1), 50);
-                this._evaluationQueue.set(tokenDoc.id, timeoutId);
-            }
-        };
-
-        // Queue the initial evaluation
-        const timeoutId = setTimeout(() => attemptEvaluation(0), 40);
         this._evaluationQueue.set(tokenDoc.id, timeoutId);
     }
 

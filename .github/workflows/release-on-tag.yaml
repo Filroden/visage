@@ -65,30 +65,30 @@ jobs:
                   cd dist
                   zip -r ../${{ env.MODULE_ZIP_NAME }} .
 
-                          - name: Generate Changelog from VERSION.md
-                      run: |
-                          TAG_VERSION="${{ github.ref_name }}"
-                          CLEAN_VERSION=${TAG_VERSION#v}
+            - name: Generate Changelog from VERSION.md
+              run: |
+                  TAG_VERSION="${{ github.ref_name }}"
+                  CLEAN_VERSION=${TAG_VERSION#v}
 
-                          # 1. Write the Build Details Header
-                          echo "## Release ${{ github.ref_name }}" > changelog.md
-                          echo "" >> changelog.md
-                          echo "**Build Details:**" >> changelog.md
-                          echo "- **Commit:** ${{ github.sha }}" >> changelog.md
-                          echo "- **Author:** ${{ github.actor }}" >> changelog.md
-                          echo "" >> changelog.md
-                          echo "---" >> changelog.md
-                          echo "" >> changelog.md
+                  # 1. Write the Build Details Header
+                  echo "## Release ${{ github.ref_name }}" > changelog.md
+                  echo "" >> changelog.md
+                  echo "**Build Details:**" >> changelog.md
+                  echo "- **Commit:** ${{ github.sha }}" >> changelog.md
+                  echo "- **Author:** ${{ github.actor }}" >> changelog.md
+                  echo "" >> changelog.md
+                  echo "---" >> changelog.md
+                  echo "" >> changelog.md
 
-                          # 2. Extract ONLY the Table Cell from VERSION.md for this specific version
-                          # Logic: Find row -> Cut 3rd column -> Trim spaces -> Convert <br> to newlines
-                          CHANGELOG_CONTENT=$(grep -F "| **Version $CLEAN_VERSION** |" VERSION.md | \
-                            cut -d'|' -f3 | \
-                            sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | \
-                            sed 's/<br>/\n/g')
+                  # 2. Extract ONLY the Table Cell from VERSION.md for this specific version
+                  # Logic: Find row -> Cut 3rd column -> Trim spaces -> Convert <br> to newlines
+                  CHANGELOG_CONTENT=$(grep -F "| **Version $CLEAN_VERSION** |" VERSION.md | \
+                    cut -d'|' -f3 | \
+                    sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | \
+                    sed 's/<br>/\n/g')
 
-                          # 3. Append the exact content directly
-                          echo "$CHANGELOG_CONTENT" >> changelog.md
+                  # 3. Append the exact content directly
+                  echo "$CHANGELOG_CONTENT" >> changelog.md
 
             - name: Create Release
               uses: softprops/action-gh-release@v1
