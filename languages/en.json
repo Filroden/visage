@@ -412,10 +412,10 @@
     "VISAGE.Editor.Triggers.Mode": "Calculation Mode",
     "VISAGE.Editor.Triggers.ModeAbsolute": "Absolute Value",
     "VISAGE.Editor.Triggers.ModePercent": "Percentage (Calculates vs Max)",
-    "VISAGE.Editor.Triggers.OpLte": "Less Than or Equal To (<=)",
-    "VISAGE.Editor.Triggers.OpGte": "Greater Than or Equal To (>=)",
-    "VISAGE.Editor.Triggers.OpEq": "Exactly Equals (==)",
-    "VISAGE.Editor.Triggers.OpNeq": "Does Not Equal (!=)",
+    "VISAGE.Editor.Triggers.OpLte": "Less Than or Equal To",
+    "VISAGE.Editor.Triggers.OpGte": "Greater Than or Equal To",
+    "VISAGE.Editor.Triggers.OpEq": "Exactly Equals",
+    "VISAGE.Editor.Triggers.OpNeq": "Does Not Equal",
     "VISAGE.Editor.Triggers.StatusId": "Status Effect ID",
     "VISAGE.Editor.Triggers.SelectStatus": "Select a Status Effect...",
     "VISAGE.Editor.Triggers.StatusActive": "Is Applied",
@@ -548,5 +548,7 @@
     "VISAGE.Gallery.TokenManager": "Token Manager",
     "VISAGE.Gallery.BackToList": "Back to Tokens",
     "VISAGE.Gallery.FilterActive": "Active Visages Only",
-    "VISAGE.Gallery.SearchTokens": "Search scene tokens..."
+    "VISAGE.Gallery.SearchTokens": "Search scene tokens...",
+    "VISAGE.Warnings.OrphanedToken": "This token is orphaned (Actor missing from sidebar). Visages cannot be managed for tokens without a valid Actor.",
+    "VISAGE.Directory.OpenLocalLibrary": "Open token's Local Library"
 }

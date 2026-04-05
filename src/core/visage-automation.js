@@ -44,46 +44,9 @@ export class VisageAutomation {
         Hooks.on("updateCombat", this._onCombatChange.bind(this));
         Hooks.on("deleteCombat", this._onCombatChange.bind(this));
         Hooks.on("updateToken", this._onUpdateToken.bind(this));
-
-        Hooks.on("targetToken", (user, token, targeted) => {
-            if (this._registry.has(token.id)) this._evaluate(token);
-        });
-
-        Hooks.on("updateScene", (scene, changes) => {
-            if (scene.id !== canvas.scene?.id) return;
-
-            const expanded = foundry.utils.expandObject(changes);
-
-            // Added expanded.weather back to the check
-            if (
-                expanded.environment?.darknessLevel !== undefined ||
-                expanded.environment?.globalLight?.enabled !== undefined ||
-                expanded.environment?.weather !== undefined ||
-                expanded.weather !== undefined
-            ) {
-                setTimeout(() => {
-                    for (const tokenId of this._registry.keys()) {
-                        const t = canvas.tokens.get(tokenId);
-                        if (t) this._evaluate(t);
-                    }
-                }, 250);
-            }
-        });
-
-        Hooks.on("updateWorldTime", (worldTime, dt) => {
-            const currentMinute = Math.floor(worldTime / 60);
-            if (this._lastEvaluatedMinute === currentMinute) return;
-
-            this._lastEvaluatedMinute = currentMinute;
-
-            // Slight delay allows other modules to finish writing data
-            setTimeout(() => {
-                for (const tokenId of this._registry.keys()) {
-                    const token = canvas.tokens.get(tokenId);
-                    if (token) this._evaluate(token);
-                }
-            }, 100);
-        });
+        Hooks.on("targetToken", this._onTargetToken.bind(this));
+        Hooks.on("updateScene", this._onUpdateScene.bind(this));
+        Hooks.on("updateWorldTime", this._onUpdateWorldTime.bind(this));
 
         console.log("Visage | Automation Engine Initialized.");
         this.buildRegistry();
@@ -113,9 +76,13 @@ export class VisageAutomation {
             const combinedAutomations = [...automatedVisages, ...globalAutomations];
 
             if (combinedAutomations.length > 0) {
+                // Preserve the region boundary cache to prevent false triggers on rebuild
+                const oldRecord = oldRegistry.get(token.id);
+
                 this._registry.set(token.id, {
                     actorId: token.actor.id,
                     visages: combinedAutomations,
+                    _lastRegionState: oldRecord ? oldRecord._lastRegionState : undefined,
                 });
             }
         }
@@ -126,62 +93,149 @@ export class VisageAutomation {
     // ==========================================
 
     static _onUpdateActor(actor, changes, options, userId) {
-        // Find tokens on the canvas linked to this actor that are in our registry
-        const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && this._registry.has(t.id));
-        if (!linkedTokens.length) return;
+        // 1. Handle Unlinked Tokens
+        if (actor.isToken) {
+            const tokenDoc = actor.token;
+            if (tokenDoc && this._registry.has(tokenDoc.id)) {
+                this._queueEvaluation(tokenDoc);
+            }
+            return;
+        }
 
-        // In the next step, we will pass these tokens to the Evaluation Loop
+        // 2. Handle Linked Tokens
+        const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && t.document.actorLink && this._registry.has(t.id));
+
         for (const token of linkedTokens) {
-            this._evaluate(token);
+            this._queueEvaluation(token.document);
         }
     }
 
     static _onStatusChange(effect, options, userId) {
         const actor = effect.parent?.documentName === "Item" ? effect.parent.parent : effect.parent;
-
         if (!actor || actor.documentName !== "Actor") return;
 
-        const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && this._registry.has(t.id));
-        if (!linkedTokens.length) return;
-
-        for (const token of linkedTokens) {
-            this._evaluate(token);
+        if (actor.isToken) {
+            // Unlinked Token
+            if (this._registry.has(actor.token.id)) {
+                this._queueEvaluation(actor.token);
+            }
+        } else {
+            // Linked Token
+            const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && t.document.actorLink && this._registry.has(t.id));
+            for (const token of linkedTokens) {
+                this._queueEvaluation(token.document);
+            }
         }
     }
 
     static _onCombatChange(combat, changes, options, userId) {
         for (const [tokenId, record] of this._registry.entries()) {
             const token = canvas.tokens.get(tokenId);
-            if (token) this._evaluate(token);
+            if (token) this._queueEvaluation(token.document);
         }
     }
 
     static _onUpdateToken(tokenDoc, changes, options, userId) {
-        // Throttle: We only care if elevation, position, or rotation changed.
-        if (changes.elevation === undefined && changes.x === undefined && changes.y === undefined && changes.delta === undefined && changes.rotation === undefined) return;
+        if (!this._registry.has(tokenDoc.id)) return;
 
-        if (this._registry.has(tokenDoc.id)) {
+        // 1. Throttle: Spatial changes AND Unlinked Token attribute changes
+        const keys = Object.keys(changes);
+        const isRelevant = keys.some(
+            (k) => k === "x" || k === "y" || k === "elevation" || k === "-=elevation" || k === "rotation" || k === "delta" || k.startsWith("delta.") || k === "actorData" || k.startsWith("actorData."),
+        );
+
+        if (!isRelevant) return;
+
+        // 2. The Boundary Bypass Cache
+        // Safely extract the IDs of the Regions the token is currently standing in
+        const currentRegionIds = Array.from(tokenDoc.regions || [])
+            .map((r) => r.id)
+            .sort()
+            .join(",");
+
+        // Retrieve the last known regions from our registry (or initialise it to current)
+        const registryEntry = this._registry.get(tokenDoc.id);
+        const previousRegionIds = registryEntry._lastRegionState ?? currentRegionIds;
+        registryEntry._lastRegionState = currentRegionIds;
+
+        // 3. Evaluation Routing
+        if (currentRegionIds !== previousRegionIds) {
             const token = tokenDoc.object;
-            if (!token) return;
+            if (token) this._evaluate(token);
+            return;
+        }
 
-            // Clear any existing pending evaluation for this specific token
-            if (this._evaluationQueue.has(token.id)) {
-                clearTimeout(this._evaluationQueue.get(token.id));
+        // NO BOUNDARY CROSSED: Normal movement within the same space.
+        // Send to the queue to safely wait for animations to finish.
+        this._queueEvaluation(tokenDoc);
+    }
+
+    static _onTargetToken(user, token, targeted) {
+        if (this._registry.has(token.id)) {
+            this._queueEvaluation(token.document);
+        }
+    }
+
+    static _onUpdateScene(scene, changes) {
+        if (scene.id !== canvas.scene?.id) return;
+
+        const expanded = foundry.utils.expandObject(changes);
+
+        if (
+            expanded.environment?.darknessLevel !== undefined ||
+            expanded.environment?.globalLight?.enabled !== undefined ||
+            expanded.environment?.weather !== undefined ||
+            expanded.weather !== undefined
+        ) {
+            for (const tokenId of this._registry.keys()) {
+                const t = canvas.tokens.get(tokenId);
+                if (t) this._queueEvaluation(t.document);
             }
+        }
+    }
 
-            // Queue a new evaluation
-            const timeoutId = setTimeout(() => {
-                this._evaluationQueue.delete(token.id);
-                this._evaluate(token);
-            }, 40);
+    static _onUpdateWorldTime(worldTime, dt) {
+        const currentMinute = Math.floor(worldTime / 60);
+        if (this._lastEvaluatedMinute === currentMinute) return;
 
-            this._evaluationQueue.set(token.id, timeoutId);
+        this._lastEvaluatedMinute = currentMinute;
+
+        for (const tokenId of this._registry.keys()) {
+            const token = canvas.tokens.get(tokenId);
+            if (token) this._queueEvaluation(token.document);
         }
     }
 
     // ==========================================
     // THE EVALUATION LOOP
     // ==========================================
+
+    /**
+     * Safely queues a token for evaluation.
+     * Uses a lightweight 50ms debounce to batch simultaneous database hooks
+     * (e.g., updateActor and updateToken firing concurrently)
+     * @param {TokenDocument} tokenDoc - The document of the token to evaluate.
+     */
+    static _queueEvaluation(tokenDoc) {
+        if (!this._registry.has(tokenDoc.id)) return;
+
+        // 1. Clear any existing pending evaluation for this specific token
+        if (this._evaluationQueue.has(tokenDoc.id)) {
+            clearTimeout(this._evaluationQueue.get(tokenDoc.id));
+        }
+
+        // 2. Set a rapid debounce. 50ms is enough to catch duplicate data packets
+        // without introducing any human-perceptible input lag.
+        const timeoutId = setTimeout(() => {
+            this._evaluationQueue.delete(tokenDoc.id);
+
+            // Fetch the freshest canvas object and evaluate instantly
+            const freshToken = canvas.tokens.get(tokenDoc.id);
+            if (freshToken) this._evaluate(freshToken);
+        }, 50);
+
+        this._evaluationQueue.set(tokenDoc.id, timeoutId);
+    }
 
     /**
      * Evaluates all automated visages for a specific token and fires transitions.
@@ -239,7 +293,7 @@ export class VisageAutomation {
             if (isActive) await VisageApi.remove(token.id, visage.id);
         }
 
-        // 5. Prioritize and Process Applies
+        // 5. Prioritise and Process Applies
         if (queue.apply.length > 0) {
             // SCENARIO 1: Identity Highlander Rule
             const identities = queue.apply.filter((v) => v.mode === "identity");
@@ -427,10 +481,16 @@ export class VisageAutomation {
             }
 
             case "elevation": {
-                const el = Number(token.document.elevation) || 0;
-                const val = Number(condition.value) || 0;
+                // Round to 2 decimal places to eliminate floating-point dust
+                // Converts a 'null' deletion state into 0
+                const el = Math.round(Number(token.document.elevation ?? 0) * 100) / 100;
+                const val = Math.round(Number(condition.value ?? 0) * 100) / 100;
+
                 if (condition.operator === "gt") return el > val;
+                if (condition.operator === "gte") return el >= val;
                 if (condition.operator === "lt") return el < val;
+                if (condition.operator === "lte") return el <= val;
+                if (condition.operator === "neq") return el !== val;
                 return el === val;
             }
 
@@ -447,10 +507,15 @@ export class VisageAutomation {
             }
 
             case "darkness": {
-                const dark = Number(canvas.scene?.environment?.darknessLevel) || 0;
-                const val = Number(condition.value) || 0;
+                // Round to 2 decimal places to eliminate floating-point dust from gradual lighting transitions
+                const dark = Math.round(Number(canvas.scene?.environment?.darknessLevel ?? 0) * 100) / 100;
+                const val = Math.round(Number(condition.value ?? 0) * 100) / 100;
+
                 if (condition.operator === "gt") return dark > val;
+                if (condition.operator === "gte") return dark >= val;
                 if (condition.operator === "lt") return dark < val;
+                if (condition.operator === "lte") return dark <= val;
+                if (condition.operator === "neq") return dark !== val;
                 return dark === val;
             }
 

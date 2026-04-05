@@ -162,7 +162,7 @@ export class Visage {
         // Call the single source of truth
         const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
 
-        const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor.img);
+        const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor?.img);
 
         // 3. Define Orchestration Tasks
 

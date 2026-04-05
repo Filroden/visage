@@ -17,11 +17,9 @@ import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
  */
 export async function migrateWorldData() {
     // Step 1: Run Legacy v2.2 Migrations (Cleanup old image paths, baked scales)
-    // Ensures data is clean before adding new v3 properties.
     await _migrateV2(DATA_NAMESPACE);
 
     // Step 2: Run v3.0 Migration (Add 'mode' field for Identity vs Overlay)
-    // This is the critical step for the v3.0 "Unified Model" update.
     await _migrateV3(DATA_NAMESPACE);
 }
 

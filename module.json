@@ -3,7 +3,7 @@
     "title": "Visage",
     "description": "The complete solution for token appearances. Instantly switch 'Identities' (Wild Shape, Disguises, Costumes, Poses, etc.) and stack 'Overlays' (Status Effects, Spells, Illusions, etc) without overwriting your original token settings. Features a dedicated HUD, a global library (for the GM) and local libraries (for players), Dynamic Token Ring support, optional automation that triggers on conditions set for each Visage, and integration with Sequencer and Token Magic FX for visual and audio effects.",
     "version": "5.0.0",
-    "compatibility": { "minimum": "14", "verified": "14.358" },
+    "compatibility": { "minimum": "14", "verified": "14.359", "maximum": "14" },
     "relationships": {
         "recommends": [{ "id": "sequencer", "type": "module", "title": "Sequencer" }]
     },

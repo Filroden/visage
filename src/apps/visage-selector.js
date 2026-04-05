@@ -26,6 +26,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         this.sceneId = options.sceneId;
         this.uiPosition = options.uiPosition;
         this.showPublic = VisageSelector.showPublic ?? true;
+
+        // Create a registry to track all active hooks across the AppV2 lifecycle
+        this._activeHooks = [];
     }
 
     static DEFAULT_OPTIONS = {
@@ -204,13 +207,44 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
+    /**
+     * AppV2 Lifecycle: Fires when the application is rendered from a closed state.
+     */
+    _onFirstRender(context, options) {
+        super._onFirstRender(context, options);
+
+        // 1. Bind the Document Pointer Down (Click Outside) listener
+        this._onDocPointerDown = (ev) => {
+            const root = this.element;
+            if (!root) return;
+
+            if (root.contains(ev.target)) return;
+
+            const hudBtn = document.querySelector(".visage-button");
+            if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
+
+            const dirApp = ev.target.closest(".visage-gallery");
+            const editorApp = ev.target.closest(".visage-editor");
+            if (dirApp || editorApp) return;
+
+            this.close();
+        };
+        document.addEventListener("pointerdown", this._onDocPointerDown, true);
+
+        // 2. Bind the Token Update Hook using the Registry
+        if (this._activeHooks.length === 0) {
+            const hookId = Hooks.on("updateToken", (document) => {
+                if (document.id === this.tokenId) {
+                    this.render();
+                }
+            });
+            this._activeHooks.push({ name: "updateToken", id: hookId });
+        }
+    }
+
     _onRender(context, options) {
         // Theme Application
         VisageUtilities.applyVisageTheme(this.element, "local");
-
-        // Dismissal Listeners
-        this._unbindDismissListeners();
-        this._bindDismissListeners();
 
         // Drag and Drop Binding
         this._bindDragDrop();
@@ -270,8 +304,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onOpenConfig(event, target) {
         const appId = `visage-gallery-${this.actorId}-${this.tokenId}`;
-        if (Visage.apps[appId]) {
-            Visage.apps[appId].bringToTop();
+        const existingApp = Object.values(ui.windows).find((app) => app.id === appId);
+
+        if (existingApp) {
+            existingApp.bringToFront();
         } else {
             new VisageGallery({
                 actorId: this.actorId,
@@ -299,7 +335,18 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async close(options) {
-        this._unbindDismissListeners();
+        // 1. Remove Document Event Listener
+        if (this._onDocPointerDown) {
+            document.removeEventListener("pointerdown", this._onDocPointerDown, true);
+            this._onDocPointerDown = null;
+        }
+
+        // 2. Automatically unhook everything registered by this UI
+        for (const hook of this._activeHooks) {
+            Hooks.off(hook.name, hook.id);
+        }
+        this._activeHooks = []; // Clear the registry
+
         return super.close(options);
     }
 
@@ -309,51 +356,5 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     _bindDragDrop() {
         const list = this.element.querySelector(".visage-sortable-list");
         VisageStackController.bindDragDrop(list, this.tokenId, () => this.render());
-    }
-
-    /**
-     * Binds a global pointer listener to detect clicks outside the HUD.
-     * If the user clicks anywhere else on the screen (except the toggle button or another Visage window),
-     * this selector closes automatically.
-     */
-    _bindDismissListeners() {
-        this._onDocPointerDown = (ev) => {
-            const root = this.element;
-            if (!root) return;
-
-            // Ignore clicks inside the HUD itself
-            if (root.contains(ev.target)) return;
-
-            // Ignore clicks on the HUD button that spawned this (prevents immediate re-opening)
-            const hudBtn = document.querySelector(".visage-button");
-            if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
-
-            // Ignore clicks on other Visage windows (Gallery/Editor)
-            const dirApp = ev.target.closest(".visage-gallery");
-            const editorApp = ev.target.closest(".visage-editor");
-            if (dirApp || editorApp) return;
-
-            this.close();
-        };
-        document.addEventListener("pointerdown", this._onDocPointerDown, true);
-
-        // Auto-refresh the HUD if the token updates while it is open
-        this._onTokenUpdate = (document, change, options, userId) => {
-            if (document.id === this.tokenId) {
-                this.render();
-            }
-        };
-        Hooks.on("updateToken", this._onTokenUpdate);
-    }
-
-    _unbindDismissListeners() {
-        if (this._onDocPointerDown) {
-            document.removeEventListener("pointerdown", this._onDocPointerDown, true);
-            this._onDocPointerDown = null;
-        }
-        if (this._onTokenUpdate) {
-            Hooks.off("updateToken", this._onTokenUpdate);
-            this._onTokenUpdate = null;
-        }
     }
 }
