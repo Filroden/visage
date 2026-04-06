@@ -396,7 +396,9 @@ export class VisageSequencer {
      */
     static _resolveEffectPath(rawPath) {
         if (!rawPath) return null;
+
         const isDbKey = !rawPath.includes("/");
+
         if (isDbKey) {
             const entry = this._resolveSequencerRecursively(rawPath);
             if (entry) {
@@ -409,8 +411,11 @@ export class VisageSequencer {
                 if (file && typeof file === "object" && file.file) file = file.file;
                 if (typeof file === "string") return file;
             }
+
+            console.warn(`Visage | Sequencer Database Key not found: "${rawPath}". Have you enabled the required content module (e.g., JB2A or PSFX) in this world?`);
             return null;
         }
+
         return rawPath;
     }
 

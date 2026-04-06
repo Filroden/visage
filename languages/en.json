@@ -550,5 +550,6 @@
     "VISAGE.Gallery.FilterActive": "Active Visages Only",
     "VISAGE.Gallery.SearchTokens": "Search scene tokens...",
     "VISAGE.Warnings.OrphanedToken": "This token is orphaned (Actor missing from sidebar). Visages cannot be managed for tokens without a valid Actor.",
-    "VISAGE.Directory.OpenLocalLibrary": "Open token's Local Library"
+    "VISAGE.Directory.OpenLocalLibrary": "Open token's Local Library",
+    "VISAGE.Editor.Effects.RelativeOpacityHint": "This value is a multiplier. The final screen opacity is limited by the Token's overall opacity set on the Appearance tab."
 }
