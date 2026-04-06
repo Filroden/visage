@@ -19,6 +19,8 @@ Please install the correct version of the module:
 - **v4.x is compatible with v13 of FoundryVTT.**
 - **v5.x is compatible with v14 of FoundryVTT.**
 
+**FoundryVTT v14 Dependency Notice:** Visage's native token appearance changes, automations, dynamic rings, and lighting effects are stable. However, visual and audio effects rely on third-party modules. Visage will automatically hide UI elements until those third-party modules are installed. Existing Visage effects data will not be changed or deleted so as soon as the dependencies are installed, your effects should work again.
+
 ![Visage](https://github.com/Filroden/visage/blob/main/images/apply_visages.gif)
 
 ### The Brass Tacks
