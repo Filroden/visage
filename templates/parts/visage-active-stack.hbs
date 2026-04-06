@@ -1,0 +1,40 @@
+{{#if activeStack.length}}
+<div class="visage-stack-list">
+    <div class="stack-header">{{localize "VISAGE.Selector.ActiveEffects"}}</div>
+    <ul class="visage-sortable-list">
+        {{#each activeStack}}
+            <li class="stack-item {{this.themeClass}} {{#if this.disabled}}visage-disabled{{/if}}" 
+                draggable="true" 
+                data-layer-id="{{this.id}}">
+                
+                {{!-- Drag Handle --}}
+                <div class="drag-handle" data-tooltip="{{localize 'VISAGE.Selector.DragToReorder'}}">
+                    <i class="visage-icon kebab"></i> 
+                </div>
+
+                {{!-- Visibility Toggle --}}
+                <button type="button" class="visibility-btn" 
+                        data-action="toggleVisibility" 
+                        data-layer-id="{{this.id}}"
+                        data-tooltip="{{#if this.disabled}}{{localize 'VISAGE.Selector.Show'}}{{else}}{{localize 'VISAGE.Selector.Hide'}}{{/if}}">
+                    <i class="visage-icon {{#if this.disabled}}visage-hidden{{else}}visible{{/if}}"></i>
+                </button>
+
+                <span class="effect-label" data-tooltip="{{this.label}}">
+                    {{this.label}}
+                </span>
+
+                <button type="button" class="remove-layer-btn" 
+                        data-action="removeLayer" 
+                        data-layer-id="{{this.id}}"
+                        data-tooltip="{{localize 'VISAGE.Selector.RemoveEffect'}}">
+                    <i class="visage-icon close"></i>
+                </button>
+            </li>
+        {{/each}}
+    </ul>
+    <button type="button" class="revert-all-btn" data-action="revertGlobal">
+        {{localize "VISAGE.Selector.ClearAll"}}
+    </button>
+</div>
+{{/if}}

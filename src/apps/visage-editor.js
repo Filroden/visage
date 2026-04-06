@@ -323,6 +323,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             },
             width: prep(c.width, 1),
             height: prep(c.height, 1),
+            depth: prep(c.depth, 1),
             disposition: prep(c.disposition, 0),
             nameOverride: prep(c.name, ""),
             hasSequencer: VisageUtilities.hasSequencer,
@@ -792,6 +793,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         else changes.width = null;
         if (formData.height_active) changes.height = getVal("height", Number);
         else changes.height = null;
+        if (formData.depth_active) changes.depth = getVal("depth", Number);
+        else changes.depth = null;
         if (formData.lockRotation !== "") changes.lockRotation = formData.lockRotation === "true";
         else changes.lockRotation = null;
         if (formData.disposition_active) changes.disposition = getVal("disposition", Number);
@@ -1766,10 +1769,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _getStatusEffectOptions() {
-        // Read from core Foundry config, format, and localise, falling back to legacy 'label' if 'name' is missing
-        const effects = CONFIG.statusEffects.map((s) => ({
+        // Safely extract effects whether the system defines them as an Array or an Object
+        const rawEffects = Array.isArray(CONFIG.statusEffects) ? CONFIG.statusEffects : Object.values(CONFIG.statusEffects || {});
+
+        // Format and localise, falling back to legacy 'label' or raw 'id' if 'name' is missing
+        const effects = rawEffects.map((s) => ({
             value: s.id,
-            label: game.i18n.localize(s.name || s.label),
+            label: game.i18n.localize(s.name || s.label || s.id),
         }));
 
         // Dynamically add ALL Active Effects currently applied to the Actor

@@ -376,7 +376,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>{{localize "VISAGE.Config.Opacity.Label"}}</label>
+                    <label data-tooltip="{{localize 'VISAGE.Editor.Effects.RelativeOpacityHint'}}">
+                        {{localize "VISAGE.Config.Opacity.Label"}} <i class="visage-icon info "></i>
+                    </label>
                     <div class="visage-form-fields">
                         <range-picker name="effectOpacity" value="{{inspector.opacity}}" min="0" max="1" step="0.1"></range-picker>
                     </div>

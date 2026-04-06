@@ -1,118 +1,106 @@
 name: Release on Tag
 
 on:
-  push:
-    tags:
-      - 'v*'
+    push:
+        tags:
+            - "v*"
 
 permissions:
-  contents: write
+    contents: write
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    env:
-      MODULE_ZIP_NAME: ${{ github.event.repository.name }}.zip
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run pack command
-        run: npm run pack
-
-      - name: Validate and Update Manifest Details
-        run: |
-          # Capture the tag from GitHub context into a bash variable
-          TAG_VERSION="${{ github.ref_name }}"
-          
-          # Strip the 'v' prefix using native Bash syntax
-          CLEAN_VERSION=${TAG_VERSION#v}
-          
-          echo "Validating version $CLEAN_VERSION across files..."
-          
-          # Check module.json version
-          JSON_VERSION=$(jq -r '.version' dist/module.json)
-          if [ "$JSON_VERSION" != "$CLEAN_VERSION" ]; then
-            echo "::error::Version mismatch! Tag is $CLEAN_VERSION but module.json is $JSON_VERSION"
-            exit 1
-          fi
-
-          # Check if VERSION.md has the entry
-          if ! grep -Fq "| **Version $CLEAN_VERSION** |" VERSION.md; then
-            echo "::error::No entry found for Version $CLEAN_VERSION in VERSION.md"
-            exit 1
-          fi
-
-          echo "Validation successful. Updating download links..."
-          
-          # Update the Download Link dynamically using the repo name
-          sed -i -E "s|releases/download/[^/]*/[^/]*\.zip|releases/download/${TAG_VERSION}/${{ env.MODULE_ZIP_NAME }}|g" dist/module.json
-
-      - name: Create zip of all dist files
-        run: |
-          cd dist
-          zip -r ../${{ env.MODULE_ZIP_NAME }} .
-
-      - name: Generate Changelog from VERSION.md
-        run: |
-          # 1. Find the previous tag (e.g. v3.1.0) for the "Changes since..." line
-          # We silence errors (2>/dev/null) just in case this is the very first release
-          PREV_TAG=$(git describe --tags --abbrev=0 $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "start")
-
-          # 2. Write the formatted Header
-          echo "## Release ${{ github.ref_name }}" > changelog.md
-          echo "" >> changelog.md
-          echo "**Build Details:**" >> changelog.md
-          echo "- **Commit:** ${{ github.sha }}" >> changelog.md
-          echo "- **Author:** ${{ github.actor }}" >> changelog.md
-          echo "" >> changelog.md
-          echo "---" >> changelog.md
-          echo "" >> changelog.md
-          echo "## Changelog" >> changelog.md
-          echo "Changes since $PREV_TAG" >> changelog.md
-          echo "" >> changelog.md
-
-          # 3. Extract the Table Cell from VERSION.md
-          TAG_VERSION="${{ github.ref_name }}"
-          CLEAN_VERSION=${TAG_VERSION#v}
-
-          # Logic: Find row -> Cut 3rd column -> Trim spaces -> Convert <br> to newlines
-          CHANGELOG_CONTENT=$(grep -F "| **Version $CLEAN_VERSION** |" VERSION.md | \
-            cut -d'|' -f3 | \
-            sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | \
-            sed 's/<br>/\n/g')
-          
-          # 4. Append content or fallback
-          if [ -z "$CHANGELOG_CONTENT" ]; then
-            echo "Manual changelog entry not found. Falling back to git log." >> changelog.md
-            git log -n 5 --pretty=format:"* %s (%h)" >> changelog.md
-          else
-            echo "$CHANGELOG_CONTENT" >> changelog.md
-          fi
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+    release:
+        runs-on: ubuntu-latest
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          body_path: "changelog.md"
-          draft: true 
-          prerelease: ${{ contains(github.ref, '-') }}
-          generate_release_notes: false
-          files: |
-            ${{ env.MODULE_ZIP_NAME }}
-            dist/module.json
+            MODULE_ZIP_NAME: ${{ github.event.repository.name }}.zip
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run pack command
+              run: npm run pack
+
+            - name: Validate and Update Manifest Details
+              run: |
+                  # Capture the tag from GitHub context into a bash variable
+                  TAG_VERSION="${{ github.ref_name }}"
+
+                  # Strip the 'v' prefix using native Bash syntax
+                  CLEAN_VERSION=${TAG_VERSION#v}
+
+                  echo "Validating version $CLEAN_VERSION across files..."
+
+                  # Check module.json version
+                  JSON_VERSION=$(jq -r '.version' dist/module.json)
+                  if [ "$JSON_VERSION" != "$CLEAN_VERSION" ]; then
+                    echo "::error::Version mismatch! Tag is $CLEAN_VERSION but module.json is $JSON_VERSION"
+                    exit 1
+                  fi
+
+                  # Check if VERSION.md has the entry
+                  if ! grep -Fq "| **Version $CLEAN_VERSION** |" VERSION.md; then
+                    echo "::error::No entry found for Version $CLEAN_VERSION in VERSION.md"
+                    exit 1
+                  fi
+
+                  echo "Validation successful. Updating download links..."
+
+                  # Update the Download Link dynamically using the repo name
+                  sed -i -E "s|releases/download/[^/]*/[^/]*\.zip|releases/download/${TAG_VERSION}/${{ env.MODULE_ZIP_NAME }}|g" dist/module.json
+
+            - name: Create zip of all dist files
+              run: |
+                  cd dist
+                  zip -r ../${{ env.MODULE_ZIP_NAME }} .
+
+            - name: Generate Changelog from VERSION.md
+              run: |
+                  TAG_VERSION="${{ github.ref_name }}"
+                  CLEAN_VERSION=${TAG_VERSION#v}
+
+                  # 1. Write the Build Details Header
+                  echo "## Release ${{ github.ref_name }}" > changelog.md
+                  echo "" >> changelog.md
+                  echo "**Build Details:**" >> changelog.md
+                  echo "- **Commit:** ${{ github.sha }}" >> changelog.md
+                  echo "- **Author:** ${{ github.actor }}" >> changelog.md
+                  echo "" >> changelog.md
+                  echo "---" >> changelog.md
+                  echo "" >> changelog.md
+
+                  # 2. Extract ONLY the Table Cell from VERSION.md for this specific version
+                  # Logic: Find row -> Cut 3rd column -> Trim spaces -> Convert <br> to newlines
+                  CHANGELOG_CONTENT=$(grep -F "| **Version $CLEAN_VERSION** |" VERSION.md | \
+                    cut -d'|' -f3 | \
+                    sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | \
+                    sed 's/<br>/\n/g')
+
+                  # 3. Append the exact content directly
+                  echo "$CHANGELOG_CONTENT" >> changelog.md
+
+            - name: Create Release
+              uses: softprops/action-gh-release@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  tag_name: ${{ github.ref_name }}
+                  name: ${{ github.ref_name }}
+                  body_path: "changelog.md"
+                  draft: true
+                  prerelease: ${{ contains(github.ref, '-') }}
+                  generate_release_notes: false
+                  files: |
+                      ${{ env.MODULE_ZIP_NAME }}
+                      dist/module.json

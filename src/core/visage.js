@@ -162,7 +162,7 @@ export class Visage {
         // Call the single source of truth
         const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
 
-        const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor.img);
+        const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor?.img);
 
         // 3. Define Orchestration Tasks
 
@@ -296,10 +296,17 @@ export class Visage {
         const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
 
         const updateFlags = {};
-        if (currentIdentity === maskId) updateFlags[`flags.${DATA_NAMESPACE}.-=identity`] = null;
 
-        if (stack.length === 0) updateFlags[`flags.${DATA_NAMESPACE}.-=activeStack`] = null;
-        else updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
+        // Use V14 explicit deletion operators for atomic batch updates (Instantiate with 'new')
+        if (currentIdentity === maskId) {
+            updateFlags[`flags.${DATA_NAMESPACE}.identity`] = new foundry.data.operators.ForcedDeletion();
+        }
+
+        if (stack.length === 0) {
+            updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = new foundry.data.operators.ForcedDeletion();
+        } else {
+            updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
+        }
 
         await token.document.update(updateFlags);
         await VisageComposer.compose(token);
@@ -420,7 +427,7 @@ export class Visage {
         if (!tokenDocument.object) return;
 
         // Define properties that Visage overrides
-        const relevantKeys = ["name", "displayName", "disposition", "width", "height", "texture", "ring", "texture.anchorX", "texture.anchorY"];
+        const relevantKeys = ["name", "displayName", "disposition", "width", "height", "depth", "texture", "ring", "texture.anchorX", "texture.anchorY"];
         const flatChange = foundry.utils.flattenObject(change);
 
         // Ignore visibility toggles (handled by core)

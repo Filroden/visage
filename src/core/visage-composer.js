@@ -122,6 +122,7 @@ export class VisageComposer {
             // G. Dimensions
             if (c.width !== undefined && c.width !== null) finalData.width = c.width;
             if (c.height !== undefined && c.height !== null) finalData.height = c.height;
+            if (c.depth !== undefined && c.depth !== null) finalData.depth = c.depth;
 
             // H. Opacity
             if (c.alpha !== undefined && c.alpha !== null) finalData.alpha = c.alpha;
@@ -156,6 +157,10 @@ export class VisageComposer {
             [`flags.${MODULE_ID}.activeStack`]: currentStack,
             [`flags.${MODULE_ID}.originalState`]: base,
         };
+
+        // SANITY CHECK: Ensure we never accidentally pass our effects array
+        // into the core 'effects' key of the document.
+        delete updateData.effects;
 
         // Ensure light is passed correctly (if it exists)
         // This is crucial because light is not part of the standard 'texture' object
@@ -192,9 +197,9 @@ export class VisageComposer {
         // We just remove the flags to ensure the token is marked as "clean".
         if (!flags.originalState) {
             const clearFlags = {
-                [`flags.${MODULE_ID}.-=activeStack`]: null,
-                [`flags.${MODULE_ID}.-=originalState`]: null,
-                [`flags.${MODULE_ID}.-=identity`]: null,
+                [`flags.${MODULE_ID}.activeStack`]: new foundry.data.operators.ForcedDeletion(),
+                [`flags.${MODULE_ID}.originalState`]: new foundry.data.operators.ForcedDeletion(),
+                [`flags.${MODULE_ID}.identity`]: new foundry.data.operators.ForcedDeletion(),
             };
             return tokenDoc.update(clearFlags, { visageUpdate: true });
         }
@@ -205,10 +210,10 @@ export class VisageComposer {
 
         const updateData = {
             ...original,
-            [`flags.${MODULE_ID}.-=activeStack`]: null,
-            [`flags.${MODULE_ID}.-=stack`]: null, // Clean legacy key from V1
-            [`flags.${MODULE_ID}.-=originalState`]: null,
-            [`flags.${MODULE_ID}.-=identity`]: null,
+            [`flags.${MODULE_ID}.activeStack`]: new foundry.data.operators.ForcedDeletion(),
+            [`flags.${MODULE_ID}.stack`]: new foundry.data.operators.ForcedDeletion(), // Clean legacy key from V1
+            [`flags.${MODULE_ID}.originalState`]: new foundry.data.operators.ForcedDeletion(),
+            [`flags.${MODULE_ID}.identity`]: new foundry.data.operators.ForcedDeletion(),
         };
 
         // Enforce System Integrity

@@ -127,9 +127,7 @@ export class VisageData {
         if (!actor && !game.user.isGM) return;
 
         if (actor) {
-            await actor.update({
-                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true,
-            });
+            await actor.setFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}.deleted`, true);
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -143,9 +141,7 @@ export class VisageData {
      */
     static async restore(id, actor = null) {
         if (actor) {
-            await actor.update({
-                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false,
-            });
+            await actor.setFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}.deleted`, false);
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -159,9 +155,8 @@ export class VisageData {
      */
     static async destroy(id, actor = null) {
         if (actor) {
-            await actor.update({
-                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null,
-            });
+            // Use native unsetFlag for cleaner database operations
+            await actor.unsetFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}`);
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -259,13 +254,12 @@ export class VisageData {
 
         // 1. Update Database FIRST
         if (existing) {
-            await actor.update({
-                [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null,
-            });
+            // Explicitly delete old bloat first to bypass Foundry's deep merge resurrection
+            await actor.unsetFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}`);
         }
-        await actor.update({
-            [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry,
-        });
+
+        // Write the new payload natively
+        await actor.setFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}`, entry);
 
         console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
 
@@ -417,6 +411,7 @@ export class VisageData {
                 },
                 width: sourceData.width ?? 1,
                 height: sourceData.height ?? 1,
+                depth: sourceData.depth ?? 1,
                 disposition: sourceData.disposition ?? 0,
                 light: lightData,
                 portrait: portrait,
@@ -472,11 +467,11 @@ export class VisageData {
 
         // 4. Boolean Activity Flags
         const isScaleActive = (c.scale !== undefined && c.scale !== null) || Math.abs(bakedScaleX) !== 1.0;
-        const isDimActive = (c.width !== undefined && c.width !== null) || (c.height !== undefined && c.height !== null);
+        const isDimActive = (c.width !== undefined && c.width !== null) || (c.height !== undefined && c.height !== null) || (c.depth !== undefined && c.depth !== null);
         const isAnchorActive = anchorXVal !== 0.5 || anchorYVal !== 0.5;
         const isWildcard = options.isWildcard ?? false;
 
-        const showDataChip = isScaleActive || isDimActive || isAnchorActive || isWildcard;
+        const showDataChip = isScaleActive || isDimActive || isAnchorActive;
 
         // 5. Tooltips (Effects & Portraits)
         const activeEffects = (c.effects || []).filter((e) => !e.disabled);
@@ -529,7 +524,11 @@ export class VisageData {
                     },
                     dim: {
                         active: isDimActive,
-                        val: `${c.width ?? 1}x${c.height ?? 1}`,
+                        // Only present the Z dimension to the UI if it is defined and not the default 1
+                        val:
+                            (c.depth !== undefined && c.depth !== null && c.depth !== 1) || (data.isDefault && c.depth > 1)
+                                ? `${c.width ?? 1}x${c.height ?? 1}x${c.depth ?? 1}`
+                                : `${c.width ?? 1}x${c.height ?? 1}`,
                     },
                     anchor: {
                         active: isAnchorActive,

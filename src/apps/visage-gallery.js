@@ -3,6 +3,7 @@ import { VisageData } from "../data/visage-data.js";
 import { VisageEditor } from "./visage-editor.js";
 import { VisageUtilities } from "../utils/visage-utilities.js";
 import { cleanVisageData } from "../data/visage-migration.js";
+import { VisageStackController } from "./helpers/visage-stack-controller.js";
 import { MODULE_ID } from "../core/visage-constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -38,6 +39,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             showBin: false,
         };
 
+        // Token Panel
+        this.tokenPanelOpen = false;
+        this.selectedTokenId = null;
+        this.tokenSearch = "";
+        this.showOnlyActive = false;
+
         // --- Reactivity Bindings ---
 
         // Listener for Global Data changes (Settings updates)
@@ -48,23 +55,43 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             if (doc.id === this.actorId) this.render();
         };
 
-        // Listener for Token updates (to refresh active states in the gallery)
-        // Debounced slightly to avoid UI flicker during rapid updates.
+        // Listener for Token updates (debounced to prevent UI flicker)
+        this._debouncedTokenRender = foundry.utils.debounce(() => {
+            if (this.rendered) this.render();
+        }, 100);
+
         this._onTokenUpdate = (doc, changes, options, userId) => {
-            if (this.tokenId && doc.id === this.tokenId) {
-                setTimeout(() => {
-                    if (this.rendered) this.render();
-                }, 100);
+            let shouldRender = false;
+
+            if (this.isLocal && this.tokenId === doc.id) shouldRender = true;
+            if (!this.isLocal && this.tokenPanelOpen && doc.parent?.id === canvas.scene?.id) shouldRender = true;
+
+            if (shouldRender) this._debouncedTokenRender();
+        };
+
+        // Scene Change Listener
+        this._onCanvasReady = () => {
+            if (this.rendered && !this.isLocal) {
+                // If the GM changes scenes, any previously selected token is no longer valid.
+                // Clear the selection so the side panel returns to the full list view safely.
+                this.selectedTokenId = null;
+                this.render();
             }
         };
 
-        // Register appropriate hooks based on scope
-        if (this.isLocal) {
-            Hooks.on("updateActor", this._onActorUpdate);
-            Hooks.on("updateToken", this._onTokenUpdate);
-        } else {
-            Hooks.on("visageDataChanged", this._onDataChanged);
-        }
+        // Token Creation/Deletion Listener
+        this._onTokenAddRemove = (doc) => {
+            // Only trigger a re-render if the Global Library's token panel is actively open
+            if (this.rendered && !this.isLocal && this.tokenPanelOpen) {
+                // If the currently selected token was just deleted, clear the selection
+                if (this.selectedTokenId === doc.id) {
+                    this.selectedTokenId = null;
+                }
+                this._debouncedTokenRender();
+            }
+        };
+
+        this._activeHooks = [];
     }
 
     /**
@@ -85,12 +112,18 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
      * Clean up hooks when the window is closed to prevent memory leaks.
      */
     async close(options) {
-        if (this.isLocal) {
-            Hooks.off("updateActor", this._onActorUpdate);
-            Hooks.off("updateToken", this._onTokenUpdate);
-        } else {
-            Hooks.off("visageDataChanged", this._onDataChanged);
+        // Automatically unhook everything registered by this UI
+        for (const hook of this._activeHooks) {
+            Hooks.off(hook.name, hook.id);
         }
+        this._activeHooks = []; // Clear the registry
+
+        // Reset transient UI state so the library opens fresh next time
+        this.tokenPanelOpen = false;
+        this.selectedTokenId = null;
+        this.tokenSearch = "";
+        this.showOnlyActive = false;
+
         return super.close(options);
     }
 
@@ -103,7 +136,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             icon: "visage-icon-domino",
             resizable: true,
         },
-        position: { width: 1250, height: 700 },
+        position: { width: 1350, height: 700 },
         actions: {
             // CRUD Actions
             create: VisageGallery.prototype._onCreate,
@@ -135,6 +168,26 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             export: VisageGallery.prototype._onExport,
             import: VisageGallery.prototype._onImport,
             exportIndividual: VisageGallery.prototype._onExportIndividual,
+
+            // Token Panel Actions
+            toggleTokenPanel: VisageGallery.prototype._onToggleTokenPanel,
+            openTokenPanel: VisageGallery.prototype._onOpenTokenPanel,
+            backToTokenList: VisageGallery.prototype._onBackToTokenList,
+            pingToken: VisageGallery.prototype._onPingToken,
+            openLocalLibrary: VisageGallery.prototype._onOpenLocalLibrary,
+            updateTokenSearch: VisageGallery.prototype._onUpdateTokenSearch,
+            toggleActiveFilter: VisageGallery.prototype._onToggleActiveFilter,
+            clearTokenSearch: VisageGallery.prototype._onClearTokenSearch,
+            selectVisage: VisageGallery.prototype._onSelectVisage,
+            revertGlobal: async function () {
+                await VisageStackController.revertGlobal(this.selectedTokenId);
+            },
+            removeLayer: async function (e, t) {
+                await VisageStackController.removeLayer(this.selectedTokenId, t.dataset.layerId);
+            },
+            toggleVisibility: async function (e, t) {
+                await VisageStackController.toggleLayerVisibility(this.selectedTokenId, t.dataset.layerId);
+            },
         },
     };
 
@@ -312,6 +365,17 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const emptyMsg = this.isLocal ? game.i18n.localize("VISAGE.Directory.Empty.Local") : game.i18n.localize("VISAGE.Directory.Empty.Global");
 
+        // E. Prepare Token List
+        let sceneTokens = [];
+        let selectedTokenData = null;
+
+        if (!this.isLocal) {
+            sceneTokens = this._prepareSceneTokens();
+            if (this.selectedTokenId) {
+                selectedTokenData = await this._prepareTokenContext(this.selectedTokenId);
+            }
+        }
+
         return {
             isLocal: this.isLocal,
 
@@ -327,6 +391,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
             isBin: this.filters.showBin,
             emptyMessage: emptyMsg,
+
+            tokenPanelOpen: this.tokenPanelOpen,
+            selectedTokenData: selectedTokenData,
+            sceneTokens: sceneTokens,
+            tokenSearch: this.tokenSearch,
+            showOnlyActive: this.showOnlyActive,
         };
     }
 
@@ -347,13 +417,39 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
+    /**
+     * AppV2 Lifecycle: Fires when the application is rendered from a closed state.
+     * Perfect for binding hooks dynamically when the UI is actually alive.
+     */
+    _onFirstRender(context, options) {
+        super._onFirstRender(context, options);
+        this._bindHooks();
+    }
+
+    /**
+     * Registers and tracks all necessary Foundry hooks based on the gallery's scope.
+     */
+    _bindHooks() {
+        // Safety: Prevent double-binding if the window is already active
+        if (this._activeHooks.length > 0) return;
+
+        const register = (name, fn) => this._activeHooks.push({ name, id: Hooks.on(name, fn) });
+
+        if (this.isLocal) {
+            register("updateActor", this._onActorUpdate);
+        } else {
+            register("visageDataChanged", this._onDataChanged);
+            register("canvasReady", this._onCanvasReady);
+            register("createToken", this._onTokenAddRemove);
+            register("deleteToken", this._onTokenAddRemove);
+        }
+
+        // Token updates are monitored in both modes
+        register("updateToken", this._onTokenUpdate);
+    }
+
     _onRender(context, options) {
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
-
-        // Ensure hooks are bound
-        if (!this._dataListener) {
-            this._dataListener = Hooks.on("visageDataChanged", () => this.render());
-        }
 
         // Close Popover menus when clicking outside
         if (!this._clickListener) {
@@ -367,26 +463,46 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             this.element.addEventListener("click", this._clickListener);
         }
 
-        // Search Debounce
-        const searchInput = this.element.querySelector(".search-bar input");
-        if (searchInput) {
-            searchInput.addEventListener("input", (e) => {
-                this.filters.search = e.target.value;
-                if (this._searchDebounce) clearTimeout(this._searchDebounce);
-                this._searchDebounce = setTimeout(() => {
-                    this.render();
-                    // Restore focus after re-render
-                    setTimeout(() => {
-                        const input = this.element.querySelector(".search-bar input");
-                        if (input) {
-                            input.focus();
-                            const val = input.value;
-                            input.value = "";
-                            input.value = val;
-                        }
-                    }, 50);
-                }, 300);
-            });
+        // 1. Sidebar Search Debounce
+        const sidebarSearchInput = this.element.querySelector(".visage-sidebar .search-bar input");
+        if (sidebarSearchInput) {
+            sidebarSearchInput.addEventListener(
+                "input",
+                foundry.utils.debounce(async (e) => {
+                    this.filters.search = e.target.value;
+
+                    // Wait until the DOM update finishes
+                    await this.render();
+
+                    const input = this.element.querySelector(".visage-sidebar .search-bar input");
+                    if (input) {
+                        input.focus();
+                        const len = input.value.length;
+                        input.setSelectionRange(len, len);
+                    }
+                }, 300),
+            );
+        }
+
+        // 2. Token Panel Search Debounce
+        const tokenSearchInput = this.element.querySelector(".token-filters .search-bar input");
+        if (tokenSearchInput) {
+            tokenSearchInput.addEventListener(
+                "input",
+                foundry.utils.debounce(async (e) => {
+                    this.tokenSearch = e.target.value;
+
+                    // Wait until the DOM update finishes
+                    await this.render();
+
+                    const input = this.element.querySelector(".token-filters .search-bar input");
+                    if (input) {
+                        input.focus();
+                        const len = input.value.length;
+                        input.setSelectionRange(len, len);
+                    }
+                }, 300),
+            );
         }
 
         // Enable Drag-and-Drop for Global Library items only
@@ -399,6 +515,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         } else {
             const cards = this.element.querySelectorAll(".visage-card");
             cards.forEach((card) => card.removeAttribute("draggable"));
+        }
+
+        // Connect Drag & Drop for the Token Manager's active stack
+        if (this.tokenPanelOpen && this.selectedTokenId) {
+            const list = this.element.querySelector(".visage-sortable-list");
+            VisageStackController.bindDragDrop(list, this.selectedTokenId, () => this.render());
         }
     }
 
@@ -798,6 +920,21 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 });
             }
         } else {
+            // --- Token Panel Override ---
+            // If the GM is inspecting a specific token in the slide-over panel,
+            // implicitly apply the Global Visage to that token.
+            if (this.tokenPanelOpen && this.selectedTokenId) {
+                await Visage.apply(this.selectedTokenId, id, { clearStack: false });
+
+                return ui.notifications.info(
+                    game.i18n.format("VISAGE.Notifications.Applied", {
+                        count: 1,
+                        label: name,
+                    }),
+                );
+            }
+
+            // --- Global Canvas Logic ---
             // Global Mode: Apply to ALL selected tokens on canvas
             const tokens = canvas.tokens.controlled.filter((t) => t.document.isOwner);
             if (tokens.length === 0)
@@ -865,5 +1002,205 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         const payload = foundry.utils.mergeObject(foundry.utils.deepClone(source), { "automation.enabled": newEnabled });
 
         await VisageData.save(payload, this.isLocal ? this.actor : null);
+    }
+
+    /**
+     * Helper Method: Generates and filters the list of all scene tokens for the Token Manager side panel.
+     */
+    _prepareSceneTokens() {
+        let sceneTokens = canvas.tokens.placeables.map((t) => {
+            const flags = t.document.flags[MODULE_ID] || {};
+            const activeStack = flags.activeStack || flags.stack || [];
+            const currentIdentityKey = flags.identity || "default";
+
+            // Grab the clean original name
+            const baseName = flags.originalState?.name || t.document.name;
+
+            // Parse the stack for specific modes
+            let activeIdentityName = null;
+            let overlayCount = 0;
+
+            activeStack.forEach((layer) => {
+                if (layer.mode === "identity" || layer.id === currentIdentityKey) {
+                    activeIdentityName = layer.label;
+                } else {
+                    overlayCount++;
+                }
+            });
+
+            return {
+                id: t.id,
+                name: baseName,
+                img: t.document.texture.src,
+                activeIdentityName: activeIdentityName,
+                overlayCount: overlayCount,
+                hasActiveLayers: activeIdentityName !== null || overlayCount > 0,
+                isActive: this.selectedTokenId === t.id,
+            };
+        });
+
+        // Apply Filters
+        if (this.showOnlyActive) {
+            sceneTokens = sceneTokens.filter((t) => t.hasActiveLayers);
+        }
+
+        if (this.tokenSearch) {
+            const term = this.tokenSearch.toLowerCase();
+            sceneTokens = sceneTokens.filter((t) => t.name.toLowerCase().includes(term));
+        }
+
+        return sceneTokens;
+    }
+
+    /**
+     * Extracts the specific data needed for the HUD partials.
+     */
+    async _prepareTokenContext(tokenId) {
+        const token = canvas.tokens.get(tokenId);
+        if (!token) return null;
+
+        const flags = token.document.flags[MODULE_ID] || {};
+        const currentFormKey = flags.identity || "default";
+
+        // Grab the original name for the detail header
+        const baseName = flags.originalState?.name || token.document.name;
+
+        // Generate Default Form
+        const defaultRaw = VisageData.getDefaultAsVisage(token.document);
+        const defaultForm = VisageData.toPresentation(defaultRaw, { isActive: currentFormKey === "default" });
+        defaultForm.key = "default";
+        defaultForm.resolvedPath = await Visage.resolvePath(defaultForm.path);
+        defaultForm.themeClass = "visage-theme-local";
+
+        // Fetch and process all available Visages
+        // Exclude global visages as they are already visible in the main gallery,
+        // UNLESS the global visage is the currently active Identity.
+        let allVisages = Visage.getAvailable(tokenId).filter((v) => {
+            if (v.deleted) return false;
+            return v.type !== "global" || v.id === currentFormKey;
+        });
+
+        const processedItems = await Promise.all(
+            allVisages.map(async (v) => {
+                const isGlobal = v.type === "global";
+                const rawPath = VisageData.getRepresentativeImage(v.changes);
+                const p = VisageData.toPresentation(v, {
+                    isActive: v.id === currentFormKey,
+                    isWildcard: (rawPath || "").includes("*") || (rawPath || "").includes("?"),
+                    resolvedPortrait: v.changes.portrait ? await Visage.resolvePath(v.changes.portrait) : undefined,
+                    resolvedPath: await Visage.resolvePath(v.changes?.texture?.src),
+                });
+                p.key = v.id;
+                p.themeClass = isGlobal ? "visage-theme-global" : "visage-theme-local";
+                return p;
+            }),
+        );
+
+        processedItems.sort((a, b) => a.label.localeCompare(b.label));
+
+        const activeStack = (token.document.flags[MODULE_ID]?.activeStack || [])
+            .filter((layer) => layer.id !== currentFormKey)
+            .map((layer) => ({
+                id: layer.id,
+                label: layer.label,
+                themeClass: VisageData.getGlobal(layer.id) ? "visage-theme-global" : "visage-theme-local",
+                disabled: layer.disabled,
+            }))
+            .reverse();
+
+        return {
+            token: token,
+            baseName: baseName,
+            identities: [defaultForm, ...processedItems.filter((v) => v.mode === "identity")],
+            overlays: processedItems.filter((v) => v.mode === "overlay"),
+            activeStack: activeStack,
+        };
+    }
+
+    // --- Action Listeners ---
+    _onToggleTokenPanel(event, target) {
+        this.tokenPanelOpen = !this.tokenPanelOpen;
+
+        // 1. Synchronous UI Update
+        const panel = this.element.querySelector(".visage-token-panel");
+        const btn = target.closest(".visage-token-panel-btn");
+
+        if (panel) panel.classList.toggle("open", this.tokenPanelOpen);
+        if (btn) btn.classList.toggle("active", this.tokenPanelOpen);
+
+        // 2. Async Data Update
+        this.render();
+    }
+
+    _onOpenTokenPanel(event, target) {
+        // Prevent opening if the user clicked the ping button
+        if (event.target.closest('[data-action="pingToken"]')) return;
+        this.selectedTokenId = target.dataset.tokenId;
+        this.render();
+    }
+
+    _onBackToTokenList(event, target) {
+        this.selectedTokenId = null;
+        this.render();
+    }
+
+    _onPingToken(event, target) {
+        event.stopPropagation();
+        const token = canvas.tokens.get(target.dataset.tokenId);
+        if (token) canvas.ping(token.center);
+    }
+
+    _onOpenLocalLibrary(event, target) {
+        event.stopPropagation();
+
+        const tokenId = target.dataset.tokenId;
+        const token = canvas.tokens.get(tokenId);
+        if (!token || !token.actor) return;
+
+        const actorId = token.actor.id;
+        const sceneId = token.document.parent?.id;
+        const appId = `visage-gallery-${actorId}-${tokenId}`;
+
+        const existingApp = Object.values(ui.windows).find((app) => app.id === appId);
+
+        if (existingApp) {
+            existingApp.bringToFront();
+        } else {
+            new VisageGallery({
+                actorId: actorId,
+                tokenId: tokenId,
+                sceneId: sceneId,
+                id: appId,
+            }).render(true);
+        }
+    }
+
+    _onUpdateTokenSearch(event, target) {
+        this.tokenSearch = target.value;
+        this.render();
+    }
+
+    _onToggleActiveFilter(event, target) {
+        this.showOnlyActive = !this.showOnlyActive;
+        this.render();
+    }
+
+    _onClearTokenSearch(event, target) {
+        this.tokenSearch = "";
+        this.render();
+    }
+
+    async _onSelectVisage(event, target) {
+        // This catches tile clicks in the side panel
+        const formKey = target.dataset.formKey;
+        if (formKey && this.selectedTokenId) {
+            if (formKey === "default") {
+                const token = canvas.tokens.get(this.selectedTokenId);
+                const currentIdentity = token.document.getFlag(MODULE_ID, "identity");
+                if (currentIdentity) await Visage.remove(this.selectedTokenId, currentIdentity);
+            } else {
+                await Visage.apply(this.selectedTokenId, formKey);
+            }
+        }
     }
 }

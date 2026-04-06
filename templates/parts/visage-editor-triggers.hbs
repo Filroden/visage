@@ -268,10 +268,11 @@
                         <label>{{localize "VISAGE.Editor.Triggers.Operator"}}</label>
                         <select name="inspector.operator">
                             <option value="gt" {{visageSelected (eq inspector.condition.operator "gt")}}>{{localize "VISAGE.Editor.Triggers.OpGt"}} (>)</option>
+                            <option value="gte" {{visageSelected (eq inspector.condition.operator "gte")}}>{{localize "VISAGE.Editor.Triggers.OpGte"}} (>=)</option>
                             <option value="lt" {{visageSelected (eq inspector.condition.operator "lt")}}>{{localize "VISAGE.Editor.Triggers.OpLt"}} (<)</option>
-                            {{#if (eq inspector.condition.eventId 'elevation')}}
-                                <option value="eq" {{visageSelected (eq inspector.condition.operator "eq")}}>{{localize "VISAGE.Editor.Triggers.OpEq"}} (==)</option>
-                            {{/if}}
+                            <option value="lte" {{visageSelected (eq inspector.condition.operator "lte")}}>{{localize "VISAGE.Editor.Triggers.OpLte"}} (<=)</option>
+                            <option value="eq" {{visageSelected (eq inspector.condition.operator "eq")}}>{{localize "VISAGE.Editor.Triggers.OpEq"}} (==)</option>
+                            <option value="neq" {{visageSelected (eq inspector.condition.operator "neq")}}>{{localize "VISAGE.Editor.Triggers.OpNeq"}} (!=)</option>
                         </select>
 
                         <label>{{localize "VISAGE.Editor.Triggers.Value"}}</label>

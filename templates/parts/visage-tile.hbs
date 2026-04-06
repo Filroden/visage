@@ -24,22 +24,23 @@
 
     {{!-- Top Center: Data Chip (Scale/Dimensions/Anchors) --}}
     {{#if this.meta.showDataChip}}
-    {{!-- Apply tooltip to the container if Anchor is active --}}
-    <div class="visage-data-chip" {{#if this.meta.slots.anchor.active}}data-tooltip="{{localize 'VISAGE.Config.List.Anchor'}}: {{this.meta.slots.anchor.val}}"{{/if}}>
+    <div class="visage-data-chip">
         
         {{!-- Dimensions --}}
         {{#if this.meta.slots.dim.active}}
-        <span class="visage-size-value" style="font-weight: bold;">{{this.meta.slots.dim.val}}</span>
+        <span class="visage-size-value" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.DimensionsXYZ'}}" style="font-weight: bold;">{{this.meta.slots.dim.val}}</span>
         {{/if}}
 
         {{!-- Scale --}}
         {{#if this.meta.slots.scale.active}}
-        <span class="visage-scale-value">{{this.meta.slots.scale.val}}</span>
+        <span class="visage-scale-value" data-tooltip="{{localize 'VISAGE.Config.List.Scale'}}">{{this.meta.slots.scale.val}}</span>
         {{/if}}
 
         {{!-- Anchor Icon --}}
         {{#if this.meta.slots.anchor.active}}
-        <span><i class="visage-icon anchor" style="width: var(--filroden-font-size-xs); height: var(--filroden-font-size-xs);"></i></span>
+        <span data-tooltip="{{localize 'VISAGE.Config.List.Anchor'}}: {{this.meta.slots.anchor.val}}">
+            <i class="visage-icon anchor" style="width: var(--filroden-font-size-xs); height: var(--filroden-font-size-xs);"></i>
+        </span>
         {{/if}}
 
     </div>

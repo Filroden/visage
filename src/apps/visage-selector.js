@@ -1,8 +1,8 @@
 import { Visage } from "../core/visage.js";
 import { VisageGallery } from "./visage-gallery.js";
-import { VisageComposer } from "../core/visage-composer.js";
 import { VisageData } from "../data/visage-data.js";
 import { VisageUtilities } from "../utils/visage-utilities.js";
+import { VisageStackController } from "./helpers/visage-stack-controller.js";
 import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -26,6 +26,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         this.sceneId = options.sceneId;
         this.uiPosition = options.uiPosition;
         this.showPublic = VisageSelector.showPublic ?? true;
+
+        // Create a registry to track all active hooks across the AppV2 lifecycle
+        this._activeHooks = [];
     }
 
     static DEFAULT_OPTIONS = {
@@ -49,22 +52,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             scrollable: [".visage-selector-grid-wrapper"],
         },
     };
-
-    /**
-     * Removes all active effects *except* the base identity.
-     * Useful for quickly cleaning up a messy stack of overlays.
-     */
-    async _onRevertGlobal(event, target) {
-        const token = canvas.tokens.get(this.tokenId);
-        if (!token) return;
-
-        const currentFormKey = token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
-        const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
-
-        // Filter stack to keep only the active Identity layer
-        const newStack = currentStack.filter((layer) => layer.id === currentFormKey);
-        await VisageComposer.compose(token, newStack);
-    }
 
     /**
      * Prepares the data context for the HUD.
@@ -220,13 +207,44 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
+    /**
+     * AppV2 Lifecycle: Fires when the application is rendered from a closed state.
+     */
+    _onFirstRender(context, options) {
+        super._onFirstRender(context, options);
+
+        // 1. Bind the Document Pointer Down (Click Outside) listener
+        this._onDocPointerDown = (ev) => {
+            const root = this.element;
+            if (!root) return;
+
+            if (root.contains(ev.target)) return;
+
+            const hudBtn = document.querySelector(".visage-button");
+            if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
+
+            const dirApp = ev.target.closest(".visage-gallery");
+            const editorApp = ev.target.closest(".visage-editor");
+            if (dirApp || editorApp) return;
+
+            this.close();
+        };
+        document.addEventListener("pointerdown", this._onDocPointerDown, true);
+
+        // 2. Bind the Token Update Hook using the Registry
+        if (this._activeHooks.length === 0) {
+            const hookId = Hooks.on("updateToken", (document) => {
+                if (document.id === this.tokenId) {
+                    this.render();
+                }
+            });
+            this._activeHooks.push({ name: "updateToken", id: hookId });
+        }
+    }
+
     _onRender(context, options) {
         // Theme Application
         VisageUtilities.applyVisageTheme(this.element, "local");
-
-        // Dismissal Listeners
-        this._unbindDismissListeners();
-        this._bindDismissListeners();
 
         // Drag and Drop Binding
         this._bindDragDrop();
@@ -278,7 +296,6 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 const currentIdentity = token.document.getFlag(MODULE_ID, "identity");
                 if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
             } else {
-                // Visage.apply handles mode logic (Identity Swap vs Overlay Stack) automatically
                 await Visage.apply(this.tokenId, formKey);
             }
             this.close();
@@ -287,8 +304,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onOpenConfig(event, target) {
         const appId = `visage-gallery-${this.actorId}-${this.tokenId}`;
-        if (Visage.apps[appId]) {
-            Visage.apps[appId].bringToTop();
+        const existingApp = Object.values(ui.windows).find((app) => app.id === appId);
+
+        if (existingApp) {
+            existingApp.bringToFront();
         } else {
             new VisageGallery({
                 actorId: this.actorId,
@@ -300,145 +319,42 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         this.close();
     }
 
+    // Delegated to Controller
+    async _onRevertGlobal(event, target) {
+        await VisageStackController.revertGlobal(this.tokenId);
+    }
+
+    // Delegated to Controller
     async _onRemoveLayer(event, target) {
-        const layerId = target.dataset.layerId;
-        await Visage.remove(this.tokenId, layerId);
+        await VisageStackController.removeLayer(this.tokenId, target.dataset.layerId);
     }
 
-    _onClickAction(event, target) {
-        const action = target.dataset.action;
-        if (action === "selectVisage") this._onSelectVisage(event, target);
-        else if (action === "openConfig") this._onOpenConfig(event, target);
-        else if (action === "revertGlobal") this._onRevertGlobal(event, target);
-        else if (action === "removeLayer") this._onRemoveLayer(event, target);
-        else if (action === "toggleVisibility") this._onToggleVisibility(event, target);
-    }
-
+    // Delegated to Controller
     async _onToggleLayerVisibility(event, target) {
-        const layerId = target.dataset.layerId;
-        await Visage.toggleLayer(this.tokenId, layerId);
+        await VisageStackController.toggleLayerVisibility(this.tokenId, target.dataset.layerId);
     }
 
     async close(options) {
-        this._unbindDismissListeners();
-        return super.close(options);
-    }
-
-    /**
-     * Handles Drag and Drop reordering for the stack list.
-     */
-    _bindDragDrop() {
-        const list = this.element.querySelector(".visage-sortable-list");
-        if (!list) return;
-
-        let dragSrcEl = null;
-
-        const items = list.querySelectorAll("li.stack-item");
-        items.forEach((item) => {
-            item.addEventListener("dragstart", (e) => {
-                dragSrcEl = item;
-                e.dataTransfer.effectAllowed = "move";
-                e.dataTransfer.setData("text/html", item.outerHTML);
-                item.classList.add("dragging");
-            });
-
-            item.addEventListener("dragover", (e) => {
-                if (e.preventDefault) e.preventDefault();
-                return false;
-            });
-
-            item.addEventListener("dragenter", (e) => {
-                item.classList.add("over");
-            });
-
-            item.addEventListener("dragleave", (e) => {
-                item.classList.remove("over");
-            });
-
-            item.addEventListener("dragend", (e) => {
-                item.classList.remove("dragging");
-                items.forEach((i) => i.classList.remove("over"));
-            });
-
-            item.addEventListener("drop", async (e) => {
-                e.stopPropagation();
-                if (dragSrcEl !== item) {
-                    // 1. Visual Swap (Immediate Feedback)
-                    // Note: The stack list is visually REVERSED (Top layer at Top of list).
-                    // But the array is Bottom-to-Top.
-
-                    // Get all IDs in the visual order (Top to Bottom)
-                    const allItems = [...list.querySelectorAll("li.stack-item")];
-                    const srcIndex = allItems.indexOf(dragSrcEl);
-                    const targetIndex = allItems.indexOf(item);
-
-                    // Move in DOM
-                    if (srcIndex < targetIndex) {
-                        item.after(dragSrcEl);
-                    } else {
-                        item.before(dragSrcEl);
-                    }
-
-                    // 2. Calculate New Logic Order (Bottom to Top)
-                    // We grab the DOM order again, map to IDs, then REVERSE it to match logic stack
-                    const newVisualOrder = [...list.querySelectorAll("li.stack-item")].map((li) => li.dataset.layerId);
-                    const newLogicOrder = newVisualOrder.reverse();
-
-                    // 3. Save
-                    await Visage.reorderStack(this.tokenId, newLogicOrder);
-
-                    // Render is optional if the DOM swap looked correct,
-                    // but safer to re-render to ensure state is clean
-                    this.render();
-                }
-                return false;
-            });
-        });
-    }
-
-    /**
-     * Binds a global pointer listener to detect clicks outside the HUD.
-     * If the user clicks anywhere else on the screen (except the toggle button or another Visage window),
-     * this selector closes automatically.
-     */
-    _bindDismissListeners() {
-        this._onDocPointerDown = (ev) => {
-            const root = this.element;
-            if (!root) return;
-
-            // Ignore clicks inside the HUD itself
-            if (root.contains(ev.target)) return;
-
-            // Ignore clicks on the HUD button that spawned this (prevents immediate re-opening)
-            const hudBtn = document.querySelector(".visage-button");
-            if (hudBtn && (hudBtn === ev.target || hudBtn.contains(ev.target))) return;
-
-            // Ignore clicks on other Visage windows (Gallery/Editor)
-            const dirApp = ev.target.closest(".visage-gallery");
-            const editorApp = ev.target.closest(".visage-editor");
-            if (dirApp || editorApp) return;
-
-            this.close();
-        };
-        document.addEventListener("pointerdown", this._onDocPointerDown, true);
-
-        // Auto-refresh the HUD if the token updates while it is open
-        this._onTokenUpdate = (document, change, options, userId) => {
-            if (document.id === this.tokenId) {
-                this.render();
-            }
-        };
-        Hooks.on("updateToken", this._onTokenUpdate);
-    }
-
-    _unbindDismissListeners() {
+        // 1. Remove Document Event Listener
         if (this._onDocPointerDown) {
             document.removeEventListener("pointerdown", this._onDocPointerDown, true);
             this._onDocPointerDown = null;
         }
-        if (this._onTokenUpdate) {
-            Hooks.off("updateToken", this._onTokenUpdate);
-            this._onTokenUpdate = null;
+
+        // 2. Automatically unhook everything registered by this UI
+        for (const hook of this._activeHooks) {
+            Hooks.off(hook.name, hook.id);
         }
+        this._activeHooks = []; // Clear the registry
+
+        return super.close(options);
+    }
+
+    /**
+     * Handles Drag and Drop reordering using the shared controller.
+     */
+    _bindDragDrop() {
+        const list = this.element.querySelector(".visage-sortable-list");
+        VisageStackController.bindDragDrop(list, this.tokenId, () => this.render());
     }
 }

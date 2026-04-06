@@ -26,6 +26,7 @@ export class VisageSequencer {
     static async apply(token, layer, isBaseLayer = false, isRestore = false, anticipatedState = null) {
         if (!VisageUtilities.hasSequencer) return;
 
+        // Safely check for the new key, falling back to the old key for tokens already active on the canvas
         const effects = layer.changes?.effects || [];
         const tag = isBaseLayer ? "visage-base" : `visage-mask-${layer.id}`;
 
@@ -395,7 +396,9 @@ export class VisageSequencer {
      */
     static _resolveEffectPath(rawPath) {
         if (!rawPath) return null;
+
         const isDbKey = !rawPath.includes("/");
+
         if (isDbKey) {
             const entry = this._resolveSequencerRecursively(rawPath);
             if (entry) {
@@ -408,8 +411,11 @@ export class VisageSequencer {
                 if (file && typeof file === "object" && file.file) file = file.file;
                 if (typeof file === "string") return file;
             }
+
+            console.warn(`Visage | Sequencer Database Key not found: "${rawPath}". Have you enabled the required content module (e.g., JB2A or PSFX) in this world?`);
             return null;
         }
+
         return rawPath;
     }
 
@@ -444,6 +450,8 @@ export class VisageSequencer {
         // Fetch the original layer data so we know the scales of the running effects
         const currentStack = token.document.getFlag("visage", "activeStack") || [];
         const layer = currentStack.find((l) => l.id === layerId);
+
+        // Safely handle legacy stacks already on the canvas
         const visuals = layer?.changes?.effects || [];
 
         const activeEffects = Sequencer.EffectManager.getEffects({ object: token, origin: layerId });
