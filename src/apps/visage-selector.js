@@ -315,12 +315,31 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async _onTogglePin(event, target) {
-        // 1. Capture exact physical screen coordinates
+        // 1. Capture physical screen coordinates
         const rect = this.element.getBoundingClientRect();
-
         const isBecomingWindow = !this.isWindowMode;
 
-        // 2. Build the exact native options tree for the new instance
+        // 2. Calculate smart width expansion to account for window padding
+        let targetWidth = rect.width;
+        let targetLeft = rect.left;
+
+        if (isBecomingWindow) {
+            const paddingCompensation = 40;
+            targetWidth += paddingCompensation;
+
+            // Find the Token HUD
+            const tokenHud = document.getElementById("token-hud");
+            if (tokenHud) {
+                const hudRect = tokenHud.getBoundingClientRect();
+                // If selector is on the left side of the Token HUD, shift the
+                // starting 'left' coordinate so the added width grows outwards
+                if (rect.left < hudRect.left) {
+                    targetLeft -= paddingCompensation;
+                }
+            }
+        }
+
+        // 3. Build the options tree for the new instance
         const newOptions = {
             id: this.id,
             actorId: this.actorId,
@@ -329,14 +348,14 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             showPublic: this.showPublic,
             isWindowMode: isBecomingWindow,
             uiPosition: {
-                left: rect.left,
+                left: targetLeft,
                 top: isBecomingWindow ? Math.max(0, rect.top - 40) : rect.top,
-                width: rect.width,
+                width: targetWidth,
                 height: isBecomingWindow ? rect.height : "auto",
             },
         };
 
-        // 3. Inject Native Window Configuration directly if pinning
+        // 4. Inject Window Configuration directly if pinning
         if (newOptions.isWindowMode) {
             newOptions.window = {
                 frame: true,
@@ -362,14 +381,14 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                     },
                 ],
             };
-            // Seed the Position Manager!
+            // Seed the Position Manager
             newOptions.position = newOptions.uiPosition;
         }
 
-        // 4. Close the current instance instantly and AWAIT it to clear the DOM
+        // 5. Close the current instance instantly and await it to clear the DOM
         await this.close({ animate: false });
 
-        // 5. Spawn the new instance
+        // 6. Spawn the new instance
         new VisageSelector(newOptions).render(true, { animate: false });
     }
 
