@@ -7,78 +7,65 @@
 
 :root {
 
-    --filroden-version: 2.1;
+    --filroden-version: 2.2;
 
     /* ===================================
-        --- Colour Palettes (HUE 1: GOLD & HUE 2: TEAL) ---
+        --- Colour Palettes ---
         Defines the core background and UI colours for all components.
     =================================== */
     
+    /* Hue 1: Gold */
     --filroden-hue1: 48;
-    --filroden-hue2: 205;
 
-    /** The darkest background, typically for main windows and content areas. */
+    /* Backgrounds */
     --filroden-color-bg-darkest: hsl(var(--filroden-hue1), 15%, 10%);
-
-    --filroden-color2-bg-darkest: hsl(var(--filroden-hue2), 15%, 10%);
-    
-    /** A medium-dark background, often used for inputs or secondary panels. */
     --filroden-color-bg-medium: hsla(0, 0%, 0%, 0.3);
     --filroden-color-bg-medium-solid: hsl(var(--filroden-hue1), 15%, 15%);
-
-    --filroden-color2-bg-medium: hsla(0, 0%, 0%, 0.3); /* Neutral tint, kept same */
-    --filroden-color2-bg-medium-solid: hsl(var(--filroden-hue2), 15%, 15%);
-    
-    /** A light background, used for subtle UI elements or list items. */
     --filroden-color-bg-light: hsla(0, 0%, 100%, 0.1);
     --filroden-color-bg-light-solid: hsl(var(--filroden-hue1), 15%, 20%);
 
-    --filroden-color2-bg-light: hsla(0, 0%, 100%, 0.1);
-    --filroden-color2-bg-light-solid: hsl(var(--filroden-hue2), 15%, 20%);
-
-    /** The background colour for interactive elements on hover. */
     --filroden-color-bg-hover: hsla(0, 0%, 100%, 0.2);
     --filroden-color-bg-hover-solid: hsl(var(--filroden-hue1), 15%, 30%);
 
-    --filroden-color2-bg-hover: hsla(0, 0%, 100%, 0.2);
-    --filroden-color2-bg-hover-solid: hsl(var(--filroden-hue2), 15%, 30%);
-    
-    /** The primary colour for all body and UI text. */
+    /* Text */
     --filroden-color-text-main: hsla(0, 0%, 100%, 0.85);
     --filroden-color-text-main-solid: hsl(var(--filroden-hue1), 15%, 85%);
-
-    --filroden-color2-text-main: hsla(0, 0%, 100%, 0.85);
-    --filroden-color2-text-main-solid: hsl(var(--filroden-hue2), 15%, 85%);
-    
-    /** A slightly faded text colour for notes, hints, or disabled elements. */
     --filroden-color-text-muted: hsla(0, 0%, 100%, 0.75);
     --filroden-color-text-muted-solid: hsl(var(--filroden-hue1), 15%, 75%);
-
-    --filroden-color2-text-muted: hsla(0, 0%, 100%, 0.75);
-    --filroden-color2-text-muted-solid: hsl(var(--filroden-hue2), 15%, 75%);
-    
-    /** Very faint text for placeholders, empty states, or watermark-style labels. */
     --filroden-color-text-placeholder: hsla(0, 0%, 100%, 0.5);
     --filroden-color-text-placeholder-solid: hsl(var(--filroden-hue1), 15%, 50%);
 
+    /* Accent Colours */
+    --filroden-color-text-accent: hsl(var(--filroden-hue1), 50%, 50%);
+    --filroden-color-text-accent-rgb: 198, 175, 83;
+    --filroden-color-text-accent-hover: hsl(var(--filroden-hue1), 50%, 60%);
+    --filroden-color-text-on-accent: hsl(var(--filroden-hue1), 15%, 10%);
+
+    /* Hue 2: Blue */
+    --filroden-hue2: 205;
+
+    /* Backgrounds */
+    --filroden-color2-bg-darkest: hsl(var(--filroden-hue2), 15%, 10%);
+    --filroden-color2-bg-medium: hsla(0, 0%, 0%, 0.3);
+    --filroden-color2-bg-medium-solid: hsl(var(--filroden-hue2), 15%, 15%);
+    --filroden-color2-bg-light: hsla(0, 0%, 100%, 0.1);
+    --filroden-color2-bg-light-solid: hsl(var(--filroden-hue2), 15%, 20%);
+
+    --filroden-color2-bg-hover: hsla(0, 0%, 100%, 0.2);
+    --filroden-color2-bg-hover-solid: hsl(var(--filroden-hue2), 15%, 30%);
+
+    /* Text */
+    --filroden-color2-text-main: hsla(0, 0%, 100%, 0.85);
+    --filroden-color2-text-main-solid: hsl(var(--filroden-hue2), 15%, 85%);
+    --filroden-color2-text-muted: hsla(0, 0%, 100%, 0.75);
+    --filroden-color2-text-muted-solid: hsl(var(--filroden-hue2), 15%, 75%);
     --filroden-color2-text-placeholder: hsla(0, 0%, 100%, 0.5);
     --filroden-color2-text-placeholder-solid: hsl(var(--filroden-hue2), 15%, 50%);
 
-    /** The main accent colour, used for buttons, links, and highlights. */
-    --filroden-color-text-accent: hsl(var(--filroden-hue1), 50%, 50%);
-    --filroden-color-text-accent-rgb: 198, 175, 83;
-
+    /* Accent Colours */
     --filroden-color2-text-accent: hsl(var(--filroden-hue2), 50%, 50%);
     --filroden-color2-text-accent-rgb: 57, 124, 172;
-    
-    /** A brighter version of the accent colour, used for hover states. */
-    --filroden-color-text-accent-hover: hsl(var(--filroden-hue1), 50%, 60%);
-
     --filroden-color2-text-accent-hover: hsl(var(--filroden-hue2), 50%, 60%);
-    
-    /** The colour of text placed on top of an accent-coloured background. */
-    --filroden-color-text-on-accent: hsl(var(--filroden-hue1), 15%, 10%);
-
     --filroden-color2-text-on-accent: hsl(var(--filroden-hue2), 15%, 10%);
 
 
@@ -93,7 +80,7 @@
 
     /* ===================================
         --- Borders & Radii ---
-        Standardizes borders, outlines, and corner rounding.
+        Standardises borders, outlines, and corner rounding.
     =================================== */
     
     /** The standard colour for all borders and rules. */
@@ -105,20 +92,16 @@
     /** A standard 1px dashed border, for sub-sections or fieldsets. */
     --filroden-border-dashed: 1px dashed var(--filroden-color-border);
 
-    /** A border that uses the darkest background color. */
+    /** A border that uses the darkest background colour. */
     --filroden-border-dark: 1px solid var(--filroden-color-bg-darkest);
 
     /** A subtle text shadow for legibility on complex backgrounds. */
     --filroden-shadow-text: 1px 1px 1px var(--filroden-color-bg-darkest);
 
-    /** Small radius for buttons, inputs, and inline elements. */
-    --filroden-radius-small: 3px;
-    
-    /** Medium radius for fieldsets, tiles, and content cards. */
-    --filroden-radius-medium: 5px;
-    
-    /** Large radius for main application windows or pop-up dialogs. */
-    --filroden-radius-large: 12px;
+    /** Standard border radii for different UI elements. */
+    --filroden-radius-small: 3px; /** Small radius for buttons, inputs, and inline elements. */
+    --filroden-radius-medium: 5px; /** Medium radius for fieldsets, tiles, and content cards. */
+    --filroden-radius-large: 12px; /** Large radius for main application windows or pop-up dialogs. */
 
 
     /* ===================================
@@ -129,16 +112,21 @@
     /** Default fonts */
     --filroden-font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-    /** Font sizes */
+    /** Font sizes and heights */
     --filroden-font-size-xxs: 0.5rem;
     --filroden-font-size-xs: 0.75rem;
     --filroden-font-size-s: 0.9rem;
     --filroden-font-size-m: 1.0rem;
     --filroden-font-size-l: 1.2rem;
     --filroden-font-size-xl: 1.5rem;
-
+    --filroden-font-size-xxl: 2rem;
+    
     /** Font weight */
-    --filroden-font-weight-bold: 800;
+    --filroden-font-weight-bold: 700;
+
+    /* Line Heights */
+    --filroden-line-height-heading: 1.2; /* For window titles, tight lists, and badges */
+    --filroden-line-height-body: 1.4; /* For tooltips, textareas, and paragraph text */
 
     /** Wide letter spacing for titles. */
     --filroden-letter-spacing-wide: 0.05em;
@@ -154,6 +142,8 @@
     --filroden-space-s: 0.5rem;         /* 8px */
     --filroden-space-m: 0.625rem;       /* 10px */
     --filroden-space-l: 1rem;           /* 16px */
+    --filroden-space-xl: 1.5rem;       /* 24px */
+    --filroden-space-xxl: 2rem;        /* 32px */
 
 
     /* ===================================
