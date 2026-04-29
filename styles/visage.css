@@ -85,6 +85,12 @@ li.context-item .visage-icon-domino {
     height: 12px;
 }
 
+/* AppV2 Context Menus */
+#context-menu .visage-icon {
+    vertical-align: middle;
+    margin-inline-end: 8px;
+}
+
 /* --- Tooltips --- */
 
 #tooltip.visage-tooltip {
@@ -837,6 +843,22 @@ li.context-item .visage-icon-domino {
 
 /* --- Grid Display --- */
 
+.visage .visage-selector {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: max(24px, var(--filroden-space-xl)) var(--filroden-space-l);
+    width: 100%;
+    margin-top: var(--filroden-space-l);
+}
+
+.visage.visage-selector-window .visage-selector {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.visage.visage-selector-window .window-content {
+    padding: var(--filroden-space-s);
+}
+
 .visage .visage-selector-grid-wrapper {
     overflow-y: auto;
     overflow-x: hidden; 
@@ -846,12 +868,9 @@ li.context-item .visage-icon-domino {
     max-height: 500px;
 }
 
-.visage .visage-selector {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: max(24px, var(--filroden-space-xl)) var(--filroden-space-l);
-    width: 100%;
-    margin-top: var(--filroden-space-l);
+.visage.visage-selector-window .visage-selector-grid-wrapper {
+    height: auto;
+    max-height: 75vh;
 }
 
 .visage .visage-tile {
@@ -1125,6 +1144,9 @@ li.context-item .visage-icon-domino {
 .visage-icon.timeline      { -webkit-mask-image: url('../icons/view_timeline.svg'); mask-image: url('../icons/view_timeline.svg'); }
 .visage-icon.macro      { -webkit-mask-image: url('../icons/code.svg'); mask-image: url('../icons/code.svg'); }
 .visage-icon.filter-fx      { -webkit-mask-image: url('../icons/filter_fx.svg'); mask-image: url('../icons/filter_fx.svg'); }
+.visage-icon.pin      { -webkit-mask-image: url('../icons/keep.svg'); mask-image: url('../icons/keep.svg'); }
+.visage-icon.unpin      { -webkit-mask-image: url('../icons/keep_off.svg'); mask-image: url('../icons/keep_off.svg'); }
+.visage-icon.config   { -webkit-mask-image: url('../icons/settings.svg'); mask-image: url('../icons/settings.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {

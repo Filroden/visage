@@ -20,21 +20,28 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
      * @param {string} [options.sceneId] - The ID of the scene (if unlinked).
      */
     constructor(options = {}) {
+        // Apply distinct CSS classes based on the mode
+        if (options.isWindowMode) {
+            options.classes = ["visage", "visage-selector-window"];
+        } else {
+            options.classes = ["visage", "visage-selector-app", "borderless"];
+        }
+
         super(options);
+
         this.actorId = options.actorId;
         this.tokenId = options.tokenId;
         this.sceneId = options.sceneId;
         this.uiPosition = options.uiPosition;
-        this.showPublic = VisageSelector.showPublic ?? true;
+        this.isWindowMode = options.isWindowMode || false;
+        this.showPublic = options.showPublic ?? VisageSelector.showPublic ?? true;
 
-        // Create a registry to track all active hooks across the AppV2 lifecycle
         this._activeHooks = [];
     }
 
     static DEFAULT_OPTIONS = {
         tag: "div",
         id: "visage-selector",
-        classes: ["visage", "visage-selector-app", "borderless"],
         window: { frame: false, positioned: false, controls: [] },
         actions: {
             selectVisage: VisageSelector.prototype._onSelectVisage,
@@ -43,6 +50,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             removeLayer: VisageSelector.prototype._onRemoveLayer,
             toggleVisibility: VisageSelector.prototype._onToggleLayerVisibility,
             toggleGlobal: VisageSelector.prototype._onToggleGlobal,
+            togglePin: VisageSelector.prototype._onTogglePin,
         },
     };
 
@@ -60,7 +68,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     async _prepareContext(options) {
         // 1. Resolve Entities (Start from Token)
         const token = canvas.tokens.get(this.tokenId);
-        if (!token || !token.actor) return { identities: [], overlays: [] };
+        if (!token?.actor) return { identities: [], overlays: [] };
 
         const currentFormKey = token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
 
@@ -204,6 +212,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             tokenId: this.tokenId,
             isGM: game.user.isGM,
             showPublic: this.showPublic,
+            isWindowMode: this.isWindowMode,
         };
     }
 
@@ -215,6 +224,8 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // 1. Bind the Document Pointer Down (Click Outside) listener
         this._onDocPointerDown = (ev) => {
+            if (this.isWindowMode) return;
+
             const root = this.element;
             if (!root) return;
 
@@ -250,7 +261,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         this._bindDragDrop();
 
         // Manual Position Application
-        if (this.uiPosition) {
+        if (this.uiPosition && !this.isWindowMode) {
             const el = this.element;
 
             // Enforce Fixed Positioning (Overrides any centring defaults)
@@ -262,19 +273,25 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             el.style.bottom = "auto";
             el.style.right = "auto";
 
-            // Apply Horizontal Anchor
-            if (this.uiPosition.right) {
+            // Apply Horizontal Anchor (Safely checking for undefined)
+            if (this.uiPosition.right !== undefined) {
                 el.style.right = `${this.uiPosition.right}px`;
-            } else if (this.uiPosition.left) {
+            } else if (this.uiPosition.left !== undefined) {
                 el.style.left = `${this.uiPosition.left}px`;
             }
 
             // Apply Vertical Anchor
-            if (this.uiPosition.bottom) {
+            if (this.uiPosition.bottom !== undefined) {
                 el.style.bottom = `${this.uiPosition.bottom}px`;
-            } else if (this.uiPosition.top) {
+            } else if (this.uiPosition.top !== undefined) {
                 el.style.top = `${this.uiPosition.top}px`;
             }
+        }
+
+        // Re-apply pinning bindings if Handlebars replaced the DOM
+        if (this.isPinned) {
+            const header = this.element.querySelector(".visage-selector-header");
+            if (header) this._enableDragging(header);
         }
     }
 
@@ -285,7 +302,75 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     _onToggleGlobal(event, target) {
         this.showPublic = !this.showPublic;
         VisageSelector.showPublic = this.showPublic;
+
+        // Update the native window header icon directly via the DOM to avoid frozen options
+        if (this.isWindowMode) {
+            const btn = this.element.querySelector('.window-header [data-action="toggleGlobal"] .visage-icon');
+            if (btn) {
+                btn.className = `visage-icon ${this.showPublic ? "toggle_on" : "toggle_off"}`;
+            }
+        }
+
         this.render();
+    }
+
+    async _onTogglePin(event, target) {
+        // 1. Capture exact physical screen coordinates
+        const rect = this.element.getBoundingClientRect();
+
+        const isBecomingWindow = !this.isWindowMode;
+
+        // 2. Build the exact native options tree for the new instance
+        const newOptions = {
+            id: this.id,
+            actorId: this.actorId,
+            tokenId: this.tokenId,
+            sceneId: this.sceneId,
+            showPublic: this.showPublic,
+            isWindowMode: isBecomingWindow,
+            uiPosition: {
+                left: rect.left,
+                top: isBecomingWindow ? Math.max(0, rect.top - 40) : rect.top,
+                width: rect.width,
+                height: isBecomingWindow ? rect.height : "auto",
+            },
+        };
+
+        // 3. Inject Native Window Configuration directly if pinning
+        if (newOptions.isWindowMode) {
+            newOptions.window = {
+                frame: true,
+                positioned: true,
+                resizable: true,
+                title: game.i18n.localize("VISAGE.Selector.Title"),
+                icon: "visage-icon domino",
+                controls: [
+                    {
+                        icon: `visage-icon ${this.showPublic ? "toggle_on" : "toggle_off"}`,
+                        label: "VISAGE.Selector.TogglePublic",
+                        action: "toggleGlobal",
+                    },
+                    {
+                        icon: "visage-icon unpin",
+                        label: "VISAGE.Selector.PinToggle",
+                        action: "togglePin",
+                    },
+                    {
+                        icon: "visage-icon config",
+                        label: "VISAGE.Selector.Configure",
+                        action: "openConfig",
+                    },
+                ],
+            };
+            // Seed the Position Manager!
+            newOptions.position = newOptions.uiPosition;
+        }
+
+        // 4. Close the current instance instantly and AWAIT it to clear the DOM
+        await this.close({ animate: false });
+
+        // 5. Spawn the new instance
+        new VisageSelector(newOptions).render(true, { animate: false });
     }
 
     async _onSelectVisage(event, target) {
