@@ -46,7 +46,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Viewport & Sub-system State
         this._activeTab = "appearance";
         this._viewState = {
-            scale: 1.0,
+            scale: 1,
             x: 0,
             y: 0,
             isDragging: false,
@@ -166,7 +166,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this._mediaController) this._mediaController.stopAll();
 
         // 2. Timeline window cleanup
-        if (this._timelineApp && this._timelineApp.rendered) {
+        if (this._timelineApp?.rendered) {
             this._timelineApp.close();
         }
 
@@ -221,7 +221,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const c = data.changes || {};
 
         // Format Condition Summaries
-        if (this._automationData && this._automationData.conditions) {
+        if (this._automationData?.conditions) {
             this._automationData.conditions.forEach((c) => {
                 c.typeKey = `VISAGE.Editor.Triggers.Type${c.type.charAt(0).toUpperCase() + c.type.slice(1)}`;
 
@@ -244,7 +244,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     c.summary = `${c.statusId || "..."} (${c.operator === "active" ? "Applied" : "Removed"})`;
                 } else if (c.type === "event") {
                     if (c.eventId === "elevation" || c.eventId === "darkness") {
-                        const op = c.operator === "gt" ? ">" : c.operator === "lt" ? "<" : "==";
+                        let op;
+                        if (c.operator === "gt") {
+                            op = ">";
+                        } else if (c.operator === "lt") {
+                            op = "<";
+                        } else {
+                            op = "==";
+                        }
                         c.summary = `${c.eventId} ${op} ${c.value || 0}`;
                     } else if (c.eventId === "region") {
                         c.summary = `Region: ${c.regionId || "?"} (${c.operator === "active" ? "Inside" : "Outside"})`;
@@ -269,8 +276,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             isLocal: this.isLocal,
             isDirty: this.isDirty,
             isPublic: data.public ?? false,
-            categories: Array.from(categorySet).sort(),
-            allTags: Array.from(tagSet).sort(),
+            categories: Array.from(categorySet).sort((a, b) => a.localeCompare(b)),
+            allTags: Array.from(tagSet).sort((a, b) => a.localeCompare(b)),
             tagsString: (data.tags || []).join(","),
             mode: data.mode || (this.isLocal ? "identity" : "overlay"),
             appId: this.id,
@@ -303,7 +310,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 direction: this._delayData >= 0 ? "after" : "before",
             },
             scale: {
-                value: Math.round((c.scale ?? 1.0) * 100),
+                value: Math.round((c.scale ?? 1) * 100),
                 active: c.scale != null,
             },
             anchor: {
@@ -317,10 +324,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 value: c.alpha !== undefined && c.alpha !== null ? Math.round(c.alpha * 100) : 100,
                 active: c.alpha != null,
             },
-            lockRotation: {
-                value: c.lockRotation === true ? "true" : c.lockRotation === false ? "false" : "",
-                active: true,
-            },
+            lockRotation: (() => {
+                let value = "";
+                if (c.lockRotation === true) value = "true";
+                else if (c.lockRotation === false) value = "false";
+                return {
+                    value,
+                    active: true,
+                };
+            })(),
             width: prep(c.width, 1),
             height: prep(c.height, 1),
             depth: prep(c.depth, 1),
@@ -491,7 +503,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             const defaults = {
                 enabled: false,
                 colors: { ring: "#ffffff", background: "#000000" },
-                subject: { texture: "", scale: 1.0 },
+                subject: { texture: "", scale: 1 },
                 effects: 0,
             };
             this._ringData = c.ring
@@ -509,18 +521,30 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _buildInspectorContext() {
-        const formatEffect = (e) => ({
-            ...e,
-            icon: e.type === "audio" ? "visage-icon audio" : e.type === "macro" ? "visage-icon macro" : e.type === "tmfx" ? "visage-icon magic-wand" : "visage-icon visual",
-            metaLabel:
-                e.type === "audio"
-                    ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((e.opacity ?? 1) * 100)}%`
-                    : e.type === "macro"
-                      ? e.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID")
-                      : e.type === "tmfx"
-                        ? e.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset")
-                        : `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1) * 100)}%`,
-        });
+        const getEffectIcon = (type) => {
+            if (type === "audio") return "visage-icon audio";
+            if (type === "macro") return "visage-icon macro";
+            if (type === "tmfx") return "visage-icon magic-wand";
+            return "visage-icon visual";
+        };
+
+        const formatEffect = (e) => {
+            let metaLabel;
+            if (e.type === "audio") {
+                metaLabel = `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((e.opacity ?? 1) * 100)}%`;
+            } else if (e.type === "macro") {
+                metaLabel = e.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID");
+            } else if (e.type === "tmfx") {
+                metaLabel = e.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset");
+            } else {
+                metaLabel = `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1) * 100)}%`;
+            }
+            return {
+                ...e,
+                icon: getEffectIcon(e.type),
+                metaLabel,
+            };
+        };
 
         const inspectorData = {
             hasEffects: this._effects.length > 0 || this._lightData.active || this._ringData.enabled,
@@ -550,8 +574,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     label: effect.label,
                     path: effect.path,
                     type: effect.type,
-                    scale: Math.round((effect.scale ?? 1.0) * 100),
-                    opacity: effect.opacity ?? 1.0,
+                    scale: Math.round((effect.scale ?? 1) * 100),
+                    opacity: effect.opacity ?? 1,
                     rotation: effect.rotation ?? 0,
                     rotationRandom: effect.rotationRandom ?? false,
                     zOrder: effect.zOrder ?? "above",
@@ -588,7 +612,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             isVideo: context.isVideo,
             flipX: context.isFlippedX,
             flipY: context.isFlippedY,
-            alpha: c.alpha ?? 1.0,
+            alpha: c.alpha ?? 1,
             hasLight: this._lightData.active,
             lightColor: this._lightData.color,
             lightAlpha: this._lightData.alpha ?? 0.5,
@@ -649,22 +673,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
                 if (activeEffect.type === "visual") {
                     const scaleVal = getVal("effectScale", Number);
-                    if (scaleVal !== null && !isNaN(scaleVal)) activeEffect.scale = scaleVal / 100;
+                    if (scaleVal !== null && !Number.isNaN(scaleVal)) activeEffect.scale = scaleVal / 100;
 
                     const opacityVal = getVal("effectOpacity", Number);
-                    if (opacityVal !== null && !isNaN(opacityVal)) activeEffect.opacity = opacityVal;
+                    if (opacityVal !== null && !Number.isNaN(opacityVal)) activeEffect.opacity = opacityVal;
 
                     activeEffect.blendMode = getVal("effectBlendMode") ?? activeEffect.blendMode;
 
                     const rotationVal = getVal("effectRotation", Number);
-                    if (rotationVal !== null && !isNaN(rotationVal)) activeEffect.rotation = rotationVal;
+                    if (rotationVal !== null && !Number.isNaN(rotationVal)) activeEffect.rotation = rotationVal;
 
                     activeEffect.rotationRandom = !!formData.effectRotationRandom;
                     activeEffect.zOrder = getVal("effectZIndex") ?? activeEffect.zOrder;
                     activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
                 } else if (activeEffect.type === "audio") {
                     const volVal = getVal("effectVolume", Number);
-                    if (volVal !== null && !isNaN(volVal)) activeEffect.opacity = volVal;
+                    if (volVal !== null && !Number.isNaN(volVal)) activeEffect.opacity = volVal;
 
                     activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
                     activeEffect.fadeIn = getVal("effectFadeIn", Number) ?? activeEffect.fadeIn;
@@ -684,7 +708,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this._editingRing && formData.ringColor !== undefined) {
             let effectsMask = 0;
             for (const [k, v] of Object.entries(formData)) {
-                if (k.startsWith("effect_") && v === true) effectsMask |= parseInt(k.split("_")[1]);
+                if (k.startsWith("effect_") && v === true) effectsMask |= Number.parseInt(k.split("_")[1]);
             }
             this._ringData.colors.ring = formData.ringColor;
             this._ringData.colors.background = formData.ringBackgroundColor;
@@ -721,7 +745,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         } else {
                             // Default to Number
                             const val = getVal("inspector.value", Number);
-                            if (val !== null && !isNaN(val)) cond.value = val;
+                            if (val !== null && !Number.isNaN(val)) cond.value = val;
                         }
                     } else if (cond.type === "status") {
                         cond.statusId = getVal("inspector.statusId") ?? cond.statusId;
@@ -748,7 +772,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
                         if (cond.eventId === "elevation" || cond.eventId === "darkness") {
                             const val = getVal("inspector.value", Number);
-                            if (val !== null && !isNaN(val)) cond.value = val;
+                            if (val !== null && !Number.isNaN(val)) cond.value = val;
                         }
                         if (cond.eventId === "region") {
                             cond.regionId = getVal("inspector.regionId") ?? cond.regionId;
@@ -783,10 +807,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         else changes.name = null;
         if (formData.scale_active) changes.scale = getVal("scale", Number) / 100;
         else changes.scale = null;
-        if (formData.isFlippedX !== "") changes.mirrorX = formData.isFlippedX === "true";
-        else changes.mirrorX = null;
-        if (formData.isFlippedY !== "") changes.mirrorY = formData.isFlippedY === "true";
-        else changes.mirrorY = null;
+        if (formData.isFlippedX === "") {
+            changes.mirrorX = null;
+        } else {
+            changes.mirrorX = formData.isFlippedX === "true";
+        }
+        if (formData.isFlippedY === "") {
+            changes.mirrorY = null;
+        } else {
+            changes.mirrorY = formData.isFlippedY === "true";
+        }
         if (formData.alpha_active) changes.alpha = getVal("alpha", Number) / 100;
         else changes.alpha = null;
         if (formData.width_active) changes.width = getVal("width", Number);
@@ -795,8 +825,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         else changes.height = null;
         if (formData.depth_active) changes.depth = getVal("depth", Number);
         else changes.depth = null;
-        if (formData.lockRotation !== "") changes.lockRotation = formData.lockRotation === "true";
-        else changes.lockRotation = null;
+        if (formData.lockRotation === "") {
+            changes.lockRotation = null;
+        } else {
+            changes.lockRotation = formData.lockRotation === "true";
+        }
         if (formData.disposition_active) changes.disposition = getVal("disposition", Number);
         else changes.disposition = null;
         if (formData.portrait_active) changes.portrait = formData.portrait;
@@ -809,8 +842,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
 
             if (formData.anchor_active) {
-                changes.texture.anchorX = parseFloat(formData.anchorX);
-                changes.texture.anchorY = parseFloat(formData.anchorY);
+                changes.texture.anchorX = Number.parseFloat(formData.anchorX);
+                changes.texture.anchorY = Number.parseFloat(formData.anchorY);
             }
         } else {
             changes.texture = null;
@@ -823,7 +856,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Clean up transient UI properties from the automation data before saving
         const cleanAutomation = foundry.utils.deepClone(this._automationData);
-        if (cleanAutomation && cleanAutomation.conditions) {
+        if (cleanAutomation?.conditions) {
             cleanAutomation.conditions.forEach((c) => {
                 delete c.typeKey;
                 delete c.summary;
@@ -854,11 +887,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     const parsed = JSON.parse(effect.tmfxPayload);
                     if (typeof parsed !== "object") throw new Error("Payload must be an object or array.");
                 } catch (e) {
-                    return ui.notifications.error(
-                        game.i18n.format("VISAGE.Notifications.TmfxInvalidPayload", {
-                            label: effect.label,
-                        }),
-                    );
+                    return ui.notifications.error(game.i18n.format("VISAGE.Notifications.TmfxInvalidPayload", { label: effect.label }));
                 }
             }
         }
@@ -893,7 +922,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._ringData = {
             enabled: false,
             colors: { ring: "#ffffff", background: "#000000" },
-            subject: { texture: "", scale: 1.0 },
+            subject: { texture: "", scale: 1 },
             effects: 0,
         };
         this._lightData.active = false;
@@ -938,10 +967,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Forge Support logic
         if (typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge) {
             browseOptions.cookieKey = true;
-            if (!window.ForgeAPI?.lastStatus) {
+            if (!globalThis.ForgeAPI?.lastStatus) {
                 try {
-                    await window.ForgeAPI.status();
-                } catch (e) {
+                    await globalThis.ForgeAPI.status();
+                } catch {
                     /* Ignore */
                 }
             }
@@ -1023,7 +1052,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const btns = this.element.querySelectorAll(".delay-direction-toggle button");
         btns.forEach((b) => b.classList.remove("active"));
         target.classList.add("active");
-        const seconds = parseFloat(this.element.querySelector('range-picker[name="delayValue"]').value) || 0;
+        const seconds = Number.parseFloat(this.element.querySelector('range-picker[name="delayValue"]').value) || 0;
         this._delayData = Math.round(seconds * 1000) * (target.dataset.value === "after" ? 1 : -1);
         this._markDirty();
     }
@@ -1163,8 +1192,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             type: "visual",
             label: "New Visual",
             path: "",
-            scale: 1.0,
-            opacity: 1.0,
+            scale: 1,
+            opacity: 1,
             rotation: 0,
             rotationRandom: false,
             zOrder: "above",
@@ -1217,7 +1246,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     _onFormatTmfxPayload(event, target) {
         const textarea = this.element.querySelector('textarea[name="effectTmfxPayload"]');
-        if (!textarea || !textarea.value.trim()) return;
+        if (!textarea?.value.trim()) return;
 
         try {
             let rawValue = textarea.value.trim();
@@ -1422,14 +1451,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     if (nameEl) nameEl.textContent = activeEffect.label;
                     const metaEl = card.querySelector(".effect-meta");
                     if (metaEl) {
-                        metaEl.textContent =
-                            activeEffect.type === "audio"
-                                ? `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((activeEffect.opacity ?? 1) * 100)}%`
-                                : activeEffect.type === "macro"
-                                  ? activeEffect.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID")
-                                  : activeEffect.type === "tmfx"
-                                    ? activeEffect.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset")
-                                    : `${activeEffect.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((activeEffect.scale ?? 1) * 100)}%`;
+                        let metaText;
+                        if (activeEffect.type === "audio") {
+                            metaText = `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((activeEffect.opacity ?? 1) * 100)}%`;
+                        } else if (activeEffect.type === "macro") {
+                            metaText = activeEffect.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID");
+                        } else if (activeEffect.type === "tmfx") {
+                            metaText = activeEffect.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset");
+                        } else {
+                            metaText = `${activeEffect.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((activeEffect.scale ?? 1) * 100)}%`;
+                        }
+                        metaEl.textContent = metaText;
                     }
                 }
             }
@@ -1438,9 +1470,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _buildPreviewTemplateData(changes) {
         // Transformations Math
-        const ringEnabled = changes.ring && changes.ring.enabled;
-        const globalScale = changes.scale || 1.0;
-        const subjectScale = ringEnabled && changes.ring.subject?.texture ? parseFloat(changes.ring.subject.scale) || 1.0 : 1.0;
+        const ringEnabled = changes.ring?.enabled;
+        const globalScale = changes.scale || 1;
+        const subjectScale = ringEnabled && changes.ring.subject?.texture ? Number.parseFloat(changes.ring.subject.scale) || 1 : 1;
         const flipX = !!changes.mirrorX;
         const flipY = !!changes.mirrorY;
         const anchorX = changes.texture?.anchorX ?? 0.5;
@@ -1478,7 +1510,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             resolvedPath: resolved || rawPath,
             name: changes.name,
             hasCheckerboard: true,
-            alpha: changes.alpha ?? 1.0,
+            alpha: changes.alpha ?? 1,
             isVideo: context.isVideo,
             hasRing: context.meta.hasRing,
             hasInvisibility: context.meta.hasInvisibility,
@@ -1567,7 +1599,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _updateUIBadges(meta, changes) {
-        if (!meta || !meta.slots) return;
+        if (!meta?.slots) return;
         const el = this.element;
 
         const updateSlot = (selector, slotData) => {
@@ -1617,7 +1649,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (content) content.style.transform = `translate(${this._viewState.x}px, ${this._viewState.y}px) scale(${this._viewState.scale})`;
     }
     _onZoomIn() {
-        this._viewState.scale = Math.min(this._viewState.scale + 0.25, 5.0);
+        this._viewState.scale = Math.min(this._viewState.scale + 0.25, 5);
         this._applyStageTransform();
     }
     _onZoomOut() {
@@ -1625,7 +1657,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._applyStageTransform();
     }
     _onResetZoom() {
-        this._viewState.scale = 1.0;
+        this._viewState.scale = 1;
         this._viewState.x = 0;
         this._viewState.y = 0;
         this._applyStageTransform();
@@ -1715,7 +1747,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 "wheel",
                 (e) => {
                     e.preventDefault();
-                    this._viewState.scale = Math.min(Math.max(this._viewState.scale - Math.sign(e.deltaY) * 0.1, 0.1), 5.0);
+                    this._viewState.scale = Math.min(Math.max(this._viewState.scale - Math.sign(e.deltaY) * 0.1, 0.1), 5);
                     this._applyStageTransform();
                 },
                 { passive: false },
@@ -1734,7 +1766,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             content.style.cursor = "grabbing";
         };
         if (!this._dragBound) {
-            window.addEventListener("mousemove", (e) => {
+            globalThis.addEventListener("mousemove", (e) => {
                 if (!this._viewState.isDragging) return;
                 this._viewState.x += e.clientX - this._viewState.lastX;
                 this._viewState.y += e.clientY - this._viewState.lastY;
@@ -1742,7 +1774,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 this._viewState.lastY = e.clientY;
                 this._applyStageTransform();
             });
-            window.addEventListener("mouseup", () => {
+            globalThis.addEventListener("mouseup", () => {
                 if (this._viewState.isDragging) {
                     this._viewState.isDragging = false;
                     const c = this.element.querySelector(".visage-preview-content.stage-mode");
@@ -1763,7 +1795,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (name.includes("Volume") || name.includes("Opacity") || name.includes("ringSubjectScale")) def = 1;
         ev.target.value = def;
         const display = ev.target.nextElementSibling;
-        if (display && display.tagName === "OUTPUT") display.value = def;
+        if (display?.tagName === "OUTPUT") display.value = def;
         this._markDirty();
         this._updatePreview();
     }
@@ -1780,7 +1812,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Dynamically add ALL Active Effects currently applied to the Actor
         // Using appliedEffects captures both direct effects and item-transferred effects
-        if (this.actor && this.actor.appliedEffects) {
+        if (this.actor?.appliedEffects) {
             this.actor.appliedEffects.forEach((e) => {
                 const name = e.name || e.label;
 

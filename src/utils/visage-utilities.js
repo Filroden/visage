@@ -124,9 +124,9 @@ export class VisageUtilities {
                 browseOptions.cookieKey = true;
 
                 // Ensure API is ready
-                if (!window.ForgeAPI?.lastStatus) {
+                if (!globalThis.ForgeAPI?.lastStatus) {
                     try {
-                        await window.ForgeAPI.status();
+                        await globalThis.ForgeAPI.status();
                     } catch (err) {
                         console.warn("Visage | ForgeAPI.status() failed", err);
                     }
@@ -136,8 +136,8 @@ export class VisageUtilities {
             }
 
             // Convert wildcard pattern to a strict RegExp
-            const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(`^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
+            const escaped = pattern.replaceAll(/[.+^${}()|[\]\\]/g, String.raw`\$&`);
+            const regex = new RegExp(`^${escaped.replaceAll("*", ".*").replaceAll("?", ".")}$`, "i");
 
             // Perform the browse call to get file list
             const content = await FilePickerClass.browse(source, directory, browseOptions);
@@ -202,12 +202,12 @@ export class VisageUtilities {
         }
 
         const textureSrc = get("texture.src");
-        const scaleX = get("texture.scaleX") ?? 1.0;
-        const scaleY = get("texture.scaleY") ?? 1.0;
+        const scaleX = get("texture.scaleX") ?? 1;
+        const scaleY = get("texture.scaleY") ?? 1;
         const anchorX = get("texture.anchorX") ?? 0.5;
         const anchorY = get("texture.anchorY") ?? 0.5;
 
-        const alpha = get("alpha") ?? 1.0;
+        const alpha = get("alpha") ?? 1;
         const lockRotation = get("lockRotation") ?? false;
 
         return {
