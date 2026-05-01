@@ -14,6 +14,20 @@ import { VisageMassEdit } from "../integrations/visage-mass-edit.js";
 export class Visage {
     static sequencerReady = false;
 
+    static _lastDirectoryWarn = 0;
+
+    /**
+     * Throttled UI warning to prevent notification spam when applying
+     * auto-mapped Visages to multiple tokens simultaneously.
+     */
+    static notifyMissingDirectory() {
+        const now = Date.now();
+        if (now - this._lastDirectoryWarn > 5000) {
+            this._lastDirectoryWarn = now;
+            ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.AutoMapMissingDirectory"));
+        }
+    }
+
     static log(message, force = false) {
         VisageUtilities.log(message, force);
     }

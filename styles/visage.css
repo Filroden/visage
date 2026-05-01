@@ -1015,6 +1015,41 @@ li.context-item .visage-icon-domino {
 .visage .visage-disposition-chip.hostile  { border-color: #ff0000; }
 .visage .visage-disposition-chip.secret   { border-color: #ff00ff; }
 
+/* --- Quick Visage Token Image Grid --- */
+.visage-auto-grid {
+    display: grid;
+    /* Automatically fits as many 60px minimum columns as possible */
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: var(--filroden-space-xs);
+    padding: var(--filroden-space-xs);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--filroden-radius-small);
+}
+
+.visage-auto-tile {
+    aspect-ratio: 1 / 1;
+    border: 1px dashed var(--visage-color-border);
+    border-radius: var(--filroden-radius-small);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.8;
+}
+
+.visage-auto-tile:hover {
+    opacity: 1;
+    border-color: var(--visage-color-border);
+    transform: scale(1.05);
+    box-shadow: 0 0 8px var(--visage-color-border);
+}
+
+.visage-auto-tile img,
+.visage-auto-tile video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top; /* Keeps faces in-frame for tall tokens */
+}
 
 /* ==========================================================================
    5. ICONS

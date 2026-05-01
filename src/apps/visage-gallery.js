@@ -249,8 +249,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                         name: proto.name,
                         texture: {
                             src: proto.texture.src,
-                            scaleX: proto.texture.scaleX ?? 1.0,
-                            scaleY: proto.texture.scaleY ?? 1.0,
+                            scaleX: proto.texture.scaleX ?? 1,
+                            scaleY: proto.texture.scaleY ?? 1,
                         },
                         disposition: proto.disposition,
                         ring: proto.ring,
@@ -285,7 +285,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             if (this.filters.search) {
                 const term = this.filters.search.toLowerCase();
                 const matchesLabel = entry.label.toLowerCase().includes(term);
-                const matchesTags = entry.tags && entry.tags.some((t) => t.toLowerCase().includes(term));
+                const matchesTags = entry.tags?.some((t) => t.toLowerCase().includes(term));
                 if (!matchesLabel && !matchesTags) return false;
             }
 
@@ -311,12 +311,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         for (const entry of filteredItems) {
             const rawPath = VisageData.getRepresentativeImage(entry.changes);
             const resolvedPath = await Visage.resolvePath(rawPath);
-
-            let resolvedPortrait = undefined;
-            if (entry.changes.portrait) {
-                resolvedPortrait = await Visage.resolvePath(entry.changes.portrait);
-            }
-
+            const resolvedPortrait = entry.changes.portrait ? await Visage.resolvePath(entry.changes.portrait) : undefined;
             const context = VisageData.toPresentation(entry, {
                 isWildcard: (rawPath || "").includes("*") || (rawPath || "").includes("?"),
                 isActive: false,
@@ -506,15 +501,15 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // Enable Drag-and-Drop for Global Library items only
-        if (!this.isLocal) {
+        if (this.isLocal) {
+            const cards = this.element.querySelectorAll(".visage-card");
+            cards.forEach((card) => card.removeAttribute("draggable"));
+        } else {
             const cards = this.element.querySelectorAll(".visage-card");
             cards.forEach((card) => {
                 card.setAttribute("draggable", "true");
                 card.addEventListener("dragstart", this._onDragStart.bind(this));
             });
-        } else {
-            const cards = this.element.querySelectorAll(".visage-card");
-            cards.forEach((card) => card.removeAttribute("draggable"));
         }
 
         // Connect Drag & Drop for the Token Manager's active stack
@@ -617,7 +612,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!source) return;
 
         const data = [source];
-        const safeName = source.label.replace(/[^a-z0-9]/gi, "_");
+        const safeName = source.label.replaceAll(/[^a-z0-9]/gi, "_");
         const filename = `Visage_${safeName}.json`;
 
         foundry.utils.saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
@@ -710,7 +705,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         if (this.isLocal) {
             data = VisageData.getLocal(this.actor).filter((v) => !v.deleted);
-            const safeName = this.actor.name.replace(/[^a-z0-9]/gi, "_");
+            const safeName = this.actor.name.replaceAll(/[^a-z0-9]/gi, "_");
             filename = `Visage_Local_${safeName}.json`;
         } else {
             data = VisageData.globals;
@@ -995,7 +990,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         let source = this.isLocal ? VisageData.getLocal(this.actor).find((v) => v.id === id) : VisageData.getGlobal(id);
 
-        if (!source || !source.automation) return;
+        if (!source?.automation) return;
 
         // Toggle state
         const newEnabled = !source.automation.enabled;
@@ -1088,7 +1083,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                     isActive: v.id === currentFormKey,
                     isWildcard: (rawPath || "").includes("*") || (rawPath || "").includes("?"),
                     resolvedPortrait: v.changes.portrait ? await Visage.resolvePath(v.changes.portrait) : undefined,
-                    resolvedPath: await Visage.resolvePath(v.changes?.texture?.src),
+                    resolvedPath: await Visage.resolvePath(rawPath),
                 });
                 p.key = v.id;
                 p.themeClass = isGlobal ? "visage-theme-global" : "visage-theme-local";
@@ -1155,7 +1150,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const tokenId = target.dataset.tokenId;
         const token = canvas.tokens.get(tokenId);
-        if (!token || !token.actor) return;
+        if (!token?.actor) return;
 
         const actorId = token.actor.id;
         const sceneId = token.document.parent?.id;

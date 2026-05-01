@@ -29,6 +29,70 @@ export class VisageSettings {
             restricted: false,
         });
 
+        // --- Auto-Mapped Image Settings ---
+        // Hidden Cache Setting
+        game.settings.register(MODULE_ID, "autoImageCache", {
+            name: "Auto Image Cache",
+            scope: "world",
+            config: false,
+            type: Array,
+            default: [],
+        });
+
+        // The Directory Setting with Validation
+        game.settings.register(MODULE_ID, "autoImageDirectory", {
+            name: "VISAGE.Settings.AutoImageDirectory.Name",
+            hint: "VISAGE.Settings.AutoImageDirectory.Hint",
+            scope: "world",
+            config: true,
+            type: String,
+            default: "",
+            filePicker: "folder",
+            onChange: async (newPath) => {
+                if (!newPath) {
+                    ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.AutoMapCleared"));
+                    await game.settings.set(MODULE_ID, "autoImageCache", []); // Clear the cache
+                    return;
+                }
+
+                try {
+                    const FilePickerClass = foundry.applications?.apps?.FilePicker || FilePicker;
+                    await FilePickerClass.browse("data", newPath);
+                    ui.notifications.info(game.i18n.format("VISAGE.Notifications.AutoMapUpdated", { path: newPath }));
+
+                    // Automatically trigger the crawler when a valid new folder is set
+                    VisageUtilities.buildAutoImageCache(newPath);
+                } catch (err) {
+                    console.warn("Visage | Auto-Image Directory validation failed:", err);
+                    ui.notifications.error(game.i18n.localize("VISAGE.Notifications.AutoMapError"));
+                }
+            },
+        });
+
+        // The Manual Rebuild Button
+        game.settings.registerMenu(MODULE_ID, "rebuildAutoImageCache", {
+            name: "VISAGE.Settings.RebuildCache.Name",
+            hint: "VISAGE.Settings.RebuildCache.Hint",
+            label: "VISAGE.Settings.RebuildCache.Label",
+            icon: "visage-icon refresh",
+            type: class extends foundry.applications.api.ApplicationV2 {
+                render(force, options) {
+                    const dir = game.settings.get(MODULE_ID, "autoImageDirectory");
+                    if (dir) {
+                        // Dynamically import to avoid circular dependencies in settings registration
+                        import("../utils/visage-utilities.js").then((module) => {
+                            module.VisageUtilities.buildAutoImageCache(dir);
+                        });
+                    } else {
+                        ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.AutoMapMissingDirectory"));
+                    }
+                    return this; // Prevent a blank window from opening
+                }
+            },
+            restricted: true,
+        });
+
+        // --- System Override Setting ---
         game.settings.register(MODULE_ID, "allowSystemOverrides", {
             name: "VISAGE.Settings.AllowSystemOverrides.Name",
             hint: "VISAGE.Settings.AllowSystemOverrides.Hint",
@@ -38,6 +102,7 @@ export class VisageSettings {
             default: true,
         });
 
+        // --- Misc Settings ---
         game.settings.register(MODULE_ID, "disableWelcome", {
             name: "VISAGE.Settings.DisableWelcome.Name",
             hint: "VISAGE.Settings.DisableWelcome.Hint",

@@ -26,4 +26,29 @@
         </div>
     </div>
     {{/if}}
+
+    {{!-- SECTION 3: Quick Visage Auto-Mapped Token Images --}}
+    {{#if autoImages.length}}
+    <div class="visage-section quick-visage-section">
+        <h4 class="visage-section-header">
+            {{localize "VISAGE.Selector.AutoMapped"}}
+        </h4>
+        <div class="visage-auto-grid">
+            {{#each autoImages}}
+            <div class="visage-auto-tile" 
+                 data-action="applyAutoImage" 
+                 data-path="{{this.path}}" 
+                 data-name="{{this.name}}"
+                 data-tooltip="{{this.path}}">
+                {{#if this.isVideo}}
+                    {{!-- Load only the first 0.1 seconds to use as a static thumbnail --}}
+                    <video src="{{this.path}}#t=0.1" preload="metadata" muted playsinline></video>
+                {{else}}
+                    <img src="{{this.path}}" loading="lazy" decoding="async" alt="{{this.name}}">
+                {{/if}}
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
 </div>

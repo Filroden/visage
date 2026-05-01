@@ -61,6 +61,62 @@ export class VisageUtilities {
     }
 
     /**
+     * Recursively crawls the target directory and caches all image/video filepaths.
+     * @param {string} directory - The root directory to crawl.
+     */
+    static async buildAutoImageCache(directory) {
+        if (!directory) return;
+
+        ui.notifications.info(game.i18n.localize("VISAGE.Notifications.CacheBuildStart"));
+
+        const allFiles = [];
+        const FilePickerClass = foundry.applications?.apps?.FilePicker || FilePicker;
+
+        async function crawl(targetDir) {
+            try {
+                const result = await FilePickerClass.browse("data", targetDir, { type: "imagevideo" });
+                if (result.files) allFiles.push(...result.files);
+
+                if (result.dirs) {
+                    for (const dir of result.dirs) {
+                        await crawl(dir);
+                    }
+                }
+            } catch (e) {
+                console.warn(`Visage | Could not crawl directory: ${targetDir}`, e);
+            }
+        }
+
+        await crawl(directory);
+        await game.settings.set("visage", "autoImageCache", allFiles); // Use literal "visage" or pass MODULE_ID from constants
+
+        ui.notifications.info(
+            game.i18n.format("VISAGE.Notifications.CacheBuildSuccess", {
+                count: allFiles.length,
+            }),
+        );
+    }
+
+    /**
+     * Constructs the auto-mapped image wildcard path.
+     * @param {string} overrideName - The name explicitly set in the Visage changes.
+     * @param {string} fallbackName - The token's base name.
+     * @param {string} directory - The globally configured auto-image directory.
+     * @returns {string|null} The constructed wildcard path, or null if invalid.
+     */
+    static resolveAutoMappingPath(overrideName, fallbackName, directory) {
+        if (!directory || typeof directory !== "string") return null;
+
+        const activeName = overrideName?.trim() || fallbackName?.trim();
+        if (!activeName) return null;
+
+        const safeDirectory = directory.endsWith("/") ? directory.slice(0, -1) : directory;
+
+        // Return the wildcard string to trigger UI badges and randomization
+        return `${safeDirectory}/*${activeName}*`;
+    }
+
+    /**
      * Resolves wildcard paths or S3 bucket URLs into a concrete file path.
      * Filters the directory contents to ensure only files matching the wildcard pattern are selected.
      * * Handles local storage ("data") and S3 buckets ("s3").
@@ -89,7 +145,7 @@ export class VisageUtilities {
         }
 
         try {
-            const browseOptions = {};
+            const browseOptions = { type: "imagevideo" };
             let source = "data";
             let directory = "";
             let pattern = "";
@@ -137,7 +193,8 @@ export class VisageUtilities {
 
             // Convert wildcard pattern to a strict RegExp
             const escaped = pattern.replaceAll(/[.+^${}()|[\]\\]/g, String.raw`\$&`);
-            const regex = new RegExp(`^${escaped.replaceAll("*", ".*").replaceAll("?", ".")}$`, "i");
+            const flexiblePattern = escaped.replaceAll(/\s+/g, String.raw`[_\-\s]+`);
+            const regex = new RegExp(`^${flexiblePattern.replaceAll("*", ".*").replaceAll("?", ".")}$`, "i");
 
             // Perform the browse call to get file list
             const content = await FilePickerClass.browse(source, directory, browseOptions);
@@ -155,10 +212,36 @@ export class VisageUtilities {
                 return regex.test(name);
             });
 
-            if (matches.length) {
-                // Return a random selection from the matched files
-                const choice = matches[Math.floor(Math.random() * matches.length)];
-                return choice;
+            if (matches.length > 0) {
+                // --- SMART MATCH SCORING (FA-Compatible) ---
+                const coreWordMatch = new RegExp(/^\*([^*?]+)\*$/).exec(pattern);
+
+                if (coreWordMatch) {
+                    const coreWord = coreWordMatch[1].trim();
+
+                    // Transform spaces into generic separators to match FA conventions
+                    const flexibleWord = coreWord.replaceAll(/\s+/g, String.raw`[_\-\s]+`);
+
+                    // STRICT BOUNDARY: The token name must be bounded by the start of the file (or a separator),
+                    // and immediately followed by a separator or the file extension.
+                    const exactRegex = new RegExp(String.raw`(^|[_\-\s])${flexibleWord}([_\-\s\.]|$)`, "i");
+
+                    const primaryMatches = [];
+
+                    for (const match of matches) {
+                        const fileName = match.split("/").pop();
+                        if (exactRegex.test(fileName)) {
+                            primaryMatches.push(match);
+                        }
+                    }
+
+                    if (primaryMatches.length > 0) {
+                        return primaryMatches[Math.floor(Math.random() * primaryMatches.length)];
+                    }
+                }
+
+                // Loose Fallback (Only triggers if no exact bounded matches exist)
+                return matches[Math.floor(Math.random() * matches.length)];
             } else {
                 console.warn(`Visage | Wildcard Resolution Failed: No files matched pattern '${pattern}' in directory '${directory}' (Source: ${source})`);
             }

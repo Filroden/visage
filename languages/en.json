@@ -554,5 +554,18 @@
     "VISAGE.Editor.Effects.RelativeOpacityHint": "This value is a multiplier. The final screen opacity is limited by the Token's overall opacity set on the Appearance tab.",
 
     "_comment_V5_1_KEYS": "--- V5.1 KEYS ---",
-    "VISAGE.Selector.PinToggle": "Pin/Unpin Selector HUD"
+    "VISAGE.Selector.PinToggle": "Pin/Unpin Selector HUD",
+    "VISAGE.Settings.AutoImageDirectory.Name": "Default Quick Visage Image Directory",
+    "VISAGE.Settings.AutoImageDirectory.Hint": "Select a folder. Visage will automatically search this folder for images matching a token's name and use them to offer Quick Visages.",
+    "VISAGE.Notifications.AutoMapMissingDirectory": "Visage | Quick Visage failed: No default directory configured in Module Settings.",
+    "VISAGE.Notifications.AutoMapCleared": "Visage | Quick Visage Directory cleared. No Quick Visage will be shown in the Selector HUD.",
+    "VISAGE.Notifications.AutoMapUpdated": "Visage | Quick Visage Directory updated to: {path}",
+    "VISAGE.Notifications.AutoMapError": "Visage | The selected Quick Visage directory could not be found or accessed.",
+    "VISAGE.Settings.RebuildCache.Name": "Rebuild Quick Visage Cache",
+    "VISAGE.Settings.RebuildCache.Hint": "If you manually add or remove files in your Quick Visage folder, click this to update the cache so Visage can find them.",
+    "VISAGE.Settings.RebuildCache.Label": "Rebuild Cache",
+    "VISAGE.Notifications.CacheBuildStart": "Visage | Building Quick Visage cache. This may take a moment...",
+    "VISAGE.Notifications.CacheBuildSuccess": "Visage | Quick Visage cache rebuilt successfully! Found {count} files.",
+    "VISAGE.Selector.AutoMapped": "Quick Visages",
+    "VISAGE.Suffix.AutoMapped": " (auto-mapped)"
 }

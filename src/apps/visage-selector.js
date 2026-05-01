@@ -51,6 +51,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleVisibility: VisageSelector.prototype._onToggleLayerVisibility,
             toggleGlobal: VisageSelector.prototype._onToggleGlobal,
             togglePin: VisageSelector.prototype._onTogglePin,
+            applyAutoImage: VisageSelector.prototype._onApplyAutoImage,
         },
     };
 
@@ -116,24 +117,18 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const processedItems = await Promise.all(
             allVisages.map(async (v) => {
                 const isGlobal = v.type === "global";
-
-                // Resolve representative image for the icon (checking for wildcards)
                 const rawPath = VisageData.getRepresentativeImage(v.changes);
                 const isWildcard = (rawPath || "").includes("*") || (rawPath || "").includes("?");
 
                 // Resolve portrait if present
-                let resolvedPortrait = undefined;
-                if (v.changes.portrait) {
-                    resolvedPortrait = await Visage.resolvePath(v.changes.portrait);
-                }
+                const resolvedPortrait = v.changes.portrait ? await Visage.resolvePath(v.changes.portrait) : undefined;
 
                 // Convert to presentation format
                 const presentational = VisageData.toPresentation(v, {
                     isActive: v.id === currentFormKey,
                     isWildcard: isWildcard,
                     resolvedPortrait: resolvedPortrait,
-                    // We optimistically resolve the path here for the icon
-                    resolvedPath: await Visage.resolvePath(v.changes?.texture?.src),
+                    resolvedPath: await Visage.resolvePath(rawPath),
                 });
 
                 presentational.key = v.id;
@@ -205,6 +200,36 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             })
             .reverse();
 
+        // --- Auto-Mapped Images ---
+        let autoImages = [];
+        const autoDir = game.settings.get("visage", "autoImageDirectory");
+        const cache = game.settings.get("visage", "autoImageCache") || [];
+
+        if (autoDir && cache.length > 0) {
+            const tokenName = token.name || token.document.name || "";
+            if (tokenName) {
+                // 1. Escape special characters so "(Huge)" doesn't break the Regex engine!
+                const escapedName = tokenName.trim().replaceAll(/[.+^${}()|[\]\\]/g, String.raw`\$&`);
+
+                // 2. Transform spaces to generic separators
+                const flexiblePattern = escapedName.replaceAll(/\s+/g, String.raw`[_\-\s]+`);
+
+                // 3. STRICT BOUNDARY MATCH
+                const exactRegex = new RegExp(String.raw`(^|[_\-\s])${flexiblePattern}([_\-\s\.]|$)`, "i");
+
+                autoImages = cache
+                    .filter((f) => f.startsWith(autoDir) && exactRegex.test(f.split("/").pop()))
+                    .map((path) => {
+                        const filename = path.split("/").pop();
+                        const nameWithoutExt = filename.substring(0, filename.lastIndexOf("."));
+                        // Determine if the file is a video based on common Foundry video extensions
+                        const isVideo = path.match(/\.(webm|mp4|m4v)$/i) !== null;
+
+                        return { path: path, name: nameWithoutExt, isVideo: isVideo };
+                    });
+            }
+        }
+
         return {
             identities,
             overlays,
@@ -213,6 +238,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             isGM: game.user.isGM,
             showPublic: this.showPublic,
             isWindowMode: this.isWindowMode,
+            autoImages: autoImages,
         };
     }
 
@@ -460,5 +486,49 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     _bindDragDrop() {
         const list = this.element.querySelector(".visage-sortable-list");
         VisageStackController.bindDragDrop(list, this.tokenId, () => this.render());
+    }
+
+    /**
+     * Handles clicking a Quick Visage image.
+     * Extracts the token's visual baseline, injects the new image, creates a local Identity Visage, and applies it.
+     */
+    async _onApplyAutoImage(event, target) {
+        const path = target.dataset.path;
+        const filename = target.dataset.name;
+
+        const token = canvas.tokens.get(this.tokenId);
+        if (!path || !token?.actor) return;
+
+        // Extract current base visual state
+        const baseState = VisageUtilities.extractVisualState(token.document);
+        const autoMapSuffix = game.i18n.localize("VISAGE.Suffix.AutoMapped") || " (Quick Visage)";
+
+        // 1. Generate the ID explicitly so we can reference it immediately
+        const newId = foundry.utils.randomID(16);
+
+        // Format the new Visage payload
+        const payload = {
+            id: newId,
+            label: `${filename}${autoMapSuffix}`,
+            mode: "identity", // Drops it into the top section
+            changes: {
+                ...baseState,
+                texture: {
+                    ...baseState.texture,
+                    src: path,
+                },
+            },
+        };
+
+        // 2. Save the new Visage to the Actor's local library
+        await VisageData.save(payload, token.actor);
+
+        // 3. Command the core engine to immediately apply the newly created Visage
+        await Visage.apply(this.tokenId, newId);
+
+        ui.notifications.info(`Quick Visage applied: ${payload.label}`);
+
+        // 4. Force the HUD to re-render so the new Visage appears in Section 1
+        this.render();
     }
 }

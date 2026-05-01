@@ -194,10 +194,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._syncMemoryDefaults(data);
 
         // 2. Build Transformations
-        const rawImg = data.changes?.texture?.src || "";
+        let rawImg = data.changes?.texture?.src || "";
         const resolvedPath = await VisageUtilities.resolvePath(rawImg);
         const context = VisageData.toPresentation(data, {
-            isWildcard: rawImg.includes("*"),
+            isWildcard: rawImg.includes("*") || rawImg.includes("?"),
             isActive: false,
             resolvedPath: resolvedPath,
         });
@@ -409,11 +409,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         );
 
         // Text input debouncing
-        let textTimer;
+        const debouncedTextUpdate = foundry.utils.debounce(() => this._updatePreview(), 250);
         this.element.addEventListener("input", (e) => {
             if (e.target.matches("input[type='text'], input[type='number'], color-picker, range-picker, textarea")) {
-                clearTimeout(textTimer);
-                textTimer = setTimeout(() => this._updatePreview(), 200);
+                debouncedTextUpdate();
             }
         });
 
@@ -646,7 +645,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
 
         // Light Sync
-        if (this._editingLight) {
+        if (foundry.utils.getProperty(formData, "light.color") !== undefined) {
             ["dim", "bright", "alpha", "angle", "luminosity", "priority"].forEach((k) => {
                 const v = getVal(`light.${k}`, Number);
                 if (v !== null) this._lightData[k] = v;
@@ -705,7 +704,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // Ring Sync
-        if (this._editingRing && formData.ringColor !== undefined) {
+        if (formData.ringColor !== undefined) {
             let effectsMask = 0;
             for (const [k, v] of Object.entries(formData)) {
                 if (k.startsWith("effect_") && v === true) effectsMask |= Number.parseInt(k.split("_")[1]);
@@ -1497,7 +1496,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Path Resolution
         const rawPath = ringEnabled && changes.ring?.subject?.texture ? changes.ring.subject.texture : changes.texture?.src || "";
         const resolved = await VisageUtilities.resolvePath(rawPath);
-        const context = VisageData.toPresentation({ changes }, { isWildcard: rawPath.includes("*") });
+        const isWildcard = rawPath.includes("*") || rawPath.includes("?");
+
+        // Prevent 404s: If it is an unresolved wildcard, pass an empty string so the CSS fallback triggers naturally.
+        const safeImg = resolved || (isWildcard ? "" : rawPath);
+
+        const context = VisageData.toPresentation({ changes }, { isWildcard: isWildcard });
 
         // Lighting Math
         const lData = changes.light || {};
@@ -1506,8 +1510,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const brightPct = lMax > 0 ? ((lData.bright || 0) / lMax) * 100 : 0;
 
         return {
-            img: resolved || rawPath,
-            resolvedPath: resolved || rawPath,
+            img: safeImg,
+            resolvedPath: safeImg,
             name: changes.name,
             hasCheckerboard: true,
             alpha: changes.alpha ?? 1,
