@@ -104,193 +104,204 @@ export class Visage {
     /**
      * Applies a Visage (mask) to a token.
      * Handles both "Identity" swaps (changing the base token appearance) and "Overlay" additions.
-     * * @param {Token|string} tokenOrId - The target Token object or its ID.
+     * @param {Token|string} tokenOrId - The target Token object or its ID.
      * @param {string} maskId - The ID of the Visage data to apply.
      * @param {Object} [options={}] - Application options.
-     * @param {boolean} [options.switchIdentity] - Force this mask to act as the base Identity.
-     * @param {boolean} [options.clearStack] - If true, removes all other active masks before applying.
      * @returns {Promise<boolean>} True if application was successful, false otherwise.
      */
     static async apply(tokenOrId, maskId, options = {}) {
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
 
-        // 1. Locate Data
-        let data = VisageData.getLocal(token.actor).find((v) => v.id === maskId);
-        let source = "local";
-        if (!data) {
-            data = VisageData.getGlobal(maskId);
-            source = "global";
-        }
-        if (!data) return false;
+        // 1. Fetch Data
+        const visageRecord = this._getVisageData(token, maskId);
+        if (!visageRecord) return false;
 
-        // Prevent players from applying Global Visages that are not Public
-        if (source === "global" && !game.user.isGM && !data.public) {
-            console.warn(`Visage | User ${game.user.name} attempted to apply private Global Visage ${maskId}`);
-            return false;
-        }
-
+        const { data, source } = visageRecord;
         const mode = data.mode || (source === "local" ? "identity" : "overlay");
         const switchIdentity = options.switchIdentity ?? mode === "identity";
         const clearStack = options.clearStack ?? false;
 
         const layer = await VisageData.toLayer(data, source);
-        const changes = layer.changes || {};
-
-        // 2. Prepare Stack Updates
         const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
+
+        // 2. Compute Stack and Data Deltas
+        const { stack, updateFlags } = await this._prepareApplyStack(token, layer, { switchIdentity, clearStack }, currentStack);
+        const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
+        const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor?.img);
+
+        // 3. Compute Timing Anchors
+        const activeEffects = (layer.changes?.effects || []).filter((e) => !e.disabled);
+        const minDelaySeconds = activeEffects.length ? Math.min(0, ...activeEffects.map((e) => e.delay || 0)) : 0;
+        const offsetMS = Math.abs(minDelaySeconds) * 1000;
+
+        // 4. Orchestrate Subsystems
+        this._runVisualFX(token, layer, stack, matrixChanged, anticipatedState, switchIdentity || clearStack);
+        this._runMacros(token, data, offsetMS, activeEffects);
+        this._runTMFX(token, layer.id, offsetMS, activeEffects);
+
+        // 5. Execute Core Data Update
+        const executeDataUpdate = async () => {
+            await this._runDataUpdate(token, updateFlags, targetPortrait);
+            Hooks.callAll("visageApplied", token, data);
+        };
+
+        if (offsetMS > 0) setTimeout(executeDataUpdate, offsetMS);
+        else await executeDataUpdate();
+
+        return true;
+    }
+
+    // ==========================================
+    // APPLY HELPER METHODS
+    // ==========================================
+
+    /**
+     * Retrieves and validates Visage data, enforcing GM permissions for private globals.
+     * @private
+     */
+    static _getVisageData(token, maskId) {
+        let data = VisageData.getLocal(token.actor).find((v) => v.id === maskId);
+        let source = "local";
+
+        if (!data) {
+            data = VisageData.getGlobal(maskId);
+            source = "global";
+        }
+
+        if (!data) return null;
+
+        if (source === "global" && !game.user.isGM && !data.public) {
+            console.warn(`Visage | User ${game.user.name} attempted to apply private Global Visage ${maskId}`);
+            return null;
+        }
+
+        return { data, source };
+    }
+
+    /**
+     * Safely handles tearing down old layers and inserting the new one.
+     * @private
+     */
+    static async _prepareApplyStack(token, layer, options, currentStack) {
         let stack = foundry.utils.deepClone(currentStack);
         const updateFlags = {};
 
-        // --- Calculate the Matrix Diff ---
-        if (clearStack) {
-            if (Visage.sequencerReady) await VisageSequencer.revert(token);
-            if (VisageTokenMagic.isActive) await VisageTokenMagic.revert(token); // FIX 1: Wipe all TMFX on clearStack
-
-            stack = [];
+        // 1. Execute required teardowns
+        if (options.clearStack) {
+            stack = await this._handleClearStackTeardown(token);
             updateFlags[`flags.${DATA_NAMESPACE}.identity`] = layer.id;
-        } else if (switchIdentity) {
-            const currentIdentity = token.document.getFlag(DATA_NAMESPACE, "identity");
-            if (currentIdentity) {
-                const oldIdentityLayer = stack.find((l) => l.id === currentIdentity); // Capture the old layer data
-
-                stack = stack.filter((l) => l.id !== currentIdentity);
-                if (Visage.sequencerReady) await VisageSequencer.remove(token, currentIdentity, true);
-                if (VisageTokenMagic.isActive && oldIdentityLayer) await VisageTokenMagic.removeLayer(token, oldIdentityLayer);
-            }
+        } else if (options.switchIdentity) {
+            stack = await this._handleSwitchIdentityTeardown(token, stack);
             updateFlags[`flags.${DATA_NAMESPACE}.identity`] = layer.id;
         }
 
-        // If we are actively overwriting an existing Visage with the same ID, wipe its old TMFX state first
+        // 2. Wipe old TMFX state if overwriting an existing Visage with the exact same ID
         const overwrittenLayer = stack.find((l) => l.id === layer.id);
         if (overwrittenLayer && VisageTokenMagic.isActive) {
             await VisageTokenMagic.removeLayer(token, overwrittenLayer);
         }
 
+        // 3. Inject the new layer
         stack = stack.filter((l) => l.id !== layer.id);
-        if (switchIdentity) stack.unshift(layer);
+        if (options.switchIdentity) stack.unshift(layer);
         else stack.push(layer);
 
         updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
 
-        // Call the single source of truth
-        const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
+        return { stack, updateFlags };
+    }
 
-        const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor?.img);
+    /**
+     * Tears down all visual modifications on the token.
+     * @private
+     */
+    static async _handleClearStackTeardown(token) {
+        if (Visage.sequencerReady) await VisageSequencer.revert(token);
+        if (VisageTokenMagic.isActive) await VisageTokenMagic.revert(token);
+        return []; // Returns the new, empty stack
+    }
 
-        // 3. Define Orchestration Tasks
+    /**
+     * Tears down only the current active identity.
+     * @private
+     */
+    static async _handleSwitchIdentityTeardown(token, stack) {
+        const currentIdentity = token.document.getFlag(DATA_NAMESPACE, "identity");
+        if (!currentIdentity) return stack;
 
-        // Task A: Visual Effects
-        const runVisualFX = async () => {
-            if (!VisageUtilities.hasSequencer) return;
+        const oldIdentityLayer = stack.find((l) => l.id === currentIdentity);
+        const newStack = stack.filter((l) => l.id !== currentIdentity);
 
-            // Seamlessly realign existing layers if the token physically shifted
-            if (matrixChanged) {
-                for (const activeLayer of stack) {
-                    if (activeLayer.id === layer.id) continue;
-                    VisageSequencer.refreshMatrix(token, activeLayer.id, anticipatedState);
-                }
-            }
-
-            // --- Always call apply, even if there are no new effects. ---
-            // VisageSequencer.apply handles tearing down the old base layer internally
-            // before returning early if the new layer is empty.
-            const isBase = switchIdentity || clearStack;
-            await VisageSequencer.apply(token, layer, isBase, false, anticipatedState);
-        };
-
-        // Task B: Data Update (Simplified)
-        const runDataUpdate = async () => {
-            await token.document.update(updateFlags);
-            await VisageComposer.compose(token);
-
-            // Update Actor Portrait
-            if (targetPortrait && token.actor) {
-                if (token.actor.img !== targetPortrait) {
-                    await token.actor.update({ img: targetPortrait });
-                }
-            }
-        };
-
-        // Task C: Macro Execution
-        const runMacros = (offsetMS, activeFX) => {
-            const macros = activeFX.filter((e) => e.type === "macro" && e.uuid);
-
-            for (const macroEffect of macros) {
-                // Calculate true start time relative to the Zero Anchor
-                const trueDelayMS = (macroEffect.delay || 0) * 1000 + offsetMS;
-
-                setTimeout(async () => {
-                    try {
-                        const macroObj = await fromUuid(macroEffect.uuid);
-                        if (macroObj) {
-                            macroObj.execute({
-                                actor: token.actor,
-                                token: token.document,
-                                visage: data,
-                                action: "apply",
-                            });
-                        } else {
-                            ui.notifications.warn(
-                                game.i18n.format("VISAGE.Notifications.MacroNotFound", {
-                                    uuid: macroEffect.uuid,
-                                }),
-                            );
-                        }
-                    } catch (err) {
-                        console.error("Visage | Macro Execution Error:", err);
-                    }
-                }, trueDelayMS);
-            }
-        };
-
-        // Task D: Token Magic FX
-        const runTMFX = (offsetMS, activeFX) => {
-            if (!VisageTokenMagic.isActive) return;
-
-            const tmfxEffects = activeFX.filter((e) => e.type === "tmfx" && (e.tmfxPreset || e.tmfxPayload));
-
-            for (const effect of tmfxEffects) {
-                const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
-                setTimeout(() => {
-                    // Note: 'token' here is the Placeable Object (canvas.tokens.get), which TMFX requires
-                    VisageTokenMagic.applyEffect(token, layer.id, effect);
-                }, trueDelayMS);
-            }
-        };
-
-        // 4. Execute with Transition Timing
-
-        // Calculate the Token Swap Offset (Zero Anchor) based on the most negative effect delay
-        const activeEffects = (changes.effects || []).filter((e) => !e.disabled);
-        const minDelaySeconds = activeEffects.length ? Math.min(0, ...activeEffects.map((e) => e.delay || 0)) : 0;
-        const offsetMS = Math.abs(minDelaySeconds) * 1000;
-
-        // Visual and Audio effects natively handle their own start times (including positive delays)
-        // inside VisageSequencer, so we always fire them immediately.
-        runVisualFX();
-
-        // Macros and filters calculate their own relative start times against the anchor
-        runMacros(offsetMS, activeEffects);
-        runTMFX(offsetMS, activeEffects);
-
-        // Delay the actual token image/data swap if we have negative delays (pre-effects)
-        if (offsetMS > 0) {
-            setTimeout(async () => {
-                await runDataUpdate();
-                Hooks.callAll("visageApplied", token, data);
-            }, offsetMS);
-        } else {
-            await runDataUpdate();
-            Hooks.callAll("visageApplied", token, data);
+        if (Visage.sequencerReady) await VisageSequencer.remove(token, currentIdentity, true);
+        if (VisageTokenMagic.isActive && oldIdentityLayer) {
+            await VisageTokenMagic.removeLayer(token, oldIdentityLayer);
         }
 
-        return true;
+        return newStack;
+    }
+
+    static async _runVisualFX(token, layer, stack, matrixChanged, anticipatedState, isBase) {
+        if (!VisageUtilities.hasSequencer) return;
+
+        if (matrixChanged) {
+            for (const activeLayer of stack) {
+                if (activeLayer.id === layer.id) continue;
+                VisageSequencer.refreshMatrix(token, activeLayer.id, anticipatedState);
+            }
+        }
+        await VisageSequencer.apply(token, layer, isBase, false, anticipatedState);
+    }
+
+    static async _runDataUpdate(token, updateFlags, targetPortrait) {
+        await token.document.update(updateFlags);
+        await VisageComposer.compose(token);
+
+        if (targetPortrait && token.actor && token.actor.img !== targetPortrait) {
+            await token.actor.update({ img: targetPortrait });
+        }
+    }
+
+    static _runMacros(token, data, offsetMS, activeFX) {
+        const macros = activeFX.filter((e) => e.type === "macro" && e.uuid);
+
+        for (const macroEffect of macros) {
+            const trueDelayMS = (macroEffect.delay || 0) * 1000 + offsetMS;
+            setTimeout(async () => {
+                try {
+                    const macroObj = await fromUuid(macroEffect.uuid);
+                    if (macroObj) {
+                        macroObj.execute({
+                            actor: token.actor,
+                            token: token.document,
+                            visage: data,
+                            action: "apply",
+                        });
+                    } else {
+                        ui.notifications.warn(game.i18n.format("VISAGE.Notifications.MacroNotFound", { uuid: macroEffect.uuid }));
+                    }
+                } catch (err) {
+                    console.error("Visage | Macro Execution Error:", err);
+                }
+            }, trueDelayMS);
+        }
+    }
+
+    static _runTMFX(token, layerId, offsetMS, activeFX) {
+        if (!VisageTokenMagic.isActive) return;
+
+        const tmfxEffects = activeFX.filter((e) => e.type === "tmfx" && (e.tmfxPreset || e.tmfxPayload));
+        for (const effect of tmfxEffects) {
+            const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
+            setTimeout(() => {
+                VisageTokenMagic.applyEffect(token, layerId, effect);
+            }, trueDelayMS);
+        }
     }
 
     /**
      * Removes a specific Visage mask from a token.
-     * * @param {Token|string} tokenOrId - The target Token object or its ID.
+     * @param {Token|string} tokenOrId - The target Token object or its ID.
      * @param {string} maskId - The ID of the mask to remove.
      * @returns {Promise<boolean>} True if removed successfully, false if not found.
      */
@@ -301,17 +312,39 @@ export class Visage {
         const currentIdentity = token.document.getFlag(DATA_NAMESPACE, "identity");
         const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
-        let stack = foundry.utils.deepClone(currentStack);
-        const initialLength = stack.length;
-        stack = stack.filter((l) => l.id !== maskId);
-        if (stack.length === initialLength) return false;
+        // Safely extract the target from the stack
+        const stack = foundry.utils.deepClone(currentStack).filter((l) => l.id !== maskId);
+        if (stack.length === currentStack.length) return false; // Exit if nothing was actually removed
 
-        // Call the single source of truth
+        // 1. Calculate Deltas & Flags
         const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
+        const updateFlags = this._buildRemovalFlags(maskId, currentIdentity, stack);
 
+        // 2. Update Core Data
+        await token.document.update(updateFlags);
+        await VisageComposer.compose(token);
+
+        // 3. Tear down Visual/Shader Subsystems & Restore UI
+        await this._stopRemovedVisualFX(token, maskId, currentIdentity === maskId, matrixChanged, stack, anticipatedState);
+        await this._stopRemovedTMFX(token, maskId, currentStack);
+        await this._restorePortraitAfterRemoval(token, stack, originalState);
+
+        Hooks.callAll("visageRemoved", token, maskId);
+        return true;
+    }
+
+    // ==========================================
+    // REMOVE HELPER METHODS
+    // ==========================================
+
+    /**
+     * Builds the V14 deletion flags for removing a Visage.
+     * @private
+     */
+    static _buildRemovalFlags(maskId, currentIdentity, stack) {
         const updateFlags = {};
 
-        // Use V14 explicit deletion operators for atomic batch updates (Instantiate with 'new')
+        // Use V14 explicit deletion operators for atomic batch updates
         if (currentIdentity === maskId) {
             updateFlags[`flags.${DATA_NAMESPACE}.identity`] = new foundry.data.operators.ForcedDeletion();
         }
@@ -322,37 +355,48 @@ export class Visage {
             updateFlags[`flags.${DATA_NAMESPACE}.activeStack`] = stack;
         }
 
-        await token.document.update(updateFlags);
-        await VisageComposer.compose(token);
+        return updateFlags;
+    }
 
-        // Stop Visual Effects
-        const isBase = currentIdentity === maskId;
-        if (Visage.sequencerReady) {
-            await VisageSequencer.remove(token, maskId, isBase);
+    /**
+     * Halts Sequencer animations for a removed layer and realigns survivors.
+     * @private
+     */
+    static async _stopRemovedVisualFX(token, maskId, isBase, matrixChanged, stack, anticipatedState) {
+        if (!Visage.sequencerReady) return;
 
-            // --- Re-align survivors ---
-            if (matrixChanged && stack.length > 0) {
-                for (const activeLayer of stack) {
-                    VisageSequencer.refreshMatrix(token, activeLayer.id, anticipatedState);
-                }
+        await VisageSequencer.remove(token, maskId, isBase);
+
+        // Re-align survivors if the underlying physical frame changed
+        if (matrixChanged && stack.length > 0) {
+            for (const activeLayer of stack) {
+                VisageSequencer.refreshMatrix(token, activeLayer.id, anticipatedState);
             }
         }
+    }
 
-        // Stop Token Magic FX
-        if (VisageTokenMagic.isActive) {
-            const removedLayer = currentStack.find((l) => l.id === maskId);
-            if (removedLayer) await VisageTokenMagic.removeLayer(token, removedLayer);
+    /**
+     * Halts Token Magic FX for a removed layer.
+     * @private
+     */
+    static async _stopRemovedTMFX(token, maskId, currentStack) {
+        if (!VisageTokenMagic.isActive) return;
+
+        const removedLayer = currentStack.find((l) => l.id === maskId);
+        if (removedLayer) await VisageTokenMagic.removeLayer(token, removedLayer);
+    }
+
+    /**
+     * Restores the actor's portrait if necessary after removal.
+     * @private
+     */
+    static async _restorePortraitAfterRemoval(token, stack, originalState) {
+        if (!token.actor) return;
+
+        const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, originalState?.portrait);
+        if (targetPortrait && token.actor.img !== targetPortrait) {
+            await token.actor.update({ img: targetPortrait });
         }
-
-        if (token.actor) {
-            const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, originalState?.portrait);
-            if (targetPortrait && token.actor.img !== targetPortrait) {
-                await token.actor.update({ img: targetPortrait });
-            }
-        }
-
-        Hooks.callAll("visageRemoved", token, maskId);
-        return true;
     }
 
     /**
@@ -365,7 +409,6 @@ export class Visage {
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return;
 
-        // CACHE PORTRAIT BEFORE WIPE (Critical Fix)
         const flags = token.document.flags[MODULE_ID] || {};
         const originalPortrait = flags.originalState?.portrait;
 
@@ -475,8 +518,6 @@ export class Visage {
         }
     }
 
-    // [Add these methods to the Visage class]
-
     /**
      * Toggles the visibility of a specific layer in the stack.
      * This triggers a "Loud Update" (plays effects if turning ON).
@@ -492,41 +533,58 @@ export class Visage {
         const layer = stack.find((l) => l.id === layerId);
         if (!layer) return;
 
+        // 1. Toggle State & Compute Deltas
         layer.disabled = !layer.disabled;
         const isVisible = !layer.disabled;
-
-        // Call the single source of truth
         const { anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
 
+        // 2. Update Core Data
         await token.document.update({ [`flags.${DATA_NAMESPACE}.activeStack`]: stack });
         await VisageComposer.compose(token);
 
-        // 1. Handle Sequencer Animations
-        if (Visage.sequencerReady) {
-            if (matrixChanged) {
-                for (const activeLayer of stack) {
-                    if (activeLayer.id === layerId) {
-                        // If this is the layer being toggled ON, it needs a full apply
-                        if (isVisible) await VisageSequencer.apply(token, activeLayer, false, false, anticipatedState);
-                    } else {
-                        // All other surviving layers just get a matrix refresh
-                        VisageSequencer.refreshMatrix(token, activeLayer.id, anticipatedState);
-                    }
-                }
-                // If this is the layer being toggled OFF, remove it
-                if (!isVisible) await VisageSequencer.remove(token, layerId, false);
-            } else {
-                // Standard behavior if the physical matrix didn't change
-                if (isVisible) await VisageSequencer.apply(token, layer, false, false, anticipatedState);
-                else await VisageSequencer.remove(token, layerId, false);
-            }
+        // 3. Fire Subsystems
+        await this._toggleSequencerFX(token, layer, stack, isVisible, matrixChanged, anticipatedState);
+        await this._toggleTMFX(token, layer, isVisible);
+    }
+
+    // ==========================================
+    // TOGGLE HELPER METHODS
+    // ==========================================
+
+    /**
+     * Handles starting/stopping Sequencer animations for a toggled layer,
+     * and realigning survivors if the matrix shifted.
+     * @private
+     */
+    static async _toggleSequencerFX(token, layer, stack, isVisible, matrixChanged, anticipatedState) {
+        if (!Visage.sequencerReady) return;
+
+        // 1. Handle the targeted layer
+        if (isVisible) {
+            await VisageSequencer.apply(token, layer, false, false, anticipatedState);
+        } else {
+            await VisageSequencer.remove(token, layer.id, false);
         }
 
-        // 2. Handle Token Magic FX Filters
-        if (VisageTokenMagic.isActive) {
-            if (isVisible) await VisageTokenMagic.applyLayer(token, layer);
-            else await VisageTokenMagic.removeLayer(token, layer);
+        // 2. Re-align the OTHER layers if the physical token frame changed
+        if (matrixChanged) {
+            for (const activeLayer of stack) {
+                if (activeLayer.id !== layer.id) {
+                    VisageSequencer.refreshMatrix(token, activeLayer.id, anticipatedState);
+                }
+            }
         }
+    }
+
+    /**
+     * Handles applying or removing Token Magic FX for a toggled layer.
+     * @private
+     */
+    static async _toggleTMFX(token, layer, isVisible) {
+        if (!VisageTokenMagic.isActive) return;
+
+        if (isVisible) await VisageTokenMagic.applyLayer(token, layer);
+        else await VisageTokenMagic.removeLayer(token, layer);
     }
 
     /**

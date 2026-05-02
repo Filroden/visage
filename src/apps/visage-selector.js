@@ -66,7 +66,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
      * Prepares the data context for the HUD.
      * Fetches Local Visages AND Public Global Visages.
      */
-    async _prepareContext(options) {
+    async _prepareContext(_options) {
         // 1. Resolve Entities (Start from Token)
         const token = canvas.tokens.get(this.tokenId);
         if (!token?.actor) return { identities: [], overlays: [] };
@@ -279,7 +279,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    _onRender(context, options) {
+    _onRender(_context, _options) {
         // Theme Application
         VisageUtilities.applyVisageTheme(this.element, "local");
 
@@ -325,7 +325,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     /* Event Listeners                             */
     /* -------------------------------------------- */
 
-    _onToggleGlobal(event, target) {
+    _onToggleGlobal(_event, _target) {
         this.showPublic = !this.showPublic;
         VisageSelector.showPublic = this.showPublic;
 
@@ -340,7 +340,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         this.render();
     }
 
-    async _onTogglePin(event, target) {
+    async _onTogglePin(_event, _target) {
         // 1. Capture physical screen coordinates
         const rect = this.element.getBoundingClientRect();
         const isBecomingWindow = !this.isWindowMode;
@@ -432,7 +432,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    _onOpenConfig(event, target) {
+    _onOpenConfig(_event, _target) {
         const appId = `visage-gallery-${this.actorId}-${this.tokenId}`;
         const existingApp = Object.values(ui.windows).find((app) => app.id === appId);
 
@@ -450,7 +450,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     // Delegated to Controller
-    async _onRevertGlobal(event, target) {
+    async _onRevertGlobal(_event, _target) {
         await VisageStackController.revertGlobal(this.tokenId);
     }
 

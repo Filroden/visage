@@ -1,5 +1,4 @@
 import { VisageUtilities } from "../../utils/visage-utilities.js";
-import { MODULE_ID } from "../../core/visage-constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -10,8 +9,8 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(ApplicationV
         this.editor = options.editor;
 
         // Define the viewport time range (e.g., -3 seconds to +5 seconds)
-        this.timeMin = -3.0;
-        this.timeMax = 5.0;
+        this.timeMin = -3;
+        this.timeMax = 5;
         this.duration = this.timeMax - this.timeMin;
 
         // Constants for Swimlane Calculation
@@ -62,8 +61,11 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(ApplicationV
         // Calculate Rulers (Every 1 second)
         const ticks = [];
         for (let t = Math.ceil(this.timeMin); t <= Math.floor(this.timeMax); t++) {
+            let tickLabel = `${t}.0s`;
+            if (t > 0) tickLabel = `+${t}.0s`;
+
             ticks.push({
-                label: t === 0 ? "0.0s" : `${t > 0 ? "+" : ""}${t}.0s`,
+                label: tickLabel,
                 position: this._timeToPercent(t),
                 isZero: t === 0,
             });
@@ -136,7 +138,7 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(ApplicationV
     /**
      * Binds the custom 1D Drag Logic to the blocks.
      */
-    _onRender(context, options) {
+    _onRender(_context, _options) {
         // Inherit theme from parent Editor
         VisageUtilities.applyVisageTheme(this.element, this.editor?.isLocal);
 
@@ -182,10 +184,10 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(ApplicationV
         };
 
         const onDrop = async () => {
-            window.removeEventListener("pointermove", onMove);
-            window.removeEventListener("pointerup", onDrop);
+            globalThis.removeEventListener("pointermove", onMove);
+            globalThis.removeEventListener("pointerup", onDrop);
 
-            const finalDelay = parseFloat(block.dataset.tempDelay ?? startDelay);
+            const finalDelay = Number.parseFloat(block.dataset.tempDelay ?? startDelay);
 
             if (finalDelay !== startDelay) {
                 if (!this.editor._preservedData) this.editor._preservedData = {};
@@ -218,7 +220,7 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(ApplicationV
             }
         };
 
-        window.addEventListener("pointermove", onMove);
-        window.addEventListener("pointerup", onDrop);
+        globalThis.addEventListener("pointermove", onMove);
+        globalThis.addEventListener("pointerup", onDrop);
     }
 }

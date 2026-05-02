@@ -92,7 +92,7 @@ export class VisageAutomation {
     // OBSERVATION HOOKS
     // ==========================================
 
-    static _onUpdateActor(actor, changes, options, userId) {
+    static _onUpdateActor(actor, _changes, _options, _userId) {
         // 1. Handle Unlinked Tokens
         if (actor.isToken) {
             const tokenDoc = actor.token;
@@ -110,9 +110,9 @@ export class VisageAutomation {
         }
     }
 
-    static _onStatusChange(effect, options, userId) {
+    static _onStatusChange(effect, _options, _userId) {
         const actor = effect.parent?.documentName === "Item" ? effect.parent.parent : effect.parent;
-        if (!actor || actor.documentName !== "Actor") return;
+        if (actor?.documentName !== "Actor") return;
 
         if (actor.isToken) {
             // Unlinked Token
@@ -128,14 +128,14 @@ export class VisageAutomation {
         }
     }
 
-    static _onCombatChange(combat, changes, options, userId) {
-        for (const [tokenId, record] of this._registry.entries()) {
+    static _onCombatChange(_combat, _changes, _options, _userId) {
+        for (const tokenId of this._registry.entries()) {
             const token = canvas.tokens.get(tokenId);
             if (token) this._queueEvaluation(token.document);
         }
     }
 
-    static _onUpdateToken(tokenDoc, changes, options, userId) {
+    static _onUpdateToken(tokenDoc, changes, _options, _userId) {
         if (!this._registry.has(tokenDoc.id)) return;
 
         // 1. Throttle: Spatial changes AND Unlinked Token attribute changes
@@ -150,7 +150,7 @@ export class VisageAutomation {
         // Safely extract the IDs of the Regions the token is currently standing in
         const currentRegionIds = Array.from(tokenDoc.regions || [])
             .map((r) => r.id)
-            .sort()
+            .sort((a, b) => a.localeCompare(b))
             .join(",");
 
         // Retrieve the last known regions from our registry (or initialise it to current)
@@ -170,7 +170,7 @@ export class VisageAutomation {
         this._queueEvaluation(tokenDoc);
     }
 
-    static _onTargetToken(user, token, targeted) {
+    static _onTargetToken(_user, token, _targeted) {
         if (this._registry.has(token.id)) {
             this._queueEvaluation(token.document);
         }
@@ -194,7 +194,7 @@ export class VisageAutomation {
         }
     }
 
-    static _onUpdateWorldTime(worldTime, dt) {
+    static _onUpdateWorldTime(worldTime, _dt) {
         const currentMinute = Math.floor(worldTime / 60);
         if (this._lastEvaluatedMinute === currentMinute) return;
 
@@ -247,88 +247,97 @@ export class VisageAutomation {
 
         const actor = token.actor;
         const VisageApi = game.modules.get(MODULE_ID).api;
-
-        // The transition queue for this evaluation cycle
         const queue = { apply: [], remove: [] };
 
+        // 1. Build the Transition Queue
         for (const visage of record.visages) {
-            const auto = visage.automation;
+            const hasMetConditions = this._checkConditions(actor, token, visage.automation);
+            if (hasMetConditions === null) continue; // Skip if no valid conditions exist
 
-            // 1. Resolve conditions
-            let results = [];
-            for (const cond of auto.conditions) {
-                if (cond.disabled) continue;
-                if (cond.type === "attribute") results.push(this._evalAttribute(actor, cond));
-                else if (cond.type === "status") results.push(this._evalStatus(actor, cond));
-                else if (cond.type === "event") results.push(this._evalEvent(token, cond));
-            }
-
-            if (results.length === 0) continue;
-
-            // 2. Apply Logic (AND / OR)
-            const isTrue = auto.logic === "AND" ? results.every((r) => r === true) : results.some((r) => r === true);
-
-            // 3. True Declarative State Check
-            // We bypass the fragile in-memory cache and check the exact canvas state!
             const isActive = await VisageApi.isActive(token.id, visage.id);
-
-            if (isTrue && !isActive) {
-                // Condition met, but visage missing -> Apply
-                const action = auto.onEnter?.action || "apply";
-                if (queue[action]) queue[action].push(visage);
-            } else if (!isTrue && isActive) {
-                // Condition failed, but visage present -> Remove
-                const action = auto.onExit?.action || "remove";
-                if (queue[action]) queue[action].push(visage);
-            } else if (isTrue && isActive && visage.mode === "identity") {
-                // Self-Healing Identity Rule
-                const action = auto.onEnter?.action || "apply";
-                if (action === "apply" && queue.apply) queue.apply.push(visage);
-            }
+            this._routeToQueue(queue, visage, hasMetConditions, isActive);
         }
 
-        // 4. Process the Queue (Removals first)
+        // 2. Process Removals First
         for (const visage of queue.remove) {
-            const isActive = await VisageApi.isActive(token.id, visage.id);
-            if (isActive) await VisageApi.remove(token.id, visage.id);
+            if (await VisageApi.isActive(token.id, visage.id)) {
+                await VisageApi.remove(token.id, visage.id);
+            }
         }
 
-        // 5. Prioritise and Process Applies
+        // 3. Process Applies (Handling Priorities and Highlander Rule)
         if (queue.apply.length > 0) {
-            // SCENARIO 1: Identity Highlander Rule
             const identities = queue.apply.filter((v) => v.mode === "identity");
-            let winningIdentity = null;
-            if (identities.length > 0) {
-                winningIdentity = identities.reduce((prev, curr) => {
-                    const prevPri = prev.automation.onEnter?.priority || 0;
-                    const currPri = curr.automation.onEnter?.priority || 0;
-                    if (prevPri === currPri) {
-                        return prev.id.localeCompare(curr.id) > 0 ? prev : curr;
-                    }
-                    return prevPri > currPri ? prev : curr;
-                });
-            }
+            const overlays = queue.apply.filter((v) => v.mode !== "identity");
 
-            // SCENARIO 2: Overlay Sorting (Ascending)
-            const overlays = queue.apply
-                .filter((v) => v.mode !== "identity")
-                .sort((a, b) => {
-                    const priA = a.automation.onEnter?.priority || 0;
-                    const priB = b.automation.onEnter?.priority || 0;
-                    if (priA === priB) {
-                        return a.id.localeCompare(b.id);
-                    }
-                    return priA - priB;
-                });
-
-            // Combine winners
-            const finalApplies = winningIdentity ? [winningIdentity, ...overlays] : overlays;
+            const winningIdentity = this._resolveWinningIdentity(identities);
+            const sortedOverlays = this._sortOverlays(overlays);
+            const finalApplies = winningIdentity ? [winningIdentity, ...sortedOverlays] : sortedOverlays;
 
             for (const visage of finalApplies) {
-                const isActive = await VisageApi.isActive(token.id, visage.id);
-                if (!isActive) await VisageApi.apply(token.id, visage.id);
+                if (!(await VisageApi.isActive(token.id, visage.id))) {
+                    await VisageApi.apply(token.id, visage.id);
+                }
             }
         }
+    }
+
+    /**
+     * Checks if a visage's conditions are met. Returns null if no valid conditions exist.
+     */
+    static _checkConditions(actor, token, auto) {
+        const results = [];
+        for (const cond of auto.conditions) {
+            if (cond.disabled) continue;
+            if (cond.type === "attribute") results.push(this._evalAttribute(actor, cond));
+            else if (cond.type === "status") results.push(this._evalStatus(actor, cond));
+            else if (cond.type === "event") results.push(this._evalEvent(token, cond));
+        }
+
+        if (results.length === 0) return null;
+        return auto.logic === "AND" ? results.every(Boolean) : results.some(Boolean);
+    }
+
+    /**
+     * Routes a visage to the correct transition queue based on its state and conditions.
+     */
+    static _routeToQueue(queue, visage, isTrue, isActive) {
+        const auto = visage.automation;
+        if (isTrue && !isActive) {
+            const action = auto.onEnter?.action || "apply";
+            if (queue[action]) queue[action].push(visage);
+        } else if (!isTrue && isActive) {
+            const action = auto.onExit?.action || "remove";
+            if (queue[action]) queue[action].push(visage);
+        } else if (isTrue && isActive && visage.mode === "identity") {
+            const action = auto.onEnter?.action || "apply";
+            if (action === "apply" && queue.apply) queue.apply.push(visage);
+        }
+    }
+
+    /**
+     * Resolves the "Highlander Rule" to find the highest priority Identity.
+     */
+    static _resolveWinningIdentity(identities) {
+        if (identities.length === 0) return null;
+        return identities.reduce((prev, curr) => {
+            const prevPri = prev.automation.onEnter?.priority || 0;
+            const currPri = curr.automation.onEnter?.priority || 0;
+            if (prevPri === currPri) return prev.id.localeCompare(curr.id) > 0 ? prev : curr;
+            return prevPri > currPri ? prev : curr;
+        });
+    }
+
+    /**
+     * Sorts overlays by their application priority.
+     */
+    static _sortOverlays(overlays) {
+        return overlays.sort((a, b) => {
+            const priA = a.automation.onEnter?.priority || 0;
+            const priB = b.automation.onEnter?.priority || 0;
+            if (priA === priB) return a.id.localeCompare(b.id);
+            return priA - priB;
+        });
     }
 
     // -- Logic Resolvers --
@@ -344,45 +353,57 @@ export class VisageAutomation {
 
         // 1. Fetch the raw value using Foundry's native getProperty
         const rawVal = foundry.utils.getProperty(actor, condition.path);
-
         if (rawVal === undefined || rawVal === null) return false;
 
-        // -- BOOLEAN LOGIC --
-        if (condition.dataType === "boolean") {
-            const checkVal = Boolean(rawVal);
-            const targetVal = String(condition.value) === "true"; // Safely cast to bool
+        // 2. Route to the appropriate data type evaluator
+        if (condition.dataType === "boolean") return this._evalBooleanAttribute(rawVal, condition);
+        if (condition.dataType === "string") return this._evalStringAttribute(rawVal, condition);
 
-            if (condition.operator === "eq") return checkVal === targetVal;
-            if (condition.operator === "neq") return checkVal !== targetVal;
-            return false;
-        }
+        // Default to Number logic
+        return this._evalNumberAttribute(rawVal, condition, actor);
+    }
 
-        // -- STRING LOGIC --
-        if (condition.dataType === "string") {
-            // Convert both to lowercase for case-insensitive matching
-            const checkVal = String(rawVal).toLowerCase();
-            const targetVal = String(condition.value).toLowerCase();
+    /**
+     * Evaluates a Boolean attribute condition.
+     */
+    static _evalBooleanAttribute(rawVal, condition) {
+        const checkVal = Boolean(rawVal);
+        const targetVal = String(condition.value) === "true"; // Safely cast to bool
 
-            if (condition.operator === "eq") return checkVal === targetVal;
-            if (condition.operator === "neq") return checkVal !== targetVal;
-            if (condition.operator === "includes") return checkVal.includes(targetVal);
-            return false;
-        }
+        if (condition.operator === "eq") return checkVal === targetVal;
+        if (condition.operator === "neq") return checkVal !== targetVal;
+        return false;
+    }
 
-        // -- NUMBER LOGIC (Default) --
+    /**
+     * Evaluates a String attribute condition.
+     */
+    static _evalStringAttribute(rawVal, condition) {
+        const checkVal = String(rawVal).toLowerCase();
+        const targetVal = String(condition.value).toLowerCase();
+
+        if (condition.operator === "eq") return checkVal === targetVal;
+        if (condition.operator === "neq") return checkVal !== targetVal;
+        if (condition.operator === "includes") return checkVal.includes(targetVal);
+        return false;
+    }
+
+    /**
+     * Evaluates a Number attribute condition (including percentages).
+     */
+    static _evalNumberAttribute(rawVal, condition, actor) {
         let checkVal = Number(rawVal);
-        let targetVal = Number(condition.value);
+        const targetVal = Number(condition.value);
 
-        // Safety check: Ensure we are comparing numbers
-        if (isNaN(checkVal) || isNaN(targetVal)) return false;
+        if (Number.isNaN(checkVal) || Number.isNaN(targetVal)) return false;
 
-        // 2. Handle Percentage Calculations
+        // Handle Percentage Calculations
         if (condition.mode === "percent") {
             const maxPath = condition.denominatorPath || condition.path.replace(/\.value$/, ".max");
             const maxVal = foundry.utils.getProperty(actor, maxPath);
             const numMaxVal = Number(maxVal);
 
-            if (!isNaN(numMaxVal) && numMaxVal > 0) {
+            if (!Number.isNaN(numMaxVal) && numMaxVal > 0) {
                 checkVal = (checkVal / numMaxVal) * 100;
             } else {
                 console.warn(`Visage | Cannot calculate percentage for ${condition.path} - no valid max found at ${maxPath}`);
@@ -390,7 +411,7 @@ export class VisageAutomation {
             }
         }
 
-        // 3. Evaluate the Operator
+        // Evaluate the Operator
         switch (condition.operator) {
             case "lte":
                 return checkVal <= targetVal;
@@ -454,115 +475,119 @@ export class VisageAutomation {
      */
     static _evalEvent(token, condition) {
         switch (condition.eventId) {
-            case "combat": {
-                const isActive = game.combats.some((c) => c.started && c.combatants.some((cb) => cb.tokenId === token.id));
-                return condition.operator === "active" ? isActive : !isActive;
-            }
-
-            case "targeted": {
-                // A token is targeted if any user has a targeting reticle on it
-                const isActive = token.targeted.size > 0;
-                return condition.operator === "active" ? isActive : !isActive;
-            }
-
-            case "facing": {
-                if (condition.startAngle === undefined || condition.endAngle === undefined) return false;
-
-                // Normalize any angle into a clean 0-359 range
-                const currentAngle = ((token.document.rotation % 360) + 360) % 360;
-
-                const startAngle = Number(condition.startAngle) || 0;
-                const endAngle = Number(condition.endAngle) || 0;
-
-                // Wrap-around logic for passing the 0-degree mark
-                const isBetween = startAngle <= endAngle ? currentAngle >= startAngle && currentAngle <= endAngle : currentAngle >= startAngle || currentAngle <= endAngle;
-
-                return condition.operator === "active" ? isBetween : !isBetween;
-            }
-
-            case "elevation": {
-                // Round to 2 decimal places to eliminate floating-point dust
-                // Converts a 'null' deletion state into 0
-                const el = Math.round(Number(token.document.elevation ?? 0) * 100) / 100;
-                const val = Math.round(Number(condition.value ?? 0) * 100) / 100;
-
-                if (condition.operator === "gt") return el > val;
-                if (condition.operator === "gte") return el >= val;
-                if (condition.operator === "lt") return el < val;
-                if (condition.operator === "lte") return el <= val;
-                if (condition.operator === "neq") return el !== val;
-                return el === val;
-            }
-
-            case "globalLight": {
-                const env = canvas.scene?.environment;
-                let isLit = false;
-                if (env && env.globalLight?.enabled) {
-                    const dark = env.darknessLevel || 0;
-                    const min = env.globalLight.darkness?.min ?? 0;
-                    const max = env.globalLight.darkness?.max ?? 1;
-                    isLit = dark >= min && dark <= max;
-                }
-                return condition.operator === "active" ? isLit : !isLit;
-            }
-
-            case "darkness": {
-                // Round to 2 decimal places to eliminate floating-point dust from gradual lighting transitions
-                const dark = Math.round(Number(canvas.scene?.environment?.darknessLevel ?? 0) * 100) / 100;
-                const val = Math.round(Number(condition.value ?? 0) * 100) / 100;
-
-                if (condition.operator === "gt") return dark > val;
-                if (condition.operator === "gte") return dark >= val;
-                if (condition.operator === "lt") return dark < val;
-                if (condition.operator === "lte") return dark <= val;
-                if (condition.operator === "neq") return dark !== val;
-                return dark === val;
-            }
-
-            case "region": {
-                if (!condition.regionId) return false;
-                const regionSet = token.document?.regions || [];
-                const inRegion = Array.from(regionSet).some((r) => r.id === condition.regionId || r.name === condition.regionId);
-                return condition.operator === "active" ? inRegion : !inRegion;
-            }
-
-            case "time": {
-                if (!condition.startTime || !condition.endTime) return false;
-
-                const hoursPerDay = game.settings.get(MODULE_ID, "hoursPerDay");
-                const minsPerHour = game.settings.get(MODULE_ID, "minutesPerHour");
-                const secsPerDay = hoursPerDay * minsPerHour * 60;
-
-                // Isolate the current time of day in seconds
-                const timeOfDay = game.time.worldTime % secsPerDay;
-
-                // Helper to convert the string "HH:MM" into seconds
-                const toSecs = (timeStr) => {
-                    const [h, m] = timeStr.split(":").map(Number);
-                    return h * minsPerHour * 60 + m * 60;
-                };
-
-                const startSecs = toSecs(condition.startTime);
-                const endSecs = toSecs(condition.endTime);
-
-                // If start is greater than end (e.g. 20:00 to 06:00), we use OR logic to span midnight
-                const isBetween = startSecs <= endSecs ? timeOfDay >= startSecs && timeOfDay < endSecs : timeOfDay >= startSecs || timeOfDay < endSecs;
-
-                return condition.operator === "active" ? isBetween : !isBetween;
-            }
-
-            case "weather": {
-                const targetWeather = condition.customWeather || condition.weatherId;
-                if (!targetWeather) return false;
-
-                const currentWeather = canvas.scene?.weather || "";
-                const isMatch = currentWeather === targetWeather;
-
-                return condition.operator === "active" ? isMatch : !isMatch;
-            }
-
+            case "combat":
+                return this._evalCombatEvent(token, condition);
+            case "targeted":
+                return this._evalTargetedEvent(token, condition);
+            case "facing":
+                return this._evalFacingEvent(token, condition);
+            case "elevation":
+                return this._evalElevationEvent(token, condition);
+            case "globalLight":
+                return this._evalGlobalLightEvent(condition);
+            case "darkness":
+                return this._evalDarknessEvent(condition);
+            case "region":
+                return this._evalRegionEvent(token, condition);
+            case "time":
+                return this._evalTimeEvent(condition);
+            case "weather":
+                return this._evalWeatherEvent(condition);
             default:
                 return false;
         }
+    }
+
+    // -- Event Logic Helpers --
+
+    static _evalCombatEvent(token, condition) {
+        const isActive = game.combats.some((c) => c.started && c.combatants.some((cb) => cb.tokenId === token.id));
+        return condition.operator === "active" ? isActive : !isActive;
+    }
+
+    static _evalTargetedEvent(token, condition) {
+        const isActive = token.targeted.size > 0;
+        return condition.operator === "active" ? isActive : !isActive;
+    }
+
+    static _evalFacingEvent(token, condition) {
+        if (condition.startAngle === undefined || condition.endAngle === undefined) return false;
+
+        const currentAngle = ((token.document.rotation % 360) + 360) % 360;
+        const startAngle = Number(condition.startAngle) || 0;
+        const endAngle = Number(condition.endAngle) || 0;
+
+        const isBetween = startAngle <= endAngle ? currentAngle >= startAngle && currentAngle <= endAngle : currentAngle >= startAngle || currentAngle <= endAngle;
+
+        return condition.operator === "active" ? isBetween : !isBetween;
+    }
+
+    static _evalGlobalLightEvent(condition) {
+        const env = canvas.scene?.environment;
+        let isLit = false;
+        if (env?.globalLight?.enabled) {
+            const dark = env.darknessLevel || 0;
+            const min = env.globalLight.darkness?.min ?? 0;
+            const max = env.globalLight.darkness?.max ?? 1;
+            isLit = dark >= min && dark <= max;
+        }
+        return condition.operator === "active" ? isLit : !isLit;
+    }
+
+    static _evalRegionEvent(token, condition) {
+        if (!condition.regionId) return false;
+        const regionSet = token.document?.regions || [];
+        const inRegion = Array.from(regionSet).some((r) => r.id === condition.regionId || r.name === condition.regionId);
+        return condition.operator === "active" ? inRegion : !inRegion;
+    }
+
+    static _evalTimeEvent(condition) {
+        if (!condition.startTime || !condition.endTime) return false;
+
+        const hoursPerDay = game.settings.get(MODULE_ID, "hoursPerDay");
+        const minsPerHour = game.settings.get(MODULE_ID, "minutesPerHour");
+        const secsPerDay = hoursPerDay * minsPerHour * 60;
+
+        const timeOfDay = game.time.worldTime % secsPerDay;
+        const toSecs = (timeStr) => {
+            const [h, m] = timeStr.split(":").map(Number);
+            return h * minsPerHour * 60 + m * 60;
+        };
+
+        const startSecs = toSecs(condition.startTime);
+        const endSecs = toSecs(condition.endTime);
+
+        const isBetween = startSecs <= endSecs ? timeOfDay >= startSecs && timeOfDay < endSecs : timeOfDay >= startSecs || timeOfDay < endSecs;
+
+        return condition.operator === "active" ? isBetween : !isBetween;
+    }
+
+    static _evalWeatherEvent(condition) {
+        const targetWeather = condition.customWeather || condition.weatherId;
+        if (!targetWeather) return false;
+        const isMatch = (canvas.scene?.weather || "") === targetWeather;
+        return condition.operator === "active" ? isMatch : !isMatch;
+    }
+
+    // -- Numeric Comparison Utility --
+    static _compareNumericEvent(valA, valB, operator) {
+        if (operator === "gt") return valA > valB;
+        if (operator === "gte") return valA >= valB;
+        if (operator === "lt") return valA < valB;
+        if (operator === "lte") return valA <= valB;
+        if (operator === "neq") return valA !== valB;
+        return valA === valB; // eq
+    }
+
+    static _evalElevationEvent(token, condition) {
+        const el = Math.round(Number(token.document.elevation ?? 0) * 100) / 100;
+        const val = Math.round(Number(condition.value ?? 0) * 100) / 100;
+        return this._compareNumericEvent(el, val, condition.operator);
+    }
+
+    static _evalDarknessEvent(condition) {
+        const dark = Math.round(Number(canvas.scene?.environment?.darknessLevel ?? 0) * 100) / 100;
+        const val = Math.round(Number(condition.value ?? 0) * 100) / 100;
+        return this._compareNumericEvent(dark, val, condition.operator);
     }
 }

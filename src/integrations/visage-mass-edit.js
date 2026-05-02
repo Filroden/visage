@@ -20,7 +20,7 @@ export class VisageMassEdit {
     /**
      * Intercepts Mass Edit rendering. Prompts GM to revert tokens to protect base data.
      */
-    static async _onRenderMassEdit(app, html, data) {
+    static async _onRenderMassEdit(app, _html, _data) {
         const isMassEdit = app.constructor.name.includes("Mass") || app.options?.id?.includes("mass");
         if (!isMassEdit) return;
 
@@ -123,7 +123,7 @@ export class VisageMassEdit {
     /**
      * Intercepts Mass Edit closing. Prompts GM to restore the removed Visages.
      */
-    static async _onCloseMassEdit(app, html) {
+    static async _onCloseMassEdit(app, _html) {
         const isMassEdit = app.constructor.name.includes("Mass") || app.options?.id?.includes("mass");
         if (!isMassEdit) return;
 

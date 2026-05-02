@@ -26,7 +26,6 @@ export class VisageSequencer {
     static async apply(token, layer, isBaseLayer = false, isRestore = false, anticipatedState = null) {
         if (!VisageUtilities.hasSequencer) return;
 
-        // Safely check for the new key, falling back to the old key for tokens already active on the canvas
         const effects = layer.changes?.effects || [];
         const tag = isBaseLayer ? "visage-base" : `visage-mask-${layer.id}`;
 
@@ -35,6 +34,7 @@ export class VisageSequencer {
 
         if (layer.disabled || !effects.length) return;
 
+        // 2. Filter Effects
         let visuals = effects.filter((e) => e.type === "visual" && !e.disabled);
         let audios = effects.filter((e) => e.type === "audio" && !e.disabled);
 
@@ -43,70 +43,69 @@ export class VisageSequencer {
             audios = audios.filter((e) => (e.loop ?? true) === true);
         }
 
-        // --- THE ZERO ANCHOR MATH ---
-        // Find the most negative delay across all active effects. If none are negative, offset is 0.
+        // 3. The Zero Anchor Math
         const allActive = [...visuals, ...audios];
         const minDelaySeconds = Math.min(0, ...allActive.map((e) => e.delay || 0));
         const offsetMS = Math.abs(minDelaySeconds) * 1000;
 
-        // --- Anticipated State Resolution ---
-        // If the state wasn't passed down the pipeline (e.g., during a restore), calculate it from live flags.
+        // 4. Anticipated State Resolution
         if (!anticipatedState) {
             const stack = token.document?.getFlag("visage", "activeStack") || [];
             const originalState = token.document?.getFlag("visage", "originalState") || {};
             anticipatedState = VisageComposer.resolveTextureState(stack, originalState);
         }
 
-        // --- A. VISUALS (Sequencer) ---
-        if (visuals.length > 0) {
-            try {
-                const sequence = new Sequence();
-                let hasVisuals = false;
+        // 5. Fire Subsystems
+        this._playVisualEffects(token, visuals, tag, offsetMS, anticipatedState, layer.id);
+        if (audios.length > 0) this._playAudioEffects(token, audios, tag, offsetMS);
+    }
 
-                for (const effect of visuals) {
-                    const path = this._resolveEffectPath(effect.path);
-                    if (!path || typeof path !== "string") continue;
+    /**
+     * Builds and plays the visual Sequence for a layer.
+     * @private
+     */
+    static _playVisualEffects(token, visuals, tag, offsetMS, anticipatedState, layerId) {
+        if (visuals.length === 0) return;
 
-                    const isLoop = effect.loop ?? true;
-                    const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
-                    const effectScale = effect.scale ?? 1.0;
+        try {
+            const sequence = new Sequence();
+            let hasVisuals = false;
 
-                    // --- Dampen the anchor shift based on effect scale ---
-                    const anchorData = this._calculateDampenedAnchor(anticipatedState, effectScale);
+            for (const effect of visuals) {
+                const path = this._resolveEffectPath(effect.path);
+                if (!path || typeof path !== "string") continue;
 
-                    let seqEffect = sequence
-                        .effect()
-                        .file(path)
-                        .attachTo(token)
-                        .scaleToObject(effectScale, { considerTokenScale: true })
-                        .anchor({ x: anchorData.x, y: anchorData.y })
-                        .mirrorX(anchorData.flipX)
-                        .mirrorY(anchorData.flipY)
-                        .opacity(effect.opacity ?? 1.0)
-                        .rotate(effect.rotation ?? 0)
-                        .belowTokens(effect.zOrder === "below")
-                        .delay(trueDelayMS)
-                        .name(`${tag}|${effect.id}`)
-                        .origin(layer.id);
+                const isLoop = effect.loop ?? true;
+                const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
+                const effectScale = effect.scale ?? 1;
 
-                    if (isLoop) {
-                        seqEffect.duration(31536000000);
-                    } else {
-                        seqEffect.missed(false);
-                    }
-                    hasVisuals = true;
-                }
+                // --- Dampen the anchor shift based on effect scale ---
+                const anchorData = this._calculateDampenedAnchor(anticipatedState, effectScale);
 
-                if (hasVisuals) sequence.play();
-            } catch (err) {
-                console.error("Visage | Visual Effect Error:", err);
+                const seqEffect = sequence
+                    .effect()
+                    .file(path)
+                    .attachTo(token)
+                    .scaleToObject(effectScale, { considerTokenScale: true })
+                    .anchor({ x: anchorData.x, y: anchorData.y })
+                    .mirrorX(anchorData.flipX)
+                    .mirrorY(anchorData.flipY)
+                    .opacity(effect.opacity ?? 1)
+                    .rotate(effect.rotation ?? 0)
+                    .belowTokens(effect.zOrder === "below")
+                    .delay(trueDelayMS)
+                    .name(`${tag}|${effect.id}`)
+                    .origin(layerId);
+
+                if (isLoop) seqEffect.duration(31536000000);
+                else seqEffect.missed(false);
+
+                hasVisuals = true;
             }
-        }
 
-        // --- B. AUDIO (AudioHelper) ---
-        if (audios.length > 0) {
-            // Pass the calculated offset down to the audio processor
-            this._playAudioEffects(token, audios, tag, offsetMS);
+            if (hasVisuals) sequence.play();
+        } catch (err) {
+            console.error("Visage | Visual Effect Error:", err);
         }
     }
 
@@ -160,8 +159,8 @@ export class VisageSequencer {
                     object: token,
                     name: `${tag}*`,
                 });
-            } catch (e) {
-                /* Ignore */
+            } catch (err) {
+                console.debug(`Visage | Silently ignoring error during Sequencer effect removal for ${tag}.`, err);
             }
         }
 
@@ -204,56 +203,80 @@ export class VisageSequencer {
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         const tokenId = typeof tokenOrId === "string" ? tokenOrId : tokenOrId?.id;
 
-        // 1. Kill Visuals
-        if (token) {
-            try {
-                await Sequencer.EffectManager.endEffects({
-                    object: token,
-                    name: "visage-base*",
-                });
-                const effects = Sequencer.EffectManager.getEffects({
-                    object: token,
-                });
-                const targets = effects.filter((e) => e.data.name && e.data.name.startsWith("visage-mask-"));
-                for (const effect of targets) {
-                    await Sequencer.EffectManager.endEffects({
-                        object: token,
-                        name: effect.data.name,
-                    });
+        await this._revertVisuals(token);
+        this._revertAudio(tokenId);
+        await this._revertLegacyFlags(token);
+    }
+
+    // ==========================================
+    // REVERT HELPER METHODS
+    // ==========================================
+
+    /**
+     * Clears all Sequencer visual effects for a token.
+     * @private
+     */
+    static async _revertVisuals(token) {
+        if (!token) return;
+        try {
+            await Sequencer.EffectManager.endEffects({ object: token, name: "visage-base*" });
+
+            const effects = Sequencer.EffectManager.getEffects({ object: token });
+            const targets = effects.filter((e) => e.data.name?.startsWith("visage-mask-"));
+
+            for (const effect of targets) {
+                await Sequencer.EffectManager.endEffects({ object: token, name: effect.data.name });
+            }
+        } catch (err) {
+            console.debug("Visage | Silently ignoring error during full Sequencer revert.", err);
+        }
+    }
+
+    /**
+     * Safely halts an individual audio instance or pending promise.
+     * @private
+     */
+    static _stopAudioInstance(soundOrPromise) {
+        if (soundOrPromise instanceof Promise) {
+            soundOrPromise.then((s) => {
+                if (s && typeof s.stop === "function") {
+                    s.volume = 0;
+                    s.stop();
                 }
-            } catch (e) {
-                /* Ignore */
+            });
+        } else if (soundOrPromise && typeof soundOrPromise.stop === "function") {
+            soundOrPromise.volume = 0;
+            soundOrPromise.stop();
+        }
+    }
+
+    /**
+     * Cleans up all tracked active audio loops for a token.
+     * @private
+     */
+    static _revertAudio(tokenId) {
+        if (!tokenId) return;
+        for (const [key, instances] of this._activeSounds) {
+            if (key.startsWith(`${tokenId}-`)) {
+                // Using a standard for loop avoids the arrow function nesting of .forEach()
+                for (const soundOrPromise of instances) {
+                    this._stopAudioInstance(soundOrPromise);
+                }
+                this._activeSounds.delete(key);
             }
         }
+    }
 
-        // 2. Kill Audio
-        if (tokenId) {
-            for (const [key, instances] of this._activeSounds) {
-                if (key.startsWith(`${tokenId}-`)) {
-                    instances.forEach((soundOrPromise) => {
-                        if (soundOrPromise instanceof Promise) {
-                            soundOrPromise.then((s) => {
-                                if (s && typeof s.stop === "function") {
-                                    s.volume = 0;
-                                    s.stop();
-                                }
-                            });
-                        } else if (soundOrPromise && typeof soundOrPromise.stop === "function") {
-                            soundOrPromise.volume = 0;
-                            soundOrPromise.stop();
-                        }
-                    });
-                    this._activeSounds.delete(key);
-                }
-            }
-        }
-
-        // 3. Legacy Cleanup
-        if (token && token.document && token.document.flags.sequencer) {
+    /**
+     * Cleans up legacy flags from older versions of the module.
+     * @private
+     */
+    static async _revertLegacyFlags(token) {
+        if (token?.document?.flags?.sequencer) {
             try {
                 await token.document.unsetFlag("sequencer", "effects");
-            } catch (e) {
-                /* Ignore */
+            } catch (err) {
+                console.debug("Visage | Silently ignoring error removing legacy Sequencer flags.", err);
             }
         }
     }
@@ -263,7 +286,7 @@ export class VisageSequencer {
      * Used during scene transitions to prevent cross-scene leaking.
      */
     static stopAllAudio() {
-        for (const [key, instances] of this._activeSounds) {
+        for (const instances of this._activeSounds.values()) {
             instances.forEach((soundOrPromise) => {
                 if (soundOrPromise instanceof Promise) {
                     soundOrPromise.then((s) => {
@@ -346,7 +369,7 @@ export class VisageSequencer {
                                 sound.volume = 0;
                                 sound.stop();
                             } catch (err) {
-                                /* Ignore */
+                                console.debug("Visage | Silently ignoring error stopping orphaned audio instance.", err);
                             }
                         }
                         return null;
@@ -354,21 +377,14 @@ export class VisageSequencer {
 
                     if (sound) {
                         sound.visageFadeOut = fadeOutMS;
-                        const idx = currentInstances.findIndex((i) => i === playResult || i.playResult === playResult);
+                        const idx = this._findAudioInstanceIndex(currentInstances, playResult);
                         if (idx > -1) currentInstances[idx] = sound;
-
                         if (fadeInMS > 0) this._fadeAudio(sound, 0, targetVol, fadeInMS);
-
                         if (!isLoop) {
-                            sound.addEventListener("end", () => {
-                                const latestInstances = this._activeSounds.get(soundKey);
-                                if (latestInstances) {
-                                    const sIdx = latestInstances.indexOf(sound);
-                                    if (sIdx > -1) latestInstances.splice(sIdx, 1);
-                                }
-                            });
+                            sound.addEventListener("end", this._removeFinishedAudio.bind(this, soundKey, sound));
                         }
                     }
+
                     return sound;
                 };
 
@@ -392,31 +408,70 @@ export class VisageSequencer {
     }
 
     /**
+     * Locates a specific audio instance or its pending promise in the active instances array.
+     * Replacing array.findIndex() removes an unnecessary nested arrow function.
+     * @private
+     */
+    static _findAudioInstanceIndex(instances, playResult) {
+        for (let i = 0; i < instances.length; i++) {
+            if (instances[i] === playResult || instances[i].playResult === playResult) return i;
+        }
+        return -1;
+    }
+
+    /**
+     * Cleans up an audio instance from the registry when it finishes playing.
+     * @private
+     */
+    static _removeFinishedAudio(soundKey, sound) {
+        const latestInstances = this._activeSounds.get(soundKey);
+        if (latestInstances) {
+            const sIdx = latestInstances.indexOf(sound);
+            if (sIdx > -1) latestInstances.splice(sIdx, 1);
+        }
+    }
+
+    /**
      * Resolves a raw path or Sequencer Database key into a usable file path.
      */
     static _resolveEffectPath(rawPath) {
         if (!rawPath) return null;
 
-        const isDbKey = !rawPath.includes("/");
+        // If it's already a direct file path, return it immediately
+        if (rawPath.includes("/")) return rawPath;
 
-        if (isDbKey) {
-            const entry = this._resolveSequencerRecursively(rawPath);
-            if (entry) {
-                let file;
-                if (Array.isArray(entry)) file = entry[Math.floor(Math.random() * entry.length)];
-                else {
-                    file = entry.file;
-                    if (Array.isArray(file)) file = file[Math.floor(Math.random() * file.length)];
-                }
-                if (file && typeof file === "object" && file.file) file = file.file;
-                if (typeof file === "string") return file;
-            }
-
-            console.warn(`Visage | Sequencer Database Key not found: "${rawPath}". Have you enabled the required content module (e.g., JB2A or PSFX) in this world?`);
-            return null;
+        // Otherwise, attempt to resolve the database key
+        const entry = this._resolveSequencerRecursively(rawPath);
+        if (entry) {
+            const file = this._extractFileFromEntry(entry);
+            if (file) return file;
         }
 
-        return rawPath;
+        // Failsafe warning if the key is invalid or the content module is missing
+        console.warn(`Visage | Sequencer Database Key not found: "${rawPath}". Have you enabled the required content module (e.g., JB2A or PSFX) in this world?`);
+        return null;
+    }
+
+    /**
+     * Unpacks a Sequencer database entry to find the underlying string file path.
+     * @private
+     */
+    static _extractFileFromEntry(entry) {
+        // 1. Unpack the base entry
+        let file = Array.isArray(entry) ? entry[Math.floor(Math.random() * entry.length)] : entry.file;
+
+        // 2. Unpack if the file itself is an array of variants
+        if (Array.isArray(file)) {
+            file = file[Math.floor(Math.random() * file.length)];
+        }
+
+        // 3. Unpack if the file is an object wrapper
+        if (file && typeof file === "object" && file.file) {
+            file = file.file;
+        }
+
+        // 4. Return if we successfully found a string path
+        return typeof file === "string" ? file : null;
     }
 
     static _resolveSequencerRecursively(path, depth = 0) {
@@ -431,8 +486,8 @@ export class VisageSequencer {
                 const randomKey = children[Math.floor(Math.random() * children.length)];
                 return this._resolveSequencerRecursively(randomKey, depth + 1);
             }
-        } catch (e) {
-            /* The path might not have children; ignore and return null */
+        } catch (err) {
+            console.debug(`Visage | Sequencer path "${path}" has no children or failed to resolve.`, err);
         }
         return null;
     }
@@ -463,7 +518,7 @@ export class VisageSequencer {
 
             // Look up the scale (default to 1.0 if something goes wrong)
             const visageEffect = visuals.find((v) => v.id === effectId);
-            const effectScale = visageEffect?.scale ?? 1.0;
+            const effectScale = visageEffect?.scale ?? 1;
 
             // Apply the dampened formula via the single source of truth
             const anchorData = this._calculateDampenedAnchor(anticipatedState, effectScale);
@@ -482,11 +537,11 @@ export class VisageSequencer {
      * alignment breaking when the token art visually outgrows its bounding box.
      * @private
      */
-    static _calculateDampenedAnchor(anticipatedState, effectScale = 1.0) {
+    static _calculateDampenedAnchor(anticipatedState, effectScale = 1) {
         const { anchorX, anchorY, mirrorX: flipX, mirrorY: flipY } = anticipatedState;
 
-        const seqAnchorX = flipX ? 1.0 - anchorX : anchorX;
-        const seqAnchorY = flipY ? 1.0 - anchorY : anchorY;
+        const seqAnchorX = flipX ? 1 - anchorX : anchorX;
+        const seqAnchorY = flipY ? 1 - anchorY : anchorY;
 
         return {
             // The anchor dampening MUST only divide by the effect's internal scale.

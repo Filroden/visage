@@ -5,7 +5,6 @@
  * @module visage
  */
 
-import { Visage } from "../core/visage.js";
 import { VisageSelector } from "./visage-selector.js";
 
 /**
@@ -15,7 +14,7 @@ import { VisageSelector } from "./visage-selector.js";
  * @param {HTMLElement} html - The HTML element of the HUD.
  * @param {Object} data - The data context used to render the HUD.
  */
-export async function handleTokenHUD(app, html, data) {
+export async function handleTokenHUD(app, html, _data) {
     // 1. Prevention & Permissions
     // Avoid duplicate buttons if the hook fires multiple times (which can happen during rapid updates).
     if (html.querySelector(".visage-button")) return;

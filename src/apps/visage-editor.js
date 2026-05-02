@@ -173,7 +173,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.close(options);
     }
 
-    async _prepareContext(options) {
+    async _prepareContext(_options) {
         // 1. Fetch & Initialize Base Data
         const baseData = this._getInitialData();
         if (!baseData) return this.close();
@@ -222,52 +222,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Format Condition Summaries
         if (this._automationData?.conditions) {
-            this._automationData.conditions.forEach((c) => {
-                c.typeKey = `VISAGE.Editor.Triggers.Type${c.type.charAt(0).toUpperCase() + c.type.slice(1)}`;
-
-                if (c.type === "attribute") {
-                    const opMap = {
-                        lte: "<=",
-                        gte: ">=",
-                        eq: "==",
-                        neq: "!=",
-                        lt: "<",
-                        gt: ">",
-                        includes: "contains",
-                    };
-                    const modeStr = c.mode === "percent" ? "%" : "";
-                    // Fallback to 0 only if value is null/undefined to preserve "false" or empty strings
-                    const displayValue = c.value !== null && c.value !== undefined ? c.value : 0;
-
-                    c.summary = `${c.path || "..."} ${opMap[c.operator] || ""} ${displayValue}${modeStr}`;
-                } else if (c.type === "status") {
-                    c.summary = `${c.statusId || "..."} (${c.operator === "active" ? "Applied" : "Removed"})`;
-                } else if (c.type === "event") {
-                    if (c.eventId === "elevation" || c.eventId === "darkness") {
-                        let op;
-                        if (c.operator === "gt") {
-                            op = ">";
-                        } else if (c.operator === "lt") {
-                            op = "<";
-                        } else {
-                            op = "==";
-                        }
-                        c.summary = `${c.eventId} ${op} ${c.value || 0}`;
-                    } else if (c.eventId === "region") {
-                        c.summary = `Region: ${c.regionId || "?"} (${c.operator === "active" ? "Inside" : "Outside"})`;
-                    } else if (c.eventId === "time") {
-                        const opTxt = c.operator === "active" ? "Between" : "Not Between";
-                        c.summary = `${opTxt} ${c.startTime || "00:00"} & ${c.endTime || "00:00"}`;
-                    } else if (c.eventId === "weather") {
-                        c.summary = `Weather: ${c.customWeather || c.weatherId || "?"} (${c.operator === "active" ? "Active" : "Inactive"})`;
-                    } else if (c.eventId === "facing") {
-                        const state = c.operator === "active" ? "Inside" : "Outside";
-                        c.summary = `Facing: ${c.startAngle}° to ${c.endAngle}° (${state})`;
-                    } else {
-                        c.summary = `${c.eventId} (${c.operator === "active" ? "Active" : "Inactive"})`;
-                    }
-                }
-            });
+            this._automationData.conditions.forEach((c) => this._formatConditionSummary(c));
         }
 
         return {
@@ -345,7 +300,66 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
-    _onRender(context, options) {
+    /**
+     * Formats the summary text for a given automation condition.
+     * @private
+     */
+    _formatConditionSummary(c) {
+        c.typeKey = `VISAGE.Editor.Triggers.Type${c.type.charAt(0).toUpperCase() + c.type.slice(1)}`;
+
+        if (c.type === "attribute") {
+            const opMap = { lte: "<=", gte: ">=", eq: "==", neq: "!=", lt: "<", gt: ">", includes: "contains" };
+            const modeStr = c.mode === "percent" ? "%" : "";
+            const displayValue = c.value !== null && c.value !== undefined ? c.value : 0;
+            c.summary = `${c.path || "..."} ${opMap[c.operator] || ""} ${displayValue}${modeStr}`;
+            return;
+        }
+
+        if (c.type === "status") {
+            c.summary = `${c.statusId || "..."} (${c.operator === "active" ? "Applied" : "Removed"})`;
+            return;
+        }
+
+        if (c.type === "event") {
+            this._formatEventConditionSummary(c);
+        }
+    }
+
+    /**
+     * Formats the summary text specifically for event-based conditions.
+     * @private
+     */
+    _formatEventConditionSummary(c) {
+        const id = c.eventId;
+        const isActive = c.operator === "active";
+
+        switch (id) {
+            case "elevation":
+            case "darkness": {
+                const opMap = { gt: ">", lt: "<", eq: "==" };
+                const op = opMap[c.operator] || "==";
+                c.summary = `${id} ${op} ${c.value || 0}`;
+                break;
+            }
+            case "region":
+                c.summary = `Region: ${c.regionId || "?"} (${isActive ? "Inside" : "Outside"})`;
+                break;
+            case "time":
+                c.summary = `${isActive ? "Between" : "Not Between"} ${c.startTime || "00:00"} & ${c.endTime || "00:00"}`;
+                break;
+            case "weather":
+                c.summary = `Weather: ${c.customWeather || c.weatherId || "?"} (${isActive ? "Active" : "Inactive"})`;
+                break;
+            case "facing":
+                c.summary = `Facing: ${c.startAngle}° to ${c.endAngle}° (${isActive ? "Inside" : "Outside"})`;
+                break;
+            default:
+                c.summary = `${id} (${isActive ? "Active" : "Inactive"})`;
+                break;
+        }
+    }
+
+    _onRender(context, _options) {
         this._isReady = false;
 
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
@@ -401,8 +415,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                         }
                     }
                 } catch (err) {
-                    // Ignore errors: This just means the user dragged something internal (like a Visage card)
-                    // that doesn't have valid JSON data attached to it.
+                    console.debug("Visage | Silently ignoring non-JSON drag data.", err);
                 }
             },
             { capture: true },
@@ -644,223 +657,248 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             return val === "" || val === null || val === undefined ? null : type(val);
         };
 
-        // Light Sync
-        if (foundry.utils.getProperty(formData, "light.color") !== undefined) {
-            ["dim", "bright", "alpha", "angle", "luminosity", "priority"].forEach((k) => {
-                const v = getVal(`light.${k}`, Number);
-                if (v !== null) this._lightData[k] = v;
-            });
-            const color = getVal("light.color");
-            if (color !== null) this._lightData.color = color;
+        this._syncLightState(formData, getVal);
+        this._syncEffectState(formData, getVal);
+        this._syncRingState(formData);
+        this._syncAutomationState(formData, getVal);
+    }
 
-            const animType = getVal("light.animation.type");
-            if (animType !== null) {
-                this._lightData.animation = this._lightData.animation || {};
-                this._lightData.animation.type = animType;
-                this._lightData.animation.speed = getVal("light.animation.speed", Number) ?? 5;
-                this._lightData.animation.intensity = getVal("light.animation.intensity", Number) ?? 5;
-            }
+    /** @private */
+    _syncLightState(formData, getVal) {
+        if (foundry.utils.getProperty(formData, "light.color") === undefined) return;
+
+        ["dim", "bright", "alpha", "angle", "luminosity", "priority"].forEach((k) => {
+            const v = getVal(`light.${k}`, Number);
+            if (v !== null) this._lightData[k] = v;
+        });
+
+        const color = getVal("light.color");
+        if (color !== null) this._lightData.color = color;
+
+        const animType = getVal("light.animation.type");
+        if (animType !== null) {
+            this._lightData.animation = this._lightData.animation || {};
+            this._lightData.animation.type = animType;
+            this._lightData.animation.speed = getVal("light.animation.speed", Number) ?? 5;
+            this._lightData.animation.intensity = getVal("light.animation.intensity", Number) ?? 5;
         }
+    }
 
-        // Effect Sync
+    /** @private */
+    _syncEffectState(formData, getVal) {
         const renderedEffectId = formData["inspector.effectId"];
-        if (renderedEffectId) {
-            const activeEffect = this._effects.find((e) => e.id === renderedEffectId);
-            if (activeEffect) {
-                activeEffect.label = getVal("effectLabel") ?? activeEffect.label;
-                activeEffect.path = getVal("effectPath") ?? activeEffect.path;
+        if (!renderedEffectId) return;
 
-                if (activeEffect.type === "visual") {
-                    const scaleVal = getVal("effectScale", Number);
-                    if (scaleVal !== null && !Number.isNaN(scaleVal)) activeEffect.scale = scaleVal / 100;
+        const activeEffect = this._effects.find((e) => e.id === renderedEffectId);
+        if (!activeEffect) return;
 
-                    const opacityVal = getVal("effectOpacity", Number);
-                    if (opacityVal !== null && !Number.isNaN(opacityVal)) activeEffect.opacity = opacityVal;
+        activeEffect.label = getVal("effectLabel") ?? activeEffect.label;
+        activeEffect.path = getVal("effectPath") ?? activeEffect.path;
 
-                    activeEffect.blendMode = getVal("effectBlendMode") ?? activeEffect.blendMode;
+        switch (activeEffect.type) {
+            case "visual": {
+                const scaleVal = getVal("effectScale", Number);
+                if (scaleVal !== null && !Number.isNaN(scaleVal)) activeEffect.scale = scaleVal / 100;
 
-                    const rotationVal = getVal("effectRotation", Number);
-                    if (rotationVal !== null && !Number.isNaN(rotationVal)) activeEffect.rotation = rotationVal;
+                const opacityVal = getVal("effectOpacity", Number);
+                if (opacityVal !== null && !Number.isNaN(opacityVal)) activeEffect.opacity = opacityVal;
 
-                    activeEffect.rotationRandom = !!formData.effectRotationRandom;
-                    activeEffect.zOrder = getVal("effectZIndex") ?? activeEffect.zOrder;
-                    activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
-                } else if (activeEffect.type === "audio") {
-                    const volVal = getVal("effectVolume", Number);
-                    if (volVal !== null && !Number.isNaN(volVal)) activeEffect.opacity = volVal;
+                activeEffect.blendMode = getVal("effectBlendMode") ?? activeEffect.blendMode;
 
-                    activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
-                    activeEffect.fadeIn = getVal("effectFadeIn", Number) ?? activeEffect.fadeIn;
-                    activeEffect.fadeOut = getVal("effectFadeOut", Number) ?? activeEffect.fadeOut;
-                } else if (activeEffect.type === "macro") {
-                    activeEffect.uuid = getVal("effectUuid") ?? activeEffect.uuid;
-                    activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
-                } else if (activeEffect.type === "tmfx") {
-                    activeEffect.tmfxPreset = getVal("effectTmfxPreset") ?? activeEffect.tmfxPreset;
-                    activeEffect.tmfxPayload = getVal("effectTmfxPayload") ?? activeEffect.tmfxPayload;
-                    activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
-                }
+                const rotationVal = getVal("effectRotation", Number);
+                if (rotationVal !== null && !Number.isNaN(rotationVal)) activeEffect.rotation = rotationVal;
+
+                activeEffect.rotationRandom = !!formData.effectRotationRandom;
+                activeEffect.zOrder = getVal("effectZIndex") ?? activeEffect.zOrder;
+                activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
+                break;
             }
-        }
-
-        // Ring Sync
-        if (formData.ringColor !== undefined) {
-            let effectsMask = 0;
-            for (const [k, v] of Object.entries(formData)) {
-                if (k.startsWith("effect_") && v === true) effectsMask |= Number.parseInt(k.split("_")[1]);
+            case "audio": {
+                const volVal = getVal("effectVolume", Number);
+                if (volVal !== null && !Number.isNaN(volVal)) activeEffect.opacity = volVal;
+                activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
+                activeEffect.fadeIn = getVal("effectFadeIn", Number) ?? activeEffect.fadeIn;
+                activeEffect.fadeOut = getVal("effectFadeOut", Number) ?? activeEffect.fadeOut;
+                break;
             }
-            this._ringData.colors.ring = formData.ringColor;
-            this._ringData.colors.background = formData.ringBackgroundColor;
-            this._ringData.subject.texture = formData.ringSubjectTexture;
-            this._ringData.subject.scale = formData.ringSubjectScale;
-            this._ringData.effects = effectsMask;
-        }
-
-        // Automation Sync
-        if (this._automationData) {
-            this._automationData.enabled = formData["automation.enabled"] ?? false;
-
-            // Sync Action and Priority
-            if (!this._automationData.onEnter) this._automationData.onEnter = { action: "apply", priority: 0 };
-            this._automationData.onEnter.action = formData["automation.onEnter.action"] ?? this._automationData.onEnter.action;
-            this._automationData.onEnter.priority = getVal("automation.onEnter.priority", Number) ?? this._automationData.onEnter.priority;
-
-            const renderedConditionId = formData["inspector.conditionId"];
-            if (renderedConditionId) {
-                const cond = this._automationData.conditions.find((c) => c.id === renderedConditionId);
-                if (cond) {
-                    if (cond.type === "attribute") {
-                        cond.path = getVal("inspector.path") ?? cond.path;
-                        // Grab the data type
-                        cond.dataType = getVal("inspector.dataType") ?? cond.dataType ?? "number";
-                        cond.operator = getVal("inspector.operator") ?? cond.operator;
-                        cond.mode = getVal("inspector.mode") ?? cond.mode;
-                        cond.denominatorPath = getVal("inspector.denominatorPath") ?? cond.denominatorPath ?? "";
-                        // Parse value based on the chosen data type
-                        if (cond.dataType === "boolean") {
-                            cond.value = getVal("inspector.value") === "true";
-                        } else if (cond.dataType === "string") {
-                            cond.value = getVal("inspector.value") ?? "";
-                        } else {
-                            // Default to Number
-                            const val = getVal("inspector.value", Number);
-                            if (val !== null && !Number.isNaN(val)) cond.value = val;
-                        }
-                    } else if (cond.type === "status") {
-                        cond.statusId = getVal("inspector.statusId") ?? cond.statusId;
-                        cond.customStatus = getVal("inspector.customStatus") ?? cond.customStatus;
-                        cond.operator = getVal("inspector.operator") ?? cond.operator;
-                    } else if (cond.type === "event") {
-                        const newEventId = getVal("inspector.eventId") ?? cond.eventId;
-
-                        // Safety: If the user changes the event type, reset the variables so math doesn't break
-                        if (cond.eventId !== newEventId) {
-                            cond.operator = newEventId === "elevation" || newEventId === "darkness" ? "gt" : "active";
-                            cond.value = newEventId === "darkness" ? 0.5 : 0;
-                            cond.regionId = "";
-                            cond.startTime = newEventId === "time" ? "06:00" : "";
-                            cond.endTime = newEventId === "time" ? "18:00" : "";
-                            cond.weatherId = newEventId === "weather" ? "" : "";
-                            cond.customWeather = newEventId === "weather" ? "" : "";
-                            cond.startAngle = newEventId === "facing" ? 0 : null;
-                            cond.endAngle = newEventId === "facing" ? 0 : null;
-                        }
-
-                        cond.eventId = newEventId;
-                        cond.operator = getVal("inspector.operator") ?? cond.operator;
-
-                        if (cond.eventId === "elevation" || cond.eventId === "darkness") {
-                            const val = getVal("inspector.value", Number);
-                            if (val !== null && !Number.isNaN(val)) cond.value = val;
-                        }
-                        if (cond.eventId === "region") {
-                            cond.regionId = getVal("inspector.regionId") ?? cond.regionId;
-                        }
-                        if (cond.eventId === "time") {
-                            cond.startTime = getVal("inspector.startTime") ?? cond.startTime;
-                            cond.endTime = getVal("inspector.endTime") ?? cond.endTime;
-                        }
-                        if (cond.eventId === "weather") {
-                            cond.weatherId = getVal("inspector.weatherId") ?? cond.weatherId;
-                            cond.customWeather = getVal("inspector.customWeather") ?? cond.customWeather;
-                        }
-                        if (cond.eventId === "facing") {
-                            cond.startAngle = Number(getVal("inspector.startAngle")) || 0;
-                            cond.endAngle = Number(getVal("inspector.endAngle")) || 0;
-                        }
-                    }
-                }
+            case "macro": {
+                activeEffect.uuid = getVal("effectUuid") ?? activeEffect.uuid;
+                activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
+                break;
+            }
+            case "tmfx": {
+                activeEffect.tmfxPreset = getVal("effectTmfxPreset") ?? activeEffect.tmfxPreset;
+                activeEffect.tmfxPayload = getVal("effectTmfxPayload") ?? activeEffect.tmfxPayload;
+                activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
+                break;
             }
         }
     }
 
+    /** @private */
+    _syncRingState(formData) {
+        if (formData.ringColor === undefined) return;
+
+        let effectsMask = 0;
+        for (const [k, v] of Object.entries(formData)) {
+            if (k.startsWith("effect_") && v === true) effectsMask |= Number.parseInt(k.split("_")[1]);
+        }
+
+        this._ringData.colors.ring = formData.ringColor;
+        this._ringData.colors.background = formData.ringBackgroundColor;
+        this._ringData.subject.texture = formData.ringSubjectTexture;
+        this._ringData.subject.scale = formData.ringSubjectScale;
+        this._ringData.effects = effectsMask;
+    }
+
+    /** @private */
+    _syncAutomationState(formData, getVal) {
+        if (!this._automationData) return;
+
+        this._automationData.enabled = formData["automation.enabled"] ?? false;
+
+        if (!this._automationData.onEnter) this._automationData.onEnter = { action: "apply", priority: 0 };
+        this._automationData.onEnter.action = formData["automation.onEnter.action"] ?? this._automationData.onEnter.action;
+        this._automationData.onEnter.priority = getVal("automation.onEnter.priority", Number) ?? this._automationData.onEnter.priority;
+
+        const renderedConditionId = formData["inspector.conditionId"];
+        if (!renderedConditionId) return;
+
+        const cond = this._automationData.conditions.find((c) => c.id === renderedConditionId);
+        if (cond) this._syncConditionState(cond, formData, getVal);
+    }
+
+    /** @private */
+    _syncConditionState(cond, formData, getVal) {
+        switch (cond.type) {
+            case "attribute":
+                this._syncAttributeCondition(cond, formData, getVal);
+                break;
+            case "status":
+                this._syncStatusCondition(cond, formData, getVal);
+                break;
+            case "event":
+                this._syncEventCondition(cond, formData, getVal);
+                break;
+        }
+    }
+
+    /** @private */
+    _syncAttributeCondition(cond, formData, getVal) {
+        cond.path = getVal("inspector.path") ?? cond.path;
+        cond.dataType = getVal("inspector.dataType") ?? cond.dataType ?? "number";
+        cond.operator = getVal("inspector.operator") ?? cond.operator;
+        cond.mode = getVal("inspector.mode") ?? cond.mode;
+        cond.denominatorPath = getVal("inspector.denominatorPath") ?? cond.denominatorPath ?? "";
+
+        if (cond.dataType === "boolean") {
+            cond.value = getVal("inspector.value") === "true";
+        } else if (cond.dataType === "string") {
+            cond.value = getVal("inspector.value") ?? "";
+        } else {
+            const val = getVal("inspector.value", Number);
+            if (val !== null && !Number.isNaN(val)) cond.value = val;
+        }
+    }
+
+    /** @private */
+    _syncStatusCondition(cond, formData, getVal) {
+        cond.statusId = getVal("inspector.statusId") ?? cond.statusId;
+        cond.customStatus = getVal("inspector.customStatus") ?? cond.customStatus;
+        cond.operator = getVal("inspector.operator") ?? cond.operator;
+    }
+
+    /**
+     * Safely clears and resets condition data when the user changes the event type.
+     * @private
+     */
+    _resetEventCondition(cond, newEventId) {
+        // 1. Wipe the slate clean to prevent phantom data
+        cond.value = null;
+        cond.regionId = "";
+        cond.startTime = "";
+        cond.endTime = "";
+        cond.weatherId = "";
+        cond.customWeather = "";
+        cond.startAngle = null;
+        cond.endAngle = null;
+
+        // 2. Apply explicit defaults for the new type
+        switch (newEventId) {
+            case "elevation":
+                cond.operator = "gt";
+                cond.value = 0;
+                break;
+            case "darkness":
+                cond.operator = "gt";
+                cond.value = 0.5;
+                break;
+            case "time":
+                cond.operator = "active";
+                cond.startTime = "06:00";
+                cond.endTime = "18:00";
+                break;
+            case "facing":
+                cond.operator = "active";
+                cond.startAngle = 0;
+                cond.endAngle = 0;
+                break;
+            default:
+                cond.operator = "active";
+                break;
+        }
+    }
+
+    /** @private */
+    _syncEventCondition(cond, formData, getVal) {
+        const newEventId = getVal("inspector.eventId") ?? cond.eventId;
+
+        // Delegate the complex reset logic
+        if (cond.eventId !== newEventId) {
+            this._resetEventCondition(cond, newEventId);
+        }
+
+        cond.eventId = newEventId;
+        cond.operator = getVal("inspector.operator") ?? cond.operator;
+
+        switch (cond.eventId) {
+            case "elevation":
+            case "darkness": {
+                const val = getVal("inspector.value", Number);
+                if (val !== null && !Number.isNaN(val)) cond.value = val;
+                break;
+            }
+            case "region": {
+                cond.regionId = getVal("inspector.regionId") ?? cond.regionId;
+                break;
+            }
+            case "time": {
+                cond.startTime = getVal("inspector.startTime") ?? cond.startTime;
+                cond.endTime = getVal("inspector.endTime") ?? cond.endTime;
+                break;
+            }
+            case "weather": {
+                cond.weatherId = getVal("inspector.weatherId") ?? cond.weatherId;
+                cond.customWeather = getVal("inspector.customWeather") ?? cond.customWeather;
+                break;
+            }
+            case "facing": {
+                cond.startAngle = Number(getVal("inspector.startAngle")) || 0;
+                cond.endAngle = Number(getVal("inspector.endAngle")) || 0;
+                break;
+            }
+        }
+    }
+
+    /**
+     * Gathers data from the DOM and internal state to build the final save payload.
+     * @private
+     */
     _buildChangesPayload(formData) {
         const getVal = (key, type = String) => {
             const val = foundry.utils.getProperty(formData, key);
             return val === "" || val === null || val === undefined ? null : type(val);
         };
-        const changes = {};
-
-        // A. Omit inactive token properties by explicitly sending 'null' so Foundry deletes them
-        if (formData.nameOverride_active) changes.name = formData.nameOverride;
-        else changes.name = null;
-        if (formData.scale_active) changes.scale = getVal("scale", Number) / 100;
-        else changes.scale = null;
-        if (formData.isFlippedX === "") {
-            changes.mirrorX = null;
-        } else {
-            changes.mirrorX = formData.isFlippedX === "true";
-        }
-        if (formData.isFlippedY === "") {
-            changes.mirrorY = null;
-        } else {
-            changes.mirrorY = formData.isFlippedY === "true";
-        }
-        if (formData.alpha_active) changes.alpha = getVal("alpha", Number) / 100;
-        else changes.alpha = null;
-        if (formData.width_active) changes.width = getVal("width", Number);
-        else changes.width = null;
-        if (formData.height_active) changes.height = getVal("height", Number);
-        else changes.height = null;
-        if (formData.depth_active) changes.depth = getVal("depth", Number);
-        else changes.depth = null;
-        if (formData.lockRotation === "") {
-            changes.lockRotation = null;
-        } else {
-            changes.lockRotation = formData.lockRotation === "true";
-        }
-        if (formData.disposition_active) changes.disposition = getVal("disposition", Number);
-        else changes.disposition = null;
-        if (formData.portrait_active) changes.portrait = formData.portrait;
-        else changes.portrait = null;
-        if (formData.img_active || formData.anchor_active) {
-            changes.texture = {};
-
-            if (formData.img_active) {
-                changes.texture.src = formData.img;
-            }
-
-            if (formData.anchor_active) {
-                changes.texture.anchorX = Number.parseFloat(formData.anchorX);
-                changes.texture.anchorY = Number.parseFloat(formData.anchorY);
-            }
-        } else {
-            changes.texture = null;
-        }
-
-        // B. Components always sent
-        changes.light = this._lightData;
-        changes.ring = this._ringData;
-        changes.effects = this._effects.filter((e) => !e.disabled);
-
-        // Clean up transient UI properties from the automation data before saving
-        const cleanAutomation = foundry.utils.deepClone(this._automationData);
-        if (cleanAutomation?.conditions) {
-            cleanAutomation.conditions.forEach((c) => {
-                delete c.typeKey;
-                delete c.summary;
-            });
-        }
 
         return {
             id: this.visageId,
@@ -869,9 +907,67 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             tags: formData.tags ? formData.tags.split(",").filter((t) => t.trim()) : [],
             mode: formData.mode,
             public: formData.public === "true",
-            automation: cleanAutomation,
-            changes: changes,
+            automation: this._cleanAutomationPayload(),
+            changes: this._buildTokenChanges(formData, getVal),
         };
+    }
+
+    /** @private */
+    _parseBooleanDropdown(val) {
+        if (val === "") return null;
+        return val === "true";
+    }
+
+    /** @private */
+    _buildTexturePayload(formData) {
+        if (!formData.img_active && !formData.anchor_active) return null;
+
+        const texture = {};
+        if (formData.img_active) texture.src = formData.img;
+        if (formData.anchor_active) {
+            texture.anchorX = Number.parseFloat(formData.anchorX);
+            texture.anchorY = Number.parseFloat(formData.anchorY);
+        }
+        return texture;
+    }
+
+    /** @private */
+    _buildTokenChanges(formData, getVal) {
+        return {
+            name: formData.nameOverride_active ? formData.nameOverride : null,
+            scale: formData.scale_active ? getVal("scale", Number) / 100 : null,
+            alpha: formData.alpha_active ? getVal("alpha", Number) / 100 : null,
+            width: formData.width_active ? getVal("width", Number) : null,
+            height: formData.height_active ? getVal("height", Number) : null,
+            depth: formData.depth_active ? getVal("depth", Number) : null,
+            disposition: formData.disposition_active ? getVal("disposition", Number) : null,
+            portrait: formData.portrait_active ? formData.portrait : null,
+
+            // Extracted logic
+            mirrorX: this._parseBooleanDropdown(formData.isFlippedX),
+            mirrorY: this._parseBooleanDropdown(formData.isFlippedY),
+            lockRotation: this._parseBooleanDropdown(formData.lockRotation),
+            texture: this._buildTexturePayload(formData),
+
+            // Persistent components
+            light: this._lightData,
+            ring: this._ringData,
+            effects: this._effects.filter((e) => !e.disabled),
+        };
+    }
+
+    /** @private */
+    _cleanAutomationPayload() {
+        if (!this._automationData) return null;
+
+        const cleanAutomation = foundry.utils.deepClone(this._automationData);
+        if (cleanAutomation.conditions) {
+            cleanAutomation.conditions.forEach((c) => {
+                delete c.typeKey;
+                delete c.summary;
+            });
+        }
+        return cleanAutomation;
     }
 
     async _onSave(event) {
@@ -885,7 +981,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 try {
                     const parsed = JSON.parse(effect.tmfxPayload);
                     if (typeof parsed !== "object") throw new Error("Payload must be an object or array.");
-                } catch (e) {
+                } catch (err) {
+                    console.error(`Visage | Invalid TMFX payload for effect '${effect.label}':`, err);
                     return ui.notifications.error(game.i18n.format("VISAGE.Notifications.TmfxInvalidPayload", { label: effect.label }));
                 }
             }
@@ -990,7 +1087,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         fp.render(true);
     }
 
-    async _onOpenTimeline(event, target) {
+    async _onOpenTimeline(_event, _target) {
         if (!this._timelineApp) {
             this._timelineApp = new VisageMediaTimeline({ editor: this });
         }
@@ -1026,6 +1123,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this.render();
         }
     }
+
     _onEditRing() {
         this._editingRing = true;
         this._editingLight = false;
@@ -1033,6 +1131,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._activeConditionId = null;
         this.render();
     }
+
     _onToggleLight() {
         if (!this._lightData) return;
         this._lightData.active = !this._lightData.active;
@@ -1040,6 +1139,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._updatePreview();
         this.render();
     }
+
     _onEditLight() {
         this._editingLight = true;
         this._editingRing = false;
@@ -1047,6 +1147,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._activeConditionId = null;
         this.render();
     }
+
     _onToggleDelayDirection(event, target) {
         const btns = this.element.querySelectorAll(".delay-direction-toggle button");
         btns.forEach((b) => b.classList.remove("active"));
@@ -1055,17 +1156,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._delayData = Math.round(seconds * 1000) * (target.dataset.value === "after" ? 1 : -1);
         this._markDirty();
     }
+
     _onToggleAutomation(event, target) {
         if (!this._automationData) return;
         this._automationData.enabled = target.checked;
         this._markDirty();
         this.render();
     }
+
     _onToggleLogic(event, target) {
         this._automationData.logic = target.dataset.value;
         this._markDirty();
         this.render();
     }
+
     _onAddCondition(event, target) {
         const type = target.dataset.type;
         const newCondition = {
@@ -1103,6 +1207,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+
     _onEditCondition(event, target) {
         this._activeConditionId = target.closest(".effect-card").dataset.id;
         this._activeEffectId = null;
@@ -1110,6 +1215,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingRing = false;
         this.render();
     }
+
     _onDeleteCondition(event, target) {
         event.stopPropagation(); // Prevent _onEditCondition from firing
         const id = target.closest(".effect-card").dataset.id;
@@ -1120,11 +1226,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+
     async _onCloseConditionInspector() {
         this.element.querySelector(".triggers-tab-container")?.classList.remove("editing");
         this._activeConditionId = null;
         await this.render();
     }
+
     _onOpenAttributePicker(event, target) {
         // --- 1. Find a Reference Actor ---
         let referenceActor = this.actor; // Works perfectly for Local Editor
@@ -1173,6 +1281,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             },
         }).render(true);
     }
+
     _onToggleCondition(event, target) {
         const id = target.closest(".effect-card").dataset.id;
         const condition = this._automationData.conditions.find((c) => c.id === id);
@@ -1206,6 +1315,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+
     _onAddAudio() {
         const newEffect = {
             id: foundry.utils.randomID(16),
@@ -1225,6 +1335,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+
     _onAddTmfx() {
         const newEffect = {
             id: foundry.utils.randomID(16),
@@ -1243,60 +1354,90 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
-    _onFormatTmfxPayload(event, target) {
+
+    _onFormatTmfxPayload(_event, _target) {
         const textarea = this.element.querySelector('textarea[name="effectTmfxPayload"]');
         if (!textarea?.value.trim()) return;
 
         try {
-            let rawValue = textarea.value.trim();
+            const rawValue = textarea.value.trim();
 
-            // Extractor: Isolate the core array/object from full macro text
-            const startMatch = rawValue.match(/[[{]/);
-            if (startMatch) {
-                const startIdx = startMatch.index;
-                const openChar = rawValue[startIdx];
-                const closeChar = openChar === "[" ? "]" : "}";
-                let count = 0;
-                let inString = false;
-                let stringChar = null;
+            // Delegate the complex string parsing
+            const extractedString = this._extractJsonPayload(rawValue);
 
-                for (let i = startIdx; i < rawValue.length; i++) {
-                    const char = rawValue[i];
-
-                    // Ignore brackets inside strings
-                    if ((char === '"' || char === "'" || char === "`") && rawValue[i - 1] !== "\\") {
-                        if (!inString) {
-                            inString = true;
-                            stringChar = char;
-                        } else if (stringChar === char) {
-                            inString = false;
-                            stringChar = null;
-                        }
-                    }
-
-                    if (!inString) {
-                        if (char === openChar) count++;
-                        else if (char === closeChar) count--;
-                    }
-
-                    if (count === 0 && !inString) {
-                        rawValue = rawValue.substring(startIdx, i + 1);
-                        break;
-                    }
-                }
-            }
-
-            const evaluated = new Function("return " + rawValue)();
+            const evaluated = new Function("return " + extractedString)();
 
             textarea.value = JSON.stringify(evaluated, null, 2);
-
             textarea.dispatchEvent(new Event("input", { bubbles: true }));
+
             ui.notifications.info(game.i18n.localize("VISAGE.Notifications.TmfxFormatSuccess"));
-        } catch (e) {
+        } catch (err) {
             ui.notifications.error(game.i18n.localize("VISAGE.Notifications.TmfxFormatError"));
-            console.warn("Visage | Auto-Format Error:", e);
+            console.warn("Visage | Auto-Format Error:", err);
         }
     }
+
+    /**
+     * Extracts a JSON array or object string from a larger text block by matching brackets.
+     * @private
+     */
+    _extractJsonPayload(rawValue) {
+        const startMatch = rawValue.match(/[[{]/);
+        if (!startMatch) return rawValue;
+
+        const startIdx = startMatch.index;
+        const openChar = rawValue[startIdx];
+        const closeChar = openChar === "[" ? "]" : "}";
+
+        // The shared memory object for our sub-workers
+        const state = { count: 0, inString: false, stringChar: null };
+
+        for (let i = startIdx; i < rawValue.length; i++) {
+            const char = rawValue[i];
+            const prevChar = i > 0 ? rawValue[i - 1] : "";
+
+            this._updateStringState(char, prevChar, state);
+            this._updateBracketCount(char, openChar, closeChar, state);
+
+            // Return immediately once the matching closing bracket is found
+            if (state.count === 0 && !state.inString) {
+                return rawValue.substring(startIdx, i + 1);
+            }
+        }
+
+        return rawValue;
+    }
+
+    /**
+     * Tracks whether the parser is currently inside a string literal.
+     * @private
+     */
+    _updateStringState(char, prevChar, state) {
+        // Ignore escaped quotes (e.g. \")
+        if (prevChar === "\\") return;
+
+        if (['"', "'", "`"].includes(char)) {
+            if (!state.inString) {
+                state.inString = true;
+                state.stringChar = char;
+            } else if (state.stringChar === char) {
+                state.inString = false;
+                state.stringChar = null;
+            }
+        }
+    }
+
+    /**
+     * Adjusts the bracket depth count, ignoring characters inside strings.
+     * @private
+     */
+    _updateBracketCount(char, openChar, closeChar, state) {
+        if (state.inString) return;
+
+        if (char === openChar) state.count++;
+        else if (char === closeChar) state.count--;
+    }
+
     _onAddMacro() {
         const newEffect = {
             id: foundry.utils.randomID(16),
@@ -1314,6 +1455,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+
     async _onDropMacro(uuid) {
         // Fetch the macro document to get its real name
         const macroDoc = await fromUuid(uuid);
@@ -1344,6 +1486,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         ui.notifications.info(`Visage | Added Macro: ${macroDoc.name}`);
     }
+
     _onEditEffect(event, target) {
         this._activeEffectId = target.closest(".effect-card").dataset.id;
         this._editingLight = false;
@@ -1351,6 +1494,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._activeConditionId = null;
         this.render();
     }
+
     _onToggleEffect(event, target) {
         const effect = this._effects.find((e) => e.id === target.closest(".effect-card").dataset.id);
         if (effect) {
@@ -1359,6 +1503,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this.render();
         }
     }
+
     _onToggleLoop(event, target) {
         const effect = this._effects.find((e) => e.id === target.closest(".effect-card").dataset.id);
         if (effect) {
@@ -1367,6 +1512,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this.render();
         }
     }
+
     async _onDeleteEffect(event, target) {
         const id = target.closest(".effect-card").dataset.id;
         const confirm = await foundry.applications.api.DialogV2.confirm({
@@ -1390,6 +1536,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+
     async _onCloseEffectInspector() {
         this.element.querySelector(".effects-tab-container")?.classList.remove("editing");
         this._activeEffectId = null;
@@ -1397,11 +1544,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingRing = false;
         await this.render();
     }
+
     _onReplayPreview(event, target) {
         target.querySelector("i")?.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], { duration: 500 });
         this._mediaController.stopAll();
         this._updatePreview();
     }
+
     _onOpenSequencerDatabase() {
         if (VisageUtilities.hasSequencer) {
             new Sequencer.DatabaseViewer().render(true);
@@ -1434,37 +1583,58 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _fastUpdateInspectorDOM(changes) {
-        const el = this.element;
-        if (changes.light) {
-            this._lightData = { ...this._lightData, ...changes.light };
-            const meta = el.querySelector('.effect-card.pinned-light[data-action="editLight"] .effect-meta');
-            if (meta && this._lightData.active) meta.textContent = `${this._lightData.dim} / ${this._lightData.bright} • ${this._lightData.color}`;
-        }
+        this._fastUpdateLightDOM(changes);
+        this._fastUpdateEffectDOM();
+    }
 
-        if (this._activeEffectId && this._effects) {
-            const activeEffect = this._effects.find((e) => e.id === this._activeEffectId);
-            if (activeEffect) {
-                const card = el.querySelector(`.effect-card[data-id="${activeEffect.id}"]`);
-                if (card) {
-                    const nameEl = card.querySelector(".effect-name");
-                    if (nameEl) nameEl.textContent = activeEffect.label;
-                    const metaEl = card.querySelector(".effect-meta");
-                    if (metaEl) {
-                        let metaText;
-                        if (activeEffect.type === "audio") {
-                            metaText = `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((activeEffect.opacity ?? 1) * 100)}%`;
-                        } else if (activeEffect.type === "macro") {
-                            metaText = activeEffect.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID");
-                        } else if (activeEffect.type === "tmfx") {
-                            metaText = activeEffect.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset");
-                        } else {
-                            metaText = `${activeEffect.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((activeEffect.scale ?? 1) * 100)}%`;
-                        }
-                        metaEl.textContent = metaText;
-                    }
-                }
+    /**
+     * Generates the dynamic metadata string for an effect card based on its type.
+     * @private
+     */
+    _getEffectMetaText(effect) {
+        switch (effect.type) {
+            case "audio":
+                return `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((effect.opacity ?? 1) * 100)}%`;
+            case "macro":
+                return effect.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID");
+            case "tmfx":
+                return effect.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset");
+            default: {
+                // Visual
+                const orderText = effect.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above");
+                return `${orderText} • ${Math.round((effect.scale ?? 1) * 100)}%`;
             }
         }
+    }
+
+    /** @private */
+    _fastUpdateLightDOM(changes) {
+        if (!changes.light) return;
+
+        this._lightData = { ...this._lightData, ...changes.light };
+        if (!this._lightData.active) return;
+
+        const meta = this.element.querySelector('.effect-card.pinned-light[data-action="editLight"] .effect-meta');
+        if (meta) {
+            meta.textContent = `${this._lightData.dim} / ${this._lightData.bright} • ${this._lightData.color}`;
+        }
+    }
+
+    /** @private */
+    _fastUpdateEffectDOM() {
+        if (!this._activeEffectId || !this._effects) return;
+
+        const activeEffect = this._effects.find((e) => e.id === this._activeEffectId);
+        if (!activeEffect) return;
+
+        const card = this.element.querySelector(`.effect-card[data-id="${activeEffect.id}"]`);
+        if (!card) return;
+
+        const nameEl = card.querySelector(".effect-name");
+        if (nameEl) nameEl.textContent = activeEffect.label;
+
+        const metaEl = card.querySelector(".effect-meta");
+        if (metaEl) metaEl.textContent = this._getEffectMetaText(activeEffect);
     }
 
     async _buildPreviewTemplateData(changes) {
@@ -1602,7 +1772,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._bindDynamicListeners(); // Re-bind mouse events on new HTML
     }
 
-    _updateUIBadges(meta, changes) {
+    _updateUIBadges(meta, _changes) {
         if (!meta?.slots) return;
         const el = this.element;
 

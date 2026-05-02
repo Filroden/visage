@@ -82,8 +82,8 @@ export class VisageUtilities {
                         await crawl(dir);
                     }
                 }
-            } catch (e) {
-                console.warn(`Visage | Could not crawl directory: ${targetDir}`, e);
+            } catch (err) {
+                console.warn(`Visage | Could not crawl directory: ${targetDir}`, err);
             }
         }
 
@@ -127,80 +127,39 @@ export class VisageUtilities {
     static async resolvePath(path) {
         if (!path) return path;
 
-        // 1. Clean the path to determine if it truly contains wildcards
-        // We ignore query strings (like Tokenizer's cache busters) for this check.
         const clean = this.cleanPath(path);
-
-        // Optimization: If the CLEAN path has no wildcards, return the ORIGINAL path.
-        // This preserves query strings (cache busters) for the token update,
-        // while preventing them from breaking the file system lookup below.
         if (!clean.includes("*") && !clean.includes("?")) return path;
 
-        // 2. Prepare the clean path for FileSystem browsing
         let processingPath = clean;
         try {
             processingPath = decodeURIComponent(processingPath);
-        } catch (e) {
-            // Ignore decode errors, rely on raw path if decoding fails
+        } catch (err) {
+            console.debug(`Visage | Silently ignoring URI decode error for path: ${processingPath}`, err);
         }
 
         try {
-            const browseOptions = { type: "imagevideo" };
-            let source = "data";
-            let directory = "";
-            let pattern = "";
-
             const FilePickerClass = foundry.applications?.apps?.FilePicker;
+            const locationConfig = this._parsePathLocation(processingPath, FilePickerClass);
+            if (!locationConfig) return null; // Exit if S3 bucket resolution failed
 
-            // Handle S3 Bucket parsing logic
-            if (/\.s3\./i.test(processingPath)) {
-                source = "s3";
-                const { bucket, keyPrefix } = FilePickerClass.parseS3URL(processingPath);
-                if (!bucket) return null;
-                browseOptions.bucket = bucket;
+            let { source } = locationConfig;
+            const { directory, pattern, bucket } = locationConfig;
+            const browseOptions = { type: "imagevideo" };
 
-                const lastSlash = keyPrefix.lastIndexOf("/");
-                directory = lastSlash >= 0 ? keyPrefix.slice(0, lastSlash + 1) : "";
-                pattern = lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
-            }
-            // Handle Core Icons (Public)
-            else if (processingPath.startsWith("icons/") || processingPath.startsWith("systems/") || processingPath.startsWith("modules/")) {
-                if (processingPath.startsWith("icons/")) source = "public";
-                const lastSlash = processingPath.lastIndexOf("/");
-                directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
-                pattern = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
-            } else {
-                const lastSlash = processingPath.lastIndexOf("/");
-                directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
-                pattern = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
-            }
+            if (bucket) browseOptions.bucket = bucket;
 
-            // Forge initialisation
-            if (typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge) {
-                browseOptions.cookieKey = true;
-
-                // Ensure API is ready
-                if (!globalThis.ForgeAPI?.lastStatus) {
-                    try {
-                        await globalThis.ForgeAPI.status();
-                    } catch (err) {
-                        console.warn("Visage | ForgeAPI.status() failed", err);
-                    }
-                }
-
-                source = "forgevtt";
-            }
+            const forgeSource = await this._ensureForgeAPI(browseOptions);
+            if (forgeSource) source = forgeSource;
 
             // Convert wildcard pattern to a strict RegExp
             const escaped = pattern.replaceAll(/[.+^${}()|[\]\\]/g, String.raw`\$&`);
             const flexiblePattern = escaped.replaceAll(/\s+/g, String.raw`[_\-\s]+`);
             const regex = new RegExp(`^${flexiblePattern.replaceAll("*", ".*").replaceAll("?", ".")}$`, "i");
 
-            // Perform the browse call to get file list
             const content = await FilePickerClass.browse(source, directory, browseOptions);
             if (!content?.files?.length) return null;
 
-            // Filter files returned by the server against our wildcard pattern
+            // Filter files returned by the server
             const matches = content.files.filter((file) => {
                 const rawName = file.split("/").pop();
                 let name;
@@ -213,43 +172,96 @@ export class VisageUtilities {
             });
 
             if (matches.length > 0) {
-                // --- SMART MATCH SCORING (FA-Compatible) ---
-                const coreWordMatch = new RegExp(/^\*([^*?]+)\*$/).exec(pattern);
-
-                if (coreWordMatch) {
-                    const coreWord = coreWordMatch[1].trim();
-
-                    // Transform spaces into generic separators to match FA conventions
-                    const flexibleWord = coreWord.replaceAll(/\s+/g, String.raw`[_\-\s]+`);
-
-                    // STRICT BOUNDARY: The token name must be bounded by the start of the file (or a separator),
-                    // and immediately followed by a separator or the file extension.
-                    const exactRegex = new RegExp(String.raw`(^|[_\-\s])${flexibleWord}([_\-\s\.]|$)`, "i");
-
-                    const primaryMatches = [];
-
-                    for (const match of matches) {
-                        const fileName = match.split("/").pop();
-                        if (exactRegex.test(fileName)) {
-                            primaryMatches.push(match);
-                        }
-                    }
-
-                    if (primaryMatches.length > 0) {
-                        return primaryMatches[Math.floor(Math.random() * primaryMatches.length)];
-                    }
-                }
-
-                // Loose Fallback (Only triggers if no exact bounded matches exist)
-                return matches[Math.floor(Math.random() * matches.length)];
-            } else {
-                console.warn(`Visage | Wildcard Resolution Failed: No files matched pattern '${pattern}' in directory '${directory}' (Source: ${source})`);
+                return this._applySmartMatching(matches, pattern);
             }
+
+            console.warn(`Visage | Wildcard Resolution Failed: No files matched pattern '${pattern}' in directory '${directory}' (Source: ${source})`);
         } catch (err) {
             console.warn(`Visage | Error resolving wildcard path: ${path}`, err);
         }
 
         return null;
+    }
+
+    // ==========================================
+    // PATH RESOLUTION HELPER METHODS
+    // ==========================================
+
+    /**
+     * Parses a raw path into its source, directory, and pattern components.
+     * @private
+     */
+    static _parsePathLocation(processingPath, FilePickerClass) {
+        let source = "data";
+        let directory = "";
+        let pattern = "";
+
+        // Handle S3 Bucket parsing logic
+        if (/\.s3\./i.test(processingPath)) {
+            source = "s3";
+            const { bucket, keyPrefix } = FilePickerClass.parseS3URL(processingPath);
+            if (!bucket) return null;
+
+            const lastSlash = keyPrefix.lastIndexOf("/");
+            directory = lastSlash >= 0 ? keyPrefix.slice(0, lastSlash + 1) : "";
+            pattern = lastSlash >= 0 ? keyPrefix.slice(lastSlash + 1) : keyPrefix;
+            return { source, directory, pattern, bucket };
+        }
+
+        // Handle Core Icons (Public)
+        if (processingPath.startsWith("icons/") || processingPath.startsWith("systems/") || processingPath.startsWith("modules/")) {
+            if (processingPath.startsWith("icons/")) source = "public";
+        }
+
+        const lastSlash = processingPath.lastIndexOf("/");
+        directory = lastSlash >= 0 ? processingPath.slice(0, lastSlash + 1) : "";
+        pattern = lastSlash >= 0 ? processingPath.slice(lastSlash + 1) : processingPath;
+
+        return { source, directory, pattern };
+    }
+
+    /**
+     * Ensures The Forge API is initialized if running on their infrastructure.
+     * @private
+     */
+    static async _ensureForgeAPI(browseOptions) {
+        if (typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge) {
+            browseOptions.cookieKey = true;
+
+            if (!globalThis.ForgeAPI?.lastStatus) {
+                try {
+                    await globalThis.ForgeAPI.status();
+                } catch (err) {
+                    console.warn("Visage | ForgeAPI.status() failed", err);
+                }
+            }
+            return "forgevtt";
+        }
+        return null;
+    }
+
+    /**
+     * Applies FA-Compatible smart matching to prioritise exact word boundaries.
+     * @private
+     */
+    static _applySmartMatching(matches, pattern) {
+        const coreWordMatch = new RegExp(/^\*([^*?]+)\*$/).exec(pattern);
+
+        if (coreWordMatch) {
+            const coreWord = coreWordMatch[1].trim();
+            const flexibleWord = coreWord.replaceAll(/\s+/g, String.raw`[_\-\s]+`);
+            const exactRegex = new RegExp(String.raw`(^|[_\-\s])${flexibleWord}([_\-\s\.]|$)`, "i");
+
+            // Filter for strict boundary matches
+            const primaryMatches = matches.filter((match) => exactRegex.test(match.split("/").pop()));
+
+            if (primaryMatches.length > 0) {
+                return primaryMatches[Math.floor(Math.random() * primaryMatches.length)];
+            }
+        }
+
+        // Loose Fallback (Only triggers if no exact bounded matches exist)
+        return matches[Math.floor(Math.random() * matches.length)];
     }
 
     /**

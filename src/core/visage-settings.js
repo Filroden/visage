@@ -21,7 +21,7 @@ export class VisageSettings {
             hint: "VISAGE.Settings.ExportLog.Hint",
             label: "VISAGE.Settings.ExportLog.Label",
             type: class extends foundry.applications.api.ApplicationV2 {
-                render(force, options) {
+                render(_force, _options) {
                     VisageUtilities.exportDiagnostics();
                     return this;
                 }
@@ -76,7 +76,7 @@ export class VisageSettings {
             label: "VISAGE.Settings.RebuildCache.Label",
             icon: "visage-icon refresh",
             type: class extends foundry.applications.api.ApplicationV2 {
-                render(force, options) {
+                render(_force, _options) {
                     const dir = game.settings.get(MODULE_ID, "autoImageDirectory");
                     if (dir) {
                         // Dynamically import to avoid circular dependencies in settings registration

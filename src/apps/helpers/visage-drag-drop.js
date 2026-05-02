@@ -29,11 +29,7 @@ export class VisageDragDropManager {
         // 1. Bind Cards (Draggables)
         const cards = html.querySelectorAll(".effect-card");
         cards.forEach((card) => {
-            if (
-                card.classList.contains("pinned-light") ||
-                card.dataset.action === "editRing"
-            )
-                return;
+            if (card.classList.contains("pinned-light") || card.dataset.action === "editRing") return;
 
             card.addEventListener("dragstart", (ev) => {
                 this.dragSource = card;
@@ -46,11 +42,9 @@ export class VisageDragDropManager {
             card.addEventListener("dragend", () => {
                 card.classList.remove("dragging");
                 this.dragSource = null;
-                html.querySelectorAll(".drag-over, .group-drag-over").forEach(
-                    (el) => {
-                        el.classList.remove("drag-over", "group-drag-over");
-                    },
-                );
+                html.querySelectorAll(".drag-over, .group-drag-over").forEach((el) => {
+                    el.classList.remove("drag-over", "group-drag-over");
+                });
             });
 
             card.addEventListener("dragenter", (ev) => ev.preventDefault());
@@ -64,26 +58,14 @@ export class VisageDragDropManager {
                 }
             });
 
-            card.addEventListener("dragleave", () =>
-                card.classList.remove("drag-over"),
-            );
-            card.addEventListener("drop", (ev) =>
-                this._onDrop(
-                    ev,
-                    card.closest(".effect-group").dataset.group,
-                    card.dataset.id,
-                ),
-            );
+            card.addEventListener("dragleave", () => card.classList.remove("drag-over"));
+            card.addEventListener("drop", (ev) => this._onDrop(ev, card.closest(".effect-group").dataset.group, card.dataset.id));
         });
 
         // 2. Bind Groups (Drop Zones for appending)
         const groups = html.querySelectorAll(".effect-group");
         groups.forEach((group) => {
-            if (
-                group.dataset.group === "light" ||
-                group.dataset.group === "ring"
-            )
-                return;
+            if (group.dataset.group === "light" || group.dataset.group === "ring") return;
 
             group.addEventListener("dragenter", (ev) => ev.preventDefault());
             group.addEventListener("dragover", (ev) => {
@@ -99,12 +81,8 @@ export class VisageDragDropManager {
                 group.classList.add("group-drag-over");
             });
 
-            group.addEventListener("dragleave", () =>
-                group.classList.remove("group-drag-over"),
-            );
-            group.addEventListener("drop", (ev) =>
-                this._onDrop(ev, group.dataset.group, null),
-            );
+            group.addEventListener("dragleave", () => group.classList.remove("group-drag-over"));
+            group.addEventListener("drop", (ev) => this._onDrop(ev, group.dataset.group, null));
         });
     }
 
@@ -124,42 +102,52 @@ export class VisageDragDropManager {
 
         const draggedEffect = effects[draggedIndex];
 
-        // Update Z-Order if moved
-        if (targetGroup === "above" && draggedEffect.type === "visual")
-            draggedEffect.zOrder = "above";
-        else if (targetGroup === "below" && draggedEffect.type === "visual")
-            draggedEffect.zOrder = "below";
-        else if (targetGroup === "audio" && draggedEffect.type !== "audio")
-            return;
+        // Type Validation Guard
+        if (targetGroup === "audio" && draggedEffect.type !== "audio") return;
 
-        // Reorder Array
+        // 1. Update Internal State
+        this._updateZOrder(draggedEffect, targetGroup);
+
+        // 2. Reorder Array
         effects.splice(draggedIndex, 1);
+
         if (targetId) {
             const targetIndex = effects.findIndex((e) => e.id === targetId);
             effects.splice(targetIndex, 0, draggedEffect);
         } else {
-            let insertIndex = effects.length;
-            if (targetGroup === "above" || targetGroup === "below") {
-                const lastIdx = effects.findLastIndex(
-                    (e) => e.type === "visual" && e.zOrder === targetGroup,
-                );
-                if (lastIdx !== -1) insertIndex = lastIdx + 1;
-            } else if (targetGroup === "audio") {
-                const lastIdx = effects.findLastIndex(
-                    (e) => e.type === "audio",
-                );
-                if (lastIdx !== -1) insertIndex = lastIdx + 1;
-            } else if (targetGroup === "macro") {
-                const lastIdx = effects.findLastIndex(
-                    (e) => e.type === "macro",
-                );
-                if (lastIdx !== -1) insertIndex = lastIdx + 1;
-            }
+            const insertIndex = this._calculateGroupInsertIndex(effects, targetGroup);
             effects.splice(insertIndex, 0, draggedEffect);
         }
 
+        // 3. Trigger UI Updates
         this.editor._markDirty();
         this.editor._updatePreview();
         await this.editor.render();
+    }
+
+    /**
+     * Updates the Z-Order of visual effects based on the target drop group.
+     * @private
+     */
+    _updateZOrder(effect, targetGroup) {
+        if (effect.type === "visual" && (targetGroup === "above" || targetGroup === "below")) {
+            effect.zOrder = targetGroup;
+        }
+    }
+
+    /**
+     * Calculates the correct insertion index when dropping an effect into a group container.
+     * @private
+     */
+    _calculateGroupInsertIndex(effects, targetGroup) {
+        let lastIdx = -1;
+
+        if (targetGroup === "above" || targetGroup === "below") {
+            lastIdx = effects.findLastIndex((e) => e.type === "visual" && e.zOrder === targetGroup);
+        } else if (targetGroup === "audio" || targetGroup === "macro") {
+            lastIdx = effects.findLastIndex((e) => e.type === targetGroup);
+        }
+
+        return lastIdx === -1 ? effects.length : lastIdx + 1;
     }
 }

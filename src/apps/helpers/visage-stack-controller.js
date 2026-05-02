@@ -103,7 +103,7 @@ export class VisageStackController {
 
                 // 2. Calculate New Logic Order (Reversed)
                 const newVisualOrder = [...listElement.querySelectorAll("li.stack-item")].map((li) => li.dataset.layerId);
-                const newLogicOrder = newVisualOrder.reverse();
+                const newLogicOrder = newVisualOrder.toReversed();
 
                 // 3. Save to Database
                 await Visage.reorderStack(tokenId, newLogicOrder);
