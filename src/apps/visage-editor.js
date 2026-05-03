@@ -339,6 +339,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Form Event Delegation
         const debouncedUpdate = foundry.utils.debounce(() => this._updatePreview(), 50);
+        const UPDATE_TRIGGERS = "select, input[type='text'], input[type='checkbox'], input[type='radio'], file-picker, color-picker, range-picker";
+
         this.element.addEventListener("change", (e) => {
             this._markDirty();
 
@@ -348,7 +350,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 return;
             }
 
-            if (e.target.matches("select, input[type='text'], input[type='checkbox'], input[type='radio']")) this._updatePreview();
+            if (e.target.matches(UPDATE_TRIGGERS)) {
+                this._updatePreview();
+            }
         });
 
         // Setup Range Sliders
@@ -680,15 +684,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // Ring Sync
-        if (this._editingRing && formData.ringColor !== undefined) {
+        if (this._editingRing) {
             let effectsMask = 0;
             for (const [k, v] of Object.entries(formData)) {
                 if (k.startsWith("effect_") && v === true) effectsMask |= parseInt(k.split("_")[1]);
             }
-            this._ringData.colors.ring = formData.ringColor;
-            this._ringData.colors.background = formData.ringBackgroundColor;
-            this._ringData.subject.texture = formData.ringSubjectTexture;
-            this._ringData.subject.scale = formData.ringSubjectScale;
+            if (formData.ringColor !== undefined) this._ringData.colors.ring = formData.ringColor;
+            if (formData.ringBackgroundColor !== undefined) this._ringData.colors.background = formData.ringBackgroundColor;
+            if (formData.ringSubjectTexture !== undefined) this._ringData.subject.texture = formData.ringSubjectTexture;
+            if (formData.ringSubjectScale !== undefined) this._ringData.subject.scale = formData.ringSubjectScale;
             this._ringData.effects = effectsMask;
         }
 
@@ -985,6 +989,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     // -- Sub-Editors --
     _onToggleRing() {
         if (!this._ringData) return;
+        this._preservedData = this._prepareSaveData();
         this._ringData.enabled = !this._ringData.enabled;
 
         if (!this._ringData.enabled && this._editingRing) {
@@ -995,27 +1000,34 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this.render();
         }
     }
+
     _onEditRing() {
+        this._preservedData = this._prepareSaveData();
         this._editingRing = true;
         this._editingLight = false;
         this._activeEffectId = null;
         this._activeConditionId = null;
         this.render();
     }
+
     _onToggleLight() {
         if (!this._lightData) return;
+        this._preservedData = this._prepareSaveData();
         this._lightData.active = !this._lightData.active;
         this._markDirty();
         this._updatePreview();
         this.render();
     }
+
     _onEditLight() {
+        this._preservedData = this._prepareSaveData();
         this._editingLight = true;
         this._editingRing = false;
         this._activeEffectId = null;
         this._activeConditionId = null;
         this.render();
     }
+
     _onToggleDelayDirection(event, target) {
         const btns = this.element.querySelectorAll(".delay-direction-toggle button");
         btns.forEach((b) => b.classList.remove("active"));
@@ -1072,13 +1084,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+
     _onEditCondition(event, target) {
+        this._preservedData = this._prepareSaveData();
         this._activeConditionId = target.closest(".effect-card").dataset.id;
         this._activeEffectId = null;
         this._editingLight = false;
         this._editingRing = false;
         this.render();
     }
+
     _onDeleteCondition(event, target) {
         event.stopPropagation(); // Prevent _onEditCondition from firing
         const id = target.closest(".effect-card").dataset.id;
@@ -1089,11 +1104,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+
     async _onCloseConditionInspector() {
+        this._preservedData = this._prepareSaveData();
         this.element.querySelector(".triggers-tab-container")?.classList.remove("editing");
         this._activeConditionId = null;
         await this.render();
     }
+
     _onOpenAttributePicker(event, target) {
         // --- 1. Find a Reference Actor ---
         let referenceActor = this.actor; // Works perfectly for Local Editor
@@ -1313,13 +1331,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         ui.notifications.info(`Visage | Added Macro: ${macroDoc.name}`);
     }
+
     _onEditEffect(event, target) {
+        this._preservedData = this._prepareSaveData();
         this._activeEffectId = target.closest(".effect-card").dataset.id;
         this._editingLight = false;
         this._editingRing = false;
         this._activeConditionId = null;
         this.render();
     }
+
     _onToggleEffect(event, target) {
         const effect = this._effects.find((e) => e.id === target.closest(".effect-card").dataset.id);
         if (effect) {
@@ -1359,13 +1380,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._markDirty();
         this.render();
     }
+
     async _onCloseEffectInspector() {
+        this._preservedData = this._prepareSaveData();
         this.element.querySelector(".effects-tab-container")?.classList.remove("editing");
         this._activeEffectId = null;
         this._editingLight = false;
         this._editingRing = false;
         await this.render();
     }
+
     _onReplayPreview(event, target) {
         target.querySelector("i")?.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], { duration: 500 });
         this._mediaController.stopAll();
