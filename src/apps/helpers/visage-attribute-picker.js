@@ -2,9 +2,7 @@ import { VisageUtilities } from "../../utils/visage-utilities.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-export class VisageAttributePicker extends HandlebarsApplicationMixin(
-    ApplicationV2,
-) {
+export class VisageAttributePicker extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(options = {}) {
         super(options);
         this.actor = options.actor;
@@ -29,8 +27,7 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
 
     static PARTS = {
         picker: {
-            template:
-                "modules/visage/templates/helpers/visage-attribute-picker.hbs",
+            template: "modules/visage/templates/helpers/visage-attribute-picker.hbs",
             scrollable: [".visage-attribute-list"],
         },
     };
@@ -49,11 +46,7 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
             let isValid = rawType === "number" || rawType === "boolean";
 
             // Include Strings, but ONLY if they are short (no HTML biographies)
-            if (
-                rawType === "string" &&
-                value.length < 50 &&
-                !value.includes("<")
-            ) {
+            if (rawType === "string" && value.length < 50 && !value.includes("<")) {
                 isValid = true;
             }
 
@@ -79,13 +72,11 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
         };
     }
 
-    _onRender(context, options) {
+    _onRender(_context, _options) {
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
         // Bind the live search bar using pure DOM manipulation
-        const searchInput = this.element.querySelector(
-            ".visage-attribute-search",
-        );
+        const searchInput = this.element.querySelector(".visage-attribute-search");
         const items = this.element.querySelectorAll(".attribute-item");
         const emptyState = this.element.querySelector(".empty-state-dynamic");
 
@@ -107,8 +98,7 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(
 
                 // Toggle the empty state message if no results match
                 if (emptyState) {
-                    emptyState.style.display =
-                        visibleCount === 0 ? "block" : "none";
+                    emptyState.style.display = visibleCount === 0 ? "block" : "none";
                 }
             });
 

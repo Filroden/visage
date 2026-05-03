@@ -24,25 +24,42 @@ export class VisageMediaController {
         this.audioPreviews = new Map();
     }
 
+    /**
+     * Unpacks a Sequencer database entry to find the underlying string file path.
+     * @private
+     */
+    _extractFileFromEntry(entry) {
+        // 1. Unpack the base entry
+        let file = Array.isArray(entry) ? entry[Math.floor(Math.random() * entry.length)] : entry.file || entry;
+
+        // 2. Unpack if the file itself is an array of variants
+        if (Array.isArray(file)) {
+            file = file[Math.floor(Math.random() * file.length)];
+        }
+
+        // 3. Unpack if the file is an object wrapper
+        if (file && typeof file === "object" && file.file) {
+            file = file.file;
+        }
+
+        // 4. Return if we successfully found a string path
+        return typeof file === "string" ? file : null;
+    }
+
     /** Core resolution logic to turn user input into file paths or module keys. */
     resolvePath(rawPath) {
         if (!rawPath) return null;
-        const isDbKey = VisageUtilities.hasSequencer && !rawPath.includes("/");
-        if (isDbKey) {
-            const entry = this._resolveSequencerRecursively(rawPath);
-            if (entry) {
-                let file = Array.isArray(entry)
-                    ? entry[Math.floor(Math.random() * entry.length)]
-                    : entry.file || entry;
-                if (Array.isArray(file))
-                    file = file[Math.floor(Math.random() * file.length)];
-                if (file && typeof file === "object" && file.file)
-                    file = file.file;
-                if (typeof file === "string") return file;
-            }
-            return null;
+
+        // If it's already a direct file path, or Sequencer isn't installed, return it immediately
+        if (!VisageUtilities.hasSequencer || rawPath.includes("/")) return rawPath;
+
+        // Otherwise, attempt to resolve the database key
+        const entry = this._resolveSequencerRecursively(rawPath);
+        if (entry) {
+            return this._extractFileFromEntry(entry);
         }
-        return rawPath;
+
+        return null;
     }
 
     _resolveSequencerRecursively(path, depth = 0) {
@@ -52,12 +69,11 @@ export class VisageMediaController {
         try {
             const children = Sequencer.Database.getEntriesUnder(path);
             if (children?.length > 0) {
-                const randomKey =
-                    children[Math.floor(Math.random() * children.length)];
+                const randomKey = children[Math.floor(Math.random() * children.length)];
                 return this._resolveSequencerRecursively(randomKey, depth + 1);
             }
-        } catch (e) {
-            /* Ignore */
+        } catch (err) {
+            console.debug(`Visage | Silently ignoring database crawler error for path: ${path}`, err);
         }
         return null;
     }
@@ -65,21 +81,19 @@ export class VisageMediaController {
     /** Prepares inline CSS for a visual effect on the preview stage. */
     prepareEffectStyle(effect) {
         const resolvedPath = this.resolvePath(effect.path);
+        const filterStyle = effect.tint ? `drop-shadow(0 0 0 ${effect.tint})` : "none";
+
         return {
             ...effect,
             resolvedPath,
-            isVideo: resolvedPath
-                ? VisageUtilities.isVideo(resolvedPath)
-                : false,
-            style: `transform: translate(-50%, -50%) scale(${effect.scale}) rotate(${effect.rotation}deg); opacity: ${effect.opacity}; mix-blend-mode: ${effect.blendMode || "normal"}; filter: ${effect.tint ? `drop-shadow(0 0 0 ${effect.tint})` : "none"};`,
+            isVideo: resolvedPath ? VisageUtilities.isVideo(resolvedPath) : false,
+            style: `transform: translate(-50%, -50%) scale(${effect.scale}) rotate(${effect.rotation}deg); opacity: ${effect.opacity}; mix-blend-mode: ${effect.blendMode || "normal"}; filter: ${filterStyle};`,
         };
     }
 
     /** Manages audio playback, tracking active instances and pruning orphans. */
     syncAudio(effects, isRendered) {
-        const activeEffects = effects.filter(
-            (e) => !e.disabled && e.type === "audio" && e.path,
-        );
+        const activeEffects = effects.filter((e) => !e.disabled && e.type === "audio" && e.path);
         const activeIds = new Set(activeEffects.map((e) => e.id));
 
         // Kill orphaned sounds
@@ -97,26 +111,21 @@ export class VisageMediaController {
                 const sound = this.audioPreviews.get(e.id);
                 if (sound instanceof Promise) return; // Still loading
                 if (sound.volume !== vol) sound.volume = vol;
-                if (sound._visageSrc !== e.path) {
+                if (sound._visageSrc === e.path) {
+                    return;
+                } else {
                     this._stopSound(sound);
                     this.audioPreviews.delete(e.id);
-                } else return;
+                }
             }
 
             if (!this.audioPreviews.has(e.id)) {
                 const resolvedPath = this.resolvePath(e.path);
                 if (!resolvedPath) return;
 
-                const playResult = foundry.audio.AudioHelper.play(
-                    { src: resolvedPath, volume: vol, loop: e.loop ?? true },
-                    false,
-                );
+                const playResult = foundry.audio.AudioHelper.play({ src: resolvedPath, volume: vol, loop: e.loop ?? true }, false);
                 const handleSoundLoad = (sound) => {
-                    if (
-                        !effects.find((fx) => fx.id === e.id && !fx.disabled) ||
-                        !sound ||
-                        !isRendered
-                    ) {
+                    if (!effects.some((fx) => fx.id === e.id && !fx.disabled) || !sound || !isRendered) {
                         this._stopSound(sound);
                         this.audioPreviews.delete(e.id);
                         return null;
@@ -135,7 +144,7 @@ export class VisageMediaController {
     }
 
     stopAll() {
-        for (const [id, sound] of this.audioPreviews) {
+        for (const sound of this.audioPreviews.values()) {
             this._stopSound(sound);
         }
         this.audioPreviews.clear();
@@ -149,8 +158,8 @@ export class VisageMediaController {
                     try {
                         s.volume = 0;
                         if (s.stop) s.stop();
-                    } catch (e) {
-                        /* Ignore */
+                    } catch (err) {
+                        console.debug("Visage | Silently ignoring error stopping promised sound.", err);
                     }
                 }
             });
@@ -158,8 +167,8 @@ export class VisageMediaController {
             try {
                 sound.volume = 0;
                 if (sound.stop) sound.stop();
-            } catch (e) {
-                /* Ignore */
+            } catch (err) {
+                console.debug("Visage | Silently ignoring error stopping live sound.", err);
             }
         }
     }

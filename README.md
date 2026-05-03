@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-5.0.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-5.1.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v14-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -16,10 +16,8 @@
 
 Please install the correct version of the module:
 
-- **v4.x is compatible with v13 of FoundryVTT.**
+- **v4.x is compatible with v13 of FoundryVTT:** This version is only being updated for bug fixes and will not contain features added to v5.
 - **v5.x is compatible with v14 of FoundryVTT.**
-
-**FoundryVTT v14 Dependency Notice:** Visage's native token appearance changes, automations, dynamic rings, and lighting effects are stable. However, visual and audio effects rely on third-party modules. Visage will automatically hide UI elements until those third-party modules are installed. Existing Visage effects data will not be changed or deleted so as soon as the dependencies are installed, your effects should work again.
 
 ![Visage](https://github.com/Filroden/visage/blob/main/images/apply_visages.gif)
 
@@ -56,6 +54,7 @@ While other modules focus on transient animations (a sword swinging or a firebal
 - **Integrated Media Pipeline:** Visage seamlessly hooks into the **[Sequencer](https://foundryvtt.com/packages/sequencer)** and **[Token Magic FX](https://foundryvtt.com/packages/tokenmagic)** modules. Bind particle animations, looping sound effects, and WebGL shaders to your Visages. When the Visage is removed, the audio, visuals, and filters clean themselves up automatically.
 - **Dynamic Token Ring Support:** Fully supports Foundry's Dynamic Token Rings. Override subject textures, background colours, and toggle ring effects (Pulse, Wave, Invisibility) on the fly.
 - **Global & Local Libraries:** GMs can build a "Global Library" of universal effects to use across the world. Set some of these Visages to "public" and they become visible for players to use. Players have a "Local Library" tied to their specific character sheet for their personal transformations.
+- **Quick Visages:** Define a default image folder in your game settings to unlock the **Quick Visage** feature. The Selector HUD will automatically display any images from that folder (and its sub-folders) that match the token's name, allowing you to create a new Identity from a selected image and apply it immediately.
 
 ### The Interface
 
@@ -65,11 +64,11 @@ Visage was built with User Experience in mind, offering three distinct tools:
 
    ![Visage Local Library](https://github.com/Filroden/visage/blob/main/images/local_library.png)
 
-2. **The Visage Editor:** A powerful workstation for to build Visages. It features a live preview stage so you can see your token's appearance and effects before you ever save or apply them.
+2. **The Visage Editor:** A powerful workstation to build Visages. It features a live preview stage so you can see your token's appearance and effects before you ever save or apply them.
 
    ![Visage Global Editor](https://github.com/Filroden/visage/blob/main/images/global_editor.png)
 
-3. **The Selector HUD:** A transient, slick quick-menu that appears next to a token on the canvas. It allows players to quickly swap their active Visages, toggle visibility, and reorder their active stack via drag-and-drop.
+3. **The Selector HUD:** A transient quick-menu that appears next to a token on the canvas. It allows players to quickly swap their active Visages, toggle visibility, reorder their active stack via drag-and-drop and create **Quick Visages**. The HUD includes a **Pin toggle**, allowing you to switch it from a floating panel to a standard, resizable window.
 
    ![Visage Selector HUD](https://github.com/Filroden/visage/blob/main/images/visage_selector_hud.png)
 

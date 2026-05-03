@@ -162,8 +162,8 @@ async function _migrateV2(DATA_NAMESPACE) {
  * Universal Cleaner: Migrates a Visage entry to v3 standards.
  * * **Transformations:**
  * 1. Converts legacy `img` property to `texture.src`.
- * 2. Decouples "Baked Scale" (e.g. `texture.scaleX: -1.5`) into atomic properties (`scale: 1.5`, `mirrorX: true`).
- * 3. Ensures `mode` exists (defaults to 'identity' if missing during object cleaning).
+ * 2. Decouples "Baked Scale" into atomic properties.
+ * 3. Ensures `mode` exists (defaults to 'identity').
  * @param {Object} entry - The visage data object to clean.
  * @returns {Object} The clean, migrated entry.
  */
@@ -172,59 +172,49 @@ export function cleanVisageData(entry) {
 
     const c = entry.changes;
 
-    // Clean 'img' (Legacy v1)
+    // 1. Clean 'img' (Legacy v1)
     if (c.img) {
-        if (!c.texture) c.texture = {};
-        if (!c.texture.src) c.texture.src = c.img;
+        c.texture = c.texture || {};
+        c.texture.src = c.texture.src || c.img;
         delete c.img;
     }
 
-    // Clean 'visual' (Legacy v2.2 Dev Artifact)
-    if (c.visual) {
-        delete c.visual;
-    }
+    // 2. Clean obsolete keys
+    delete c.visual; // Legacy v2.2 Dev Artifact
+    delete c.delay; // Migrated to individual effects in v4.1
 
-    // Strip legacy global delay (migrated to individual effects in v4.1)
-    if (c.delay !== undefined) {
-        delete c.delay;
-    }
+    // 3. Migrate Baked Scale (Legacy v2.0/v2.1)
+    _migrateBakedScale(c);
 
-    // Migrate Baked Scale (Legacy v2.0/v2.1)
-    // We separate the magnitude (scale) from the orientation (mirror/flip)
-    // so they can be layered independently by the Composer.
-    const tx = c.texture;
-    if (tx && (tx.scaleX !== undefined || tx.scaleY !== undefined)) {
-        // Extract Data
-        const scaleX = tx.scaleX ?? 1.0;
-        const scaleY = tx.scaleY ?? 1.0;
-
-        const absX = Math.abs(scaleX);
-
-        // A. Extract Atomic Scale Intent
-        // If scale isn't 1.0, we assume the user intended to scale the token
-        if (absX !== 1.0 && c.scale === undefined) {
-            c.scale = absX;
-        }
-
-        // B. Extract Mirror Intent
-        if (c.mirrorX === undefined && scaleX < 0) c.mirrorX = true;
-        if (c.mirrorY === undefined && scaleY < 0) c.mirrorY = true;
-
-        // C. Clean Texture Object (Remove baked scale)
-        // We delete these so they don't override the atomic properties during composition.
-        delete tx.scaleX;
-        delete tx.scaleY;
-
-        // Remove texture object if empty to keep DB clean
-        if (Object.keys(tx).length === 0) delete c.texture;
-    }
-
-    // Ensure Mode (v3.0)
-    // If we are cleaning an object in isolation, we default to identity.
-    // The bulk migration handles context-aware defaults (overlay vs identity).
-    if (!entry.mode) {
-        entry.mode = "identity";
-    }
+    // 4. Ensure Mode (v3.0)
+    // If cleaning in isolation, default to identity. Context-aware defaults are handled by the bulk migration.
+    entry.mode = entry.mode || "identity";
 
     return entry;
+}
+
+/**
+ * Decouples "Baked Scale" (e.g. texture.scaleX: -1.5) into atomic properties (scale: 1.5, mirrorX: true).
+ * @private
+ */
+function _migrateBakedScale(c) {
+    const tx = c.texture;
+    if (!tx || (tx.scaleX === undefined && tx.scaleY === undefined)) return;
+
+    const scaleX = tx.scaleX ?? 1;
+    const scaleY = tx.scaleY ?? 1;
+    const absX = Math.abs(scaleX);
+
+    // A. Extract Atomic Scale Intent
+    if (absX !== 1 && c.scale === undefined) c.scale = absX;
+
+    // B. Extract Mirror Intent
+    if (c.mirrorX === undefined && scaleX < 0) c.mirrorX = true;
+    if (c.mirrorY === undefined && scaleY < 0) c.mirrorY = true;
+
+    // C. Clean Texture Object
+    delete tx.scaleX;
+    delete tx.scaleY;
+
+    if (Object.keys(tx).length === 0) delete c.texture;
 }

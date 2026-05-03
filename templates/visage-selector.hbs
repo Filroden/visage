@@ -1,14 +1,20 @@
 <div class="window-content visage-scrollable">
+
+    {{#unless isWindowMode}}
     <div class="visage-selector-header">
         <i class="visage-icon domino"></i>
         <h3 class="visage-title">{{localize "VISAGE.Selector.Title"}}</h3>
         <button type="button" class="visage-config-button" data-tooltip="{{localize 'VISAGE.Selector.TogglePublic'}}" data-action="toggleGlobal">
             <i class="visage-icon {{#if showPublic}}toggle_on{{else}}toggle_off{{/if}}"></i>
         </button>
+        <button type="button" class="visage-config-button" data-action="togglePin" title="{{localize 'VISAGE.Selector.PinToggle'}}">
+            <i class="visage-icon pin"></i>
+        </button>
         <button type="button" class="visage-config-button" data-tooltip="{{localize 'VISAGE.Selector.Configure'}}" data-action="openConfig">
-            <img src="modules/visage/icons/settings.svg" alt="{{localize 'VISAGE.Selector.Configure'}}"/>
+            <i class="visage-icon config"></i>
         </button>
     </div>
+    {{/unless}}
 
     {{!-- Injected Partials --}}
     {{> "modules/visage/templates/parts/visage-active-stack.hbs" activeStack=activeStack}}

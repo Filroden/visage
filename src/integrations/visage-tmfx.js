@@ -46,8 +46,8 @@ export class VisageTokenMagic {
                 }
             }
             result.galleryPresets = this._galleryCache || [];
-        } catch (e) {
-            console.warn("Visage | Failed to fetch TokenMagic presets or gallery", e);
+        } catch (err) {
+            console.warn("Visage | Failed to fetch TokenMagic presets or gallery", err);
         }
 
         return result;
@@ -64,7 +64,7 @@ export class VisageTokenMagic {
                 if (response.ok) {
                     const responseData = await response.json();
 
-                    if (responseData && responseData.data && responseData.data.params) {
+                    if (responseData?.data?.params) {
                         return responseData.data.params;
                     }
                 }
@@ -87,8 +87,8 @@ export class VisageTokenMagic {
         if (effect.tmfxPayload) {
             try {
                 rawParams = JSON.parse(effect.tmfxPayload);
-            } catch (e) {
-                console.warn(`Visage | Dropping effect ${effect.id}: Invalid TMFX custom payload JSON.`, e);
+            } catch (err) {
+                console.warn(`Visage | Dropping effect ${effect.id}: Invalid TMFX custom payload JSON.`, err);
                 return;
             }
         } else if (effect.tmfxPreset) {
@@ -120,34 +120,48 @@ export class VisageTokenMagic {
     }
 
     /**
-     * Removes all TMFX filters owned by a specific Visage Layer.
+     * Removes all Token Magic FX associated with a specific Visage layer.
+     * @param {Token} token - The target canvas Token.
+     * @param {Object} layer - The Visage layer data to remove.
      */
     static async removeLayer(token, layer) {
-        if (!this.isActive || !token) return;
+        if (!this.isActive || !token || !layer) return;
 
-        const tmfxEffects = (layer.changes?.effects || []).filter((e) => e.type === "tmfx");
+        const effects = layer.changes?.effects || [];
+        const tmfxEffects = effects.filter((e) => e.type === "tmfx" && (e.tmfxPreset || e.tmfxPayload));
+
         for (const effect of tmfxEffects) {
-            if (!effect.tmfxPreset && !effect.tmfxPayload) continue;
+            await this._removeSingleTMFXEffect(token, layer.id, effect);
+        }
+    }
 
-            let rawParams = null;
-            if (effect.tmfxPayload) {
-                try {
-                    rawParams = JSON.parse(effect.tmfxPayload);
-                } catch (e) {
-                    // Silently fail parsing on removal; we will rely on the fallback count below
-                }
-            } else if (effect.tmfxPreset) {
-                const payload = await this._resolvePresetPayload(effect.tmfxPreset);
-                rawParams = typeof payload === "string" ? TokenMagic.getPreset(payload) : payload;
+    /**
+     * Safely determines the number of sub-filters for an effect and deletes them.
+     * @private
+     */
+    static async _removeSingleTMFXEffect(token, layerId, effect) {
+        let rawParams = null;
+
+        if (effect.tmfxPayload) {
+            try {
+                rawParams = JSON.parse(effect.tmfxPayload);
+            } catch (err) {
+                console.warn(`Visage | Dropping effect ${effect.id}: Invalid TMFX custom payload JSON.`, err);
             }
+        } else if (effect.tmfxPreset) {
+            const payload = await this._resolvePresetPayload(effect.tmfxPreset);
+            rawParams = typeof payload === "string" ? TokenMagic.getPreset(payload) : payload;
+        }
 
-            // Failsafe: If the URL fails to resolve (e.g. offline) or the JSON is suddenly unparseable,
-            // we assume a maximum of 10 sub-filters to guarantee the orphaned effect is forcefully cleansed.
-            const count = rawParams ? (Array.isArray(rawParams) ? rawParams.length : 1) : 10;
+        // SonarQube Fix: Unwind the nested ternary operator
+        // Failsafe default is 10 (guarantees orphaned effects are cleansed if parsing fails)
+        let count = 10;
+        if (rawParams) {
+            count = Array.isArray(rawParams) ? rawParams.length : 1;
+        }
 
-            for (let index = 0; index < count; index++) {
-                await TokenMagic.deleteFilters(token, `visage-${layer.id}-${effect.id}-${index}`);
-            }
+        for (let index = 0; index < count; index++) {
+            await TokenMagic.deleteFilters(token, `visage-${layerId}-${effect.id}-${index}`);
         }
     }
 

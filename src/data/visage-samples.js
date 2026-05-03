@@ -76,13 +76,13 @@ export class VisageSamples extends HandlebarsApplicationMixin(ApplicationV2) {
         return game.i18n.localize("VISAGE.Samples.Title");
     }
 
-    async _prepareContext(options) {
+    async _prepareContext(_options) {
         return {
             packs: VisageSamples.PACKS,
         };
     }
 
-    _onRender(context, options) {
+    _onRender(_context, _options) {
         VisageUtilities.applyVisageTheme(this.element, false);
     }
 
@@ -107,34 +107,11 @@ export class VisageSamples extends HandlebarsApplicationMixin(ApplicationV2) {
             if (!packDef) continue;
 
             try {
-                // 1. Fetch Data
                 const data = await this._fetchPackData(packDef.filename);
+                const result = await this._importPackData(data);
 
-                // 2. Import Loop (Reusing logic from VisageGallery)
-                // We use VisageData.globals because these are global presets
-                const currentIds = new Set(VisageData.globals.map((i) => i.id));
-
-                for (const entry of data) {
-                    const cleanEntry = cleanVisageData(entry);
-                    if (!cleanEntry.id || !cleanEntry.changes) continue;
-
-                    // Skip duplicates based on ID to prevent overwriting user edits
-                    if (currentIds.has(cleanEntry.id)) {
-                        totalSkipped++;
-                        continue;
-                    }
-
-                    if (cleanEntry.label) {
-                        cleanEntry.label = game.i18n.localize(cleanEntry.label);
-                    }
-
-                    if (cleanEntry.category) {
-                        cleanEntry.category = game.i18n.localize(cleanEntry.category);
-                    }
-
-                    await VisageData.save(cleanEntry, null); // null actor = Global
-                    totalImported++;
-                }
+                totalImported += result.imported;
+                totalSkipped += result.skipped;
             } catch (err) {
                 console.error(`Visage | Failed to import pack ${packDef.id}:`, err);
                 ui.notifications.error(
@@ -151,6 +128,40 @@ export class VisageSamples extends HandlebarsApplicationMixin(ApplicationV2) {
                 skipped: totalSkipped,
             }),
         );
+    }
+
+    /**
+     * Processes and imports an array of Visage data entries.
+     * @private
+     * @param {Array<Object>} data - The raw pack data.
+     * @returns {Promise<{imported: number, skipped: number}>}
+     */
+    async _importPackData(data) {
+        let imported = 0;
+        let skipped = 0;
+
+        // We use VisageData.globals because these are global presets
+        const currentIds = new Set(VisageData.globals.map((i) => i.id));
+
+        for (const entry of data) {
+            const cleanEntry = cleanVisageData(entry);
+            if (!cleanEntry.id || !cleanEntry.changes) continue;
+
+            // Skip duplicates based on ID to prevent overwriting user edits
+            if (currentIds.has(cleanEntry.id)) {
+                skipped++;
+                continue;
+            }
+
+            // Localise text fields if they exist
+            if (cleanEntry.label) cleanEntry.label = game.i18n.localize(cleanEntry.label);
+            if (cleanEntry.category) cleanEntry.category = game.i18n.localize(cleanEntry.category);
+
+            await VisageData.save(cleanEntry, null); // null actor = Global
+            imported++;
+        }
+
+        return { imported, skipped };
     }
 
     /**

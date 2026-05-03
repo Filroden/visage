@@ -207,7 +207,7 @@ export class VisageData {
         Hooks.callAll("visageDataChanged");
 
         // 3. Clean the Canvas THIRD
-        if (existing?.automation?.enabled && (!data.automation || !data.automation.enabled)) {
+        if (existing?.automation?.enabled && !data.automation?.enabled) {
             const VisageApi = game.modules.get(MODULE_ID)?.api;
             if (VisageApi) {
                 for (const t of canvas.tokens.placeables) {
@@ -267,7 +267,7 @@ export class VisageData {
         Hooks.callAll("visageDataChanged");
 
         // 3. Clean the Canvas THIRD
-        if (existing?.automation?.enabled && (!data.automation || !data.automation.enabled)) {
+        if (existing?.automation?.enabled && !data.automation?.enabled) {
             const VisageApi = game.modules.get(MODULE_ID)?.api;
             if (VisageApi) {
                 const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id);
@@ -283,13 +283,10 @@ export class VisageData {
     // ==========================================
 
     /**
-     * Recursively scrubs nulls, empty arrays, empty objects, and untouched default blocks.
-     * Preserves user-configured data even if it is currently toggled off.
+     * Handles specific domain logic for scrubbing a Visage payload.
      * @private
      */
-    static _scrubPayload(obj) {
-        // 1. Smart-Scrub: Remove blocks ONLY if they are disabled AND untouched/empty
-
+    static _scrubDomainLogic(obj) {
         // Light: Delete if disabled AND emits no light (dim and bright are 0 or missing)
         if (obj.light && (obj.light.active === false || obj.light.active === "false")) {
             if (!obj.light.dim && !obj.light.bright) delete obj.light;
@@ -301,23 +298,28 @@ export class VisageData {
         }
 
         // Strip legacy global delay (migrated to individual effects in v4.1)
-        if (obj.delay !== undefined) {
-            delete obj.delay;
-        }
+        if (obj.delay !== undefined) delete obj.delay;
+    }
 
-        // 2. Standard recursive scrub for nulls and completely empty arrays/objects
+    /**
+     * Recursively scrubs nulls, empty arrays, empty objects, and untouched default blocks.
+     * Preserves user-configured data even if it is currently toggled off.
+     * @private
+     */
+    static _scrubPayload(obj) {
+        this._scrubDomainLogic(obj);
+
         for (const key in obj) {
-            if (obj[key] === undefined) continue;
+            const val = obj[key];
+            if (val === undefined) continue;
 
-            if (obj[key] === null) {
+            if (val === null) {
                 delete obj[key];
-            } else if (Array.isArray(obj[key])) {
-                // Strip empty arrays
-                if (obj[key].length === 0) delete obj[key];
-            } else if (typeof obj[key] === "object") {
-                this._scrubPayload(obj[key]);
-                // Strip completely empty objects
-                if (Object.keys(obj[key]).length === 0) delete obj[key];
+            } else if (Array.isArray(val)) {
+                if (val.length === 0) delete obj[key];
+            } else if (typeof val === "object") {
+                this._scrubPayload(val);
+                if (Object.keys(val).length === 0) delete obj[key];
             }
         }
         return obj;
@@ -386,8 +388,8 @@ export class VisageData {
         let sourceData = tokenDoc.flags?.[MODULE_ID]?.originalState || VisageUtilities.extractVisualState(tokenDoc);
 
         const src = sourceData.texture?.src || tokenDoc.texture.src;
-        const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
-        const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1.0;
+        const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1;
+        const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1;
 
         const ringData = sourceData.ring?.toObject ? sourceData.ring.toObject() : sourceData.ring || {};
         const lightData = sourceData.light?.toObject ? sourceData.light.toObject() : sourceData.light || tokenDoc.light?.toObject?.() || tokenDoc.light;
@@ -451,10 +453,10 @@ export class VisageData {
         const isVideo = options.isVideo ?? VisageUtilities.isVideo(cleanPath);
 
         // 2. Base Scales & Flips
-        const bakedScaleX = tx.scaleX ?? 1.0;
-        const bakedScaleY = tx.scaleY ?? 1.0;
+        const bakedScaleX = tx.scaleX ?? 1;
+        const bakedScaleY = tx.scaleY ?? 1;
         const finalScale = c.scale ?? Math.abs(bakedScaleX);
-        const alpha = c.alpha ?? 1.0;
+        const alpha = c.alpha ?? 1;
         const lockRotation = c.lockRotation ?? false;
 
         const anchorXVal = tx.anchorX ?? 0.5;
@@ -466,7 +468,7 @@ export class VisageData {
         const ringCtx = this.prepareRingContext(c.ring);
 
         // 4. Boolean Activity Flags
-        const isScaleActive = (c.scale !== undefined && c.scale !== null) || Math.abs(bakedScaleX) !== 1.0;
+        const isScaleActive = (c.scale !== undefined && c.scale !== null) || Math.abs(bakedScaleX) !== 1;
         const isDimActive = (c.width !== undefined && c.width !== null) || (c.height !== undefined && c.height !== null) || (c.depth !== undefined && c.depth !== null);
         const isAnchorActive = anchorXVal !== 0.5 || anchorYVal !== 0.5;
         const isWildcard = options.isWildcard ?? false;
@@ -535,7 +537,7 @@ export class VisageData {
                         val: `${anchorXVal} / ${anchorYVal}`,
                     },
                     alpha: {
-                        active: c.alpha !== undefined && c.alpha !== null && c.alpha !== 1.0,
+                        active: c.alpha !== undefined && c.alpha !== null && c.alpha !== 1,
                         val: `${Math.round(alpha * 100)}%`,
                     },
                     lock: {
@@ -595,7 +597,7 @@ export class VisageData {
             },
             subject: {
                 texture: data.subject?.texture ?? "",
-                scale: data.subject?.scale ?? 1.0,
+                scale: data.subject?.scale ?? 1,
             },
             rawEffects: currentEffects,
             hasPulse: (currentEffects & 2) !== 0,
@@ -710,7 +712,7 @@ export class VisageData {
                     } else {
                         // Visual
                         icon = "visage-icon visual";
-                        meta = `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1.0) * 100)}%`;
+                        meta = `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1) * 100)}%`;
                     }
 
                     return `
@@ -759,13 +761,42 @@ export class VisageData {
     }
 
     /**
+     * Safely constructs the token update payload for a default commit.
+     * @private
+     */
+    static _buildCommitPayload(data) {
+        const payload = {};
+
+        // Handle explicit string properties
+        if (data.name) payload.name = data.name;
+        if (data.texture?.src) payload["texture.src"] = data.texture.src;
+
+        // Handle texture scalars explicitly to bypass nullish coalescing issues
+        if (data.texture?.scaleX !== undefined) payload["texture.scaleX"] = data.texture.scaleX;
+        if (data.texture?.scaleY !== undefined) payload["texture.scaleY"] = data.texture.scaleY;
+
+        // Handle all standard root properties iteratively
+        const rootKeys = ["width", "height", "disposition", "ring", "light"];
+        for (const key of rootKeys) {
+            if (data[key] !== undefined) payload[key] = data[key];
+        }
+
+        // Clean out any lingering undefined keys
+        for (const key in payload) {
+            if (payload[key] === undefined) delete payload[key];
+        }
+
+        return payload;
+    }
+
+    /**
      * Commits a Visage to be the new "Default" appearance of a token/actor.
      * @param {Token|string} tokenOrId - The target token.
      * @param {string} visageId - The ID of the Visage to commit.
      */
     static async commitToDefault(tokenOrId, visageId) {
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
-        if (!token || !token.actor) return ui.notifications.warn("Visage | No actor found.");
+        if (!token?.actor) return ui.notifications.warn("Visage | No actor found.");
 
         const targetVisage = this.getLocal(token.actor).find((v) => v.id === visageId);
         if (!targetVisage) return ui.notifications.warn("Visage | Target Visage not found.");
@@ -793,22 +824,7 @@ export class VisageData {
         });
 
         // 3. Construct update payload
-        const updatePayload = {};
-        if (newDefaultData.name) updatePayload.name = newDefaultData.name;
-        if (newDefaultData.texture) {
-            if (newDefaultData.texture.src) updatePayload["texture.src"] = newDefaultData.texture.src;
-            if (newDefaultData.texture.scaleX !== undefined) updatePayload["texture.scaleX"] = newDefaultData.texture.scaleX;
-            if (newDefaultData.texture.scaleY !== undefined) updatePayload["texture.scaleY"] = newDefaultData.texture.scaleY;
-        }
-        if (newDefaultData.width !== undefined) updatePayload.width = newDefaultData.width;
-        if (newDefaultData.height !== undefined) updatePayload.height = newDefaultData.height;
-        if (newDefaultData.disposition !== undefined) updatePayload.disposition = newDefaultData.disposition;
-        if (newDefaultData.ring) updatePayload.ring = newDefaultData.ring;
-        if (newDefaultData.light) updatePayload.light = newDefaultData.light;
-
-        for (const key of Object.keys(updatePayload)) {
-            if (updatePayload[key] === undefined) delete updatePayload[key];
-        }
+        const updatePayload = this._buildCommitPayload(newDefaultData);
 
         // 4. Apply Updates
         if (token.document.isLinked) await token.actor.update({ prototypeToken: updatePayload });
