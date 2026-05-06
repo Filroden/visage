@@ -311,6 +311,7 @@ export class VisageUtilities {
             disposition: get("disposition"),
             width: get("width"),
             height: get("height"),
+            depth: get("depth"),
             alpha: alpha,
             lockRotation: lockRotation,
             texture: {

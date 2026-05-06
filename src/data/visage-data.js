@@ -385,14 +385,30 @@ export class VisageData {
         if (!tokenDoc) return null;
 
         // Retrieve cached original state, otherwise snapshot now
-        let sourceData = tokenDoc.flags?.[MODULE_ID]?.originalState || VisageUtilities.extractVisualState(tokenDoc);
+        const stack = tokenDoc.getFlag(MODULE_ID, "activeStack") || [];
+        const cachedState = tokenDoc.getFlag(MODULE_ID, "originalState");
+        let sourceData;
+
+        // Self-Healing Logic
+        if (stack.length > 0 && cachedState) {
+            sourceData = cachedState;
+        } else {
+            sourceData = VisageUtilities.extractVisualState(tokenDoc);
+        }
 
         const src = sourceData.texture?.src || tokenDoc.texture.src;
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1;
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1;
 
         const ringData = sourceData.ring?.toObject ? sourceData.ring.toObject() : sourceData.ring || {};
-        const lightData = sourceData.light?.toObject ? sourceData.light.toObject() : sourceData.light || tokenDoc.light?.toObject?.() || tokenDoc.light;
+
+        // Calculate the active flag based on actual light emission
+        const rawLight = sourceData.light?.toObject ? sourceData.light.toObject() : sourceData.light || tokenDoc.light?.toObject?.() || tokenDoc.light || {};
+        const lightData = {
+            ...rawLight,
+            active: rawLight.dim > 0 || rawLight.bright > 0,
+        };
+
         const portrait = sourceData.portrait || tokenDoc.actor?.img || null;
 
         return {
@@ -418,6 +434,8 @@ export class VisageData {
                 light: lightData,
                 portrait: portrait,
                 ring: ringData,
+                alpha: sourceData.alpha ?? 1,
+                lockRotation: sourceData.lockRotation ?? false,
             },
         };
     }
@@ -761,29 +779,51 @@ export class VisageData {
     }
 
     /**
+     * Calculates the final scale by applying atomic overrides while preserving native flip signs.
+     * @private
+     */
+    static _applyScaleOverride(textureScale, atomicScale) {
+        // If no atomic override is set, just return the native scale
+        if (atomicScale === undefined || atomicScale === null) {
+            return textureScale;
+        }
+
+        // Calculate the sign based on the native scale (defaulting to 1)
+        const effectiveScale = textureScale === undefined ? 1 : textureScale;
+        const sign = effectiveScale < 0 ? -1 : 1;
+
+        return atomicScale * sign;
+    }
+
+    /**
      * Safely constructs the token update payload for a default commit.
      * @private
      */
     static _buildCommitPayload(data) {
+        // 1. Build a raw payload map using optional chaining
+        const rawPayload = {
+            name: data.name,
+            "texture.src": data.texture?.src,
+            "texture.scaleX": this._applyScaleOverride(data.texture?.scaleX, data.scale),
+            "texture.scaleY": this._applyScaleOverride(data.texture?.scaleY, data.scale),
+            "texture.anchorX": data.texture?.anchorX,
+            "texture.anchorY": data.texture?.anchorY,
+            width: data.width,
+            height: data.height,
+            depth: data.depth,
+            disposition: data.disposition,
+            ring: data.ring,
+            light: data.light,
+            alpha: data.alpha,
+            lockRotation: data.lockRotation,
+        };
+
+        // 2. Perform a single, flat cleanup pass to remove undefined keys.
         const payload = {};
-
-        // Handle explicit string properties
-        if (data.name) payload.name = data.name;
-        if (data.texture?.src) payload["texture.src"] = data.texture.src;
-
-        // Handle texture scalars explicitly to bypass nullish coalescing issues
-        if (data.texture?.scaleX !== undefined) payload["texture.scaleX"] = data.texture.scaleX;
-        if (data.texture?.scaleY !== undefined) payload["texture.scaleY"] = data.texture.scaleY;
-
-        // Handle all standard root properties iteratively
-        const rootKeys = ["width", "height", "disposition", "ring", "light"];
-        for (const key of rootKeys) {
-            if (data[key] !== undefined) payload[key] = data[key];
-        }
-
-        // Clean out any lingering undefined keys
-        for (const key in payload) {
-            if (payload[key] === undefined) delete payload[key];
+        for (const [key, value] of Object.entries(rawPayload)) {
+            if (value !== undefined) {
+                payload[key] = value;
+            }
         }
 
         return payload;
@@ -805,13 +845,19 @@ export class VisageData {
         if (!currentDefault) return;
 
         // 1. Backup current default
+        const backupChanges = foundry.utils.deepClone(currentDefault.changes);
+
+        // Map the native texture scale to the atomic Visage scale
+        // so the Editor UI recognises it as an active override.
+        backupChanges.scale = Math.abs(backupChanges.texture?.scaleX ?? 1);
+
         await this._saveLocal(
             {
                 label: `${currentDefault.changes.name || token.name} (Backup)`,
                 category: "Backup",
                 tags: ["Backup", ...(currentDefault.tags || [])],
                 mode: "identity",
-                changes: currentDefault.changes,
+                changes: backupChanges,
             },
             token.actor,
         );
@@ -827,18 +873,37 @@ export class VisageData {
         const updatePayload = this._buildCommitPayload(newDefaultData);
 
         // 4. Apply Updates
-        if (token.document.isLinked) await token.actor.update({ prototypeToken: updatePayload });
-        else await token.document.update(updatePayload);
+        await token.document.update(updatePayload); // Always force the canvas instance to update
+
+        const actorUpdates = {};
+        if (token.document.isLinked) actorUpdates.prototypeToken = updatePayload;
+
+        // Target the Actor's core image for the portrait
+        if (newDefaultData.portrait) actorUpdates.img = newDefaultData.portrait;
+
+        if (Object.keys(actorUpdates).length > 0) {
+            await token.actor.update(actorUpdates);
+        }
 
         // 5. Update the "Original State" flag
-        const newOriginalState = VisageUtilities.extractVisualState({
-            ...token.document.toObject(),
-            ...foundry.utils.expandObject(updatePayload),
-        });
+        const stack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
-        await token.document.update({
-            [`flags.${DATA_NAMESPACE}.originalState`]: newOriginalState,
-        });
+        if (stack.length > 0) {
+            const mergedData = foundry.utils.mergeObject(token.document.toObject(), foundry.utils.expandObject(updatePayload), { inplace: false });
+            const newOriginalState = VisageUtilities.extractVisualState(mergedData);
+
+            // Explicitly inject the portrait into the state snapshot
+            if (newDefaultData.portrait) {
+                newOriginalState.portrait = newDefaultData.portrait;
+            }
+
+            await token.document.update({
+                [`flags.${DATA_NAMESPACE}.originalState`]: newOriginalState,
+            });
+        } else {
+            // Clean up: Ensure no orphaned snapshot remains when the token is bare
+            await token.document.unsetFlag(DATA_NAMESPACE, "originalState");
+        }
 
         // 6. Remove the active mask
         const VisageApi = game.modules.get(MODULE_ID).api;
