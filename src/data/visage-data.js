@@ -405,7 +405,14 @@ export class VisageData {
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1.0;
 
         const ringData = sourceData.ring?.toObject ? sourceData.ring.toObject() : sourceData.ring || {};
-        const lightData = sourceData.light?.toObject ? sourceData.light.toObject() : sourceData.light || tokenDoc.light?.toObject?.() || tokenDoc.light;
+
+        // Calculate the active flag based on actual light emission
+        const rawLight = sourceData.light?.toObject ? sourceData.light.toObject() : sourceData.light || tokenDoc.light?.toObject?.() || tokenDoc.light || {};
+        const lightData = {
+            ...rawLight,
+            active: rawLight.dim > 0 || rawLight.bright > 0,
+        };
+
         const portrait = sourceData.portrait || tokenDoc.actor?.img || null;
 
         return {
@@ -786,13 +793,18 @@ export class VisageData {
         if (!currentDefault) return;
 
         // 1. Backup current default
+        const backupChanges = foundry.utils.deepClone(currentDefault.changes);
+
+        // Map the native texture scale to the atomic Visage scale
+        backupChanges.scale = Math.abs(backupChanges.texture?.scaleX ?? 1);
+
         await this._saveLocal(
             {
                 label: `${currentDefault.changes.name || token.name} (Backup)`,
                 category: "Backup",
                 tags: ["Backup", ...(currentDefault.tags || [])],
                 mode: "identity",
-                changes: currentDefault.changes,
+                changes: backupChanges,
             },
             token.actor,
         );
@@ -807,13 +819,27 @@ export class VisageData {
         // 3. Construct update payload
         const updatePayload = {};
         if (newDefaultData.name !== undefined) updatePayload.name = newDefaultData.name;
-        if (newDefaultData.texture) {
-            if (newDefaultData.texture.src !== undefined) updatePayload["texture.src"] = newDefaultData.texture.src;
-            if (newDefaultData.texture.scaleX !== undefined) updatePayload["texture.scaleX"] = newDefaultData.texture.scaleX;
-            if (newDefaultData.texture.scaleY !== undefined) updatePayload["texture.scaleY"] = newDefaultData.texture.scaleY;
-            if (newDefaultData.texture.anchorX !== undefined) updatePayload["texture.anchorX"] = newDefaultData.texture.anchorX;
-            if (newDefaultData.texture.anchorY !== undefined) updatePayload["texture.anchorY"] = newDefaultData.texture.anchorY;
+        if (newDefaultData.texture?.src !== undefined) updatePayload["texture.src"] = newDefaultData.texture.src;
+
+        // FIX: Apply the atomic Visage 'scale' override to the native texture scales
+        let scaleX = newDefaultData.texture?.scaleX;
+        let scaleY = newDefaultData.texture?.scaleY;
+
+        if (newDefaultData.scale !== undefined && newDefaultData.scale !== null) {
+            const effectiveScaleX = scaleX === undefined ? 1 : scaleX;
+            const effectiveScaleY = scaleY === undefined ? 1 : scaleY;
+            const signX = effectiveScaleX < 0 ? -1 : 1;
+            const signY = effectiveScaleY < 0 ? -1 : 1;
+
+            scaleX = newDefaultData.scale * signX;
+            scaleY = newDefaultData.scale * signY;
         }
+
+        if (scaleX !== undefined) updatePayload["texture.scaleX"] = scaleX;
+        if (scaleY !== undefined) updatePayload["texture.scaleY"] = scaleY;
+        if (newDefaultData.texture?.anchorX !== undefined) updatePayload["texture.anchorX"] = newDefaultData.texture.anchorX;
+        if (newDefaultData.texture?.anchorY !== undefined) updatePayload["texture.anchorY"] = newDefaultData.texture.anchorY;
+
         if (newDefaultData.width !== undefined) updatePayload.width = newDefaultData.width;
         if (newDefaultData.height !== undefined) updatePayload.height = newDefaultData.height;
         if (newDefaultData.disposition !== undefined) updatePayload.disposition = newDefaultData.disposition;
