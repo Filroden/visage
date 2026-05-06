@@ -7,6 +7,7 @@
 
 import { Visage } from "../core/visage.js";
 import { VisageData } from "./visage-data.js";
+import { VisageDataModel } from "./visage-data-model.js";
 import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
 
 /**
@@ -164,6 +165,7 @@ async function _migrateV2(DATA_NAMESPACE) {
  * 1. Converts legacy `img` property to `texture.src`.
  * 2. Decouples "Baked Scale" into atomic properties.
  * 3. Ensures `mode` exists (defaults to 'identity').
+ * 4. Enforces the strict V3 DataModel to guarantee arrays and defaults.
  * @param {Object} entry - The visage data object to clean.
  * @returns {Object} The clean, migrated entry.
  */
@@ -187,10 +189,13 @@ export function cleanVisageData(entry) {
     _migrateBakedScale(c);
 
     // 4. Ensure Mode (v3.0)
-    // If cleaning in isolation, default to identity. Context-aware defaults are handled by the bulk migration.
     entry.mode = entry.mode || "identity";
 
-    return entry;
+    // 5. The Ultimate Failsafe: Pass it through the DataModel
+    // This instantly upgrades legacy objects with missing `effects` arrays,
+    // missing `ring` defaults, or corrupted types.
+    const strictModel = new VisageDataModel(entry);
+    return strictModel.toObject();
 }
 
 /**

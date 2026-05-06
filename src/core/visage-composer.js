@@ -35,11 +35,8 @@ export class VisageComposer {
 
         const base = baseOverride ?? allFlags.originalState ?? VisageUtilities.extractVisualState(token.document);
 
-        // 2. Initialise State & Iterate Layers
-        const state = this._initializeCompositionState(base);
-        for (const layer of currentStack) {
-            this._applyLayerOverrides(state, layer);
-        }
+        // 2. Calculate the single composite state
+        const state = this._calculateCompositeState(base, currentStack);
 
         // 3. Reconstruct Final Data
         const finalData = this._reconstructFinalData(state);
@@ -55,26 +52,20 @@ export class VisageComposer {
         delete updateData.effects; // Sanity check
         if (finalData.light) updateData.light = finalData.light;
 
-        // 5. Execute Update
+        // 5. Execute Native Update
         await token.document.update(updateData, {
             visageUpdate: true,
             scenescape: true,
         });
     }
 
-    // ==========================================
-    // COMPOSER HELPER METHODS
-    // ==========================================
-
     /**
-     * Deconstructs the base state into decoupled atomic properties for layering.
+     * Consolidates the iteration and override logic into a single mathematical pass.
+     * Enforces strict separation of concerns by acting purely as a state calculator.
      * @private
      */
-    static _initializeCompositionState(base) {
-        const finalData = foundry.utils.deepClone(base);
-        if (!finalData.texture) finalData.texture = {};
-
-        return {
+    static _calculateCompositeState(base, stack) {
+        const state = {
             src: base.texture?.src || "",
             scaleX: Math.abs(base.texture?.scaleX ?? 1),
             scaleY: Math.abs(base.texture?.scaleY ?? 1),
@@ -82,43 +73,39 @@ export class VisageComposer {
             mirrorY: (base.texture?.scaleY ?? 1) < 0,
             anchorX: base.texture?.anchorX ?? 0.5,
             anchorY: base.texture?.anchorY ?? 0.5,
-            finalData: finalData,
+            finalData: foundry.utils.deepClone(base),
         };
-    }
 
-    /**
-     * Applies a single layer's overrides to the working composition state.
-     * @private
-     */
-    static _applyLayerOverrides(state, layer) {
-        if (layer.disabled) return;
-        const c = layer.changes || {};
+        if (!state.finalData.texture) state.finalData.texture = {};
 
-        // A. Texture & Anchors (Fallback to existing state if null/undefined)
-        state.src = c.texture?.src || state.src;
-        state.anchorX = c.texture?.anchorX ?? state.anchorX;
-        state.anchorY = c.texture?.anchorY ?? state.anchorY;
+        // Cascade Layer Overrides
+        for (const layer of stack) {
+            if (layer.disabled) continue;
+            const c = layer.changes || {};
 
-        // B. Scale (Atomic Override)
-        state.scaleX = c.scale ?? state.scaleX;
-        state.scaleY = c.scale ?? state.scaleY;
+            state.src = c.texture?.src || state.src;
+            state.anchorX = c.texture?.anchorX ?? state.anchorX;
+            state.anchorY = c.texture?.anchorY ?? state.anchorY;
 
-        // C. Mirroring
-        state.mirrorX = c.mirrorX ?? state.mirrorX;
-        state.mirrorY = c.mirrorY ?? state.mirrorY;
+            state.scaleX = c.scale ?? state.scaleX;
+            state.scaleY = c.scale ?? state.scaleY;
 
-        // D. Core Token Data
-        state.finalData.disposition = c.disposition ?? state.finalData.disposition;
-        state.finalData.name = c.name || state.finalData.name;
-        state.finalData.width = c.width ?? state.finalData.width;
-        state.finalData.height = c.height ?? state.finalData.height;
-        state.finalData.depth = c.depth ?? state.finalData.depth;
-        state.finalData.alpha = c.alpha ?? state.finalData.alpha;
-        state.finalData.lockRotation = c.lockRotation ?? state.finalData.lockRotation;
+            state.mirrorX = c.mirrorX ?? state.mirrorX;
+            state.mirrorY = c.mirrorY ?? state.mirrorY;
 
-        // E. Dynamic Ring and Light Data
-        if (c.ring?.enabled) state.finalData.ring = c.ring;
-        if (c.light?.active) state.finalData.light = c.light;
+            state.finalData.disposition = c.disposition ?? state.finalData.disposition;
+            state.finalData.name = c.name || state.finalData.name;
+            state.finalData.width = c.width ?? state.finalData.width;
+            state.finalData.height = c.height ?? state.finalData.height;
+            state.finalData.depth = c.depth ?? state.finalData.depth;
+            state.finalData.alpha = c.alpha ?? state.finalData.alpha;
+            state.finalData.lockRotation = c.lockRotation ?? state.finalData.lockRotation;
+
+            if (c.ring?.enabled) state.finalData.ring = c.ring;
+            if (c.light?.active) state.finalData.light = c.light;
+        }
+
+        return state;
     }
 
     /**
@@ -133,6 +120,22 @@ export class VisageComposer {
         data.texture.anchorX = state.anchorX;
         data.texture.anchorY = state.anchorY;
         return data;
+    }
+
+    /**
+     * Calculates the final texture orientation, scale, and anchor state.
+     */
+    static resolveTextureState(stack, originalState) {
+        const state = this._calculateCompositeState(originalState || {}, stack);
+
+        return {
+            anchorX: state.anchorX,
+            anchorY: state.anchorY,
+            scaleX: state.scaleX,
+            scaleY: state.scaleY,
+            mirrorX: state.mirrorX,
+            mirrorY: state.mirrorY,
+        };
     }
 
     /**
@@ -216,42 +219,5 @@ export class VisageComposer {
 
         // 3. Fallback to Current Image (Safety catch for first-time application)
         return currentActorImage;
-    }
-
-    /**
-     * Calculates the final texture orientation, scale, and anchor state based on the current stack priority.
-     * Iterates from the bottom of the stack (Identity) up to the top (Overlays).
-     * @param {Array<Object>} stack - The active Visage stack.
-     * @param {Object} [originalState] - The snapshot of the token before Visage was applied.
-     * @returns {Object} { anchorX, anchorY, scaleX, scaleY, mirrorX, mirrorY }
-     */
-    static resolveTextureState(stack, originalState) {
-        let anchorX = originalState?.texture?.anchorX ?? 0.5;
-        let anchorY = originalState?.texture?.anchorY ?? 0.5;
-
-        // Capture absolute scale, ignoring the sign which denotes the mirror state
-        let scaleX = Math.abs(originalState?.texture?.scaleX ?? 1);
-        let scaleY = Math.abs(originalState?.texture?.scaleY ?? 1);
-
-        let mirrorX = (originalState?.texture?.scaleX ?? 1) < 0;
-        let mirrorY = (originalState?.texture?.scaleY ?? 1) < 0;
-
-        for (const layer of stack) {
-            if (layer.disabled) continue;
-            const c = layer.changes || {};
-
-            // Fallback to the current loop state if the layer doesn't override it
-            anchorX = c.texture?.anchorX ?? anchorX;
-            anchorY = c.texture?.anchorY ?? anchorY;
-
-            // Capture atomic scale overrides
-            scaleX = c.scale ?? scaleX;
-            scaleY = c.scale ?? scaleY;
-
-            mirrorX = c.mirrorX ?? mirrorX;
-            mirrorY = c.mirrorY ?? mirrorY;
-        }
-
-        return { anchorX, anchorY, scaleX, scaleY, mirrorX, mirrorY };
     }
 }

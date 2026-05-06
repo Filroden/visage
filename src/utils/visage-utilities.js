@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../core/visage-constants.js";
+import { VisageDataModel } from "../data/visage-data-model.js";
 
 /**
  * @file Shared utility functions for the Visage module.
@@ -266,26 +267,16 @@ export class VisageUtilities {
 
     /**
      * Captures the current visual properties of a token document or a plain data object.
-     * * STRICT V3 MODE: This method ensures we are extracting the standardized V3 schema
-     * (e.g. nested texture objects) regardless of whether the input is a Document or raw data.
-     * * Used for creating snapshots (the "Original State") before applying masks so we can revert later.
+     * Extracts the raw properties and passes them through the DataModel to guarantee
+     * a perfectly sanitized v3 schema with correct fallbacks.
      * @param {TokenDocument|Object} data - The token document or data object to inspect.
-     * @returns {Object} A standardized visual state object (v2 Schema).
+     * @returns {Object} A standardized visual state object ready to be saved as a Visage.
      */
     static extractVisualState(data) {
         if (!data) return {};
 
-        // Helper: Prefer raw source data (if Document) to avoid temporary flags/mods.
         const source = data._source || data;
-
-        // Fallback helper for nested properties which might not be in _source if they haven't been updated yet
         const get = (key) => foundry.utils.getProperty(source, key) ?? foundry.utils.getProperty(data, key);
-
-        // Safely extract Ring data (Foundry V12+ Dynamic Token Rings)
-        const ringData = source.ring?.toObject?.() ?? source.ring ?? {};
-
-        // Capture Light Source
-        const lightData = source.light?.toObject?.() ?? source.light ?? {};
 
         // Capture Portrait (Actor Image)
         let portrait = null;
@@ -296,36 +287,32 @@ export class VisageUtilities {
             if (actor) portrait = actor.img;
         }
 
-        const textureSrc = get("texture.src");
-        const scaleX = get("texture.scaleX") ?? 1;
-        const scaleY = get("texture.scaleY") ?? 1;
-        const anchorX = get("texture.anchorX") ?? 0.5;
-        const anchorY = get("texture.anchorY") ?? 0.5;
-
-        const alpha = get("alpha") ?? 1;
-        const lockRotation = get("lockRotation") ?? false;
-
-        return {
+        // Gather raw properties directly from the source Document
+        const rawChanges = {
             name: get("name"),
             displayName: get("displayName"),
             disposition: get("disposition"),
             width: get("width"),
             height: get("height"),
             depth: get("depth"),
-            alpha: alpha,
-            lockRotation: lockRotation,
+            alpha: get("alpha"),
+            lockRotation: get("lockRotation"),
             texture: {
-                src: textureSrc,
-                scaleX: scaleX,
-                scaleY: scaleY,
-                anchorX: anchorX,
-                anchorY: anchorY,
+                src: get("texture.src"),
+                scaleX: get("texture.scaleX"),
+                scaleY: get("texture.scaleY"),
+                anchorX: get("texture.anchorX"),
+                anchorY: get("texture.anchorY"),
             },
-            ring: ringData,
-            light: lightData,
+            ring: source.ring?.toObject?.() ?? source.ring ?? {},
+            light: source.light?.toObject?.() ?? source.light ?? {},
             portrait: portrait,
             delay: 0,
         };
+
+        // Pass through the schema to enforce defaults (e.g. scales to 1, anchors to 0.5)
+        const model = new VisageDataModel({ changes: rawChanges });
+        return model.toObject().changes;
     }
 
     /**

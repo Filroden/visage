@@ -22,6 +22,7 @@ import { VisageMediaController } from "./helpers/visage-media-controller.js";
 import { VisageAttributePicker } from "./helpers/visage-attribute-picker.js";
 import { VisageMediaTimeline } from "./helpers/visage-media-timeline.js";
 import { VisageTokenMagic } from "../integrations/visage-tmfx.js";
+import { VisageDataModel } from "../data/visage-data-model.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -647,98 +648,140 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     // 3. STATE & DATA MANAGEMENT
     // ==========================================
 
+    /**
+     * Gathers raw form data and internal state, passing it through the DataModel
+     * for strict validation and sanitisation before saving.
+     * @private
+     */
     _prepareSaveData() {
         const formData = new foundry.applications.ux.FormDataExtended(this.element).object;
 
-        // 1. Sync internal state from form
-        this._syncStateFromForm(formData);
+        // 1. Sync internal state from form inputs
+        this._syncLightState(formData);
+        this._syncEffectState(formData);
+        this._syncRingState(formData);
+        this._syncAutomationState(formData);
 
-        // 2. Build final Changes Payload (Dropping unchecked intents)
-        return this._buildChangesPayload(formData);
-    }
-
-    _syncStateFromForm(formData) {
-        const getVal = (key, type = String) => {
-            const val = foundry.utils.getProperty(formData, key);
-            return val === "" || val === null || val === undefined ? null : type(val);
+        // 2. Assemble the raw payload matching the DataModel's root structure
+        const rawPayload = {
+            id: this.visageId,
+            label: formData.label,
+            category: formData.category,
+            tags: formData.tags ? formData.tags.split(",").filter((t) => t.trim()) : [],
+            mode: formData.mode,
+            public: formData.public === "true",
+            automation: this._cleanAutomationPayload(),
+            changes: {
+                ...formData,
+                texture: {
+                    src: formData.img_active ? formData.img : null,
+                    anchorX: formData.anchor_active ? Number.parseFloat(formData.anchorX) : null,
+                    anchorY: formData.anchor_active ? Number.parseFloat(formData.anchorY) : null,
+                },
+                mirrorX: formData.isFlippedX === "" ? null : formData.isFlippedX === "true",
+                mirrorY: formData.isFlippedY === "" ? null : formData.isFlippedY === "true",
+                lockRotation: formData.lockRotation === "" ? null : formData.lockRotation === "true",
+                light: this._lightData,
+                ring: this._ringData,
+                effects: this._effects.filter((e) => !e.disabled),
+            },
         };
 
-        this._syncLightState(formData, getVal);
-        this._syncEffectState(formData, getVal);
-        this._syncRingState(formData);
-        this._syncAutomationState(formData, getVal);
+        const validatedModel = new VisageDataModel(rawPayload);
+
+        return validatedModel.toObject();
     }
 
     /** @private */
-    _syncLightState(formData, getVal) {
+    _syncLightState(formData) {
+        // Guard clause: if light data isn't present in this form submission, abort
         if (foundry.utils.getProperty(formData, "light.color") === undefined) return;
 
-        ["dim", "bright", "alpha", "angle", "luminosity", "priority"].forEach((k) => {
-            const v = getVal(`light.${k}`, Number);
-            if (v !== null) this._lightData[k] = v;
-        });
+        // 1. Sync standard light properties
+        const numericKeys = ["dim", "bright", "alpha", "angle", "luminosity", "priority"];
+        for (const key of numericKeys) {
+            const rawValue = foundry.utils.getProperty(formData, `light.${key}`);
+            if (rawValue !== undefined && rawValue !== "") {
+                this._lightData[key] = rawValue;
+            }
+        }
 
-        const color = getVal("light.color");
-        if (color !== null) this._lightData.color = color;
+        // 2. Sync Color
+        const color = foundry.utils.getProperty(formData, "light.color");
+        if (color !== undefined && color !== "") {
+            this._lightData.color = color;
+        }
 
-        const animType = getVal("light.animation.type");
-        if (animType !== null) {
+        // 3. Sync Animation
+        const animType = foundry.utils.getProperty(formData, "light.animation.type");
+        if (animType !== undefined && animType !== "") {
             this._lightData.animation = this._lightData.animation || {};
             this._lightData.animation.type = animType;
-            this._lightData.animation.speed = getVal("light.animation.speed", Number) ?? 5;
-            this._lightData.animation.intensity = getVal("light.animation.intensity", Number) ?? 5;
+
+            const speed = foundry.utils.getProperty(formData, "light.animation.speed");
+            if (speed !== undefined && speed !== "") {
+                this._lightData.animation.speed = speed;
+            }
+
+            const intensity = foundry.utils.getProperty(formData, "light.animation.intensity");
+            if (intensity !== undefined && intensity !== "") {
+                this._lightData.animation.intensity = intensity;
+            }
         }
     }
 
     /** @private */
-    _syncEffectState(formData, getVal) {
+    _syncEffectState(formData) {
         const renderedEffectId = formData["inspector.effectId"];
         if (!renderedEffectId) return;
 
         const activeEffect = this._effects.find((e) => e.id === renderedEffectId);
         if (!activeEffect) return;
 
-        activeEffect.label = getVal("effectLabel") ?? activeEffect.label;
-        activeEffect.path = getVal("effectPath") ?? activeEffect.path;
+        if (formData.effectLabel !== undefined) activeEffect.label = formData.effectLabel;
+        if (formData.effectPath !== undefined) activeEffect.path = formData.effectPath;
 
-        switch (activeEffect.type) {
-            case "visual": {
-                const scaleVal = getVal("effectScale", Number);
-                if (scaleVal !== null && !Number.isNaN(scaleVal)) activeEffect.scale = scaleVal / 100;
+        // Delegate to flat helpers to eliminate switch-statement complexity
+        if (activeEffect.type === "visual") this._syncVisualEffect(activeEffect, formData);
+        else if (activeEffect.type === "audio") this._syncAudioEffect(activeEffect, formData);
+        else if (activeEffect.type === "macro") this._syncMacroEffect(activeEffect, formData);
+        else if (activeEffect.type === "tmfx") this._syncTmfxEffect(activeEffect, formData);
+    }
 
-                const opacityVal = getVal("effectOpacity", Number);
-                if (opacityVal !== null && !Number.isNaN(opacityVal)) activeEffect.opacity = opacityVal;
-
-                activeEffect.blendMode = getVal("effectBlendMode") ?? activeEffect.blendMode;
-
-                const rotationVal = getVal("effectRotation", Number);
-                if (rotationVal !== null && !Number.isNaN(rotationVal)) activeEffect.rotation = rotationVal;
-
-                activeEffect.rotationRandom = !!formData.effectRotationRandom;
-                activeEffect.zOrder = getVal("effectZIndex") ?? activeEffect.zOrder;
-                activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
-                break;
-            }
-            case "audio": {
-                const volVal = getVal("effectVolume", Number);
-                if (volVal !== null && !Number.isNaN(volVal)) activeEffect.opacity = volVal;
-                activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
-                activeEffect.fadeIn = getVal("effectFadeIn", Number) ?? activeEffect.fadeIn;
-                activeEffect.fadeOut = getVal("effectFadeOut", Number) ?? activeEffect.fadeOut;
-                break;
-            }
-            case "macro": {
-                activeEffect.uuid = getVal("effectUuid") ?? activeEffect.uuid;
-                activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
-                break;
-            }
-            case "tmfx": {
-                activeEffect.tmfxPreset = getVal("effectTmfxPreset") ?? activeEffect.tmfxPreset;
-                activeEffect.tmfxPayload = getVal("effectTmfxPayload") ?? activeEffect.tmfxPayload;
-                activeEffect.delay = getVal("effectDelay", Number) ?? activeEffect.delay;
-                break;
-            }
+    /** @private */
+    _syncVisualEffect(effect, formData) {
+        if (formData.effectScale !== undefined && formData.effectScale !== "") {
+            effect.scale = Number(formData.effectScale) / 100;
         }
+        if (formData.effectOpacity !== undefined && formData.effectOpacity !== "") effect.opacity = formData.effectOpacity;
+        if (formData.effectBlendMode !== undefined) effect.blendMode = formData.effectBlendMode;
+        if (formData.effectRotation !== undefined && formData.effectRotation !== "") effect.rotation = formData.effectRotation;
+
+        effect.rotationRandom = !!formData.effectRotationRandom;
+
+        if (formData.effectZIndex !== undefined) effect.zOrder = formData.effectZIndex;
+        if (formData.effectDelay !== undefined && formData.effectDelay !== "") effect.delay = formData.effectDelay;
+    }
+
+    /** @private */
+    _syncAudioEffect(effect, formData) {
+        if (formData.effectVolume !== undefined && formData.effectVolume !== "") effect.opacity = formData.effectVolume;
+        if (formData.effectDelay !== undefined && formData.effectDelay !== "") effect.delay = formData.effectDelay;
+        if (formData.effectFadeIn !== undefined && formData.effectFadeIn !== "") effect.fadeIn = formData.effectFadeIn;
+        if (formData.effectFadeOut !== undefined && formData.effectFadeOut !== "") effect.fadeOut = formData.effectFadeOut;
+    }
+
+    /** @private */
+    _syncMacroEffect(effect, formData) {
+        if (formData.effectUuid !== undefined) effect.uuid = formData.effectUuid;
+        if (formData.effectDelay !== undefined && formData.effectDelay !== "") effect.delay = formData.effectDelay;
+    }
+
+    /** @private */
+    _syncTmfxEffect(effect, formData) {
+        if (formData.effectTmfxPreset !== undefined) effect.tmfxPreset = formData.effectTmfxPreset;
+        if (formData.effectTmfxPayload !== undefined) effect.tmfxPayload = formData.effectTmfxPayload;
+        if (formData.effectDelay !== undefined && formData.effectDelay !== "") effect.delay = formData.effectDelay;
     }
 
     /** @private */
@@ -758,222 +801,121 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /** @private */
-    _syncAutomationState(formData, getVal) {
+    _syncAutomationState(formData) {
         if (!this._automationData) return;
 
         this._automationData.enabled = formData["automation.enabled"] ?? false;
 
         if (!this._automationData.onEnter) this._automationData.onEnter = { action: "apply", priority: 0 };
-        this._automationData.onEnter.action = formData["automation.onEnter.action"] ?? this._automationData.onEnter.action;
-        this._automationData.onEnter.priority = getVal("automation.onEnter.priority", Number) ?? this._automationData.onEnter.priority;
+
+        if (formData["automation.onEnter.action"] !== undefined) {
+            this._automationData.onEnter.action = formData["automation.onEnter.action"];
+        }
+
+        if (formData["automation.onEnter.priority"] !== undefined && formData["automation.onEnter.priority"] !== "") {
+            this._automationData.onEnter.priority = formData["automation.onEnter.priority"];
+        }
 
         const renderedConditionId = formData["inspector.conditionId"];
         if (!renderedConditionId) return;
 
         const cond = this._automationData.conditions.find((c) => c.id === renderedConditionId);
-        if (cond) this._syncConditionState(cond, formData, getVal);
+        if (cond) this._syncConditionState(cond, formData);
     }
 
     /** @private */
-    _syncConditionState(cond, formData, getVal) {
+    _syncConditionState(cond, formData) {
         switch (cond.type) {
             case "attribute":
-                this._syncAttributeCondition(cond, formData, getVal);
+                this._syncAttributeCondition(cond, formData);
                 break;
             case "status":
-                this._syncStatusCondition(cond, formData, getVal);
+                this._syncStatusCondition(cond, formData);
                 break;
             case "event":
-                this._syncEventCondition(cond, formData, getVal);
+                this._syncEventCondition(cond, formData);
                 break;
         }
     }
 
     /** @private */
-    _syncAttributeCondition(cond, formData, getVal) {
-        cond.path = getVal("inspector.path") ?? cond.path;
-        cond.dataType = getVal("inspector.dataType") ?? cond.dataType ?? "number";
-        cond.operator = getVal("inspector.operator") ?? cond.operator;
-        cond.mode = getVal("inspector.mode") ?? cond.mode;
-        cond.denominatorPath = getVal("inspector.denominatorPath") ?? cond.denominatorPath ?? "";
+    _syncAttributeCondition(cond, formData) {
+        if (formData["inspector.path"] !== undefined) cond.path = formData["inspector.path"];
+        if (formData["inspector.dataType"] !== undefined) cond.dataType = formData["inspector.dataType"];
+        if (formData["inspector.operator"] !== undefined) cond.operator = formData["inspector.operator"];
+        if (formData["inspector.mode"] !== undefined) cond.mode = formData["inspector.mode"];
+        if (formData["inspector.denominatorPath"] !== undefined) cond.denominatorPath = formData["inspector.denominatorPath"];
 
-        if (cond.dataType === "boolean") {
-            cond.value = getVal("inspector.value") === "true";
-        } else if (cond.dataType === "string") {
-            cond.value = getVal("inspector.value") ?? "";
-        } else {
-            const val = getVal("inspector.value", Number);
-            if (val !== null && !Number.isNaN(val)) cond.value = val;
+        const rawValue = formData["inspector.value"];
+        if (rawValue !== undefined && rawValue !== "") {
+            // Because this is a DataField ("Any" type), we must manually cast it
+            // based on the selected dataType so the watcher logic works perfectly.
+            if (cond.dataType === "boolean") {
+                cond.value = rawValue === "true";
+            } else if (cond.dataType === "number") {
+                const num = Number(rawValue);
+                if (!Number.isNaN(num)) cond.value = num;
+            } else {
+                cond.value = rawValue;
+            }
         }
     }
 
     /** @private */
-    _syncStatusCondition(cond, formData, getVal) {
-        cond.statusId = getVal("inspector.statusId") ?? cond.statusId;
-        cond.customStatus = getVal("inspector.customStatus") ?? cond.customStatus;
-        cond.operator = getVal("inspector.operator") ?? cond.operator;
-    }
-
-    /**
-     * Safely clears and resets condition data when the user changes the event type.
-     * @private
-     */
-    _resetEventCondition(cond, newEventId) {
-        // 1. Wipe the slate clean to prevent phantom data
-        cond.value = null;
-        cond.regionId = "";
-        cond.startTime = "";
-        cond.endTime = "";
-        cond.weatherId = "";
-        cond.customWeather = "";
-        cond.startAngle = null;
-        cond.endAngle = null;
-
-        // 2. Apply explicit defaults for the new type
-        switch (newEventId) {
-            case "elevation":
-                cond.operator = "gt";
-                cond.value = 0;
-                break;
-            case "darkness":
-                cond.operator = "gt";
-                cond.value = 0.5;
-                break;
-            case "time":
-                cond.operator = "active";
-                cond.startTime = "06:00";
-                cond.endTime = "18:00";
-                break;
-            case "facing":
-                cond.operator = "active";
-                cond.startAngle = 0;
-                cond.endAngle = 0;
-                break;
-            default:
-                cond.operator = "active";
-                break;
-        }
+    _syncStatusCondition(cond, formData) {
+        if (formData["inspector.statusId"] !== undefined) cond.statusId = formData["inspector.statusId"];
+        if (formData["inspector.customStatus"] !== undefined) cond.customStatus = formData["inspector.customStatus"];
+        if (formData["inspector.operator"] !== undefined) cond.operator = formData["inspector.operator"];
     }
 
     /** @private */
-    _syncEventCondition(cond, formData, getVal) {
-        const newEventId = getVal("inspector.eventId") ?? cond.eventId;
+    _syncEventCondition(cond, formData) {
+        const newEventId = formData["inspector.eventId"] ?? cond.eventId;
 
-        // Delegate the complex reset logic
         if (cond.eventId !== newEventId) {
             this._resetEventCondition(cond, newEventId);
         }
 
         cond.eventId = newEventId;
-        cond.operator = getVal("inspector.operator") ?? cond.operator;
+        if (formData["inspector.operator"] !== undefined) cond.operator = formData["inspector.operator"];
 
-        switch (cond.eventId) {
-            case "elevation":
-            case "darkness": {
-                const val = getVal("inspector.value", Number);
-                if (val !== null && !Number.isNaN(val)) cond.value = val;
-                break;
-            }
-            case "region": {
-                cond.regionId = getVal("inspector.regionId") ?? cond.regionId;
-                break;
-            }
-            case "time": {
-                cond.startTime = getVal("inspector.startTime") ?? cond.startTime;
-                cond.endTime = getVal("inspector.endTime") ?? cond.endTime;
-                break;
-            }
-            case "weather": {
-                cond.weatherId = getVal("inspector.weatherId") ?? cond.weatherId;
-                cond.customWeather = getVal("inspector.customWeather") ?? cond.customWeather;
-                break;
-            }
-            case "facing": {
-                cond.startAngle = Number(getVal("inspector.startAngle")) || 0;
-                cond.endAngle = Number(getVal("inspector.endAngle")) || 0;
-                break;
-            }
-        }
+        this._syncEventProperties(cond, formData);
     }
 
     /**
-     * Gathers data from the DOM and internal state to build the final save payload.
+     * Helper to safely assign a property only if it contains valid data.
      * @private
      */
-    _buildChangesPayload(formData) {
-        const getVal = (key, type = String) => {
-            const val = foundry.utils.getProperty(formData, key);
-            return val === "" || val === null || val === undefined ? null : type(val);
-        };
-
-        return {
-            id: this.visageId,
-            label: formData.label,
-            category: formData.category,
-            tags: formData.tags ? formData.tags.split(",").filter((t) => t.trim()) : [],
-            mode: formData.mode,
-            public: formData.public === "true",
-            automation: this._cleanAutomationPayload(),
-            changes: this._buildTokenChanges(formData, getVal),
-        };
-    }
-
-    /** @private */
-    _parseBooleanDropdown(val) {
-        if (val === "") return null;
-        return val === "true";
-    }
-
-    /** @private */
-    _buildTexturePayload(formData) {
-        if (!formData.img_active && !formData.anchor_active) return null;
-
-        const texture = {};
-        if (formData.img_active) texture.src = formData.img;
-        if (formData.anchor_active) {
-            texture.anchorX = Number.parseFloat(formData.anchorX);
-            texture.anchorY = Number.parseFloat(formData.anchorY);
+    _assignIfValid(target, key, value) {
+        if (value !== undefined && value !== "") {
+            target[key] = value;
         }
-        return texture;
     }
 
     /** @private */
-    _buildTokenChanges(formData, getVal) {
-        return {
-            name: formData.nameOverride_active ? formData.nameOverride : null,
-            scale: formData.scale_active ? getVal("scale", Number) / 100 : null,
-            alpha: formData.alpha_active ? getVal("alpha", Number) / 100 : null,
-            width: formData.width_active ? getVal("width", Number) : null,
-            height: formData.height_active ? getVal("height", Number) : null,
-            depth: formData.depth_active ? getVal("depth", Number) : null,
-            disposition: formData.disposition_active ? getVal("disposition", Number) : null,
-            portrait: formData.portrait_active ? formData.portrait : null,
-
-            // Extracted logic
-            mirrorX: this._parseBooleanDropdown(formData.isFlippedX),
-            mirrorY: this._parseBooleanDropdown(formData.isFlippedY),
-            lockRotation: this._parseBooleanDropdown(formData.lockRotation),
-            texture: this._buildTexturePayload(formData),
-
-            // Persistent components
-            light: this._lightData,
-            ring: this._ringData,
-            effects: this._effects.filter((e) => !e.disabled),
+    _syncEventProperties(cond, formData) {
+        const handlers = {
+            elevation: () => this._assignIfValid(cond, "value", formData["inspector.value"]),
+            darkness: () => this._assignIfValid(cond, "value", formData["inspector.value"]),
+            region: () => this._assignIfValid(cond, "regionId", formData["inspector.regionId"]),
+            time: () => {
+                this._assignIfValid(cond, "startTime", formData["inspector.startTime"]);
+                this._assignIfValid(cond, "endTime", formData["inspector.endTime"]);
+            },
+            weather: () => {
+                this._assignIfValid(cond, "weatherId", formData["inspector.weatherId"]);
+                this._assignIfValid(cond, "customWeather", formData["inspector.customWeather"]);
+            },
+            facing: () => {
+                this._assignIfValid(cond, "startAngle", formData["inspector.startAngle"]);
+                this._assignIfValid(cond, "endAngle", formData["inspector.endAngle"]);
+            },
         };
-    }
 
-    /** @private */
-    _cleanAutomationPayload() {
-        if (!this._automationData) return null;
-
-        const cleanAutomation = foundry.utils.deepClone(this._automationData);
-        if (cleanAutomation.conditions) {
-            cleanAutomation.conditions.forEach((c) => {
-                delete c.typeKey;
-                delete c.summary;
-            });
+        // Execute the correct handler if it exists
+        if (handlers[cond.eventId]) {
+            handlers[cond.eventId]();
         }
-        return cleanAutomation;
     }
 
     async _onSave(event) {
