@@ -366,16 +366,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Form Event Delegation
         const debouncedUpdate = foundry.utils.debounce(() => this._updatePreview(), 50);
+
+        // Define all valid elements that should trigger a live preview update
+        const UPDATE_TRIGGERS = "select, input[type='text'], input[type='checkbox'], input[type='radio'], file-picker, color-picker, range-picker";
+
         this.element.addEventListener("change", (e) => {
             this._markDirty();
 
-            // If the user changes an Inspector type/mode, we must fully re-render to swap the dynamic form fields
+            // If the user changes an Inspector type/mode, fully re-render to swap the dynamic form fields
             if (e.target.name === "inspector.eventId" || e.target.name === "inspector.dataType" || e.target.name === "inspector.mode") {
                 this.render();
                 return;
             }
 
-            if (e.target.matches("select, input[type='text'], input[type='checkbox'], input[type='radio']")) this._updatePreview();
+            if (e.target.matches(UPDATE_TRIGGERS)) {
+                this._updatePreview();
+            }
         });
 
         // Setup Range Sliders
