@@ -131,8 +131,9 @@ export class Visage {
         const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor?.img);
 
         // 3. Compute Timing Anchors
-        const activeEffects = (layer.changes?.effects || []).filter((e) => !e.disabled);
-        const minDelaySeconds = activeEffects.length ? Math.min(0, ...activeEffects.map((e) => e.delay || 0)) : 0;
+        // (Guaranteed by VisageDataModel: effects is an array, delay is a number)
+        const activeEffects = layer.changes.effects.filter((e) => !e.disabled);
+        const minDelaySeconds = activeEffects.length ? Math.min(0, ...activeEffects.map((e) => e.delay)) : 0;
         const offsetMS = Math.abs(minDelaySeconds) * 1000;
 
         // 4. Orchestrate Subsystems

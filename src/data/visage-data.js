@@ -1,4 +1,5 @@
 import { VisageUtilities } from "../utils/visage-utilities.js";
+import { VisageDataModel } from "./visage-data-model.js";
 import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
 
 /**
@@ -181,23 +182,17 @@ export class VisageData {
         const timestamp = Date.now();
         const existing = all[id];
 
+        // 1. Purify the payload through the DataModel
+        const purifiedData = new VisageDataModel({ ...data, id }).toObject();
+
+        // 2. Attach DB-specific tracking metadata
         const entry = {
-            id: id,
-            label: data.label || "New Mask",
-            category: data.category || "",
-            tags: data.tags || [],
-            mode: data.mode || "overlay",
-            public: data.public ?? false,
+            ...purifiedData,
             created: existing ? existing.created : timestamp,
             updated: timestamp,
             deleted: false,
             deletedAt: null,
-            changes: foundry.utils.deepClone(data.changes || {}),
-            automation: data.automation ? foundry.utils.deepClone(data.automation) : undefined,
         };
-
-        // Scrub the entire constructed entry
-        this._scrubPayload(entry);
 
         // 1. Update Database FIRST
         all[id] = entry;
@@ -238,19 +233,14 @@ export class VisageData {
         const id = data.id || foundry.utils.randomID(16);
         const existing = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY]?.[id];
 
+        // 1. Purify the payload through the DataModel
+        const purifiedData = new VisageDataModel({ ...data, id }).toObject();
+
+        // 2. Attach DB-specific tracking metadata
         const entry = {
-            id: id,
-            label: data.label,
-            category: data.category,
-            tags: data.tags,
-            mode: data.mode || "identity",
-            changes: foundry.utils.deepClone(data.changes || {}),
-            automation: data.automation ? foundry.utils.deepClone(data.automation) : undefined,
+            ...purifiedData,
             updated: Date.now(),
         };
-
-        // Scrub the entire constructed entry
-        this._scrubPayload(entry);
 
         // 1. Update Database FIRST
         if (existing) {
@@ -260,7 +250,6 @@ export class VisageData {
 
         // Write the new payload natively
         await actor.setFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}`, entry);
-
         console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
 
         // 2. Clear Watcher Memory SECOND
@@ -283,51 +272,8 @@ export class VisageData {
     // ==========================================
 
     /**
-     * Handles specific domain logic for scrubbing a Visage payload.
-     * @private
-     */
-    static _scrubDomainLogic(obj) {
-        // Light: Delete if disabled AND emits no light (dim and bright are 0 or missing)
-        if (obj.light && (obj.light.active === false || obj.light.active === "false")) {
-            if (!obj.light.dim && !obj.light.bright) delete obj.light;
-        }
-
-        // Automation: Delete if disabled AND has no condition triggers built
-        if (obj.automation && (obj.automation.enabled === false || obj.automation.enabled === "false")) {
-            if (!obj.automation.conditions || obj.automation.conditions.length === 0) delete obj.automation;
-        }
-
-        // Strip legacy global delay (migrated to individual effects in v4.1)
-        if (obj.delay !== undefined) delete obj.delay;
-    }
-
-    /**
-     * Recursively scrubs nulls, empty arrays, empty objects, and untouched default blocks.
-     * Preserves user-configured data even if it is currently toggled off.
-     * @private
-     */
-    static _scrubPayload(obj) {
-        this._scrubDomainLogic(obj);
-
-        for (const key in obj) {
-            const val = obj[key];
-            if (val === undefined) continue;
-
-            if (val === null) {
-                delete obj[key];
-            } else if (Array.isArray(val)) {
-                if (val.length === 0) delete obj[key];
-            } else if (typeof val === "object") {
-                this._scrubPayload(val);
-                if (Object.keys(val).length === 0) delete obj[key];
-            }
-        }
-        return obj;
-    }
-
-    /**
      * Converts a stored DB data object into a runtime 'Layer' object.
-     * Cleans empty keys, resolves wildcards, and normalizes ring data.
+     * Guarantees shape via DataModel, resolves wildcards, and prepares for canvas application.
      * @param {Object} data - The stored Visage data.
      * @param {string} [source="unknown"] - The source type ('local' or 'global').
      * @returns {Promise<Object|null>} The sanitized runtime Layer object.
@@ -335,31 +281,32 @@ export class VisageData {
     static async toLayer(data, source = "unknown") {
         if (!data) return null;
 
+        // 1. Purify the raw database entry through the model to guarantee structural integrity
+        const cleanData = new VisageDataModel(data).toObject();
+
         const layer = {
-            id: data.id,
-            label: data.label || "Unknown",
-            mode: data.mode || (source === "local" ? "identity" : "overlay"),
+            id: cleanData.id,
+            label: cleanData.label,
+            mode: cleanData.mode || (source === "local" ? "identity" : "overlay"),
             source: source,
-            changes: foundry.utils.deepClone(data.changes || {}),
-            automation: data.automation ? foundry.utils.deepClone(data.automation) : undefined,
+            changes: cleanData.changes,
+            automation: cleanData.automation,
         };
 
-        // Clean legacy data on the fly (new data is already scrubbed before saving)
-        VisageData._scrubPayload(layer.changes);
-
-        // Resolve Wildcard Paths
-        if (layer.changes?.texture?.src) {
+        // 2. Resolve Wildcard Paths
+        if (layer.changes.texture.src) {
             const resolved = await VisageUtilities.resolvePath(layer.changes.texture.src);
             layer.changes.texture.src = resolved || layer.changes.texture.src;
         }
 
-        if (layer.changes?.portrait) {
+        if (layer.changes.portrait) {
             const resolvedPortrait = await VisageUtilities.resolvePath(layer.changes.portrait);
             if (resolvedPortrait) layer.changes.portrait = resolvedPortrait;
         }
 
-        // Handle Ring Data Structure Normalization
-        if (layer.changes?.ring) {
+        // 3. Handle Ring Data Structure Normalization
+        // (Since the model uses ObjectField for rings, we still need to format it for the UI/Canvas)
+        if (layer.changes.ring) {
             if (layer.changes.ring.enabled === true) {
                 layer.changes.ring = {
                     enabled: true,
@@ -781,57 +728,6 @@ export class VisageData {
     }
 
     /**
-     * Calculates the final scale by applying atomic overrides while preserving native flip signs.
-     * @private
-     */
-    static _applyScaleOverride(textureScale, atomicScale) {
-        // If no atomic override is set, just return the native scale
-        if (atomicScale === undefined || atomicScale === null) {
-            return textureScale;
-        }
-
-        // Calculate the sign based on the native scale (defaulting to 1)
-        const effectiveScale = textureScale === undefined ? 1 : textureScale;
-        const sign = effectiveScale < 0 ? -1 : 1;
-
-        return atomicScale * sign;
-    }
-
-    /**
-     * Safely constructs the token update payload for a default commit.
-     * @private
-     */
-    static _buildCommitPayload(data) {
-        // 1. Build a raw payload map using optional chaining
-        const rawPayload = {
-            name: data.name,
-            "texture.src": data.texture?.src,
-            "texture.scaleX": this._applyScaleOverride(data.texture?.scaleX, data.scale),
-            "texture.scaleY": this._applyScaleOverride(data.texture?.scaleY, data.scale),
-            "texture.anchorX": data.texture?.anchorX,
-            "texture.anchorY": data.texture?.anchorY,
-            width: data.width,
-            height: data.height,
-            depth: data.depth,
-            disposition: data.disposition,
-            ring: data.ring,
-            light: data.light,
-            alpha: data.alpha,
-            lockRotation: data.lockRotation,
-        };
-
-        // 2. Perform a single, flat cleanup pass to remove undefined keys.
-        const payload = {};
-        for (const [key, value] of Object.entries(rawPayload)) {
-            if (value !== undefined) {
-                payload[key] = value;
-            }
-        }
-
-        return payload;
-    }
-
-    /**
      * Commits a Visage to be the new "Default" appearance of a token/actor.
      * @param {Token|string} tokenOrId - The target token.
      * @param {string} visageId - The ID of the Visage to commit.
@@ -864,24 +760,22 @@ export class VisageData {
             token.actor,
         );
 
-        // 2. Prepare new default data
-        const newDefaultData = foundry.utils.mergeObject(foundry.utils.deepClone(currentDefault.changes), foundry.utils.deepClone(targetVisage.changes), {
-            inplace: false,
-            insertKeys: true,
-            overwrite: true,
-        });
+        // 2. Prepare new default data by merging the target into the current state
+        const newDefaultData = foundry.utils.mergeObject(foundry.utils.deepClone(currentDefault), foundry.utils.deepClone(targetVisage), { inplace: false, insertKeys: true, overwrite: true });
 
-        // 3. Construct update payload
-        const updatePayload = this._buildCommitPayload(newDefaultData);
+        // 3. Leverage the DataModel to extract exact database payloads
+        const commitModel = new VisageDataModel(newDefaultData);
+        const tokenUpdatePayload = commitModel.getTokenPayload();
+        const actorUpdatePayload = commitModel.getActorPayload();
 
         // 4. Apply Updates
-        await token.document.update(updatePayload); // Always force the canvas instance to update
+        await token.document.update(tokenUpdatePayload);
 
         const actorUpdates = {};
-        if (token.document.isLinked) actorUpdates.prototypeToken = updatePayload;
+        if (token.document.isLinked) actorUpdates.prototypeToken = tokenUpdatePayload;
 
-        // Target the Actor's core image for the portrait
-        if (newDefaultData.portrait) actorUpdates.img = newDefaultData.portrait;
+        // Merge in any Actor-specific updates (like the portrait image)
+        Object.assign(actorUpdates, actorUpdatePayload);
 
         if (Object.keys(actorUpdates).length > 0) {
             await token.actor.update(actorUpdates);
@@ -891,12 +785,12 @@ export class VisageData {
         const stack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
         if (stack.length > 0) {
-            const mergedData = foundry.utils.mergeObject(token.document.toObject(), foundry.utils.expandObject(updatePayload), { inplace: false });
+            const mergedData = foundry.utils.mergeObject(token.document.toObject(), foundry.utils.expandObject(tokenUpdatePayload), { inplace: false });
             const newOriginalState = VisageUtilities.extractVisualState(mergedData);
 
             // Explicitly inject the portrait into the state snapshot
-            if (newDefaultData.portrait) {
-                newOriginalState.portrait = newDefaultData.portrait;
+            if (newDefaultData.changes.portrait) {
+                newOriginalState.portrait = newDefaultData.changes.portrait;
             }
 
             await token.document.update({
