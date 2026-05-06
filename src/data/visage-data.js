@@ -388,15 +388,31 @@ export class VisageData {
     static getDefaultAsVisage(tokenDoc) {
         if (!tokenDoc) return null;
 
-        // Retrieve cached original state, otherwise snapshot now
-        let sourceData = tokenDoc.flags?.[MODULE_ID]?.originalState || VisageUtilities.extractVisualState(tokenDoc);
+        const stack = tokenDoc.getFlag(MODULE_ID, "activeStack") || [];
+        const cachedState = tokenDoc.getFlag(MODULE_ID, "originalState");
+        let sourceData;
+
+        // Self-Healing: Only trust the cached state if a Visage is actively masking the token.
+        // If the stack is empty, the token IS the original state.
+        if (stack.length > 0 && cachedState) {
+            sourceData = cachedState;
+        } else {
+            sourceData = VisageUtilities.extractVisualState(tokenDoc);
+        }
 
         const src = sourceData.texture?.src || tokenDoc.texture.src;
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1.0;
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1.0;
 
         const ringData = sourceData.ring?.toObject ? sourceData.ring.toObject() : sourceData.ring || {};
-        const lightData = sourceData.light?.toObject ? sourceData.light.toObject() : sourceData.light || tokenDoc.light?.toObject?.() || tokenDoc.light;
+
+        // Calculate the active flag based on actual light emission
+        const rawLight = sourceData.light?.toObject ? sourceData.light.toObject() : sourceData.light || tokenDoc.light?.toObject?.() || tokenDoc.light || {};
+        const lightData = {
+            ...rawLight,
+            active: rawLight.dim > 0 || rawLight.bright > 0,
+        };
+
         const portrait = sourceData.portrait || tokenDoc.actor?.img || null;
 
         return {
@@ -421,6 +437,8 @@ export class VisageData {
                 light: lightData,
                 portrait: portrait,
                 ring: ringData,
+                alpha: sourceData.alpha ?? 1.0,
+                lockRotation: sourceData.lockRotation ?? false,
             },
         };
     }
@@ -775,13 +793,18 @@ export class VisageData {
         if (!currentDefault) return;
 
         // 1. Backup current default
+        const backupChanges = foundry.utils.deepClone(currentDefault.changes);
+
+        // Map the native texture scale to the atomic Visage scale
+        backupChanges.scale = Math.abs(backupChanges.texture?.scaleX ?? 1);
+
         await this._saveLocal(
             {
                 label: `${currentDefault.changes.name || token.name} (Backup)`,
                 category: "Backup",
                 tags: ["Backup", ...(currentDefault.tags || [])],
                 mode: "identity",
-                changes: currentDefault.changes,
+                changes: backupChanges,
             },
             token.actor,
         );
@@ -795,35 +818,74 @@ export class VisageData {
 
         // 3. Construct update payload
         const updatePayload = {};
-        if (newDefaultData.name) updatePayload.name = newDefaultData.name;
-        if (newDefaultData.texture) {
-            if (newDefaultData.texture.src) updatePayload["texture.src"] = newDefaultData.texture.src;
-            if (newDefaultData.texture.scaleX !== undefined) updatePayload["texture.scaleX"] = newDefaultData.texture.scaleX;
-            if (newDefaultData.texture.scaleY !== undefined) updatePayload["texture.scaleY"] = newDefaultData.texture.scaleY;
+        if (newDefaultData.name !== undefined) updatePayload.name = newDefaultData.name;
+        if (newDefaultData.texture?.src !== undefined) updatePayload["texture.src"] = newDefaultData.texture.src;
+
+        // FIX: Apply the atomic Visage 'scale' override to the native texture scales
+        let scaleX = newDefaultData.texture?.scaleX;
+        let scaleY = newDefaultData.texture?.scaleY;
+
+        if (newDefaultData.scale !== undefined && newDefaultData.scale !== null) {
+            const effectiveScaleX = scaleX === undefined ? 1 : scaleX;
+            const effectiveScaleY = scaleY === undefined ? 1 : scaleY;
+            const signX = effectiveScaleX < 0 ? -1 : 1;
+            const signY = effectiveScaleY < 0 ? -1 : 1;
+
+            scaleX = newDefaultData.scale * signX;
+            scaleY = newDefaultData.scale * signY;
         }
+
+        if (scaleX !== undefined) updatePayload["texture.scaleX"] = scaleX;
+        if (scaleY !== undefined) updatePayload["texture.scaleY"] = scaleY;
+        if (newDefaultData.texture?.anchorX !== undefined) updatePayload["texture.anchorX"] = newDefaultData.texture.anchorX;
+        if (newDefaultData.texture?.anchorY !== undefined) updatePayload["texture.anchorY"] = newDefaultData.texture.anchorY;
+
         if (newDefaultData.width !== undefined) updatePayload.width = newDefaultData.width;
         if (newDefaultData.height !== undefined) updatePayload.height = newDefaultData.height;
         if (newDefaultData.disposition !== undefined) updatePayload.disposition = newDefaultData.disposition;
-        if (newDefaultData.ring) updatePayload.ring = newDefaultData.ring;
-        if (newDefaultData.light) updatePayload.light = newDefaultData.light;
+        if (newDefaultData.ring !== undefined) updatePayload.ring = newDefaultData.ring;
+        if (newDefaultData.light !== undefined) updatePayload.light = newDefaultData.light;
+        if (newDefaultData.alpha !== undefined) updatePayload.alpha = newDefaultData.alpha;
+        if (newDefaultData.lockRotation !== undefined) updatePayload.lockRotation = newDefaultData.lockRotation;
 
         for (const key of Object.keys(updatePayload)) {
             if (updatePayload[key] === undefined) delete updatePayload[key];
         }
 
         // 4. Apply Updates
-        if (token.document.isLinked) await token.actor.update({ prototypeToken: updatePayload });
-        else await token.document.update(updatePayload);
+        await token.document.update(updatePayload); // Your canvas fix from earlier
+
+        const actorUpdates = {};
+        if (token.document.isLinked) actorUpdates.prototypeToken = updatePayload;
+
+        // Target the Actor's core image for the portrait
+        if (newDefaultData.portrait) actorUpdates.img = newDefaultData.portrait;
+
+        if (Object.keys(actorUpdates).length > 0) {
+            await token.actor.update(actorUpdates);
+        }
 
         // 5. Update the "Original State" flag
-        const newOriginalState = VisageUtilities.extractVisualState({
-            ...token.document.toObject(),
-            ...foundry.utils.expandObject(updatePayload),
-        });
+        const stack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
-        await token.document.update({
-            [`flags.${DATA_NAMESPACE}.originalState`]: newOriginalState,
-        });
+        if (stack.length > 0) {
+            const mergedData = foundry.utils.mergeObject(token.document.toObject(), foundry.utils.expandObject(updatePayload), { inplace: false });
+            const newOriginalState = VisageUtilities.extractVisualState(mergedData);
+
+            // Explicitly inject the portrait into the state snapshot
+            if (newDefaultData.portrait) {
+                newOriginalState.portrait = newDefaultData.portrait;
+            }
+
+            await token.document.update({
+                [`flags.${DATA_NAMESPACE}.originalState`]: newOriginalState,
+            });
+        } else {
+            // Clean up: Ensure no orphaned snapshot remains when the token is bare
+            await token.document.update({
+                [`flags.${DATA_NAMESPACE}.-=originalState`]: null,
+            });
+        }
 
         // 6. Remove the active mask
         const VisageApi = game.modules.get(MODULE_ID).api;

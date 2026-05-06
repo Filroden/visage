@@ -420,7 +420,7 @@ export class Visage {
         if (!tokenDocument.object) return;
 
         // Define properties that Visage overrides
-        const relevantKeys = ["name", "displayName", "disposition", "width", "height", "texture", "ring", "texture.anchorX", "texture.anchorY"];
+        const relevantKeys = ["name", "displayName", "disposition", "width", "height", "texture", "ring", "texture.anchorX", "texture.anchorY", "alpha", "lockRotation", "light"];
         const flatChange = foundry.utils.flattenObject(change);
 
         // Ignore visibility toggles (handled by core)
