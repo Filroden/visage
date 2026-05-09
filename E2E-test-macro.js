@@ -10,7 +10,7 @@
     if (!api) return ui.notifications.error("Visage | Visage API not found!");
     if (!token) return ui.notifications.warn("Visage | Please select a test token.");
 
-    console.group(`Visage | 🧪 V4 Master Test Suite Running on: ${token.name}`);
+    console.group(`Visage | V4 Master Test Suite Running on: ${token.name}`);
     let passed = 0;
     let failed = 0;
 
