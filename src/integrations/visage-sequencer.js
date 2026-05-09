@@ -153,7 +153,11 @@ export class VisageSequencer {
         const tokenId = typeof token === "string" ? token : token?.id;
 
         // 1. Kill Visuals
-        if (token) {
+        // Safety check: Only tell Sequencer to kill effects if the token is still on the canvas.
+        // If the token was deleted, Sequencer automatically garbage-collects attached effects.
+        const tokenOnCanvas = token && canvas.tokens.get(tokenId);
+
+        if (tokenOnCanvas) {
             try {
                 await Sequencer.EffectManager.endEffects({
                     object: token,
@@ -218,6 +222,10 @@ export class VisageSequencer {
      */
     static async _revertVisuals(token) {
         if (!token) return;
+
+        // Safety check: Sequencer auto-cleans effects on deleted tokens.
+        if (!canvas.tokens.get(token.id)) return;
+
         try {
             await Sequencer.EffectManager.endEffects({ object: token, name: "visage-base*" });
 

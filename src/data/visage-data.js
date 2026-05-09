@@ -559,7 +559,9 @@ export class VisageData {
                         val: `${Math.round(alpha * 100)}%`,
                     },
                     lock: {
-                        active: c.lockRotation !== undefined && c.lockRotation !== null,
+                        // For the Default tile: Only show if actively locked.
+                        // For Standard Visages: Show if explicitly overridden (true OR false).
+                        active: data.isDefault ? c.lockRotation === true : c.lockRotation !== undefined && c.lockRotation !== null,
                         val: c.lockRotation ? game.i18n.localize("VISAGE.RotationLock.Locked") : game.i18n.localize("VISAGE.RotationLock.Unlocked"),
                     },
                     flipH: mirrorData.x.slot,
