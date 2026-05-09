@@ -77,14 +77,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         // PART A: THE DEFAULT IDENTITY
         // =======================================================
 
-        // The API doesn't return the "Default" state because it isn't stored data.
-        // We must generate it virtually here so the user can revert to their base form.
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
-        const defaultForm = VisageData.toPresentation(defaultRaw, {
-            isActive: currentFormKey === "default",
-        });
+        const defaultForm = await VisageData.buildPresentationContext(defaultRaw, { isActive: currentFormKey === "default" });
         defaultForm.key = "default";
-        defaultForm.resolvedPath = await Visage.resolvePath(defaultForm.path);
         defaultForm.themeClass = "visage-theme-local"; // Default is always Gold/Local
 
         // =======================================================
@@ -117,19 +112,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const processedItems = await Promise.all(
             allVisages.map(async (v) => {
                 const isGlobal = v.type === "global";
-                const rawPath = VisageData.getRepresentativeImage(v.changes);
-                const isWildcard = (rawPath || "").includes("*") || (rawPath || "").includes("?");
 
-                // Resolve portrait if present
-                const resolvedPortrait = v.changes.portrait ? await Visage.resolvePath(v.changes.portrait) : undefined;
-
-                // Convert to presentation format
-                const presentational = VisageData.toPresentation(v, {
-                    isActive: v.id === currentFormKey,
-                    isWildcard: isWildcard,
-                    resolvedPortrait: resolvedPortrait,
-                    resolvedPath: await Visage.resolvePath(rawPath),
-                });
+                // Convert to presentation format using the new data layer factory
+                const presentational = await VisageData.buildPresentationContext(v, { isActive: v.id === currentFormKey });
 
                 presentational.key = v.id;
 
@@ -156,14 +141,13 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         if (currentFormKey !== "default" && !identities.some((i) => i.isActive)) {
             const globalIdentity = VisageData.getGlobal(currentFormKey);
             if (globalIdentity) {
-                const globalPresentation = VisageData.toPresentation(globalIdentity, {
+                const globalPresentation = await VisageData.buildPresentationContext(globalIdentity, {
                     isActive: true,
                     isGlobal: true,
                 });
 
                 globalPresentation.key = currentFormKey;
                 globalPresentation.themeClass = "visage-theme-global"; // Triggers the Blue Border
-                globalPresentation.resolvedPath = await Visage.resolvePath(globalIdentity.changes?.texture?.src);
 
                 // Inject it right after the "Default" tile so it sits at the front
                 identities.splice(1, 0, globalPresentation);

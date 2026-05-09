@@ -182,8 +182,8 @@ export class VisageData {
         const timestamp = Date.now();
         const existing = all[id];
 
-        // 1. Purify the payload through the DataModel
-        const purifiedData = new VisageDataModel({ ...data, id }).toObject();
+        // 1. Purify and STRICTLY VALIDATE the payload
+        const purifiedData = this._validateDataModel(data, id);
 
         // 2. Attach DB-specific tracking metadata
         const entry = {
@@ -233,8 +233,8 @@ export class VisageData {
         const id = data.id || foundry.utils.randomID(16);
         const existing = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY]?.[id];
 
-        // 1. Purify the payload through the DataModel
-        const purifiedData = new VisageDataModel({ ...data, id }).toObject();
+        // 1. Purify and STRICTLY VALIDATE the payload
+        const purifiedData = this._validateDataModel(data, id);
 
         // 2. Attach DB-specific tracking metadata
         const entry = {
@@ -265,6 +265,37 @@ export class VisageData {
                 }
             }
         }
+    }
+
+    /**
+     * Validates a Visage payload against the strict DataModel.
+     * Allows Foundry to natively clamp/sanitize values, throwing UI errors
+     * only when structural validation completely fails.
+     * @param {Object} data - The raw payload.
+     * @param {string} id - The document ID.
+     * @returns {Object} The purified data object.
+     * @throws {Error} Contains the plain-text formatted validation failures.
+     * @private
+     */
+    static _validateDataModel(data, id) {
+        const model = new VisageDataModel({ ...data, id });
+        const failures = model.validate();
+
+        // Only trigger the error if 'failures' is an actual Object (meaning validation failed).
+        if (failures && typeof failures === "object") {
+            const foundryError = new foundry.data.validation.DataModelValidationError(failures);
+
+            const header = game.i18n.localize("VISAGE.Notifications.SaveFailed");
+            const footer = game.i18n.localize("VISAGE.Notifications.SaveReview");
+
+            // UX Sanitisation: Strip out the technical Foundry prefix and the JSON formatting, leaving only the human-readable list of validation errors
+            const cleanMessage = foundryError.message.replaceAll(/\[.*\] validation errors:.*?\n/g, "").trim();
+
+            // Throw a standard Error using the beautifully formatted plain-text message
+            throw new Error(`${header}\n${cleanMessage}\n\n${footer}`);
+        }
+
+        return model.toObject();
     }
 
     // ==========================================
@@ -399,6 +430,35 @@ export class VisageData {
             onEnter: { action: "apply", priority: 0 },
             onExit: { action: "remove", delay: 0 },
         };
+    }
+
+    /**
+     * Asynchronously builds the presentation context for a Visage.
+     * Centralises media path resolution and wildcard detection before formatting the UI object.
+     * @param {Object} data - The raw Visage data.
+     * @param {Object} [options={}] - Custom presentation flags (e.g., isActive).
+     * @returns {Promise<Object>} The fully resolved data formatted for the UI.
+     */
+    static async buildPresentationContext(data, options = {}) {
+        const c = data.changes || {};
+
+        // 1. Extract the raw path
+        const rawPath = this.getRepresentativeImage(c);
+
+        // 2. Detect wildcards
+        const isWildcard = (rawPath || "").includes("*") || (rawPath || "").includes("?");
+
+        // 3. Resolve media paths asynchronously
+        const resolvedPath = await VisageUtilities.resolvePath(rawPath);
+        const resolvedPortrait = c.portrait ? await VisageUtilities.resolvePath(c.portrait) : undefined;
+
+        // 4. Delegate to the synchronous formatter
+        return this.toPresentation(data, {
+            ...options,
+            isWildcard,
+            resolvedPath,
+            resolvedPortrait,
+        });
     }
 
     /**

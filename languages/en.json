@@ -567,5 +567,11 @@
     "VISAGE.Notifications.CacheBuildStart": "Visage | Building Quick Visage cache. This may take a moment...",
     "VISAGE.Notifications.CacheBuildSuccess": "Visage | Quick Visage cache rebuilt successfully! Found {count} files.",
     "VISAGE.Selector.AutoMapped": "Quick Visages",
-    "VISAGE.Suffix.AutoMapped": " (auto-mapped)"
+    "VISAGE.Suffix.AutoMapped": " (auto-mapped)",
+
+    "_comment_V5_2_KEYS": "--- V5.2 KEYS ---",
+    "VISAGE.Notifications.SaveReview": "Please review the editor and correct the invalid entries shown in this error.",
+    "VISAGE.Notifications.ImportFailed": "Visage | Import Validation Failed:",
+    "VISAGE.Notifications.ImportReview": "Please review your import file and correct the invalid entries shown in this error.",
+    "VISAGE.Notifications.ImportSanitized": "Visage | Some entries contained out-of-bounds or improperly formatted data and were automatically changed to valid values. Please review your imported Visages as these values may not be what you expected."
 }

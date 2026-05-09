@@ -15,26 +15,26 @@ export class VisageDataModel extends foundry.abstract.DataModel {
             // 1. ROOT PROPERTIES (Visage Metadata)
             // ==========================================
             id: new StringField({ required: false, nullable: true }),
-            label: new StringField({ required: true, initial: "New Visage" }),
-            category: new StringField({ required: false, nullable: true }),
-            tags: new ArrayField(new StringField(), { initial: [] }),
-            mode: new StringField({ required: true, initial: "identity", choices: ["identity", "overlay"] }),
-            public: new BooleanField({ initial: false }),
+            label: new StringField({ required: true, initial: "New Visage", label: "VISAGE.GlobalEditor.Label" }),
+            category: new StringField({ required: false, nullable: true, label: "VISAGE.GlobalEditor.Category" }),
+            tags: new ArrayField(new StringField(), { initial: [], label: "VISAGE.GlobalEditor.Tags" }),
+            mode: new StringField({ required: true, initial: "identity", choices: ["identity", "overlay"], label: "VISAGE.GlobalEditor.Mode" }),
+            public: new BooleanField({ initial: false, label: "VISAGE.GlobalEditor.Visibility" }),
             deleted: new BooleanField({ initial: false }),
 
             automation: new SchemaField(
                 {
-                    enabled: new BooleanField({ initial: false }),
-                    logic: new StringField({ initial: "AND", choices: ["AND", "OR"] }),
+                    enabled: new BooleanField({ initial: false, label: "VISAGE.Editor.Triggers.Enable" }),
+                    logic: new StringField({ initial: "AND", choices: ["AND", "OR"], label: "VISAGE.Editor.Triggers.LogicHint" }),
 
                     onEnter: new SchemaField({
                         action: new StringField({ initial: "apply", choices: ["apply", "remove"] }),
-                        priority: new NumberField({ initial: 0 }),
+                        priority: new NumberField({ initial: 0, label: "VISAGE.Editor.Triggers.Priority" }),
                     }),
 
                     onExit: new SchemaField({
                         action: new StringField({ initial: "remove", choices: ["apply", "remove"] }),
-                        priority: new NumberField({ initial: 0 }),
+                        priority: new NumberField({ initial: 0, label: "VISAGE.Editor.Triggers.Priority" }),
                     }),
 
                     conditions: new ArrayField(
@@ -42,37 +42,38 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                             id: new StringField({ required: true, blank: false }),
                             disabled: new BooleanField({ initial: false }),
                             type: new StringField({ required: true, choices: ["attribute", "status", "event"] }),
-                            operator: new StringField({ required: false, nullable: true }),
+                            operator: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.Operator" }),
 
                             // --- Attribute Condition Properties ---
-                            path: new StringField({ required: false, nullable: true }),
-                            dataType: new StringField({ required: false, nullable: true, choices: ["boolean", "string", "number"] }),
-                            mode: new StringField({ required: false, nullable: true, choices: ["percent", "absolute"] }),
-                            denominatorPath: new StringField({ required: false, nullable: true }),
-                            value: new DataField({ required: false, nullable: true }),
+                            path: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.DataPath" }),
+                            dataType: new StringField({ required: false, nullable: true, choices: ["boolean", "string", "number"], label: "VISAGE.Editor.Triggers.DataType" }),
+                            mode: new StringField({ required: false, nullable: true, choices: ["percent", "absolute"], label: "VISAGE.Editor.Triggers.Mode" }),
+                            denominatorPath: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.DenominatorPath" }),
+                            value: new DataField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.Value" }),
 
                             // --- Status Condition Properties ---
-                            statusId: new StringField({ required: false, nullable: true }),
-                            customStatus: new StringField({ required: false, nullable: true }),
+                            statusId: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.StatusId" }),
+                            customStatus: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.CustomStatusName" }),
 
                             // --- Event Condition Properties ---
                             eventId: new StringField({
                                 required: false,
                                 nullable: true,
                                 choices: ["combat", "targeted", "facing", "elevation", "globalLight", "darkness", "region", "time", "weather"],
+                                label: "VISAGE.Editor.Triggers.EventId",
                             }),
-                            startAngle: new NumberField({ required: false, nullable: true }),
-                            endAngle: new NumberField({ required: false, nullable: true }),
-                            regionId: new StringField({ required: false, nullable: true }),
-                            startTime: new StringField({ required: false, nullable: true }),
-                            endTime: new StringField({ required: false, nullable: true }),
-                            weatherId: new StringField({ required: false, nullable: true }),
-                            customWeather: new StringField({ required: false, nullable: true }),
+                            startAngle: new NumberField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.AngleStart" }),
+                            endAngle: new NumberField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.AngleEnd" }),
+                            regionId: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.RegionId" }),
+                            startTime: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.StartTime" }),
+                            endTime: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.EndTime" }),
+                            weatherId: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.WeatherId" }),
+                            customWeather: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.CustomWeather" }),
                         }),
-                        { initial: [] },
+                        { initial: [], label: "VISAGE.Editor.Triggers.Conditions" },
                     ),
                 },
-                { required: false, nullable: true },
+                { required: false, nullable: true, label: "VISAGE.Editor.Tabs.Triggers" },
             ),
 
             // ==========================================
@@ -81,33 +82,34 @@ export class VisageDataModel extends foundry.abstract.DataModel {
 
             changes: new SchemaField({
                 // FOUNDRY PROPERTIES:
-                name: new StringField({ required: false, nullable: true }),
-                width: new NumberField({ initial: 1, min: 0.5, step: 0.5 }),
-                height: new NumberField({ initial: 1, min: 0.5, step: 0.5 }),
-                depth: new NumberField({ initial: 1, min: 1, step: 1 }),
-                alpha: new NumberField({ initial: 1, min: 0, max: 1 }),
-                lockRotation: new BooleanField({ initial: false }),
+                name: new StringField({ required: false, nullable: true, label: "VISAGE.GlobalEditor.NameOverride" }),
+                width: new NumberField({ initial: 1, min: 0.5, step: 0.5, label: "VISAGE.Config.List.Width" }),
+                height: new NumberField({ initial: 1, min: 0.5, step: 0.5, label: "VISAGE.Config.List.Height" }),
+                depth: new NumberField({ initial: 1, min: 0.5, step: 0.5, label: "VISAGE.Config.List.DimZ" }),
+                alpha: new NumberField({ initial: 1, min: 0, max: 1, label: "VISAGE.Config.Opacity.Label" }),
+                lockRotation: new BooleanField({ initial: false, label: "VISAGE.RotationLock.Label" }),
                 disposition: new NumberField({
                     initial: 0,
                     choices: [-2, -1, 0, 1],
+                    label: "VISAGE.Disposition.Label",
                 }),
 
-                texture: new foundry.data.fields.SchemaField({
-                    src: new StringField({ required: false, nullable: true }),
+                texture: new SchemaField({
+                    src: new StringField({ required: false, nullable: true, label: "VISAGE.GlobalEditor.TokenImage" }),
                     scaleX: new NumberField({ initial: 1 }),
                     scaleY: new NumberField({ initial: 1 }),
-                    anchorX: new NumberField({ initial: 0.5 }),
-                    anchorY: new NumberField({ initial: 0.5 }),
+                    anchorX: new NumberField({ initial: 0.5, label: "VISAGE.Config.List.Anchor" }),
+                    anchorY: new NumberField({ initial: 0.5, label: "VISAGE.Config.List.Anchor" }),
                 }),
 
-                ring: new ObjectField({ initial: {} }),
-                light: new ObjectField({ initial: {} }),
-                portrait: new StringField({ required: false, nullable: true }),
+                ring: new ObjectField({ initial: {}, label: "VISAGE.Editor.Tabs.Ring" }),
+                light: new ObjectField({ initial: {}, label: "VISAGE.Editor.Light.SettingsTitle" }),
+                portrait: new StringField({ required: false, nullable: true, label: "VISAGE.GlobalEditor.ActorPortrait" }),
 
                 // CUSTOM VISAGE PROPERTIES:
-                scale: new NumberField({ required: false, nullable: true }),
-                mirrorX: new BooleanField({ required: false, nullable: true }),
-                mirrorY: new BooleanField({ required: false, nullable: true }),
+                scale: new NumberField({ min: 0.01, required: false, nullable: true, label: "VISAGE.Config.List.Scale" }),
+                mirrorX: new BooleanField({ required: false, nullable: true, label: "VISAGE.Mirror.Label.Horizontal" }),
+                mirrorY: new BooleanField({ required: false, nullable: true, label: "VISAGE.Mirror.Label.Vertical" }),
 
                 effects: new ArrayField(
                     new SchemaField({
@@ -117,29 +119,29 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                             required: true,
                             choices: ["visual", "audio", "macro", "tmfx"],
                         }),
-                        label: new StringField({ required: true, initial: "New Effect" }),
+                        label: new StringField({ required: true, initial: "New Effect", label: "VISAGE.Editor.Effects.NamePlaceholder" }),
                         disabled: new BooleanField({ initial: false }),
-                        delay: new NumberField({ initial: 0, min: 0 }),
+                        delay: new NumberField({ initial: 0, min: 0, label: "VISAGE.Editor.Effects.Delay" }),
 
                         // Visual & Audio Properties
-                        path: new StringField({ required: false, nullable: true }),
-                        scale: new NumberField({ initial: 1, nullable: true }),
-                        opacity: new NumberField({ initial: 1, min: 0, max: 1, nullable: true }),
-                        rotation: new NumberField({ initial: 0, nullable: true }),
+                        path: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Effects.Path" }),
+                        scale: new NumberField({ initial: 1, nullable: true, label: "VISAGE.Config.List.Scale" }),
+                        opacity: new NumberField({ initial: 1, min: 0, max: 1, nullable: true, label: "VISAGE.Config.Opacity.Label" }),
+                        rotation: new NumberField({ initial: 0, nullable: true, label: "VISAGE.Rotation.Label" }),
                         rotationRandom: new BooleanField({ initial: false }),
-                        zOrder: new StringField({ required: false, nullable: true, choices: ["above", "below"] }),
-                        loop: new BooleanField({ initial: true }),
-                        fadeIn: new NumberField({ initial: 0 }),
-                        fadeOut: new NumberField({ initial: 0 }),
+                        zOrder: new StringField({ required: false, nullable: true, choices: ["above", "below"], label: "VISAGE.Editor.Effects.Layering" }),
+                        loop: new BooleanField({ initial: true, label: "VISAGE.Editor.Effects.Loop" }),
+                        fadeIn: new NumberField({ initial: 0, label: "VISAGE.Editor.Effects.FadeIn" }),
+                        fadeOut: new NumberField({ initial: 0, label: "VISAGE.Editor.Effects.FadeOut" }),
 
                         // Macro Properties
-                        uuid: new StringField({ required: false, nullable: true }),
+                        uuid: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Effects.MacroUUID" }),
 
                         // TMFX Properties
-                        tmfxPreset: new StringField({ required: false, nullable: true }),
-                        tmfxPayload: new StringField({ required: false, nullable: true }),
+                        tmfxPreset: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Effects.TmfxPreset" }),
+                        tmfxPayload: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Effects.TmfxPayload" }),
                     }),
-                    { initial: [] },
+                    { initial: [], label: "VISAGE.Editor.Tabs.Effects" },
                 ),
             }),
         };

@@ -196,12 +196,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // 2. Build Transformations
         let rawImg = data.changes?.texture?.src || "";
-        const resolvedPath = await VisageUtilities.resolvePath(rawImg);
-        const context = VisageData.toPresentation(data, {
-            isWildcard: rawImg.includes("*") || rawImg.includes("?"),
-            isActive: false,
-            resolvedPath: resolvedPath,
-        });
+        const context = await VisageData.buildPresentationContext(data, { isActive: false });
         const inspectorData = this._buildInspectorContext();
         const stageData = this._buildStagePreviewContext(data.changes || {}, context);
 
@@ -670,9 +665,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             tags: formData.tags ? formData.tags.split(",").filter((t) => t.trim()) : [],
             mode: formData.mode,
             public: formData.public === "true",
-            automation: this._cleanAutomationPayload(),
+            automation: this._automationData,
             changes: {
                 ...formData,
+                scale: formData.scale !== "" && formData.scale !== null ? Number(formData.scale) / 100 : null,
                 texture: {
                     src: formData.img_active ? formData.img : null,
                     anchorX: formData.anchor_active ? Number.parseFloat(formData.anchorX) : null,
@@ -920,29 +916,32 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _onSave(event) {
         event.preventDefault();
-        const payload = this._prepareSaveData();
-        if (!payload.label) return ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.LabelRequired"));
-
-        // Validate TMFX JSON Payloads
-        for (const effect of payload.changes.effects || []) {
-            if (effect.type === "tmfx" && effect.tmfxPayload) {
-                try {
-                    const parsed = JSON.parse(effect.tmfxPayload);
-                    if (typeof parsed !== "object") throw new Error("Payload must be an object or array.");
-                } catch (err) {
-                    console.error(`Visage | Invalid TMFX payload for effect '${effect.label}':`, err);
-                    return ui.notifications.error(game.i18n.format("VISAGE.Notifications.TmfxInvalidPayload", { label: effect.label }));
-                }
-            }
-        }
 
         try {
+            const payload = this._prepareSaveData();
+            if (!payload.label) return ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.LabelRequired"));
+
+            // Validate TMFX JSON Payloads
+            for (const effect of payload.changes.effects || []) {
+                if (effect.type === "tmfx" && effect.tmfxPayload) {
+                    try {
+                        const parsed = JSON.parse(effect.tmfxPayload);
+                        if (typeof parsed !== "object") throw new Error("Payload must be an object or array.");
+                    } catch (err) {
+                        console.error(`Visage | Invalid TMFX payload for effect '${effect.label}':`, err);
+                        return ui.notifications.error(game.i18n.format("VISAGE.Notifications.TmfxInvalidPayload", { label: effect.label }));
+                    }
+                }
+            }
+
+            // Save the data
             await VisageData.save(payload, this.isLocal ? this.actor : null);
+
             ui.notifications.info(game.i18n.format(this.visageId ? "VISAGE.Notifications.Updated" : "VISAGE.Notifications.Created", { name: payload.label }));
             this.close();
         } catch (err) {
-            ui.notifications.error(game.i18n.localize("VISAGE.Notifications.SaveFailed"));
-            console.error(err);
+            ui.notifications.error(err.message, { permanent: true });
+            console.warn("Visage | Validation Blocked Save:", err.message);
         }
     }
 
@@ -1525,8 +1524,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._injectPreviewHTML(html, previewData.imgTransform, previewData.ringTransform, previewData.originStyle, changes, previewData);
 
         // 4. Update UI Badges & Audio
-        const rawPath = VisageData.getRepresentativeImage(changes);
-        this._updateUIBadges(VisageData.toPresentation({ changes }, { isWildcard: rawPath.includes("*") || rawPath.includes("?") }).meta, changes);
+        const context = await VisageData.buildPresentationContext({ changes });
+        this._updateUIBadges(context.meta, changes);
         this._mediaController.syncAudio(this._effects || [], this.rendered);
     }
 
@@ -1611,15 +1610,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const effectsBelow = activeVisuals.filter((e) => e.zOrder === "below").map((e) => this._mediaController.prepareEffectStyle(e));
         const effectsAbove = activeVisuals.filter((e) => e.zOrder === "above").map((e) => this._mediaController.prepareEffectStyle(e));
 
-        // Path Resolution
-        const rawPath = ringEnabled && changes.ring?.subject?.texture ? changes.ring.subject.texture : changes.texture?.src || "";
-        const resolved = await VisageUtilities.resolvePath(rawPath);
-        const isWildcard = rawPath.includes("*") || rawPath.includes("?");
-
-        // Prevent 404s: If it is an unresolved wildcard, pass an empty string so the CSS fallback triggers naturally.
-        const safeImg = resolved || (isWildcard ? "" : rawPath);
-
-        const context = VisageData.toPresentation({ changes }, { isWildcard: isWildcard });
+        // Path Resolution & Context. If it is an unresolved wildcard, pass an empty string so the CSS fallback triggers naturally to prevent 404s.
+        const context = await VisageData.buildPresentationContext({ changes });
+        const safeImg = context.isWildcard && context.resolvedPath.includes("*") ? "" : context.resolvedPath;
 
         // Lighting Math
         const lData = changes.light || {};
