@@ -97,9 +97,9 @@ Hooks.once("init", () => {
         VisageSettings.register();
 
         // Expose API classes to the global scope and module API for third-party integration.
-        window.VisageData = VisageData;
-        window.VisageEditor = VisageEditor;
-        window.VisageGallery = VisageGallery;
+        globalThis.VisageData = VisageData;
+        globalThis.VisageEditor = VisageEditor;
+        globalThis.VisageGallery = VisageGallery;
 
         game.modules.get("visage").api.Data = VisageData;
         game.modules.get("visage").api.Editor = VisageEditor;
@@ -112,7 +112,7 @@ Hooks.once("init", () => {
         Handlebars.registerHelper("visageJson", (context) => JSON.stringify(context));
         Handlebars.registerHelper("visagePercent", (value) => {
             const num = Number(value);
-            if (isNaN(num)) return "0%";
+            if (Number.isNaN(num)) return "0%";
             return `${Math.round(num * 100)}%`;
         });
 
@@ -144,15 +144,15 @@ Hooks.once("init", () => {
          */
         const addSidebarOption = (options) => {
             options.push({
-                name: "VISAGE.Title",
+                label: "VISAGE.Title",
                 icon: '<i class="visage-icon-domino"></i>',
-                condition: (li) => {
+                visible: (li) => {
                     const documentId = getActorIdFromElement(li);
                     if (!documentId) return false;
                     const actor = game.actors.get(documentId);
-                    return actor && actor.isOwner;
+                    return actor?.isOwner;
                 },
-                callback: (li) => {
+                onClick: (event, li) => {
                     const documentId = getActorIdFromElement(li);
                     const actor = game.actors.get(documentId);
                     if (actor) openVisageConfig(actor);
@@ -190,7 +190,7 @@ Hooks.once("init", () => {
          */
         const addAppV2Control = (app, controls) => {
             const actor = app.document;
-            if (!actor || !actor.isOwner) return;
+            if (!actor?.isOwner) return;
             controls.push({
                 label: "VISAGE.Title",
                 icon: "visage-icon-domino",
@@ -205,9 +205,9 @@ Hooks.once("init", () => {
             "pointerover",
             (event) => {
                 const target = event.target.closest("[data-tooltip]");
-                if (target && target.closest(".visage")) {
-                    if (!target.hasAttribute("data-tooltip-class")) {
-                        target.setAttribute("data-tooltip-class", "visage-tooltip");
+                if (target?.closest(".visage")) {
+                    if (!Object.hasOwn(target.dataset, "tooltipClass")) {
+                        target.dataset.tooltipClass = "visage-tooltip";
                     }
                 }
             },
