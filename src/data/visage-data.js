@@ -398,6 +398,7 @@ export class VisageData {
             mode: "identity",
             changes: {
                 name: sourceData.name,
+                scale: Math.abs(scaleX),
                 texture: {
                     src: src,
                     scaleX: Math.abs(scaleX) * (scaleX < 0 ? -1 : 1),
@@ -619,8 +620,8 @@ export class VisageData {
         return {
             enabled: data.enabled ?? false,
             colors: {
-                ring: data.colors?.ring ?? "#FFFFFF",
-                background: data.colors?.background ?? "#000000",
+                ring: data.colors?.ring ?? null,
+                background: data.colors?.background ?? null,
             },
             subject: {
                 texture: data.subject?.texture ?? "",

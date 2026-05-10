@@ -516,7 +516,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this._ringData === null) {
             const defaults = {
                 enabled: false,
-                colors: { ring: "#ffffff", background: "#000000" },
+                colors: { ring: null, background: null },
                 subject: { texture: "", scale: 1 },
                 effects: 0,
             };
@@ -668,7 +668,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             automation: this._automationData,
             changes: {
                 ...formData,
-                scale: formData.scale !== "" && formData.scale !== null ? Number(formData.scale) / 100 : null,
+                scale: formData.scale !== undefined && formData.scale !== "" && formData.scale !== null ? Number(formData.scale) / 100 : null,
                 texture: {
                     src: formData.img_active ? formData.img : null,
                     anchorX: formData.anchor_active ? Number.parseFloat(formData.anchorX) : null,
