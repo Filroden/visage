@@ -1,4 +1,4 @@
-const { StringField, NumberField, BooleanField, ObjectField, ArrayField, SchemaField, DataField } = foundry.data.fields;
+const { StringField, NumberField, BooleanField, ObjectField, ArrayField, SchemaField, DataField, ColorField } = foundry.data.fields;
 
 /**
  * Represents the unified data structure for a Visage.
@@ -102,7 +102,22 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                     anchorY: new NumberField({ initial: 0.5, label: "VISAGE.Config.List.Anchor" }),
                 }),
 
-                ring: new ObjectField({ initial: {}, label: "VISAGE.Editor.Tabs.Ring" }),
+                ring: new SchemaField(
+                    {
+                        enabled: new BooleanField({ initial: false, label: "VISAGE.GlobalEditor.RingEnable" }),
+                        colors: new SchemaField({
+                            ring: new ColorField({ required: false, nullable: true, initial: null, label: "VISAGE.RingConfig.RingColor" }),
+                            background: new ColorField({ required: false, nullable: true, initial: null, label: "VISAGE.RingConfig.BackgroundColor" }),
+                        }),
+                        subject: new SchemaField({
+                            texture: new StringField({ required: false, nullable: true, initial: null, label: "VISAGE.RingConfig.SubjectTexture" }),
+                            scale: new NumberField({ initial: 1, label: "VISAGE.RingConfig.SubjectScale" }),
+                        }),
+                        effects: new NumberField({ initial: 0, integer: true, label: "VISAGE.RingConfig.Effects.Label" }),
+                    },
+                    { required: false, nullable: true, label: "VISAGE.Editor.Tabs.Ring" },
+                ),
+
                 light: new ObjectField({ initial: {}, label: "VISAGE.Editor.Light.SettingsTitle" }),
                 portrait: new StringField({ required: false, nullable: true, label: "VISAGE.GlobalEditor.ActorPortrait" }),
 
