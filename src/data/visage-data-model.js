@@ -83,13 +83,15 @@ export class VisageDataModel extends foundry.abstract.DataModel {
             changes: new SchemaField({
                 // FOUNDRY PROPERTIES:
                 name: new StringField({ required: false, nullable: true, label: "VISAGE.GlobalEditor.NameOverride" }),
-                width: new NumberField({ initial: 1, min: 0.5, step: 0.5, label: "VISAGE.Config.List.Width" }),
-                height: new NumberField({ initial: 1, min: 0.5, step: 0.5, label: "VISAGE.Config.List.Height" }),
-                depth: new NumberField({ initial: 1, min: 0.5, step: 0.5, label: "VISAGE.Config.List.DimZ" }),
-                alpha: new NumberField({ initial: 1, min: 0, max: 1, label: "VISAGE.Config.Opacity.Label" }),
-                lockRotation: new BooleanField({ initial: false, label: "VISAGE.RotationLock.Label" }),
+                width: new NumberField({ required: false, nullable: true, initial: null, min: 0.5, step: 0.5, label: "VISAGE.Config.List.Width" }),
+                height: new NumberField({ required: false, nullable: true, initial: null, min: 0.5, step: 0.5, label: "VISAGE.Config.List.Height" }),
+                depth: new NumberField({ required: false, nullable: true, initial: null, min: 0.5, step: 0.5, label: "VISAGE.Config.List.DimZ" }),
+                alpha: new NumberField({ required: false, nullable: true, initial: null, min: 0, max: 1, label: "VISAGE.Config.Opacity.Label" }),
+                lockRotation: new BooleanField({ required: false, nullable: true, initial: null, label: "VISAGE.RotationLock.Label" }),
                 disposition: new NumberField({
-                    initial: 0,
+                    required: false,
+                    nullable: true,
+                    initial: null,
                     choices: [-2, -1, 0, 1],
                     label: "VISAGE.Disposition.Label",
                 }),

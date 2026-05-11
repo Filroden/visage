@@ -281,7 +281,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 else if (c.lockRotation === false) value = "false";
                 return {
                     value,
-                    active: true,
+                    active: c.lockRotation !== null && c.lockRotation !== undefined,
                 };
             })(),
             width: prep(c.width, 1),
@@ -669,14 +669,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             changes: {
                 ...formData,
                 scale: formData.scale !== undefined && formData.scale !== "" && formData.scale !== null ? Number(formData.scale) / 100 : null,
+                alpha: formData.alpha !== undefined && formData.alpha !== "" && formData.alpha !== null ? Number(formData.alpha) / 100 : null,
                 texture: {
                     src: formData.img_active ? formData.img : null,
                     anchorX: formData.anchor_active ? Number.parseFloat(formData.anchorX) : null,
                     anchorY: formData.anchor_active ? Number.parseFloat(formData.anchorY) : null,
                 },
-                mirrorX: formData.isFlippedX === "" ? null : formData.isFlippedX === "true",
-                mirrorY: formData.isFlippedY === "" ? null : formData.isFlippedY === "true",
-                lockRotation: formData.lockRotation === "" ? null : formData.lockRotation === "true",
+                mirrorX: formData.isFlippedX === undefined || formData.isFlippedX === "" ? null : formData.isFlippedX === "true",
+                mirrorY: formData.isFlippedY === undefined || formData.isFlippedY === "" ? null : formData.isFlippedY === "true",
+                lockRotation: formData.lockRotation === undefined || formData.lockRotation === "" ? null : formData.lockRotation === "true",
                 light: this._lightData,
                 ring: this._ringData,
                 effects: this._effects.filter((e) => !e.disabled),
