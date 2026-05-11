@@ -190,17 +190,11 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(ApplicationV
             const finalDelay = Number.parseFloat(block.dataset.tempDelay ?? startDelay);
 
             if (finalDelay !== startDelay) {
-                if (!this.editor._preservedData) this.editor._preservedData = {};
-                if (!this.editor._preservedData.changes) this.editor._preservedData.changes = {};
-                if (!this.editor._preservedData.changes.effects) {
-                    this.editor._preservedData.changes.effects = foundry.utils.deepClone(effectsArray);
-                }
+                // Target the Editor's live effect array directly
+                const targetEditorRef = this.editor._effects?.find((eff) => eff.id === effectId);
 
-                const memoryEffects = this.editor._preservedData.changes.effects;
-                const targetMemoryRef = memoryEffects.find((eff) => eff.id === effectId);
-
-                if (targetMemoryRef) {
-                    targetMemoryRef.delay = finalDelay;
+                if (targetEditorRef) {
+                    targetEditorRef.delay = finalDelay;
 
                     if (typeof this.editor._markDirty === "function") {
                         this.editor._markDirty();
