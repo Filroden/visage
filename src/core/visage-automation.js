@@ -29,7 +29,16 @@ export class VisageAutomation {
         if (!game.user.isGM) return; // The Watcher only runs on the GM's machine to prevent race conditions
 
         // 1. Registry Maintenance Hooks
-        Hooks.on("canvasReady", () => this.buildRegistry());
+        Hooks.on("canvasReady", () => {
+            this.buildRegistry();
+
+            // Force an evaluation sweep to catch environmental changes that caused a full canvas redraw (e.g. weather changes, initial scene loads)
+            for (const tokenId of this._registry.keys()) {
+                const token = canvas.tokens.get(tokenId);
+                if (token) this._queueEvaluation(token.document);
+            }
+        });
+
         Hooks.on("createToken", () => this.buildRegistry());
         Hooks.on("deleteToken", (token) => this._registry.delete(token.id));
         Hooks.on("visageDataChanged", () => this.buildRegistry()); // Custom hook you fire when saving a Visage

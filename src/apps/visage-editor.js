@@ -594,7 +594,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     rotationRandom: effect.rotationRandom ?? false,
                     zOrder: effect.zOrder ?? "above",
                     blendMode: effect.blendMode || "normal",
-                    loop: effect.loop ?? true,
+                    loop: effect.loop ?? false,
                     delay: effect.delay || 0,
                     fadeIn: effect.fadeIn || 0,
                     fadeOut: effect.fadeOut || 0,
@@ -1256,7 +1256,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             rotation: 0,
             rotationRandom: false,
             zOrder: "above",
-            loop: true,
+            loop: false,
             disabled: false,
             delay: 0,
         };
@@ -1274,7 +1274,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             label: "New Audio",
             path: "",
             opacity: 0.8,
-            loop: true,
+            loop: false,
             disabled: false,
             delay: 0,
             fadeIn: 0,
@@ -1458,7 +1458,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onToggleLoop(event, target) {
         const effect = this._effects.find((e) => e.id === target.closest(".effect-card").dataset.id);
         if (effect) {
-            effect.loop = !(effect.loop ?? true);
+            effect.loop = !(effect.loop ?? false);
             this._markDirty();
             this.render();
         }

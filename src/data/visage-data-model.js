@@ -147,7 +147,7 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                         rotation: new NumberField({ initial: 0, nullable: true, label: "VISAGE.Rotation.Label" }),
                         rotationRandom: new BooleanField({ initial: false }),
                         zOrder: new StringField({ required: false, nullable: true, choices: ["above", "below"], label: "VISAGE.Editor.Effects.Layering" }),
-                        loop: new BooleanField({ initial: true, label: "VISAGE.Editor.Effects.Loop" }),
+                        loop: new BooleanField({ initial: false, label: "VISAGE.Editor.Effects.Loop" }),
                         fadeIn: new NumberField({ initial: 0, label: "VISAGE.Editor.Effects.FadeIn" }),
                         fadeOut: new NumberField({ initial: 0, label: "VISAGE.Editor.Effects.FadeOut" }),
 
