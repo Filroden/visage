@@ -1008,6 +1008,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         let source = "data";
         const browseOptions = {};
 
+        // Dynamically determine the required file type
+        const fpType = target.dataset.fileType || "imagevideo";
+
         // Forge Support logic
         if (typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge) {
             browseOptions.cookieKey = true;
@@ -1022,7 +1025,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         const fp = new foundry.applications.apps.FilePicker.implementation({
-            type: "imagevideo",
+            type: fpType,
             current: input.value,
             activeSource: source,
             browseOptions,

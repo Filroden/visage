@@ -10,7 +10,7 @@
             </button>
             
             {{#if hasSequencer}}
-                {{!-- Add Visual/Audio Buttons --}}
+                {{!-- Add Visual Button --}}
                 <button type="button" data-action="addVisual">
                     <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Effects.AddVisual"}}
                 </button>
@@ -18,6 +18,11 @@
                     <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Effects.AddAudio"}}
                 </button>
             {{/if}}
+
+            {{!-- Add Audio Button (Always available) --}}
+            <button type="button" data-action="addAudio">
+                <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Effects.AddAudio"}}
+            </button>
 
             {{#if hasTmfx}}
                 <button type="button" data-action="addTmfx">
@@ -83,7 +88,7 @@
                 </div>
             </div>
 
-            {{!-- 3. Sequencer Content --}}
+            {{!-- 3. Visual Content (Sequencer Dependent) --}}
             {{#if hasSequencer}}
                 {{#if inspector.hasEffects}}
                     {{!-- Foreground --}}
@@ -108,43 +113,42 @@
                         </h3>
                         <div class="group-drop-zone">
                             {{#each inspector.effectsBelow}}
-                                {{> "modules/visage/templates/parts/visage-effectCard.hbs" this activeId=../activeId inspector=../inspector}}
+                               {{> "modules/visage/templates/parts/visage-effectCard.hbs" this activeId=../activeId inspector=../inspector}}
                             {{/each}}
                             {{#unless inspector.effectsBelow.length}}
                                 <div class="empty-group-placeholder">{{localize "VISAGE.Editor.Groups.Empty"}}</div>
                             {{/unless}}
                         </div>
                     </div>
-
-                    {{!-- Audio --}}
-                    <div class="effect-group" data-group="audio">
-                        <h3 class="group-header sticky">
-                            <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Groups.Audio"}}
-                        </h3>
-                        <div class="group-drop-zone">
-                            {{#each inspector.effectsAudio}}
-                                {{> "modules/visage/templates/parts/visage-effectCard.hbs" this activeId=../activeId inspector=../inspector}}
-                            {{/each}}
-                            {{#unless inspector.effectsAudio.length}}
-                                <div class="empty-group-placeholder">{{localize "VISAGE.Editor.Groups.Empty"}}</div>
-                            {{/unless}}
-                        </div>
-                    </div>
-                {{else}}
-                    <div class="empty-placeholder">
-                        <i class="visage-icon wand-stars"></i>
-                        <p>{{localize "VISAGE.Editor.Effects.Empty"}}</p>
-                    </div>
                 {{/if}}
-            {{else}}
-                <div class="empty-placeholder visage-missing-dependency">
-                    <i class="visage-icon extension-off"></i>
-                    <h3>{{localize "VISAGE.Editor.Effects.DependencyTitle"}}</h3>
-                    <p>{{localize "VISAGE.Editor.Effects.DependencyHint"}}</p>
-                </div>
             {{/if}}
 
-            {{!-- 4. TokenMagic Content --}}
+            {{!-- 4. Audio Content (Always Available) --}}
+            {{#if inspector.hasEffects}}
+                <div class="effect-group" data-group="audio">
+                    <h3 class="group-header sticky">
+                        <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Groups.Audio"}}
+                    </h3>
+                    <div class="group-drop-zone">
+                        {{#each inspector.effectsAudio}}
+                            {{> "modules/visage/templates/parts/visage-effectCard.hbs" this activeId=../activeId inspector=../inspector}}
+                        {{/each}}
+                        {{#unless inspector.effectsAudio.length}}
+                            <div class="empty-group-placeholder">{{localize "VISAGE.Editor.Groups.Empty"}}</div>
+                        {{/unless}}
+                    </div>
+                </div>
+            {{/if}}
+            
+            {{!-- 5. Empty State Failsafe --}}
+            {{#unless inspector.hasEffects}}
+                <div class="empty-placeholder">
+                    <i class="visage-icon wand-stars"></i>
+                    <p>{{localize "VISAGE.Editor.Effects.Empty"}}</p>
+                </div>
+            {{/unless}}
+
+            {{!-- 6. TokenMagic Content --}}
             {{#if hasTmfx}}
             <div class="effect-group" data-group="tmfx">
                 <h3 class="group-header sticky">
@@ -161,7 +165,7 @@
             </div>
             {{/if}}
 
-            {{!-- 5. Macros --}}
+            {{!-- 7. Macros --}}
             <div class="effect-group" data-group="macro">
                 <h3 class="group-header sticky">
                     <i class="visage-icon macro"></i> {{localize "VISAGE.Editor.Groups.Macro"}}
@@ -347,11 +351,11 @@
                     <div class="visage-form-fields">
                         <input type="text" name="effectPath" value="{{inspector.path}}" placeholder="e.g. jb2a.fire_bolt.red">
                         
-                        <button type="button" data-action="openSequencerDatabase" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenDatabase'}}">
+                        <button type="button" data-action="openSequencerDatabase" data-tooltip="{{#if @root.hasSequencer}}{{localize 'VISAGE.Editor.Effects.OpenDatabase'}}{{else}}{{localize 'VISAGE.Editor.Effects.DisabledDatabase'}}{{/if}}" {{#unless @root.hasSequencer}}disabled{{/unless}}>
                             <i class="visage-icon library"></i>
                         </button>
 
-                        <button type="button" class="file-picker-button" data-action="openFilePicker" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenFile'}}">
+                        <button type="button" class="file-picker-button" data-action="openFilePicker" data-file-type="{{#if (eq inspector.type 'audio')}}audio{{else}}imagevideo{{/if}}" data-tooltip="{{localize 'VISAGE.Editor.Effects.OpenFile'}}">
                             <i class="visage-icon open"></i>
                         </button>
                     </div>

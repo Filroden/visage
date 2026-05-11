@@ -24,8 +24,6 @@ export class VisageSequencer {
      * @param {boolean} isRestore - If true, non-looping (one-shot) effects are skipped.
      */
     static async apply(token, layer, isBaseLayer = false, isRestore = false, anticipatedState = null) {
-        if (!VisageUtilities.hasSequencer) return;
-
         const effects = layer.changes?.effects || [];
         const tag = isBaseLayer ? "visage-base" : `visage-mask-${layer.id}`;
 
@@ -56,7 +54,10 @@ export class VisageSequencer {
         }
 
         // 5. Fire Subsystems
-        this._playVisualEffects(token, visuals, tag, offsetMS, anticipatedState, layer.id);
+        if (VisageUtilities.hasSequencer) {
+            this._playVisualEffects(token, visuals, tag, offsetMS, anticipatedState, layer.id);
+        }
+
         if (audios.length > 0) this._playAudioEffects(token, audios, tag, offsetMS);
     }
 
@@ -114,8 +115,6 @@ export class VisageSequencer {
      * Called on scene load or when a token is generated.
      */
     static async restore(token) {
-        if (!VisageUtilities.hasSequencer) return;
-
         // 1. Wipe current effects to prevent duplication
         await this.revert(token);
 
@@ -147,8 +146,6 @@ export class VisageSequencer {
      * Removes effects associated with a specific layer ID from a token.
      */
     static async remove(token, layerId, isBaseLayer = false) {
-        if (!VisageUtilities.hasSequencer) return;
-
         const tag = isBaseLayer ? "visage-base" : `visage-mask-${layerId}`;
         const tokenId = typeof token === "string" ? token : token?.id;
 
@@ -157,7 +154,7 @@ export class VisageSequencer {
         // If the token was deleted, Sequencer automatically garbage-collects attached effects.
         const tokenOnCanvas = token && canvas.tokens.get(tokenId);
 
-        if (tokenOnCanvas) {
+        if (tokenOnCanvas && VisageUtilities.hasSequencer) {
             try {
                 await Sequencer.EffectManager.endEffects({
                     object: token,
@@ -202,12 +199,12 @@ export class VisageSequencer {
      * Completely wipes all Visage-related effects from a token.
      */
     static async revert(tokenOrId) {
-        if (!VisageUtilities.hasSequencer) return;
-
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         const tokenId = typeof tokenOrId === "string" ? tokenOrId : tokenOrId?.id;
 
-        await this._revertVisuals(token);
+        if (VisageUtilities.hasSequencer) {
+            await this._revertVisuals(token);
+        }
         this._revertAudio(tokenId);
         await this._revertLegacyFlags(token);
     }
@@ -447,6 +444,11 @@ export class VisageSequencer {
 
         // If it's already a direct file path, return it immediately
         if (rawPath.includes("/")) return rawPath;
+
+        if (!VisageUtilities.hasSequencer) {
+            console.warn(`Visage | Audio/Visual key "${rawPath}" cannot be resolved because Sequencer is disabled.`);
+            return null;
+        }
 
         // Otherwise, attempt to resolve the database key
         const entry = this._resolveSequencerRecursively(rawPath);
