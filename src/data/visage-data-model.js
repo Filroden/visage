@@ -136,7 +136,7 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                         }),
                         label: new StringField({ required: true, initial: "New Effect", label: "VISAGE.Editor.Effects.NamePlaceholder" }),
                         disabled: new BooleanField({ initial: false }),
-                        delay: new NumberField({ initial: 0, min: 0, label: "VISAGE.Editor.Effects.Delay" }),
+                        delay: new NumberField({ initial: 0, label: "VISAGE.Editor.Effects.Delay" }),
 
                         // Visual & Audio Properties
                         path: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Effects.Path" }),
