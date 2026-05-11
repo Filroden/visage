@@ -52,6 +52,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleGlobal: VisageSelector.prototype._onToggleGlobal,
             togglePin: VisageSelector.prototype._onTogglePin,
             applyAutoImage: VisageSelector.prototype._onApplyAutoImage,
+            toggleAutomation: VisageSelector.prototype._onToggleAutomation,
         },
     };
 
@@ -513,6 +514,45 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         ui.notifications.info(`Quick Visage applied: ${payload.label}`);
 
         // 4. Force the HUD to re-render so the new Visage appears in Section 1
+        this.render();
+    }
+
+    async _onToggleAutomation(event, target) {
+        // Prevent the click from bubbling up and triggering the tile's _onSelectVisage action
+        event.preventDefault();
+        event.stopPropagation();
+
+        const tile = target.closest(".visage-tile");
+        if (!tile) return;
+
+        const id = tile.dataset.formKey;
+        const actor = canvas.tokens.get(this.tokenId)?.actor;
+        if (!actor) return;
+
+        // Determine if the Visage is Local or Global
+        let source = VisageData.getLocal(actor).find((v) => v.id === id);
+        let isLocal = true;
+
+        if (!source) {
+            source = VisageData.getGlobal(id);
+            isLocal = false;
+        }
+
+        if (!source?.automation) return;
+
+        // Guard: Prevent players from modifying Global automation states
+        if (!isLocal && !game.user.isGM) {
+            ui.notifications.error("VISAGE.Notifications.Error.PermissionDenied", { localize: true });
+            return;
+        }
+
+        // Toggle state and merge into a fresh payload
+        const newEnabled = !source.automation.enabled;
+        const payload = foundry.utils.mergeObject(foundry.utils.deepClone(source), { "automation.enabled": newEnabled });
+
+        await VisageData.save(payload, isLocal ? actor : null);
+
+        // Re-render the HUD to instantly reflect the new active/muted state of the icon
         this.render();
     }
 }

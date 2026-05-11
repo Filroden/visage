@@ -81,6 +81,7 @@
             {{!-- Left Column: Automation Indicator --}}
             {{#if this.automation.conditions.length}}
             <div class="visage-sidebar-glyph visage-automation-indicator {{#unless this.automation.enabled}}muted{{/unless}}" 
+                data-action="toggleAutomation"
                 data-tooltip="{{localize 'VISAGE.Editor.Triggers.AutomationTooltip'}}">
                 <i class="visage-icon power"></i>
             </div>
