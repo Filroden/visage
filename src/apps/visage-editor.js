@@ -880,6 +880,33 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
+     * Safely clears irrelevant properties and applies explicit UX defaults when switching event types.
+     * @private
+     */
+    _resetEventCondition(cond, newEventId) {
+        // 1. Wipe the slate clean to prevent phantom data
+        cond.value = null;
+        cond.regionId = "";
+        cond.startTime = "";
+        cond.endTime = "";
+        cond.weatherId = "";
+        cond.customWeather = "";
+        cond.startAngle = null;
+        cond.endAngle = null;
+
+        // 2. Apply explicit UX defaults using a mapped dictionary to prevent branching
+        const defaultStates = {
+            elevation: { operator: "gt", value: 0 },
+            darkness: { operator: "gt", value: 0.5 },
+            time: { operator: "active", startTime: "06:00", endTime: "18:00" },
+            facing: { operator: "active", startAngle: 0, endAngle: 0 },
+        };
+
+        const targetState = defaultStates[newEventId] || { operator: "active" };
+        Object.assign(cond, targetState);
+    }
+
+    /**
      * Helper to safely assign a property only if it contains valid data.
      * @private
      */

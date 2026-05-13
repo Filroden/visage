@@ -21,6 +21,7 @@ export class VisageDataModel extends foundry.abstract.DataModel {
             mode: new StringField({ required: true, initial: "identity", choices: ["identity", "overlay"], label: "VISAGE.GlobalEditor.Mode" }),
             public: new BooleanField({ initial: false, label: "VISAGE.GlobalEditor.Visibility" }),
             deleted: new BooleanField({ initial: false }),
+            updated: new NumberField({ required: false, nullable: true, integer: true }),
 
             automation: new SchemaField(
                 {

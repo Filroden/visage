@@ -779,6 +779,34 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         return { imported, skipped, requiredSanitization };
     }
 
+    /**
+     * Reports the results of an import operation to the user interface.
+     * @param {Object} stats - The statistics from the import operation.
+     * @private
+     */
+    _reportImportResults(stats) {
+        const { imported, skipped, requiredSanitization } = stats;
+
+        if (imported > 0) {
+            ui.notifications.info(
+                game.i18n.format("VISAGE.Notifications.Imported", {
+                    count: imported,
+                }),
+            );
+            // Force a refresh of the UI so the newly imported Visages immediately appear
+            this.render();
+        } else if (skipped > 0) {
+            // Provide a fallback string just in case the localization key for skipped items isn't defined yet
+            ui.notifications.warn(game.i18n.format("VISAGE.Notifications.ImportSkipped", { count: skipped }) || `Skipped ${skipped} duplicate Visages.`);
+        } else {
+            ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.ImportEmpty") || "No valid Visages found to import.");
+        }
+
+        if (requiredSanitization) {
+            console.warn("Visage | Some imported data was automatically sanitized to meet current DataModel schema standards.");
+        }
+    }
+
     _onDragStart(event) {
         const card = event.target.closest(".visage-card");
         if (!card) return;
