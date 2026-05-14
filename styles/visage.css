@@ -657,8 +657,8 @@ li.context-item .visage-icon-domino {
     top: 0;
     z-index: 200; /* Above tiles */
     background: var(--visage-color-bg-darkest);
-    padding: var(--filroden-space-xs) var(--filroden-space-s);
-    margin: 0 0 var(--filroden-space-s) 0;
+    padding: var(--filroden-space-m) var(--filroden-space-s);
+    margin: 0 0 var(--filroden-space-m) 0;
     border-radius: var(--filroden-radius-small);
     border-bottom: 2px solid var(--visage-color-accent);
     color: var(--visage-color-accent);
