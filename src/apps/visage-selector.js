@@ -498,6 +498,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             mode: "identity", // Drops it into the top section
             changes: {
                 ...baseState,
+                // Map default 'false' states to 'null' (inherit) to keep the HUD clean
+                lockRotation: baseState.lockRotation === false ? null : baseState.lockRotation,
+                mirrorX: baseState.mirrorX === false ? null : baseState.mirrorX,
+                mirrorY: baseState.mirrorY === false ? null : baseState.mirrorY,
                 texture: {
                     ...baseState.texture,
                     src: path,
