@@ -52,6 +52,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleGlobal: VisageSelector.prototype._onToggleGlobal,
             togglePin: VisageSelector.prototype._onTogglePin,
             applyAutoImage: VisageSelector.prototype._onApplyAutoImage,
+            toggleAutomation: VisageSelector.prototype._onToggleAutomation,
         },
     };
 
@@ -77,14 +78,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         // PART A: THE DEFAULT IDENTITY
         // =======================================================
 
-        // The API doesn't return the "Default" state because it isn't stored data.
-        // We must generate it virtually here so the user can revert to their base form.
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
-        const defaultForm = VisageData.toPresentation(defaultRaw, {
-            isActive: currentFormKey === "default",
-        });
+        const defaultForm = await VisageData.buildPresentationContext(defaultRaw, { isActive: currentFormKey === "default" });
         defaultForm.key = "default";
-        defaultForm.resolvedPath = await Visage.resolvePath(defaultForm.path);
         defaultForm.themeClass = "visage-theme-local"; // Default is always Gold/Local
 
         // =======================================================
@@ -117,19 +113,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const processedItems = await Promise.all(
             allVisages.map(async (v) => {
                 const isGlobal = v.type === "global";
-                const rawPath = VisageData.getRepresentativeImage(v.changes);
-                const isWildcard = (rawPath || "").includes("*") || (rawPath || "").includes("?");
 
-                // Resolve portrait if present
-                const resolvedPortrait = v.changes.portrait ? await Visage.resolvePath(v.changes.portrait) : undefined;
-
-                // Convert to presentation format
-                const presentational = VisageData.toPresentation(v, {
-                    isActive: v.id === currentFormKey,
-                    isWildcard: isWildcard,
-                    resolvedPortrait: resolvedPortrait,
-                    resolvedPath: await Visage.resolvePath(rawPath),
-                });
+                // Convert to presentation format using the new data layer factory
+                const presentational = await VisageData.buildPresentationContext(v, { isActive: v.id === currentFormKey });
 
                 presentational.key = v.id;
 
@@ -156,14 +142,13 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         if (currentFormKey !== "default" && !identities.some((i) => i.isActive)) {
             const globalIdentity = VisageData.getGlobal(currentFormKey);
             if (globalIdentity) {
-                const globalPresentation = VisageData.toPresentation(globalIdentity, {
+                const globalPresentation = await VisageData.buildPresentationContext(globalIdentity, {
                     isActive: true,
                     isGlobal: true,
                 });
 
                 globalPresentation.key = currentFormKey;
                 globalPresentation.themeClass = "visage-theme-global"; // Triggers the Blue Border
-                globalPresentation.resolvedPath = await Visage.resolvePath(globalIdentity.changes?.texture?.src);
 
                 // Inject it right after the "Default" tile so it sits at the front
                 identities.splice(1, 0, globalPresentation);
@@ -513,6 +498,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             mode: "identity", // Drops it into the top section
             changes: {
                 ...baseState,
+                // Map default 'false' states to 'null' (inherit) to keep the HUD clean
+                lockRotation: baseState.lockRotation === false ? null : baseState.lockRotation,
+                mirrorX: baseState.mirrorX === false ? null : baseState.mirrorX,
+                mirrorY: baseState.mirrorY === false ? null : baseState.mirrorY,
                 texture: {
                     ...baseState.texture,
                     src: path,
@@ -529,6 +518,45 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         ui.notifications.info(`Quick Visage applied: ${payload.label}`);
 
         // 4. Force the HUD to re-render so the new Visage appears in Section 1
+        this.render();
+    }
+
+    async _onToggleAutomation(event, target) {
+        // Prevent the click from bubbling up and triggering the tile's _onSelectVisage action
+        event.preventDefault();
+        event.stopPropagation();
+
+        const tile = target.closest(".visage-tile");
+        if (!tile) return;
+
+        const id = tile.dataset.formKey;
+        const actor = canvas.tokens.get(this.tokenId)?.actor;
+        if (!actor) return;
+
+        // Determine if the Visage is Local or Global
+        let source = VisageData.getLocal(actor).find((v) => v.id === id);
+        let isLocal = true;
+
+        if (!source) {
+            source = VisageData.getGlobal(id);
+            isLocal = false;
+        }
+
+        if (!source?.automation) return;
+
+        // Guard: Prevent players from modifying Global automation states
+        if (!isLocal && !game.user.isGM) {
+            ui.notifications.error("VISAGE.Notifications.Error.PermissionDenied", { localize: true });
+            return;
+        }
+
+        // Toggle state and merge into a fresh payload
+        const newEnabled = !source.automation.enabled;
+        const payload = foundry.utils.mergeObject(foundry.utils.deepClone(source), { "automation.enabled": newEnabled });
+
+        await VisageData.save(payload, isLocal ? actor : null);
+
+        // Re-render the HUD to instantly reflect the new active/muted state of the icon
         this.render();
     }
 }

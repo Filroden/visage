@@ -275,31 +275,15 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Inject Default Entry
         if (!this.filters.showBin) {
-            let defaultRaw;
-            if (this.tokenId) {
-                const token = canvas.tokens.get(this.tokenId);
-                if (token) defaultRaw = VisageData.getDefaultAsVisage(token.document);
+            // 1. Determine the source of truth.
+            // If a token is on the canvas, use its document. Otherwise, use the actor's prototype.
+            const targetDocument = (this.tokenId ? canvas.tokens.get(this.tokenId)?.document : null) || this.actor.prototypeToken;
+
+            // 2. Let your existing data layer extract the exact schema perfectly
+            if (targetDocument) {
+                const defaultRaw = VisageData.getDefaultAsVisage(targetDocument);
+                if (defaultRaw) rawItems.unshift(defaultRaw);
             }
-            if (!defaultRaw) {
-                const proto = this.actor.prototypeToken;
-                defaultRaw = {
-                    id: "default",
-                    label: game.i18n.localize("VISAGE.Selector.Default"),
-                    category: "",
-                    tags: [],
-                    isDefault: true,
-                    mode: "identity",
-                    changes: {
-                        name: proto.name,
-                        texture: { src: proto.texture.src, scaleX: proto.texture.scaleX ?? 1, scaleY: proto.texture.scaleY ?? 1 },
-                        disposition: proto.disposition,
-                        ring: proto.ring,
-                        width: proto.width,
-                        height: proto.height,
-                    },
-                };
-            }
-            if (defaultRaw) rawItems.unshift(defaultRaw);
         }
         return rawItems;
     }
@@ -373,18 +357,11 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         const overlays = [];
 
         for (const entry of filteredItems) {
-            const rawPath = VisageData.getRepresentativeImage(entry.changes);
-            const resolvedPath = await Visage.resolvePath(rawPath);
-            const resolvedPortrait = entry.changes.portrait ? await Visage.resolvePath(entry.changes.portrait) : undefined;
-            const context = VisageData.toPresentation(entry, {
-                isWildcard: (rawPath || "").includes("*") || (rawPath || "").includes("?"),
-                isActive: false,
-                resolvedPortrait: resolvedPortrait,
-            });
+            const context = await VisageData.buildPresentationContext(entry, { isActive: false });
 
             Object.assign(context, context.meta);
             context.meta.itemTags = (entry.tags || []).map((t) => ({ label: t, active: this.filters.tags.has(t) }));
-            context.changes.img = resolvedPath;
+            context.changes.img = context.resolvedPath;
 
             if (context.mode === "identity") identities.push(context);
             else overlays.push(context);
@@ -744,47 +721,90 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 const text = await file.text();
                 const json = JSON.parse(text);
 
-                if (!Array.isArray(json)) throw new Error(game.i18n.localize("VISAGE.Errors.ImportInvalidFormat"));
-
-                let imported = 0;
-                let skipped = 0;
-
-                const currentItems = this.isLocal ? VisageData.getLocal(this.actor) : VisageData.globals;
-                const currentIds = new Set(currentItems.map((i) => i.id));
-
-                for (const entry of json) {
-                    const cleanEntry = cleanVisageData(entry);
-                    if (!cleanEntry.id || !cleanEntry.changes) continue;
-
-                    if (currentIds.has(cleanEntry.id)) {
-                        skipped++;
-                        continue;
-                    }
-
-                    await VisageData.save(cleanEntry, this.isLocal ? this.actor : null);
-                    imported++;
+                if (!Array.isArray(json)) {
+                    throw new TypeError(game.i18n.localize("VISAGE.Errors.ImportInvalidFormat"));
                 }
 
-                if (imported > 0 || skipped > 0) {
-                    ui.notifications.info(
-                        game.i18n.format("VISAGE.Notifications.ImportStats", {
-                            imported: imported,
-                            skipped: skipped,
-                        }),
-                    );
-                    this.render();
-                } else {
-                    ui.notifications.warn("VISAGE.Notifications.ImportEmpty", { localize: true });
-                }
+                // Delegate data processing to a dedicated helper
+                const stats = await this._processImportPayload(json);
+
+                // Delegate UI feedback to a dedicated helper
+                this._reportImportResults(stats);
             } catch (err) {
+                ui.notifications.error(err.message, { permanent: true });
                 console.error("Visage | Import Failed:", err);
-                ui.notifications.error("VISAGE.Notifications.ImportError", {
-                    localize: true,
-                });
             }
         };
 
         input.click();
+    }
+
+    /**
+     * Processes an array of imported Visage payloads.
+     * Handles sanitisation tracking, duplicate prevention, and database execution.
+     * @param {Array} json - The parsed JSON array.
+     * @returns {Promise<Object>} The statistics from the import operation.
+     * @private
+     */
+    async _processImportPayload(json) {
+        let imported = 0;
+        let skipped = 0;
+        let requiredSanitization = false;
+
+        const currentItems = this.isLocal ? VisageData.getLocal(this.actor) : VisageData.globals;
+        const currentIds = new Set(currentItems.map((i) => i.id));
+        const targetActor = this.isLocal ? this.actor : null;
+
+        for (const entry of json) {
+            const cleanEntry = cleanVisageData(entry);
+
+            // Check for the temporary flag, record it, and immediately strip it
+            if (cleanEntry._wasSanitized) {
+                requiredSanitization = true;
+                delete cleanEntry._wasSanitized;
+            }
+
+            // Flatten guard clauses to avoid nesting
+            if (!cleanEntry.id || !cleanEntry.changes) continue;
+
+            if (currentIds.has(cleanEntry.id)) {
+                skipped++;
+                continue;
+            }
+
+            await VisageData.save(cleanEntry, targetActor);
+            imported++;
+        }
+
+        return { imported, skipped, requiredSanitization };
+    }
+
+    /**
+     * Reports the results of an import operation to the user interface.
+     * @param {Object} stats - The statistics from the import operation.
+     * @private
+     */
+    _reportImportResults(stats) {
+        const { imported, skipped, requiredSanitization } = stats;
+
+        if (imported > 0) {
+            ui.notifications.info(
+                game.i18n.format("VISAGE.Notifications.Imported", {
+                    count: imported,
+                }),
+            );
+            // Force a refresh of the UI so the newly imported Visages immediately appear
+            this.render();
+        } else if (skipped > 0) {
+            // Provide a fallback string just in case the localization key for skipped items isn't defined yet
+            ui.notifications.warn(game.i18n.format("VISAGE.Notifications.ImportSkipped", { count: skipped }) || `Skipped ${skipped} duplicate Visages.`);
+        } else {
+            ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.ImportEmpty") || "No valid Visages found to import.");
+        }
+
+        if (requiredSanitization) {
+            console.warn("Visage | Some imported data was automatically sanitized to meet current DataModel schema standards.");
+        }
     }
 
     _onDragStart(event) {
@@ -1064,9 +1084,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Generate Default Form
         const defaultRaw = VisageData.getDefaultAsVisage(token.document);
-        const defaultForm = VisageData.toPresentation(defaultRaw, { isActive: currentFormKey === "default" });
+        const defaultForm = await VisageData.buildPresentationContext(defaultRaw, { isActive: currentFormKey === "default" });
         defaultForm.key = "default";
-        defaultForm.resolvedPath = await Visage.resolvePath(defaultForm.path);
         defaultForm.themeClass = "visage-theme-local";
 
         // Fetch and process all available Visages
@@ -1080,13 +1099,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         const processedItems = await Promise.all(
             allVisages.map(async (v) => {
                 const isGlobal = v.type === "global";
-                const rawPath = VisageData.getRepresentativeImage(v.changes);
-                const p = VisageData.toPresentation(v, {
-                    isActive: v.id === currentFormKey,
-                    isWildcard: (rawPath || "").includes("*") || (rawPath || "").includes("?"),
-                    resolvedPortrait: v.changes.portrait ? await Visage.resolvePath(v.changes.portrait) : undefined,
-                    resolvedPath: await Visage.resolvePath(rawPath),
-                });
+                const p = await VisageData.buildPresentationContext(v, { isActive: v.id === currentFormKey });
+
                 p.key = v.id;
                 p.themeClass = isGlobal ? "visage-theme-global" : "visage-theme-local";
                 return p;

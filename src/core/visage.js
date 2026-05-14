@@ -64,8 +64,10 @@ export class Visage {
 
         // 2. Core Scene Synchronisation
         Hooks.on("canvasReady", () => {
+            const seqActive = game.modules.get("sequencer")?.active;
+
             // Only restore if Sequencer has finished its own boot process
-            if (Visage.sequencerReady) {
+            if (Visage.sequencerReady || !seqActive) {
                 Visage._restoreAll();
             }
         });
@@ -73,21 +75,22 @@ export class Visage {
         // 3. Token Generation
         Hooks.on("createToken", (tokenDoc, options, userId) => {
             if (game.user.id !== userId) return;
+            const seqActive = game.modules.get("sequencer")?.active;
 
             // Safely check both the physical object and the dependency natively
-            if (Visage.sequencerReady && tokenDoc.object) {
+            if ((Visage.sequencerReady || !seqActive) && tokenDoc.object) {
                 VisageSequencer.restore(tokenDoc.object);
             }
         });
 
         // Cleanup audio when a token is physically deleted from the canvas
         Hooks.on("deleteToken", (tokenDoc) => {
-            if (Visage.sequencerReady) VisageSequencer.revert(tokenDoc.id);
+            VisageSequencer.revert(tokenDoc.id);
         });
 
         // Terminate all audio gracefully when the scene unloads
         Hooks.on("canvasTearDown", () => {
-            if (Visage.sequencerReady) VisageSequencer.stopAllAudio();
+            VisageSequencer.stopAllAudio();
         });
     }
 
@@ -131,8 +134,9 @@ export class Visage {
         const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor?.img);
 
         // 3. Compute Timing Anchors
-        const activeEffects = (layer.changes?.effects || []).filter((e) => !e.disabled);
-        const minDelaySeconds = activeEffects.length ? Math.min(0, ...activeEffects.map((e) => e.delay || 0)) : 0;
+        // (Guaranteed by VisageDataModel: effects is an array, delay is a number)
+        const activeEffects = layer.changes.effects.filter((e) => !e.disabled);
+        const minDelaySeconds = activeEffects.length ? Math.min(0, ...activeEffects.map((e) => e.delay)) : 0;
         const offsetMS = Math.abs(minDelaySeconds) * 1000;
 
         // 4. Orchestrate Subsystems
@@ -217,7 +221,7 @@ export class Visage {
      * @private
      */
     static async _handleClearStackTeardown(token) {
-        if (Visage.sequencerReady) await VisageSequencer.revert(token);
+        await VisageSequencer.revert(token);
         if (VisageTokenMagic.isActive) await VisageTokenMagic.revert(token);
         return []; // Returns the new, empty stack
     }
@@ -233,7 +237,7 @@ export class Visage {
         const oldIdentityLayer = stack.find((l) => l.id === currentIdentity);
         const newStack = stack.filter((l) => l.id !== currentIdentity);
 
-        if (Visage.sequencerReady) await VisageSequencer.remove(token, currentIdentity, true);
+        await VisageSequencer.remove(token, currentIdentity, true);
         if (VisageTokenMagic.isActive && oldIdentityLayer) {
             await VisageTokenMagic.removeLayer(token, oldIdentityLayer);
         }
@@ -242,9 +246,7 @@ export class Visage {
     }
 
     static async _runVisualFX(token, layer, stack, matrixChanged, anticipatedState, isBase) {
-        if (!VisageUtilities.hasSequencer) return;
-
-        if (matrixChanged) {
+        if (matrixChanged && VisageUtilities.hasSequencer) {
             for (const activeLayer of stack) {
                 if (activeLayer.id === layer.id) continue;
                 VisageSequencer.refreshMatrix(token, activeLayer.id, anticipatedState);
@@ -363,8 +365,6 @@ export class Visage {
      * @private
      */
     static async _stopRemovedVisualFX(token, maskId, isBase, matrixChanged, stack, anticipatedState) {
-        if (!Visage.sequencerReady) return;
-
         await VisageSequencer.remove(token, maskId, isBase);
 
         // Re-align survivors if the underlying physical frame changed
@@ -413,7 +413,7 @@ export class Visage {
         const originalPortrait = flags.originalState?.portrait;
 
         // Remove all Sequencer effects
-        if (Visage.sequencerReady) await VisageSequencer.revert(token);
+        await VisageSequencer.revert(token);
 
         // Remove all Visage-owned TMFX filters
         if (VisageTokenMagic.isActive) await VisageTokenMagic.revert(token);
@@ -557,8 +557,6 @@ export class Visage {
      * @private
      */
     static async _toggleSequencerFX(token, layer, stack, isVisible, matrixChanged, anticipatedState) {
-        if (!Visage.sequencerReady) return;
-
         // 1. Handle the targeted layer
         if (isVisible) {
             await VisageSequencer.apply(token, layer, false, false, anticipatedState);
@@ -566,8 +564,8 @@ export class Visage {
             await VisageSequencer.remove(token, layer.id, false);
         }
 
-        // 2. Re-align the OTHER layers if the physical token frame changed
-        if (matrixChanged) {
+        // Re-align the OTHER layers if the physical token frame changed
+        if (matrixChanged && VisageUtilities.hasSequencer) {
             for (const activeLayer of stack) {
                 if (activeLayer.id !== layer.id) {
                     VisageSequencer.refreshMatrix(token, activeLayer.id, anticipatedState);

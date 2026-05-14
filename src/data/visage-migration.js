@@ -7,6 +7,7 @@
 
 import { Visage } from "../core/visage.js";
 import { VisageData } from "./visage-data.js";
+import { VisageDataModel } from "./visage-data-model.js";
 import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
 
 /**
@@ -164,6 +165,7 @@ async function _migrateV2(DATA_NAMESPACE) {
  * 1. Converts legacy `img` property to `texture.src`.
  * 2. Decouples "Baked Scale" into atomic properties.
  * 3. Ensures `mode` exists (defaults to 'identity').
+ * 4. Enforces the strict V3 DataModel to guarantee arrays and defaults.
  * @param {Object} entry - The visage data object to clean.
  * @returns {Object} The clean, migrated entry.
  */
@@ -187,10 +189,47 @@ export function cleanVisageData(entry) {
     _migrateBakedScale(c);
 
     // 4. Ensure Mode (v3.0)
-    // If cleaning in isolation, default to identity. Context-aware defaults are handled by the bulk migration.
     entry.mode = entry.mode || "identity";
 
-    return entry;
+    // 5. The Ultimate Failsafe: Pass it through the DataModel
+    // This instantly upgrades legacy objects with missing `effects` arrays,
+    // missing `ring` defaults, or corrupted types.
+    try {
+        // 1. Let the DataModel clean and structure the data
+        const model = new VisageDataModel(entry);
+        const cleanedData = model.toObject();
+
+        // 2. Check if Foundry had to self-heal any of the provided values
+        let wasSanitized = false;
+        const flatOriginal = foundry.utils.flattenObject(entry);
+
+        for (const [key, origValue] of Object.entries(flatOriginal)) {
+            const cleanValue = foundry.utils.getProperty(cleanedData, key);
+
+            // We use loose inequality (!=) to ignore harmless type-casting (e.g., "2" == 2)
+            // but it will catch real clamping or structural changes (e.g., -1 != 0, or "bob" != true)
+            if (origValue != cleanValue) {
+                wasSanitized = true;
+                break;
+            }
+        }
+
+        // 3. Attach a temporary meta-flag if we changed their data
+        if (wasSanitized) {
+            cleanedData._wasSanitized = true;
+        }
+
+        return cleanedData;
+    } catch (err) {
+        const header = game.i18n.localize("VISAGE.Notifications.ImportFailed");
+        const footer = game.i18n.localize("VISAGE.Notifications.ImportReview");
+
+        // UX Sanitisation: Strip the technical Foundry prefix
+        const cleanMessage = err.message.replaceAll(/\[.*\] validation errors:.*?\n/g, "").trim();
+
+        // Pack the header, the clean list, and the friendly footer together
+        throw new Error(`${header}\n${cleanMessage}\n\n${footer}`);
+    }
 }
 
 /**

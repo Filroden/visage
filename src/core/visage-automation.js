@@ -29,10 +29,10 @@ export class VisageAutomation {
         if (!game.user.isGM) return; // The Watcher only runs on the GM's machine to prevent race conditions
 
         // 1. Registry Maintenance Hooks
-        Hooks.on("canvasReady", () => this.buildRegistry());
-        Hooks.on("createToken", () => this.buildRegistry());
+        Hooks.on("canvasReady", () => this._sweepRegistry());
+        Hooks.on("createToken", () => this._sweepRegistry());
         Hooks.on("deleteToken", (token) => this._registry.delete(token.id));
-        Hooks.on("visageDataChanged", () => this.buildRegistry()); // Custom hook you fire when saving a Visage
+        Hooks.on("visageDataChanged", () => this._sweepRegistry());
 
         // 2. Data Observation Hooks
         Hooks.on("updateActor", this._onUpdateActor.bind(this));
@@ -88,11 +88,30 @@ export class VisageAutomation {
         }
     }
 
+    /**
+     * Rebuilds the internal registry and forces an immediate evaluation sweep of all active tokens.
+     * @private
+     */
+    static _sweepRegistry() {
+        this.buildRegistry();
+
+        for (const tokenId of this._registry.keys()) {
+            const token = canvas.tokens.get(tokenId);
+            if (token) this._queueEvaluation(token.document);
+        }
+    }
+
     // ==========================================
     // OBSERVATION HOOKS
     // ==========================================
 
     static _onUpdateActor(actor, _changes, _options, _userId) {
+        // Cache Refresh: Only rebuild memory if the Local Visage Library definitions change
+        // Strictly isolated to prevent infinite loops from activeStack mutations
+        if (foundry.utils.hasProperty(_changes, `flags.${MODULE_ID}.alternateVisages`)) {
+            this.buildRegistry();
+        }
+
         // 1. Handle Unlinked Tokens
         if (actor.isToken) {
             const tokenDoc = actor.token;
@@ -136,6 +155,14 @@ export class VisageAutomation {
     }
 
     static _onUpdateToken(tokenDoc, changes, _options, _userId) {
+        // Cache Refresh: Unlinked tokens saving Local Visages
+        // Strictly isolated to prevent infinite loops from activeStack mutations
+        if (foundry.utils.hasProperty(changes, `flags.${MODULE_ID}.alternateVisages`)) {
+            this.buildRegistry();
+            this._queueEvaluation(tokenDoc);
+            return;
+        }
+
         if (!this._registry.has(tokenDoc.id)) return;
 
         // 1. Throttle: Spatial changes AND Unlinked Token attribute changes
@@ -245,39 +272,99 @@ export class VisageAutomation {
         const record = this._registry.get(token.id);
         if (!record) return;
 
-        const actor = token.actor;
         const VisageApi = game.modules.get(MODULE_ID).api;
-        const queue = { apply: [], remove: [] };
+        const activeStack = token.document.getFlag(MODULE_ID, "activeStack") || [];
 
         // 1. Build the Transition Queue
-        for (const visage of record.visages) {
-            const hasMetConditions = this._checkConditions(actor, token, visage.automation);
-            if (hasMetConditions === null) continue; // Skip if no valid conditions exist
+        const { queue, refreshSet } = await this._buildTransitionQueue(token, record.visages, activeStack, VisageApi);
+
+        // 2. Process Transitions
+        await this._processRemovals(token, queue.remove, VisageApi);
+        await this._processApplies(token, queue.apply, refreshSet, VisageApi);
+    }
+
+    /**
+     * Iterates through visages and routes them to the correct transition queue.
+     * @private
+     */
+    static async _buildTransitionQueue(token, visages, activeStack, VisageApi) {
+        const queue = { apply: [], remove: [] };
+        const refreshSet = new Set();
+
+        for (const visage of visages) {
+            const hasMetConditions = this._checkConditions(token.actor, token, visage.automation);
+            if (hasMetConditions === null) continue;
 
             const isActive = await VisageApi.isActive(token.id, visage.id);
-            this._routeToQueue(queue, visage, hasMetConditions, isActive);
+            const needsRefresh = isActive && this._checkNeedsRefresh(visage, activeStack);
+
+            if (needsRefresh) refreshSet.add(visage.id);
+
+            this._routeToQueue(queue, visage, hasMetConditions, isActive, needsRefresh);
         }
 
-        // 2. Process Removals First
-        for (const visage of queue.remove) {
+        return { queue, refreshSet };
+    }
+
+    /**
+     * Checks if a visage's data has been updated since it was applied to the token.
+     * @private
+     */
+    static _checkNeedsRefresh(visage, activeStack) {
+        const activeInstance = activeStack.find((v) => v.id === visage.id);
+        if (!activeInstance) return false;
+
+        // 1. Timestamp validation (if preserved by the API)
+        if (visage.updated && activeInstance.updated && visage.updated > activeInstance.updated) {
+            return true;
+        }
+
+        // 2. Data signature fallback (if timestamps are stripped)
+        const freshSig = JSON.stringify(visage.changes || {});
+        const activeSig = JSON.stringify(activeInstance.changes || {});
+
+        return freshSig !== activeSig;
+    }
+
+    /**
+     * Processes the removal queue safely.
+     * @private
+     */
+    static async _processRemovals(token, removals, VisageApi) {
+        for (const visage of removals) {
             if (await VisageApi.isActive(token.id, visage.id)) {
                 await VisageApi.remove(token.id, visage.id);
             }
         }
+    }
 
-        // 3. Process Applies (Handling Priorities and Highlander Rule)
-        if (queue.apply.length > 0) {
-            const identities = queue.apply.filter((v) => v.mode === "identity");
-            const overlays = queue.apply.filter((v) => v.mode !== "identity");
+    /**
+     * Processes the apply queue, handling stack priorities, teardowns, and the Highlander Rule.
+     * @private
+     */
+    static async _processApplies(token, applies, refreshSet, VisageApi) {
+        if (applies.length === 0) return;
 
-            const winningIdentity = this._resolveWinningIdentity(identities);
-            const sortedOverlays = this._sortOverlays(overlays);
-            const finalApplies = winningIdentity ? [winningIdentity, ...sortedOverlays] : sortedOverlays;
+        const identities = applies.filter((v) => v.mode === "identity");
+        const overlays = applies.filter((v) => v.mode !== "identity");
 
-            for (const visage of finalApplies) {
-                if (!(await VisageApi.isActive(token.id, visage.id))) {
-                    await VisageApi.apply(token.id, visage.id);
-                }
+        const winningIdentity = this._resolveWinningIdentity(identities);
+        const sortedOverlays = this._sortOverlays(overlays);
+        const finalApplies = winningIdentity ? [winningIdentity, ...sortedOverlays] : sortedOverlays;
+
+        for (const visage of finalApplies) {
+            const needsRefresh = refreshSet.has(visage.id);
+
+            // Force a synchronous teardown to bypass the API's duplicate prevention guard
+            if (needsRefresh) {
+                await VisageApi.remove(token.id, visage.id);
+
+                // Yield to the event loop so Foundry can commit the database write
+                await new Promise((resolve) => setTimeout(resolve, 200));
+            }
+
+            if (needsRefresh || !(await VisageApi.isActive(token.id, visage.id))) {
+                await VisageApi.apply(token.id, visage.id);
             }
         }
     }
@@ -300,10 +387,12 @@ export class VisageAutomation {
 
     /**
      * Routes a visage to the correct transition queue based on its state and conditions.
+     * @private
      */
-    static _routeToQueue(queue, visage, isTrue, isActive) {
+    static _routeToQueue(queue, visage, isTrue, isActive, needsRefresh = false) {
         const auto = visage.automation;
-        if (isTrue && !isActive) {
+
+        if (isTrue && (!isActive || needsRefresh)) {
             const action = auto.onEnter?.action || "apply";
             if (queue[action]) queue[action].push(visage);
         } else if (!isTrue && isActive) {

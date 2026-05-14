@@ -8,6 +8,13 @@ import { VisageComposer } from "../core/visage-composer.js";
  */
 export class VisageSequencer {
     /**
+     * Map of active pending visual timeouts, keyed by `${tokenId}-${layerTag}`.
+     * @type {Map<string, Array<number>>}
+     * @private
+     */
+    static _activeVisualTimeouts = new Map();
+
+    /**
      * Map of active audio instances, keyed by `${tokenId}-${layerTag}`.
      * Used to track and stop looping audio effects when masks are removed.
      * @type {Map<string, Array<Sound|Promise>>}
@@ -24,8 +31,6 @@ export class VisageSequencer {
      * @param {boolean} isRestore - If true, non-looping (one-shot) effects are skipped.
      */
     static async apply(token, layer, isBaseLayer = false, isRestore = false, anticipatedState = null) {
-        if (!VisageUtilities.hasSequencer) return;
-
         const effects = layer.changes?.effects || [];
         const tag = isBaseLayer ? "visage-base" : `visage-mask-${layer.id}`;
 
@@ -56,56 +61,70 @@ export class VisageSequencer {
         }
 
         // 5. Fire Subsystems
-        this._playVisualEffects(token, visuals, tag, offsetMS, anticipatedState, layer.id);
+        if (VisageUtilities.hasSequencer) {
+            this._playVisualEffects(token, visuals, tag, offsetMS, anticipatedState, layer.id);
+        }
+
         if (audios.length > 0) this._playAudioEffects(token, audios, tag, offsetMS);
     }
 
     /**
-     * Builds and plays the visual Sequence for a layer.
+     * Builds and plays the visual Sequence for a layer using native timeouts.
      * @private
      */
     static _playVisualEffects(token, visuals, tag, offsetMS, anticipatedState, layerId) {
         if (visuals.length === 0) return;
 
-        try {
-            const sequence = new Sequence();
-            let hasVisuals = false;
+        const tokenId = typeof token === "string" ? token : token?.id;
+        const visualKey = `${tokenId}-${tag}`;
+        const activeTimeouts = [];
+        this._activeVisualTimeouts.set(visualKey, activeTimeouts);
 
-            for (const effect of visuals) {
-                const path = this._resolveEffectPath(effect.path);
-                if (!path || typeof path !== "string") continue;
+        for (const effect of visuals) {
+            const path = this._resolveEffectPath(effect.path);
+            if (!path || typeof path !== "string") continue;
 
-                const isLoop = effect.loop ?? true;
-                const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
-                const effectScale = effect.scale ?? 1;
+            const isLoop = effect.loop ?? true;
+            const trueDelayMS = (effect.delay || 0) * 1000 + offsetMS;
+            const effectScale = effect.scale ?? 1;
 
-                // --- Dampen the anchor shift based on effect scale ---
-                const anchorData = this._calculateDampenedAnchor(anticipatedState, effectScale);
+            const playTask = () => {
+                // Pre-flight check: Abort if the token was deleted during the timeout
+                if (token && !canvas.tokens.get(tokenId)) return;
 
-                const seqEffect = sequence
-                    .effect()
-                    .file(path)
-                    .attachTo(token)
-                    .scaleToObject(effectScale, { considerTokenScale: true })
-                    .anchor({ x: anchorData.x, y: anchorData.y })
-                    .mirrorX(anchorData.flipX)
-                    .mirrorY(anchorData.flipY)
-                    .opacity(effect.opacity ?? 1)
-                    .rotate(effect.rotation ?? 0)
-                    .belowTokens(effect.zOrder === "below")
-                    .delay(trueDelayMS)
-                    .name(`${tag}|${effect.id}`)
-                    .origin(layerId);
+                try {
+                    const sequence = new Sequence();
+                    const anchorData = this._calculateDampenedAnchor(anticipatedState, effectScale);
 
-                if (isLoop) seqEffect.duration(31536000000);
-                else seqEffect.missed(false);
+                    const seqEffect = sequence
+                        .effect()
+                        .file(path)
+                        .attachTo(token)
+                        .scaleToObject(effectScale, { considerTokenScale: true })
+                        .anchor({ x: anchorData.x, y: anchorData.y })
+                        .mirrorX(anchorData.flipX)
+                        .mirrorY(anchorData.flipY)
+                        .opacity(effect.opacity ?? 1)
+                        .rotate(effect.rotation ?? 0)
+                        .belowTokens(effect.zOrder === "below")
+                        .name(`${tag}|${effect.id}`)
+                        .origin(layerId);
 
-                hasVisuals = true;
+                    if (isLoop) seqEffect.duration(31536000000);
+                    else seqEffect.missed(false);
+
+                    sequence.play();
+                } catch (err) {
+                    console.error("Visage | Visual Effect Error:", err);
+                }
+            };
+
+            if (trueDelayMS > 0) {
+                const tid = setTimeout(playTask, trueDelayMS);
+                activeTimeouts.push(tid);
+            } else {
+                playTask();
             }
-
-            if (hasVisuals) sequence.play();
-        } catch (err) {
-            console.error("Visage | Visual Effect Error:", err);
         }
     }
 
@@ -114,8 +133,6 @@ export class VisageSequencer {
      * Called on scene load or when a token is generated.
      */
     static async restore(token) {
-        if (!VisageUtilities.hasSequencer) return;
-
         // 1. Wipe current effects to prevent duplication
         await this.revert(token);
 
@@ -143,21 +160,25 @@ export class VisageSequencer {
         }
     }
 
-    /**
-     * Removes effects associated with a specific layer ID from a token.
-     */
     static async remove(token, layerId, isBaseLayer = false) {
-        if (!VisageUtilities.hasSequencer) return;
-
         const tag = isBaseLayer ? "visage-base" : `visage-mask-${layerId}`;
         const tokenId = typeof token === "string" ? token : token?.id;
 
-        // 1. Kill Visuals
+        // 1. Kill Pending Visual Timeouts
+        if (tokenId) {
+            const visualKey = `${tokenId}-${tag}`;
+            if (this._activeVisualTimeouts.has(visualKey)) {
+                this._activeVisualTimeouts.get(visualKey).forEach(clearTimeout);
+                this._activeVisualTimeouts.delete(visualKey);
+            }
+        }
+
+        // 2. Kill Active Visuals
         // Safety check: Only tell Sequencer to kill effects if the token is still on the canvas.
         // If the token was deleted, Sequencer automatically garbage-collects attached effects.
         const tokenOnCanvas = token && canvas.tokens.get(tokenId);
 
-        if (tokenOnCanvas) {
+        if (tokenOnCanvas && VisageUtilities.hasSequencer) {
             try {
                 await Sequencer.EffectManager.endEffects({
                     object: token,
@@ -168,7 +189,7 @@ export class VisageSequencer {
             }
         }
 
-        // 2. Kill Audio (Safely resolve any still-loading promises and handle fades)
+        // 3. Kill Audio (Safely resolve any still-loading promises and handle fades)
         if (tokenId) {
             const soundKey = `${tokenId}-${tag}`;
             if (this._activeSounds.has(soundKey)) {
@@ -202,12 +223,12 @@ export class VisageSequencer {
      * Completely wipes all Visage-related effects from a token.
      */
     static async revert(tokenOrId) {
-        if (!VisageUtilities.hasSequencer) return;
-
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         const tokenId = typeof tokenOrId === "string" ? tokenOrId : tokenOrId?.id;
 
-        await this._revertVisuals(token);
+        if (VisageUtilities.hasSequencer) {
+            await this._revertVisuals(token);
+        }
         this._revertAudio(tokenId);
         await this._revertLegacyFlags(token);
     }
@@ -223,8 +244,18 @@ export class VisageSequencer {
     static async _revertVisuals(token) {
         if (!token) return;
 
+        const tokenId = token.id;
+
+        // Clear all pending visual timeouts for this token
+        for (const [key, timeouts] of this._activeVisualTimeouts) {
+            if (key.startsWith(`${tokenId}-`)) {
+                timeouts.forEach(clearTimeout);
+                this._activeVisualTimeouts.delete(key);
+            }
+        }
+
         // Safety check: Sequencer auto-cleans effects on deleted tokens.
-        if (!canvas.tokens.get(token.id)) return;
+        if (!canvas.tokens.get(tokenId)) return;
 
         try {
             await Sequencer.EffectManager.endEffects({ object: token, name: "visage-base*" });
@@ -447,6 +478,11 @@ export class VisageSequencer {
 
         // If it's already a direct file path, return it immediately
         if (rawPath.includes("/")) return rawPath;
+
+        if (!VisageUtilities.hasSequencer) {
+            console.warn(`Visage | Audio/Visual key "${rawPath}" cannot be resolved because Sequencer is disabled.`);
+            return null;
+        }
 
         // Otherwise, attempt to resolve the database key
         const entry = this._resolveSequencerRecursively(rawPath);
