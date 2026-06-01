@@ -71,7 +71,9 @@ export class VisageUtilities {
         ui.notifications.info(game.i18n.localize("VISAGE.Notifications.CacheBuildStart"));
 
         const allFiles = [];
-        const FilePickerClass = foundry.applications?.apps?.FilePicker || FilePicker;
+
+        const isForge = typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge;
+        const FilePickerClass = isForge ? FilePicker : foundry.applications?.apps?.FilePicker || FilePicker;
 
         async function crawl(targetDir) {
             try {
@@ -139,7 +141,10 @@ export class VisageUtilities {
         }
 
         try {
-            const FilePickerClass = foundry.applications?.apps?.FilePicker;
+            // Isolate legacy class strictly to Forge users to inherit their URL patches
+            const isForge = typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge;
+            const FilePickerClass = isForge ? FilePicker : foundry.applications?.apps?.FilePicker || FilePicker;
+
             const locationConfig = this._parsePathLocation(processingPath, FilePickerClass);
             if (!locationConfig) return null; // Exit if S3 bucket resolution failed
 
@@ -222,7 +227,7 @@ export class VisageUtilities {
     }
 
     /**
-     * Ensures The Forge API is initialised if running on their infrastructure.
+     * Ensures The Forge API is initialized if running on their infrastructure.
      * @private
      */
     static async _ensureForgeAPI(browseOptions) {
@@ -237,14 +242,9 @@ export class VisageUtilities {
                 }
             }
 
-            // Safely check if 'forgevtt' is explicitly registered in the FilePicker
-            const FilePickerClass = foundry.applications?.apps?.FilePicker || FilePicker;
-            if (FilePickerClass.sources?.forgevtt) {
-                return "forgevtt";
-            }
+            return "forgevtt";
         }
 
-        // Fallback to the original parsed source (e.g., "data") if forgevtt isn't registered
         return null;
     }
 
