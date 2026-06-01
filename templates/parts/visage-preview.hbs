@@ -1,5 +1,20 @@
 <div class="visage-preview-content {{wrapperClass}} {{#if hasInvisibility}}invisible{{/if}}">
         
+    {{!-- 0. SVG TINT ENGINE (Invisible) --}}
+    {{#if tintedEffects.length}}
+    <svg style="width: 0; height: 0; position: absolute;" aria-hidden="true">
+        <defs>
+            {{#each tintedEffects}}
+            <filter id="tint-{{this.id}}" color-interpolation-filters="sRGB">
+                <feFlood flood-color="{{this.tint}}" result="flood" />
+                <feComposite in="flood" in2="SourceAlpha" operator="in" result="mask" />
+                <feBlend in="SourceGraphic" in2="mask" mode="multiply" />
+            </filter>
+            {{/each}}
+        </defs>
+    </svg>
+    {{/if}}
+
     {{!-- 1. LIGHT SOURCE --}}
     {{#if hasLight}}
     <div class="visage-light-overlay {{#if lightAnimType}}anim-active anim-{{lightAnimType}}{{/if}}"

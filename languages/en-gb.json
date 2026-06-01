@@ -12,5 +12,13 @@
     "_comment_V3_2_KEYS": "--- V3.2 KEYS ---",
     "VISAGE.Chat.Welcome.Title": "Visage {version} Initialised",
     "VISAGE.Editor.Light.Color": "Colour",
-    "VISAGE.Editor.Light.ColorIntensity": "Colour Intensity"
+    "VISAGE.Editor.Light.ColorIntensity": "Colour Intensity",
+
+    "_comment_V5_3_KEYS": "--- V5.3 KEYS ---",
+    "VISAGE.Editor.Effects.Top": "Top Centre",
+    "VISAGE.Editor.Effects.Left": "Centre Left",
+    "VISAGE.Editor.Effects.Center": "Centre",
+    "VISAGE.Editor.Effects.Right": "Centre Right",
+    "VISAGE.Editor.Effects.Bottom": "Bottom Centre",
+    "VISAGE.Editor.Effects.Tint": "Tint Colour"
 }

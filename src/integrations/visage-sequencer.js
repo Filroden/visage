@@ -89,26 +89,48 @@ export class VisageSequencer {
             const effectScale = effect.scale ?? 1;
 
             const playTask = () => {
-                // Pre-flight check: Abort if the token was deleted during the timeout
                 if (token && !canvas.tokens.get(tokenId)) return;
 
                 try {
                     const sequence = new Sequence();
                     const anchorData = this._calculateDampenedAnchor(anticipatedState, effectScale);
 
+                    // 1. Calculate the token's physical dimensions in pixels
+                    const gridSize = canvas.scene?.grid?.size || 100;
+                    const tokenPixelWidth = (token.document?.width || 1) * gridSize;
+                    const tokenPixelHeight = (token.document?.height || 1) * gridSize;
+
+                    // 2. Translate the saved percentage into exact pixels for Sequencer
+                    const trueOffsetX = (effect.offsetX / 100) * tokenPixelWidth;
+                    const trueOffsetY = (effect.offsetY / 100) * tokenPixelHeight;
+
                     const seqEffect = sequence
                         .effect()
                         .file(path)
-                        .attachTo(token)
+                        .attachTo(token, {
+                            align: effect.align,
+                            edge: effect.edge,
+                            offset: {
+                                x: trueOffsetX,
+                                y: trueOffsetY,
+                            },
+                            local: effect.bindRotation,
+                            gridUnits: false,
+                            bindRotation: effect.bindRotation,
+                        })
                         .scaleToObject(effectScale, { considerTokenScale: true })
                         .anchor({ x: anchorData.x, y: anchorData.y })
+                        .spriteRotation(effect.rotation)
                         .mirrorX(anchorData.flipX)
                         .mirrorY(anchorData.flipY)
-                        .opacity(effect.opacity ?? 1)
-                        .rotate(effect.rotation ?? 0)
+                        .opacity(effect.opacity)
                         .belowTokens(effect.zOrder === "below")
                         .name(`${tag}|${effect.id}`)
                         .origin(layerId);
+
+                    if (effect.tint) {
+                        seqEffect.tint(effect.tint);
+                    }
 
                     if (isLoop) seqEffect.duration(31536000000);
                     else seqEffect.missed(false);

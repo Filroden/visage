@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-5.2.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-5.3.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v14-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -51,7 +51,7 @@ While other modules focus on transient animations (a sword swinging or a firebal
   - **Attributes:** e.g., Apply a bloody portrait when HP drops below 50%. Built with a  searchable Attribute Picker that works with any game system.
   - **Status Effects:** e.g., Apply a glowing forcefield when the "Mage Armour" effect is present.
   - **Game Events:** React to Scene Darkness, Global Illumination, elevation changes, Region entry/exit, Combat states or even the token being targeted.
-- **Integrated Media Pipeline:** Visage seamlessly hooks into the **[Sequencer](https://foundryvtt.com/packages/sequencer)** and **[Token Magic FX](https://foundryvtt.com/packages/tokenmagic)** modules. Bind particle animations, looping sound effects, and WebGL shaders to your Visages. When the Visage is removed, the audio, visuals, and filters clean themselves up automatically.
+- **Integrated Media Pipeline:** Visage seamlessly hooks into the **[Sequencer](https://foundryvtt.com/packages/sequencer)** and **[Token Magic FX](https://foundryvtt.com/packages/tokenmagic)** modules. Bind images, particle animations, looping sound effects, and WebGL shaders to your Visages with pinpoint cardinal alignment, offsets, and colour tinting. When the Visage is removed, the audio, visuals, and filters clean themselves up automatically.
 - **Dynamic Token Ring Support:** Fully supports Foundry's Dynamic Token Rings. Override subject textures, background colours, and toggle ring effects (Pulse, Wave, Invisibility) on the fly.
 - **Global & Local Libraries:** GMs can build a "Global Library" of universal effects to use across the world. Set some of these Visages to "public" and they become visible for players to use. Players have a "Local Library" tied to their specific character sheet for their personal transformations.
 - **Quick Visages:** Define a default image folder in your game settings to unlock the **Quick Visage** feature. The Selector HUD will automatically display any images from that folder (and its sub-folders) that match the token's name, allowing you to create a new Identity from a selected image and apply it immediately.

@@ -592,8 +592,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     opacity: effect.opacity ?? 1,
                     rotation: effect.rotation ?? 0,
                     rotationRandom: effect.rotationRandom ?? false,
+                    bindRotation: effect.bindRotation ?? true,
+                    tint: effect.tint || null,
                     zOrder: effect.zOrder ?? "above",
                     blendMode: effect.blendMode || "normal",
+                    align: effect.align || "center",
+                    edge: effect.edge || "on",
+                    offsetX: effect.offsetX || 0,
+                    offsetY: effect.offsetY || 0,
+                    hasAdvancedPosition: (effect.align && effect.align !== "center") || (effect.edge && effect.edge !== "on") || effect.offsetX !== 0 || effect.offsetY !== 0,
                     loop: effect.loop ?? false,
                     delay: effect.delay || 0,
                     fadeIn: effect.fadeIn || 0,
@@ -753,11 +760,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (formData.effectOpacity !== undefined && formData.effectOpacity !== "") effect.opacity = formData.effectOpacity;
         if (formData.effectBlendMode !== undefined) effect.blendMode = formData.effectBlendMode;
         if (formData.effectRotation !== undefined && formData.effectRotation !== "") effect.rotation = formData.effectRotation;
-
         effect.rotationRandom = !!formData.effectRotationRandom;
-
+        if (formData.effectBindRotation !== undefined) effect.bindRotation = !!formData.effectBindRotation;
+        if (formData.effectTint !== undefined) effect.tint = formData.effectTint;
         if (formData.effectZIndex !== undefined) effect.zOrder = formData.effectZIndex;
         if (formData.effectDelay !== undefined && formData.effectDelay !== "") effect.delay = formData.effectDelay;
+        if (formData.effectAlignment !== undefined) effect.align = formData.effectAlignment;
+        if (formData.effectEdge !== undefined) effect.edge = formData.effectEdge;
+        if (formData.effectOffsetX !== undefined && formData.effectOffsetX !== "") effect.offsetX = Number(formData.effectOffsetX);
+        if (formData.effectOffsetY !== undefined && formData.effectOffsetY !== "") effect.offsetY = Number(formData.effectOffsetY);
+        if (formData.effectLoop !== undefined) effect.loop = !!formData.effectLoop;
     }
 
     /** @private */
@@ -1606,13 +1618,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!activeEffect) return;
 
         const card = this.element.querySelector(`.effect-card[data-id="${activeEffect.id}"]`);
-        if (!card) return;
+        if (card) {
+            const nameEl = card.querySelector(".effect-name");
+            if (nameEl) nameEl.textContent = activeEffect.label;
 
-        const nameEl = card.querySelector(".effect-name");
-        if (nameEl) nameEl.textContent = activeEffect.label;
-
-        const metaEl = card.querySelector(".effect-meta");
-        if (metaEl) metaEl.textContent = this._getEffectMetaText(activeEffect);
+            const metaEl = card.querySelector(".effect-meta");
+            if (metaEl) metaEl.textContent = this._getEffectMetaText(activeEffect);
+        }
     }
 
     async _buildPreviewTemplateData(changes) {
@@ -1638,8 +1650,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Visual Stack Sorting
         const activeVisuals = (this._effects || []).filter((e) => !e.disabled && e.type === "visual" && e.path);
-        const effectsBelow = activeVisuals.filter((e) => e.zOrder === "below").map((e) => this._mediaController.prepareEffectStyle(e));
-        const effectsAbove = activeVisuals.filter((e) => e.zOrder === "above").map((e) => this._mediaController.prepareEffectStyle(e));
+
+        // Extract all active tints to generate SVG filters
+        const tintedEffects = activeVisuals.filter((e) => e.tint).map((e) => ({ id: e.id, tint: e.tint }));
+
+        // Combine the media controller's base style with the new positional style
+        const mapEffectPreview = (e) => {
+            const base = this._mediaController.prepareEffectStyle(e);
+            const positionCss = this._calculateEffectPreviewStyle(e);
+
+            // Safely append the positional CSS
+            base.style = `${base.style || ""} ${positionCss}`.trim();
+
+            // Apply the SVG filter dynamically if a tint exists
+            if (e.tint) {
+                base.style += ` filter: url(#tint-${e.id});`;
+            }
+
+            return base;
+        };
+
+        const effectsBelow = activeVisuals.filter((e) => e.zOrder === "below").map(mapEffectPreview);
+        const effectsAbove = activeVisuals.filter((e) => e.zOrder === "above").map(mapEffectPreview);
 
         // Path Resolution & Context. If it is an unresolved wildcard, pass an empty string so the CSS fallback triggers naturally to prevent 404s.
         const context = await VisageData.buildPresentationContext({ changes });
@@ -1687,6 +1719,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             originStyle,
             imgTransform,
             ringTransform,
+            tintedEffects,
         };
     }
 
@@ -2021,5 +2054,44 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const animKey = `VISAGE.LightAnim.${animType.charAt(0).toUpperCase() + animType.slice(1)}`;
         let localizedAnim = animType && game.i18n.has(animKey) ? game.i18n.localize(animKey) : animType;
         return localizedAnim.replace(" (*)", "");
+    }
+
+    /**
+     * Approximates Sequencer's alignment and edge logic into raw CSS
+     * to render the visual effect accurately in the HTML preview stage.
+     * @private
+     */
+    _calculateEffectPreviewStyle(effect) {
+        const align = effect.align || "center";
+        const edge = effect.edge || "on";
+        const offPctX = effect.offsetX || 0; // Now natively treated as a percentage
+        const offPctY = effect.offsetY || 0; // Now natively treated as a percentage
+        const scale = effect.scale ?? 1;
+        const rotation = effect.rotation || 0;
+
+        let top = "50%";
+        let left = "50%";
+        let transX = -50;
+        let transY = -50;
+        const offsetPct = 50 * scale;
+
+        if (align.includes("top")) top = "0%";
+        if (align.includes("bottom")) top = "100%";
+        if (align.includes("left")) left = "0%";
+        if (align.includes("right")) left = "100%";
+
+        if (edge === "outer") {
+            if (align.includes("top")) transY = -50 - offsetPct;
+            if (align.includes("bottom")) transY = -50 + offsetPct;
+            if (align.includes("left")) transX = -50 - offsetPct;
+            if (align.includes("right")) transX = -50 + offsetPct;
+        } else if (edge === "inner") {
+            if (align.includes("top")) transY = -50 + offsetPct;
+            if (align.includes("bottom")) transY = -50 - offsetPct;
+            if (align.includes("left")) transX = -50 + offsetPct;
+            if (align.includes("right")) transX = -50 - offsetPct;
+        }
+
+        return `position: absolute; max-width: 100%; max-height: 100%; top: calc(${top} + ${offPctY}%); left: calc(${left} + ${offPctX}%); transform: translate(${transX}%, ${transY}%) rotate(${rotation}deg) scale(${scale});`;
     }
 }
