@@ -222,7 +222,7 @@ export class VisageUtilities {
     }
 
     /**
-     * Ensures The Forge API is initialized if running on their infrastructure.
+     * Ensures The Forge API is initialised if running on their infrastructure.
      * @private
      */
     static async _ensureForgeAPI(browseOptions) {
@@ -236,8 +236,15 @@ export class VisageUtilities {
                     console.warn("Visage | ForgeAPI.status() failed", err);
                 }
             }
-            return "forgevtt";
+
+            // Safely check if 'forgevtt' is explicitly registered in the FilePicker
+            const FilePickerClass = foundry.applications?.apps?.FilePicker || FilePicker;
+            if (FilePickerClass.sources?.forgevtt) {
+                return "forgevtt";
+            }
         }
+
+        // Fallback to the original parsed source (e.g., "data") if forgevtt isn't registered
         return null;
     }
 
