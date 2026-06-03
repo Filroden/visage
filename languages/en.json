@@ -153,10 +153,7 @@
     "VISAGE.Editor.Effects.Below": "Below Token",
     "VISAGE.Editor.Effects.Volume": "Volume",
     "VISAGE.Editor.Effects.AudioHint": "Audio effects will loop automatically when applied.",
-    "VISAGE.Editor.Effects.OpenDatabase": "Open Sequencer Database",
     "VISAGE.Editor.Effects.OpenFile": "Browse Files",
-    "VISAGE.Editor.Effects.DatabaseHint": "Copy the 'Database Path' from the viewer and paste it here.",
-    "VISAGE.Editor.Effects.DatabaseInstructions": "Find your effect in the Database, click 'Copy Path', and paste it into the Visage Editor.",
     "VISAGE.Editor.Effects.BlendMode": "Blend Mode",
 
     "VISAGE.BlendMode.Normal": "Normal",
@@ -574,5 +571,17 @@
     "VISAGE.Notifications.ImportFailed": "Visage | Import Validation Failed:",
     "VISAGE.Notifications.ImportReview": "Please review your import file and correct the invalid entries shown in this error.",
     "VISAGE.Notifications.ImportSanitized": "Visage | Some entries contained out-of-bounds or improperly formatted data and were automatically changed to valid values. Please review your imported Visages as these values may not be what you expected.",
-    "VISAGE.Editor.Effects.DisabledDatabase": "Disabled: Sequencer module not enabled"
+    "VISAGE.Editor.Effects.DisabledDatabase": "Disabled: Sequencer module not enabled",
+
+    "_comment_V5_3_KEYS": "--- V5.3 KEYS ---",
+    "VISAGE.Editor.Effects.AdvancedOptions": "Advanced Position Options",
+    "VISAGE.Editor.Effects.BindRotation": "Bind Rotation",
+    "VISAGE.Editor.Effects.BindRotationHint": "If enabled, the effect rotates when the token turns. If disabled, it remains locked to the map grid.",
+    "VISAGE.Editor.Effects.Tint": "Tint Color",
+    "VISAGE.Editor.Effects.OpenDatabase": "<b>Open Sequencer Database.</b><br>Copy a 'Database Path' from the viewer and paste it here.",
+    "VISAGE.Editor.Effects.BindToSprite": "Bind to Sprite",
+    "VISAGE.Editor.Effects.BindToSpriteHint": "If enabled, the effect will be bound to the token's sprite. If disabled, it will remain in place.",
+    "VISAGE.Editor.Effects.OffsetX": "Offset X",
+    "VISAGE.Editor.Effects.OffsetY": "Offset Y",
+    "VISAGE.Editor.Effects.OffsetHint": "Adjust the effect's position. Positive values move right/down, negative values move left/up. The offset is in 'token units', so an offset of 1 moves the effect the distance of 100% of the width of the token."
 }

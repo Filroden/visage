@@ -22,6 +22,73 @@ export async function migrateWorldData() {
 
     // Step 2: Run v3.0 Migration (Add 'mode' field for Identity vs Overlay)
     await _migrateV3(DATA_NAMESPACE);
+
+    // Step 3: Run v5.3 Migration (Anchor Default Scrubbing)
+    await _migrateV5_3(DATA_NAMESPACE);
+}
+
+/**
+ * Executes the v5.3 Schema Migration.
+ * Scrubs accidental `0.5` default anchors from Visages so they correctly inherit underlying shifts.
+ * Applies universally to both identities and overlays.
+ * @private
+ */
+async function _migrateV5_3(namespace) {
+    let globalUpdates = 0;
+    let actorUpdates = 0;
+
+    // 1. Scrub Global Visages
+    const globalLibrary = game.settings.get("visage", "globalVisages") || {};
+    let globalsChanged = false;
+
+    for (const entry of Object.values(globalLibrary)) {
+        if (entry.changes?.texture) {
+            if (entry.changes.texture.anchorX === 0.5) {
+                entry.changes.texture.anchorX = null;
+                globalsChanged = true;
+            }
+            if (entry.changes.texture.anchorY === 0.5) {
+                entry.changes.texture.anchorY = null;
+                globalsChanged = true;
+            }
+        }
+    }
+    if (globalsChanged) {
+        await game.settings.set("visage", "globalVisages", globalLibrary);
+        globalUpdates++;
+    }
+
+    // 2. Scrub Local Actor Visages
+    for (const actor of game.actors) {
+        const rawLocals = actor.getFlag(namespace, "alternateVisages") || [];
+
+        // Safety Catch: Foundry VTT often mutates Array flags into Objects with integer keys.
+        const locals = Array.isArray(rawLocals) ? rawLocals : Object.values(rawLocals);
+        let localsChanged = false;
+
+        const updatedLocals = locals.map((v) => {
+            if (v?.changes?.texture) {
+                if (v.changes.texture.anchorX === 0.5) {
+                    v.changes.texture.anchorX = null;
+                    localsChanged = true;
+                }
+                if (v.changes.texture.anchorY === 0.5) {
+                    v.changes.texture.anchorY = null;
+                    localsChanged = true;
+                }
+            }
+            return v;
+        });
+
+        if (localsChanged) {
+            await actor.setFlag(namespace, "alternateVisages", updatedLocals);
+            actorUpdates++;
+        }
+    }
+
+    if (globalUpdates > 0 || actorUpdates > 0) {
+        console.log(`Visage | v5.3 Migration Complete: Scrubbed default anchors from ${globalUpdates} Global(s) and ${actorUpdates} Actor(s).`);
+    }
 }
 
 /**

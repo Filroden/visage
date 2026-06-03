@@ -157,6 +157,8 @@ li.context-item .visage-icon-domino {
 .visage color-picker,
 .visage file-picker {
     gap: var(--filroden-space-m);
+    border: none;
+    outline: none;
 }
 
 /* --- Inputs and Selects --- */
@@ -173,6 +175,15 @@ li.context-item .visage-icon-domino {
     min-height: 1.6rem;
     padding-inline: var(--filroden-space-xs);
     transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.visage input[type="number"],
+.visage input[type="time"] {
+    text-align: center; 
+}
+
+.visage input[type="number"] {
+    width: 6ch;
 }
 
 .visage input[type="text"]:focus,
@@ -262,6 +273,7 @@ li.context-item .visage-icon-domino {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+    flex: 1;
     align-items: center;
     justify-content: flex-end;
     gap: var(--filroden-space-m);
@@ -269,12 +281,12 @@ li.context-item .visage-icon-domino {
 }
 
 .visage-divider {
-    border: none;
+    border: 0;
+    border-top: 1px solid var(--visage-color-accent);
     height: 2px;
     width: 100%;
-    background-color: var(--visage-color-accent);
     background-image: none;
-    margin: 0;
+    margin: var(--filroden-space-s) 0 var(--filroden-space-xs) 0;
     opacity: 1;
 }
 
@@ -2027,6 +2039,7 @@ li.context-item .visage-icon-domino {
     flex-direction: column;
     padding: var(--filroden-space-l);
     overflow-y: hidden;
+    scrollbar-gutter: stable;
     background: var(--visage-color-bg-darkest);
     transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
@@ -2634,6 +2647,19 @@ li.context-item .visage-icon-domino {
     min-height: 120px;
 }
 
+.visage .visage-summary {
+    font-size: var(--filroden-font-size-s);
+    font-weight: bold;
+    color: var(--visage-color-accent);
+}
+
+.visage .visage-details {
+    margin-block-start: var(--filroden-space-xs);
+}
+
+.visage .visage-number {
+    width: 5ch;
+}
 
 /* ==========================================================================
    7. APPLICATION: VISAGE GALLERY (Unified)

@@ -127,10 +127,7 @@
     "VISAGE.Editor.Effects.Below": "En-dessous du Pion",
     "VISAGE.Editor.Effects.Volume": "Volume",
     "VISAGE.Editor.Effects.AudioHint": "Les effets audio seront joués en boucle automatiquement.",
-    "VISAGE.Editor.Effects.OpenDatabase": "Ouvrir Base de Données Sequencer",
     "VISAGE.Editor.Effects.OpenFile": "Parcourir les Fichiers",
-    "VISAGE.Editor.Effects.DatabaseHint": "Copiez le 'Database Path' depuis le visualiseur et collez-le ici.",
-    "VISAGE.Editor.Effects.DatabaseInstructions": "Trouvez votre effet dans la Base de Données, cliquez sur 'Copy Path', et collez-le dans l'éditeur Visage.",
     "VISAGE.Editor.Effects.BlendMode": "Mode de Fusion",
     "VISAGE.BlendMode.Normal": "Normal",
     "VISAGE.BlendMode.Screen": "Écran (Screen)",
@@ -502,5 +499,17 @@
     "VISAGE.Notifications.ImportFailed": "Visage | Échec de la Validation de l'Importation :",
     "VISAGE.Notifications.ImportReview": "Veuillez vérifier votre fichier d'importation et corriger les entrées invalides affichées dans cette erreur.",
     "VISAGE.Notifications.ImportSanitized": "Visage | Certaines entrées contenaient des données hors limites ou mal formatées et ont été automatiquement modifiées pour des valeurs valides. Veuillez vérifier vos Visages importés car ces valeurs peuvent ne pas correspondre à ce que vous attendiez.",
-    "VISAGE.Editor.Effects.DisabledDatabase": "Désactivé : Le module Sequencer n'est pas activé"
+    "VISAGE.Editor.Effects.DisabledDatabase": "Désactivé : Le module Sequencer n'est pas activé",
+    "VISAGE.Editor.Effects.AdvancedOptions": "Options de Position Avancées",
+    "VISAGE.Editor.Effects.BindRotation": "Lier la Rotation",
+    "VISAGE.Editor.Effects.BindRotationHint": "Si activé, l'effet tourne lorsque le pion pivote. Si désactivé, il reste verrouillé sur la grille de la carte.",
+    "VISAGE.Editor.Effects.Tint": "Couleur de Teinte",
+    "VISAGE.Editor.Effects.OpenDatabase": "<b>Ouvrir Sequencer Database.</b><br>Copiez un 'Database Path' depuis la visionneuse et collez-le ici.",
+    "VISAGE.Editor.Effects.BindToSprite": "Lier au Sprite",
+    "VISAGE.Editor.Effects.BindToSpriteHint": "Si activé, l'effet sera lié au sprite du pion. Si désactivé, il restera en place.",
+    "VISAGE.Editor.Effects.OffsetX": "Décalage X",
+    "VISAGE.Editor.Effects.OffsetY": "Décalage Y",
+    "VISAGE.Editor.Effects.OffsetHint": "Ajustez la position de l'effet. Les valeurs positives le déplacent vers la droite/le bas, les valeurs négatives vers la gauche/le haut. Le décalage est en 'unités de pion', donc un décalage de 1 déplace l'effet d'une distance de 100% de la largeur du pion.",
+
+    "_comment": "Updated to v5.3.0"
 }

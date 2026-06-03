@@ -117,8 +117,11 @@ export class VisageComposer {
         data.texture.src = state.src;
         data.texture.scaleX = state.scaleX * (state.mirrorX ? -1 : 1);
         data.texture.scaleY = state.scaleY * (state.mirrorY ? -1 : 1);
-        data.texture.anchorX = state.anchorX;
-        data.texture.anchorY = state.anchorY;
+
+        // Invert the physical anchor if the texture is mirrored so it remains inside the bounding box
+        data.texture.anchorX = state.mirrorX ? 1 - (state.anchorX ?? 0.5) : (state.anchorX ?? 0.5);
+        data.texture.anchorY = state.mirrorY ? 1 - (state.anchorY ?? 0.5) : (state.anchorY ?? 0.5);
+
         return data;
     }
 
@@ -219,5 +222,34 @@ export class VisageComposer {
 
         // 3. Fallback to Current Image (Safety catch for first-time application)
         return currentActorImage;
+    }
+
+    /**
+     * Resolves the token's logical grid dimensions based on the active stack.
+     * Iterates from the top of the stack (Overlays) down to the bottom (Identity).
+     * @param {Array<Object>} stack - The active Visage stack.
+     * @param {Object} [originalState] - The snapshot of the token before Visage was applied.
+     * @returns {Object} The resolved { width, height } of the token.
+     */
+    static resolveScale(stack, originalState) {
+        let width = null;
+        let height = null;
+
+        // Search top-down for the highest priority layer that overrides dimensions
+        for (let i = stack.length - 1; i >= 0; i--) {
+            if (stack[i].disabled) continue;
+
+            if (width === null && stack[i].changes?.width != null) width = stack[i].changes.width;
+            if (height === null && stack[i].changes?.height != null) height = stack[i].changes.height;
+
+            // Break early if both dimensions are found
+            if (width !== null && height !== null) break;
+        }
+
+        // Fallback to original state, or default to 1x1
+        return {
+            width: width ?? originalState?.width ?? 1,
+            height: height ?? originalState?.height ?? 1,
+        };
     }
 }

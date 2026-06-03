@@ -380,7 +380,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         });
 
-        // Setup Range Sliders
+        // Setup Range Sliders (This automatically catches the new .visage-slider)
         this.element.querySelectorAll('input[type="range"]').forEach((slider) => {
             slider.addEventListener("input", () => {
                 this._markDirty();
@@ -389,25 +389,49 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             slider.addEventListener("dblclick", (ev) => this._resetSliderDefault(ev));
         });
 
+        // Synchronise boundless range sliders with number inputs
+        this.element.querySelectorAll(".range-wrapper").forEach((group) => {
+            const slider = group.querySelector(".visage-slider");
+            const number = group.querySelector(".visage-number");
+
+            if (slider && number) {
+                // Slider drives the number input
+                slider.addEventListener("input", (event) => {
+                    number.value = event.target.value;
+                    // Dispatch change so the global form listener captures the new value
+                    number.dispatchEvent(new Event("change", { bubbles: true }));
+                });
+
+                // Number input drives the slider (visually clamped)
+                number.addEventListener("input", (event) => {
+                    let val = Number(event.target.value);
+                    const min = Number(slider.min);
+                    const max = Number(slider.max);
+
+                    if (val < min) val = min;
+                    if (val > max) val = max;
+
+                    slider.value = val;
+                });
+            }
+        });
+
         // Bind Sub-systems
         this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
         this._dragDropManager.bind(this.element);
 
         // --- Global Drag & Drop for External Foundry Documents ---
-        // Prevent default on dragover to allow the drop event to fire anywhere on the window
         this.element.addEventListener("dragover", (e) => e.preventDefault());
         this.element.addEventListener(
             "drop",
             async (e) => {
                 try {
-                    // Safely extract drag data natively without triggering V13 deprecation warnings
                     const dragDataText = e.dataTransfer.getData("text/plain");
                     if (!dragDataText) return;
 
                     const data = JSON.parse(dragDataText);
 
-                    // If it's a Macro, intercept it and prevent it from bubbling to the internal manager
                     if (data?.type === "Macro" && data?.uuid) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -423,7 +447,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             { capture: true },
         );
 
-        // Text input debouncing
+        // Text input debouncing (This automatically catches the new .visage-number)
         const debouncedTextUpdate = foundry.utils.debounce(() => this._updatePreview(), 250);
         this.element.addEventListener("input", (e) => {
             if (e.target.matches("input[type='text'], input[type='number'], color-picker, range-picker, textarea")) {
@@ -592,8 +616,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     opacity: effect.opacity ?? 1,
                     rotation: effect.rotation ?? 0,
                     rotationRandom: effect.rotationRandom ?? false,
+                    bindRotation: effect.bindRotation ?? true,
+                    tint: effect.tint || null,
                     zOrder: effect.zOrder ?? "above",
                     blendMode: effect.blendMode || "normal",
+                    bindToSprite: effect.bindToSprite ?? true,
+                    offsetX: effect.offsetX ?? 0,
+                    offsetY: effect.offsetY ?? 0,
                     loop: effect.loop ?? false,
                     delay: effect.delay || 0,
                     fadeIn: effect.fadeIn || 0,
@@ -672,8 +701,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 alpha: formData.alpha !== undefined && formData.alpha !== "" && formData.alpha !== null ? Number(formData.alpha) / 100 : null,
                 texture: {
                     src: formData.img_active ? formData.img : null,
-                    anchorX: formData.anchor_active ? Number.parseFloat(formData.anchorX) : null,
-                    anchorY: formData.anchor_active ? Number.parseFloat(formData.anchorY) : null,
+                    anchorX: formData.anchor_active && formData.anchorX !== "" && !Number.isNaN(Number.parseFloat(formData.anchorX)) ? Number.parseFloat(formData.anchorX) : null,
+                    anchorY: formData.anchor_active && formData.anchorY !== "" && !Number.isNaN(Number.parseFloat(formData.anchorY)) ? Number.parseFloat(formData.anchorY) : null,
                 },
                 mirrorX: formData.isFlippedX === undefined || formData.isFlippedX === "" ? null : formData.isFlippedX === "true",
                 mirrorY: formData.isFlippedY === undefined || formData.isFlippedY === "" ? null : formData.isFlippedY === "true",
@@ -755,9 +784,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (formData.effectRotation !== undefined && formData.effectRotation !== "") effect.rotation = formData.effectRotation;
 
         effect.rotationRandom = !!formData.effectRotationRandom;
+        effect.bindRotation = !!formData.effectBindRotation;
+        effect.bindToSprite = !!formData.effectBindToSprite;
 
+        if (formData.effectTint !== undefined) effect.tint = formData.effectTint;
         if (formData.effectZIndex !== undefined) effect.zOrder = formData.effectZIndex;
         if (formData.effectDelay !== undefined && formData.effectDelay !== "") effect.delay = formData.effectDelay;
+        if (formData.effectOffsetX !== undefined && formData.effectOffsetX !== "") effect.offsetX = Number(formData.effectOffsetX);
+        if (formData.effectOffsetY !== undefined && formData.effectOffsetY !== "") effect.offsetY = Number(formData.effectOffsetY);
     }
 
     /** @private */
@@ -1278,15 +1312,26 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             type: "visual",
             label: "New Visual",
             path: "",
+            // Core Visuals
             scale: 1,
             opacity: 1,
+            blendMode: "normal",
+            tint: null,
+            // Rotation
             rotation: 0,
             rotationRandom: false,
+            bindRotation: false,
+            // Position
+            bindToSprite: true,
+            offsetX: 0,
+            offsetY: 0,
+            // Lifecycle
             zOrder: "above",
             loop: false,
             disabled: false,
             delay: 0,
         };
+
         this._effects.push(newEffect);
         this._activeEffectId = newEffect.id;
         this._activeConditionId = null;
@@ -1552,7 +1597,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // 3. Render and Inject HTML
         const html = await foundry.applications.handlebars.renderTemplate("modules/visage/templates/parts/visage-preview.hbs", previewData);
-        this._injectPreviewHTML(html, previewData.imgTransform, previewData.ringTransform, previewData.originStyle, changes, previewData);
+        this._injectPreviewHTML(html, previewData.imgTransform, previewData.ringTransform, previewData.originStyle, changes);
 
         // 4. Update UI Badges & Audio
         const context = await VisageData.buildPresentationContext({ changes });
@@ -1606,13 +1651,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!activeEffect) return;
 
         const card = this.element.querySelector(`.effect-card[data-id="${activeEffect.id}"]`);
-        if (!card) return;
+        if (card) {
+            const nameEl = card.querySelector(".effect-name");
+            if (nameEl) nameEl.textContent = activeEffect.label;
 
-        const nameEl = card.querySelector(".effect-name");
-        if (nameEl) nameEl.textContent = activeEffect.label;
-
-        const metaEl = card.querySelector(".effect-meta");
-        if (metaEl) metaEl.textContent = this._getEffectMetaText(activeEffect);
+            const metaEl = card.querySelector(".effect-meta");
+            if (metaEl) metaEl.textContent = this._getEffectMetaText(activeEffect);
+        }
     }
 
     async _buildPreviewTemplateData(changes) {
@@ -1624,22 +1669,36 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const flipY = !!changes.mirrorY;
         const anchorX = changes.texture?.anchorX ?? 0.5;
         const anchorY = changes.texture?.anchorY ?? 0.5;
+
+        // Capture absolute visual scale for offset distance calculation
+        const tScaleX = Math.abs(globalScale * subjectScale);
+        const tScaleY = Math.abs(globalScale * subjectScale);
+
         const translateX = anchorX * 100;
         const translateY = anchorY * 100;
+        const originStyle = `${translateX}% ${translateY}%`;
         const imgScaleX = globalScale * subjectScale * (flipX ? -1 : 1);
         const imgScaleY = globalScale * subjectScale * (flipY ? -1 : 1);
-
-        const effectOffsetX = (0.5 - anchorX) * 100 * (flipX ? -1 : 1);
-        const effectOffsetY = (0.5 - anchorY) * 100 * (flipY ? -1 : 1);
-
-        const originStyle = `${translateX}% ${translateY}%`;
         const imgTransform = `translate(-${translateX}%, -${translateY}%) scale(${imgScaleX}, ${imgScaleY})`;
         const ringTransform = `translate(-${translateX}%, -${translateY}%) scale(${globalScale * 0.75})`;
 
         // Visual Stack Sorting
         const activeVisuals = (this._effects || []).filter((e) => !e.disabled && e.type === "visual" && e.path);
-        const effectsBelow = activeVisuals.filter((e) => e.zOrder === "below").map((e) => this._mediaController.prepareEffectStyle(e));
-        const effectsAbove = activeVisuals.filter((e) => e.zOrder === "above").map((e) => this._mediaController.prepareEffectStyle(e));
+        const tintedEffects = activeVisuals.filter((e) => e.tint).map((e) => ({ id: e.id, tint: e.tint }));
+
+        const mapEffectPreview = (e) => {
+            const base = this._mediaController.prepareEffectStyle(e);
+
+            // Pass the absolute scales down into the calculator
+            const positionCss = this._calculateEffectPreviewStyle(e, anchorX, anchorY, flipX, flipY, tScaleX, tScaleY);
+            base.style = `${base.style || ""} ${positionCss}`.trim();
+
+            if (e.tint) base.style += ` filter: url(#tint-${e.id});`;
+            return base;
+        };
+
+        const effectsBelow = activeVisuals.filter((e) => e.zOrder === "below").map(mapEffectPreview);
+        const effectsAbove = activeVisuals.filter((e) => e.zOrder === "above").map(mapEffectPreview);
 
         // Path Resolution & Context. If it is an unresolved wildcard, pass an empty string so the CSS fallback triggers naturally to prevent 404s.
         const context = await VisageData.buildPresentationContext({ changes });
@@ -1680,17 +1739,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             forceFlipX: context.isFlippedX,
             forceFlipY: context.isFlippedY,
             wrapperClass: "visage-preview-content stage-mode",
-            effectOffsetX,
-            effectOffsetY,
             effectsBelow,
             effectsAbove,
             originStyle,
             imgTransform,
             ringTransform,
+            tintedEffects,
         };
     }
 
-    _injectPreviewHTML(html, imgTransform, ringTransform, originStyle, changes, previewData) {
+    _injectPreviewHTML(html, imgTransform, ringTransform, originStyle, changes) {
         const stage = this.element.querySelector(".visage-live-preview-stage");
         if (!stage) return;
 
@@ -1729,15 +1787,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (newContent) {
             newContent.style.setProperty("--visage-dim-w", changes.width || 1);
             newContent.style.setProperty("--visage-dim-h", changes.height || 1);
-        }
-
-        // --- Shift the effect containers ---
-        if (previewData) {
-            const effects = stage.querySelectorAll(".visage-preview-content > [class*='effect']");
-            effects.forEach((eff) => {
-                eff.style.marginLeft = `${previewData.effectOffsetX}%`;
-                eff.style.marginTop = `${previewData.effectOffsetY}%`;
-            });
         }
 
         this._applyStageTransform();
@@ -1933,15 +1982,31 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _resetSliderDefault(ev) {
         let def = 0;
-        const name = ev.target.name;
+        const slider = ev.target;
+
+        // The offset range sliders lack a name attribute in the HBS, so we fallback to the sibling's name
+        const siblingNumber = slider.parentElement.querySelector(".visage-number");
+        const name = slider.name || siblingNumber?.name || "";
+
         if (name.includes("scale")) def = 100;
         if (name.includes("alpha") || name.includes("luminosity")) def = 0.5;
         if (name.includes("speed") || name.includes("intensity")) def = 5;
         if (name.includes("angle")) def = 360;
         if (name.includes("Volume") || name.includes("Opacity") || name.includes("ringSubjectScale")) def = 1;
-        ev.target.value = def;
-        const display = ev.target.nextElementSibling;
+        // offsets naturally fall through to def = 0
+
+        slider.value = def;
+
+        // Update legacy <output> displays
+        const display = slider.nextElementSibling;
         if (display?.tagName === "OUTPUT") display.value = def;
+
+        // Update the decoupled number inputs and force a form update
+        if (siblingNumber) {
+            siblingNumber.value = def;
+            siblingNumber.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
         this._markDirty();
         this._updatePreview();
     }
@@ -2021,5 +2086,35 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const animKey = `VISAGE.LightAnim.${animType.charAt(0).toUpperCase() + animType.slice(1)}`;
         let localizedAnim = animType && game.i18n.has(animKey) ? game.i18n.localize(animKey) : animType;
         return localizedAnim.replace(" (*)", "");
+    }
+
+    /**
+     * Approximates Sequencer's native offset logic into raw CSS
+     * to render the visual effect accurately in the HTML preview stage.
+     * @private
+     */
+    _calculateEffectPreviewStyle(effect, tAnchorX, tAnchorY, flipX, flipY, tScaleX = 1, tScaleY = 1) {
+        const scale = effect.scale ?? 1;
+        const rotation = effect.rotation || 0;
+        const bindToSprite = effect.bindToSprite ?? true;
+
+        const offsetX = effect.offsetX ?? 0;
+        const offsetY = effect.offsetY ?? 0;
+
+        let topPct = 50;
+        let leftPct = 50;
+
+        // 1. Global Anchor Correction: Tracks the texture's native shift.
+        // NEVER mirrored, but multiplied by the texture scale.
+        if (bindToSprite) {
+            leftPct += (0.5 - tAnchorX) * 100 * tScaleX;
+            topPct += (0.5 - tAnchorY) * 100 * tScaleY;
+        }
+
+        // 2. Local User Offset: Mirrors with the token so it stays on the correct shoulder.
+        if (offsetX !== 0) leftPct += offsetX * 100 * (flipX ? -1 : 1);
+        if (offsetY !== 0) topPct += offsetY * 100 * (flipY ? -1 : 1);
+
+        return `position: absolute; margin: 0; top: ${topPct}%; left: ${leftPct}%; transform: translate(-50%, -50%) rotate(${rotation}deg) scale(${scale});`;
     }
 }
