@@ -581,6 +581,7 @@
     "VISAGE.Editor.Effects.OpenDatabase": "<b>Open Sequencer Database.</b><br>Copy a 'Database Path' from the viewer and paste it here.",
     "VISAGE.Editor.Effects.BindToSprite": "Bind to Sprite",
     "VISAGE.Editor.Effects.BindToSpriteHint": "If enabled, the effect will be bound to the token's sprite. If disabled, it will remain in place.",
-    "VISAGE.Editor.Effects.OffsetX": "Offset X (grid units)",
-    "VISAGE.Editor.Effects.OffsetY": "Offset Y (grid units)"
+    "VISAGE.Editor.Effects.OffsetX": "Offset X",
+    "VISAGE.Editor.Effects.OffsetY": "Offset Y",
+    "VISAGE.Editor.Effects.OffsetHint": "Adjust the effect's position. Positive values move right/down, negative values move left/up. The offset is in 'token units', so an offset of 1 moves the effect the distance of 100% of the width of the token."
 }

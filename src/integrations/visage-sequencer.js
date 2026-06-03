@@ -93,8 +93,38 @@ export class VisageSequencer {
 
                 try {
                     const sequence = new Sequence();
-                    const anchorData = this._calculateDampenedAnchor(anticipatedState, effectScale);
+                    const { anchorX, anchorY, scaleX, scaleY, mirrorX: flipX, mirrorY: flipY } = anticipatedState;
                     const bindRotation = effect.bindRotation ?? true;
+                    const bindToSprite = effect.bindToSprite ?? true;
+
+                    const tScaleX = Math.abs(scaleX ?? 1);
+                    const tScaleY = Math.abs(scaleY ?? 1);
+
+                    // 1. Local user offsets (Sequencer will natively flip these, so we pass them raw)
+                    let userOffsetX = effect.offsetX ?? 0;
+                    let userOffsetY = effect.offsetY ?? 0;
+
+                    // 2. Global displacement (Pre-invert so Sequencer's native .mirrorX cancels out)
+                    let globalOffsetX = 0;
+                    let globalOffsetY = 0;
+
+                    if (bindToSprite) {
+                        globalOffsetX = (0.5 - anchorX) * tScaleX;
+                        globalOffsetY = (0.5 - anchorY) * tScaleY;
+
+                        if (flipX) globalOffsetX *= -1;
+                        if (flipY) globalOffsetY *= -1;
+                    }
+
+                    const totalOffsetX = userOffsetX + globalOffsetX;
+                    const totalOffsetY = userOffsetY + globalOffsetY;
+
+                    const tWidth = anticipatedState?.width ?? token.document?.width ?? 1;
+                    const tHeight = anticipatedState?.height ?? token.document?.height ?? 1;
+                    const gridSize = canvas.grid?.size ?? 100;
+
+                    const pixelOffsetX = totalOffsetX * tWidth * gridSize;
+                    const pixelOffsetY = totalOffsetY * tHeight * gridSize;
 
                     const seqEffect = sequence
                         .effect()
@@ -103,9 +133,9 @@ export class VisageSequencer {
                             bindRotation: bindRotation,
                         })
                         .scaleToObject(effectScale, { considerTokenScale: true })
-                        .anchor({ x: anchorData.x, y: anchorData.y })
-                        .mirrorX(anchorData.flipX)
-                        .mirrorY(anchorData.flipY)
+                        .anchor({ x: 0.5, y: 0.5 })
+                        .mirrorX(flipX)
+                        .mirrorY(flipY)
                         .opacity(effect.opacity ?? 1)
                         .spriteRotation(effect.rotation ?? 0)
                         .belowTokens(effect.zOrder === "below")
@@ -114,6 +144,10 @@ export class VisageSequencer {
 
                     if (effect.tint) {
                         seqEffect.tint(effect.tint);
+                    }
+
+                    if (pixelOffsetX !== 0 || pixelOffsetY !== 0) {
+                        seqEffect.spriteOffset({ x: pixelOffsetX, y: pixelOffsetY });
                     }
 
                     if (isLoop) seqEffect.duration(31536000000);
@@ -453,7 +487,7 @@ export class VisageSequencer {
     }
 
     /**
-     * Seamlessly updates the physical matrix (anchor/flip) of active Sequencer effects
+     * Seamlessly updates the physical matrix (anchor/flip/offset) of active Sequencer effects
      * without tearing them down, restarting loops, or interrupting audio.
      * @param {Token} token - The target token.
      * @param {string} layerId - The ID of the Visage layer to update.
@@ -468,40 +502,46 @@ export class VisageSequencer {
 
         const activeEffects = Sequencer.EffectManager.getEffects({ object: token, origin: layerId });
 
+        const { anchorX, anchorY, scaleX, scaleY, mirrorX: flipX, mirrorY: flipY, width, height } = anticipatedState;
+        const tWidth = width ?? token.document?.width ?? 1;
+        const tHeight = height ?? token.document?.height ?? 1;
+        const tScaleX = Math.abs(scaleX ?? 1);
+        const tScaleY = Math.abs(scaleY ?? 1);
+        const gridSize = canvas.grid?.size ?? 100;
+
         for (const effect of activeEffects) {
             const nameParts = (effect.data?.name || effect.name || "").split("|");
             const effectId = nameParts.length === 2 ? nameParts[1] : null;
 
             const visageEffect = visuals.find((v) => v.id === effectId);
-            const effectScale = visageEffect?.scale ?? 1;
+            const bindToSprite = visageEffect?.bindToSprite ?? true;
 
-            const anchorData = this._calculateDampenedAnchor(anticipatedState, effectScale);
+            let userOffsetX = visageEffect?.offsetX ?? 0;
+            let userOffsetY = visageEffect?.offsetY ?? 0;
+
+            let globalOffsetX = 0;
+            let globalOffsetY = 0;
+
+            if (bindToSprite) {
+                globalOffsetX = (0.5 - anchorX) * tScaleX;
+                globalOffsetY = (0.5 - anchorY) * tScaleY;
+
+                if (flipX) globalOffsetX *= -1;
+                if (flipY) globalOffsetY *= -1;
+            }
+
+            const totalOffsetX = userOffsetX + globalOffsetX;
+            const totalOffsetY = userOffsetY + globalOffsetY;
+
+            const pixelOffsetX = totalOffsetX * tWidth * gridSize;
+            const pixelOffsetY = totalOffsetY * tHeight * gridSize;
 
             effect.update({
-                anchor: { x: anchorData.x, y: anchorData.y },
-                mirrorX: anchorData.flipX,
-                mirrorY: anchorData.flipY,
+                anchor: { x: 0.5, y: 0.5 },
+                mirrorX: flipX,
+                mirrorY: flipY,
+                spriteOffset: { x: pixelOffsetX, y: pixelOffsetY },
             });
         }
-    }
-
-    /**
-     * Calculates the dampened anchor points for Sequencer visual effects.
-     * Compounds the effect scale with the token's texture scale to prevent
-     * alignment breaking when the token art visually outgrows its bounding box.
-     * @private
-     */
-    static _calculateDampenedAnchor(anticipatedState, effectScale = 1) {
-        const { anchorX, anchorY, mirrorX: flipX, mirrorY: flipY } = anticipatedState;
-
-        const seqAnchorX = flipX ? 1 - anchorX : anchorX;
-        const seqAnchorY = flipY ? 1 - anchorY : anchorY;
-
-        return {
-            x: 0.5 - (0.5 - seqAnchorX) / effectScale,
-            y: 0.5 - (0.5 - seqAnchorY) / effectScale,
-            flipX,
-            flipY,
-        };
     }
 }

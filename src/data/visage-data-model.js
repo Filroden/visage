@@ -101,8 +101,8 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                     src: new StringField({ required: false, nullable: true, label: "VISAGE.GlobalEditor.TokenImage" }),
                     scaleX: new NumberField({ initial: 1 }),
                     scaleY: new NumberField({ initial: 1 }),
-                    anchorX: new NumberField({ initial: 0.5, label: "VISAGE.Config.List.Anchor" }),
-                    anchorY: new NumberField({ initial: 0.5, label: "VISAGE.Config.List.Anchor" }),
+                    anchorX: new NumberField({ required: false, nullable: true, initial: null, label: "VISAGE.Config.List.Anchor" }),
+                    anchorY: new NumberField({ required: false, nullable: true, initial: null, label: "VISAGE.Config.List.Anchor" }),
                 }),
 
                 ring: new SchemaField(

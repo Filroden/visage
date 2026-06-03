@@ -117,8 +117,11 @@ export class VisageComposer {
         data.texture.src = state.src;
         data.texture.scaleX = state.scaleX * (state.mirrorX ? -1 : 1);
         data.texture.scaleY = state.scaleY * (state.mirrorY ? -1 : 1);
-        data.texture.anchorX = state.anchorX;
-        data.texture.anchorY = state.anchorY;
+
+        // Invert the physical anchor if the texture is mirrored so it remains inside the bounding box
+        data.texture.anchorX = state.mirrorX ? 1 - (state.anchorX ?? 0.5) : (state.anchorX ?? 0.5);
+        data.texture.anchorY = state.mirrorY ? 1 - (state.anchorY ?? 0.5) : (state.anchorY ?? 0.5);
+
         return data;
     }
 

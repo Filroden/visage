@@ -413,7 +413,11 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             } else {
                 await Visage.apply(this.tokenId, formKey);
             }
-            this.close();
+
+            // Auto-close only if acting as a transient HUD (pinned). Stay open if unpinned.
+            if (!this.isWindowMode) {
+                this.close();
+            }
         }
     }
 

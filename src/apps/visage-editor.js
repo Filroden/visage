@@ -701,8 +701,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 alpha: formData.alpha !== undefined && formData.alpha !== "" && formData.alpha !== null ? Number(formData.alpha) / 100 : null,
                 texture: {
                     src: formData.img_active ? formData.img : null,
-                    anchorX: formData.anchor_active ? Number.parseFloat(formData.anchorX) : null,
-                    anchorY: formData.anchor_active ? Number.parseFloat(formData.anchorY) : null,
+                    anchorX: formData.anchor_active && formData.anchorX !== "" && !Number.isNaN(Number.parseFloat(formData.anchorX)) ? Number.parseFloat(formData.anchorX) : null,
+                    anchorY: formData.anchor_active && formData.anchorY !== "" && !Number.isNaN(Number.parseFloat(formData.anchorY)) ? Number.parseFloat(formData.anchorY) : null,
                 },
                 mirrorX: formData.isFlippedX === undefined || formData.isFlippedX === "" ? null : formData.isFlippedX === "true",
                 mirrorY: formData.isFlippedY === undefined || formData.isFlippedY === "" ? null : formData.isFlippedY === "true",
@@ -1669,28 +1669,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const flipY = !!changes.mirrorY;
         const anchorX = changes.texture?.anchorX ?? 0.5;
         const anchorY = changes.texture?.anchorY ?? 0.5;
+
+        // Capture absolute visual scale for offset distance calculation
+        const tScaleX = Math.abs(globalScale * subjectScale);
+        const tScaleY = Math.abs(globalScale * subjectScale);
+
         const translateX = anchorX * 100;
         const translateY = anchorY * 100;
+        const originStyle = `${translateX}% ${translateY}%`;
         const imgScaleX = globalScale * subjectScale * (flipX ? -1 : 1);
         const imgScaleY = globalScale * subjectScale * (flipY ? -1 : 1);
-        const originStyle = `${translateX}% ${translateY}%`;
         const imgTransform = `translate(-${translateX}%, -${translateY}%) scale(${imgScaleX}, ${imgScaleY})`;
         const ringTransform = `translate(-${translateX}%, -${translateY}%) scale(${globalScale * 0.75})`;
 
         // Visual Stack Sorting
         const activeVisuals = (this._effects || []).filter((e) => !e.disabled && e.type === "visual" && e.path);
-
-        // Extract all active tints to generate SVG filters
         const tintedEffects = activeVisuals.filter((e) => e.tint).map((e) => ({ id: e.id, tint: e.tint }));
 
-        // Combine the media controller's base style with the new positional style
         const mapEffectPreview = (e) => {
             const base = this._mediaController.prepareEffectStyle(e);
 
-            // Pass the token's physical matrix to the CSS calculator
-            const positionCss = this._calculateEffectPreviewStyle(e, anchorX, anchorY, flipX, flipY);
-
-            // Safely append the positional CSS
+            // Pass the absolute scales down into the calculator
+            const positionCss = this._calculateEffectPreviewStyle(e, anchorX, anchorY, flipX, flipY, tScaleX, tScaleY);
             base.style = `${base.style || ""} ${positionCss}`.trim();
 
             if (e.tint) base.style += ` filter: url(#tint-${e.id});`;
@@ -1982,15 +1982,31 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _resetSliderDefault(ev) {
         let def = 0;
-        const name = ev.target.name;
+        const slider = ev.target;
+
+        // The offset range sliders lack a name attribute in the HBS, so we fallback to the sibling's name
+        const siblingNumber = slider.parentElement.querySelector(".visage-number");
+        const name = slider.name || siblingNumber?.name || "";
+
         if (name.includes("scale")) def = 100;
         if (name.includes("alpha") || name.includes("luminosity")) def = 0.5;
         if (name.includes("speed") || name.includes("intensity")) def = 5;
         if (name.includes("angle")) def = 360;
         if (name.includes("Volume") || name.includes("Opacity") || name.includes("ringSubjectScale")) def = 1;
-        ev.target.value = def;
-        const display = ev.target.nextElementSibling;
+        // offsets naturally fall through to def = 0
+
+        slider.value = def;
+
+        // Update legacy <output> displays
+        const display = slider.nextElementSibling;
         if (display?.tagName === "OUTPUT") display.value = def;
+
+        // Update the decoupled number inputs and force a form update
+        if (siblingNumber) {
+            siblingNumber.value = def;
+            siblingNumber.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
         this._markDirty();
         this._updatePreview();
     }
@@ -2073,31 +2089,32 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Approximates Sequencer's native anchor logic into raw CSS
+     * Approximates Sequencer's native offset logic into raw CSS
      * to render the visual effect accurately in the HTML preview stage.
      * @private
      */
-    _calculateEffectPreviewStyle(effect, tAnchorX, tAnchorY, flipX, flipY) {
+    _calculateEffectPreviewStyle(effect, tAnchorX, tAnchorY, flipX, flipY, tScaleX = 1, tScaleY = 1) {
         const scale = effect.scale ?? 1;
         const rotation = effect.rotation || 0;
-        const aX = effect.anchorX ?? 0.5;
-        const aY = effect.anchorY ?? 0.5;
         const bindToSprite = effect.bindToSprite ?? true;
+
+        const offsetX = effect.offsetX ?? 0;
+        const offsetY = effect.offsetY ?? 0;
 
         let topPct = 50;
         let leftPct = 50;
 
+        // 1. Global Anchor Correction: Tracks the texture's native shift.
+        // NEVER mirrored, but multiplied by the texture scale.
         if (bindToSprite) {
-            // Shift the center of the effect based on the token's anchor displacement
-            leftPct += (0.5 - tAnchorX) * 100 * (flipX ? -1 : 1);
-            topPct += (0.5 - tAnchorY) * 100 * (flipY ? -1 : 1);
+            leftPct += (0.5 - tAnchorX) * 100 * tScaleX;
+            topPct += (0.5 - tAnchorY) * 100 * tScaleY;
         }
 
-        // Shift the effect based on the user's specific anchor choice
-        leftPct += (aX - 0.5) * 100;
-        topPct += (aY - 0.5) * 100;
+        // 2. Local User Offset: Mirrors with the token so it stays on the correct shoulder.
+        if (offsetX !== 0) leftPct += offsetX * 100 * (flipX ? -1 : 1);
+        if (offsetY !== 0) topPct += offsetY * 100 * (flipY ? -1 : 1);
 
-        // The effect is always perfectly centered on its mathematically calculated coordinates
         return `position: absolute; margin: 0; top: ${topPct}%; left: ${leftPct}%; transform: translate(-50%, -50%) rotate(${rotation}deg) scale(${scale});`;
     }
 }
