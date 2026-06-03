@@ -634,13 +634,18 @@ export class Visage {
     static _evaluateMatrixDiff(tokenDocument, currentStack, newStack) {
         let originalState = tokenDocument.getFlag(DATA_NAMESPACE, "originalState");
 
-        // Safely extract the original state if it doesn't exist yet
         if (!originalState && newStack.length > 0) {
             originalState = VisageUtilities.extractVisualState(tokenDocument);
         }
 
-        const currentState = VisageComposer.resolveTextureState(currentStack, originalState);
-        const anticipatedState = VisageComposer.resolveTextureState(newStack, originalState);
+        // Merge texture state and scale state into single objects
+        const currentTex = VisageComposer.resolveTextureState(currentStack, originalState);
+        const currentDim = VisageComposer.resolveScale(currentStack, originalState);
+        const currentState = { ...currentTex, ...currentDim };
+
+        const anticipatedTex = VisageComposer.resolveTextureState(newStack, originalState);
+        const anticipatedDim = VisageComposer.resolveScale(newStack, originalState);
+        const anticipatedState = { ...anticipatedTex, ...anticipatedDim };
 
         const matrixChanged =
             currentState.anchorX !== anticipatedState.anchorX ||
@@ -648,7 +653,9 @@ export class Visage {
             currentState.mirrorX !== anticipatedState.mirrorX ||
             currentState.mirrorY !== anticipatedState.mirrorY ||
             currentState.scaleX !== anticipatedState.scaleX ||
-            currentState.scaleY !== anticipatedState.scaleY;
+            currentState.scaleY !== anticipatedState.scaleY ||
+            currentState.width !== anticipatedState.width ||
+            currentState.height !== anticipatedState.height;
 
         return { originalState, anticipatedState, matrixChanged };
     }

@@ -392,7 +392,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label data-tooltip="VISAGE.Editor.Effects.BindRotationHint">
+                    <label data-tooltip="{{localize 'VISAGE.Editor.Effects.BindRotationHint'}}">
                         {{localize "VISAGE.Editor.Effects.BindRotation"}} <i class="visage-icon info "></i>
                     </label>
                     <div class="visage-form-fields">
@@ -400,61 +400,34 @@
                     </div>
                 </div>
 
-                <summary class="visage-advanced-options">
-                    {{localize "VISAGE.Editor.Effects.AdvancedOptions"}}
-
-                    <details {{#if inspector.hasAdvancedPosition}}open{{/if}}>
-                        <div class="form-group">
-                            <label data-tooltip="{{localize 'VISAGE.Editor.Effects.AlignmentHint'}}">
-                                {{localize "VISAGE.Editor.Effects.Alignment"}} <i class="visage-icon info "></i>
-                            </label>
-                            <div class="visage-form-fields">
-                                <select name="effectAlignment">
-                                    <option value="top-left" {{visageSelected (eq inspector.align "top-left")}}>{{localize "VISAGE.Editor.Effects.TopLeft"}}</option>
-                                    <option value="top" {{visageSelected (eq inspector.align "top")}}>{{localize "VISAGE.Editor.Effects.Top"}}</option>
-                                    <option value="top-right" {{visageSelected (eq inspector.align "top-right")}}>{{localize "VISAGE.Editor.Effects.TopRight"}}</option>
-                                    <option value="left" {{visageSelected (eq inspector.align "left")}}>{{localize "VISAGE.Editor.Effects.Left"}}</option>
-                                    <option value="center" {{visageSelected (eq inspector.align "center")}}>{{localize "VISAGE.Editor.Effects.Center"}}</option>
-                                    <option value="right" {{visageSelected (eq inspector.align "right")}}>{{localize "VISAGE.Editor.Effects.Right"}}</option>
-                                    <option value="bottom-left" {{visageSelected (eq inspector.align "bottom-left")}}>{{localize "VISAGE.Editor.Effects.BottomLeft"}}</option>
-                                    <option value="bottom" {{visageSelected (eq inspector.align "bottom")}}>{{localize "VISAGE.Editor.Effects.Bottom"}}</option>
-                                    <option value="bottom-right" {{visageSelected (eq inspector.align "bottom-right")}}>{{localize "VISAGE.Editor.Effects.BottomRight"}}</option>
-                                </select>
-                            </div>
+                <div class="form-group">
+                    <label>{{localize "VISAGE.Editor.Effects.OffsetX"}}</label>
+                    <div class="visage-form-fields">
+                        <div class="range-wrapper">
+                            <input type="range" class="visage-slider" min="-2" max="2" step="0.1" value="{{inspector.offsetX}}">
+                            <input type="number" name="effectOffsetX" class="visage-number" step="0.1" value="{{inspector.offsetX}}" placeholder="0">
                         </div>
+                    </div>
+                </div>
 
-                        <div class="form-group">
-                            <label data-tooltip="{{localize 'VISAGE.Editor.Effects.EdgeHint'}}">
-                                {{localize "VISAGE.Editor.Effects.Edge"}} <i class="visage-icon info "></i>
-                            </label>
-                            <div class="visage-form-fields">
-                                <select name="effectEdge">
-                                    <option value="inner" {{visageSelected (eq inspector.edge "inner")}}>{{localize "VISAGE.Editor.Effects.Inner"}}</option>
-                                    <option value="on" {{visageSelected (eq inspector.edge "on")}}>{{localize "VISAGE.Editor.Effects.On"}}</option>
-                                    <option value="outer" {{visageSelected (eq inspector.edge "outer")}}>{{localize "VISAGE.Editor.Effects.Outer"}}</option>
-                                </select>
-                            </div>
+                <div class="form-group">
+                    <label>{{localize "VISAGE.Editor.Effects.OffsetY"}}</label>
+                    <div class="visage-form-fields">
+                        <div class="range-wrapper">
+                            <input type="range" class="visage-slider" min="-2" max="2" step="0.1" value="{{inspector.offsetY}}">
+                            <input type="number" name="effectOffsetY" class="visage-number" step="0.1" value="{{inspector.offsetY}}" placeholder="0">
                         </div>
+                    </div>
+                </div>
 
-                        <div class="form-group">
-                            <label data-tooltip="{{localize 'VISAGE.Editor.Effects.OffsetHint'}}">
-                                {{localize "VISAGE.Editor.Effects.OffsetX"}} <i class="visage-icon info "></i>
-                            </label>
-                            <div class="visage-form-fields">
-                                <input type="number" name="effectOffsetX" value="{{inspector.offsetX}}" step="0.1" placeholder="0">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label data-tooltip="{{localize 'VISAGE.Editor.Effects.OffsetHint'}}">
-                                {{localize "VISAGE.Editor.Effects.OffsetY"}} <i class="visage-icon info "></i>
-                            </label>
-                            <div class="visage-form-fields">
-                                <input type="number" name="effectOffsetY" value="{{inspector.offsetY}}" step="0.1" placeholder="0">
-                            </div>
-                        </div>
-                    </details>
-                </summary>
+                <div class="form-group">
+                    <label data-tooltip="{{localize 'VISAGE.Editor.Effects.BindToSpriteHint'}}">
+                        {{localize "VISAGE.Editor.Effects.BindToSprite"}} <i class="visage-icon info "></i>
+                    </label>
+                    <div class="visage-form-fields">
+                        <input type="checkbox" name="effectBindToSprite" class="visage-checkbox" {{checked inspector.bindToSprite}}>
+                    </div>
+                </div>
 
                 <hr class="visage-divider">
 

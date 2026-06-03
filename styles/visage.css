@@ -177,6 +177,15 @@ li.context-item .visage-icon-domino {
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+.visage input[type="number"],
+.visage input[type="time"] {
+    text-align: center; 
+}
+
+.visage input[type="number"] {
+    width: 6ch;
+}
+
 .visage input[type="text"]:focus,
 .visage input[type="number"]:focus,
 .visage input[type="time"],
@@ -2638,12 +2647,19 @@ li.context-item .visage-icon-domino {
     min-height: 120px;
 }
 
-.visage .visage-advanced-options {
+.visage .visage-summary {
     font-size: var(--filroden-font-size-s);
     font-weight: bold;
     color: var(--visage-color-accent);
 }
 
+.visage .visage-details {
+    margin-block-start: var(--filroden-space-xs);
+}
+
+.visage .visage-number {
+    width: 5ch;
+}
 
 /* ==========================================================================
    7. APPLICATION: VISAGE GALLERY (Unified)

@@ -90,6 +90,12 @@ To get the absolute most out of Visage, I highly recommend installing the follow
 - **[PSFX - Peri's Sound Effects](https://foundryvtt.com/packages/psfx)**: The audio equivalent to JB2A. Amazing sound effects perfectly formatted for VTT use.
 - **[FA Nexus](https://foundryvtt.com/packages/fa-nexus)**: An in-game asset browser for Forgotten Adventures' extensive top-down token library.
 
+## Translations
+
+Currently, this module officially supports English and French.
+
+I rely on community contributions to support other languages. If you are a native speaker and would like to translate the module or verify an existing draft, I would love your help. You can find baseline language files for many languages in the main branch in the `languages` folder. Once a language is fully verified by a native speaker, I will include it in the next official release.
+
 ## Licence
 
 Software and associated documentation files in this repository are covered by an [MIT Licence](LICENSE.md).
