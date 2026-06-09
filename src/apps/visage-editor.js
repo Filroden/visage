@@ -284,6 +284,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     active: c.lockRotation !== null && c.lockRotation !== undefined,
                 };
             })(),
+            animateTransition: (() => {
+                let value = "";
+                if (c.animateTransition === true) value = "true";
+                else if (c.animateTransition === false) value = "false";
+                return {
+                    value,
+                    active: c.animateTransition !== null && c.animateTransition !== undefined,
+                };
+            })(),
             width: prep(c.width, 1),
             height: prep(c.height, 1),
             depth: prep(c.depth, 1),
@@ -292,6 +301,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             hasSequencer: VisageUtilities.hasSequencer,
             hasTmfx: VisageTokenMagic.isActive,
             tmfxPresets: await VisageTokenMagic.getAvailablePresets(),
+            easingChoices: this._getEasingChoices(),
             preview: stageData,
         };
     }
@@ -630,7 +640,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     uuid: effect.uuid || "",
                     tmfxPreset: effect.tmfxPreset || "",
                     tmfxPayload: effect.tmfxPayload || "",
+                    maskToToken: effect.maskToToken ?? false,
+                    constrainedByWalls: effect.constrainedByWalls ?? false,
+                    fadeEase: effect.fadeEase || "",
+                    scaleIn: effect.scaleIn ?? "",
+                    scaleInDuration: effect.scaleInDuration || "",
+                    scaleEase: effect.scaleEase || "",
                 });
+
+                // Calculate if the Advanced drawer should be highlighted green
+                inspectorData.hasAdvancedSettings = !!(
+                    inspectorData.maskToToken ||
+                    inspectorData.constrainedByWalls ||
+                    inspectorData.fadeEase ||
+                    inspectorData.scaleEase ||
+                    inspectorData.scaleIn !== ""
+                );
             }
         } else if (this._activeConditionId) {
             const condition = this._automationData.conditions.find((c) => c.id === this._activeConditionId);
@@ -707,6 +732,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 mirrorX: formData.isFlippedX === undefined || formData.isFlippedX === "" ? null : formData.isFlippedX === "true",
                 mirrorY: formData.isFlippedY === undefined || formData.isFlippedY === "" ? null : formData.isFlippedY === "true",
                 lockRotation: formData.lockRotation === undefined || formData.lockRotation === "" ? null : formData.lockRotation === "true",
+                animateTransition: formData.animateTransition === undefined || formData.animateTransition === "" ? null : formData.animateTransition === "true",
                 light: this._lightData,
                 ring: this._ringData,
                 effects: this._effects.filter((e) => !e.disabled),
@@ -792,6 +818,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (formData.effectDelay !== undefined && formData.effectDelay !== "") effect.delay = formData.effectDelay;
         if (formData.effectOffsetX !== undefined && formData.effectOffsetX !== "") effect.offsetX = Number(formData.effectOffsetX);
         if (formData.effectOffsetY !== undefined && formData.effectOffsetY !== "") effect.offsetY = Number(formData.effectOffsetY);
+
+        effect.maskToToken = !!formData.effectMaskToToken;
+        effect.constrainedByWalls = !!formData.effectConstrainedByWalls;
+
+        if (formData.effectFadeIn !== undefined && formData.effectFadeIn !== "") effect.fadeIn = Number(formData.effectFadeIn);
+        if (formData.effectFadeEase !== undefined) effect.fadeEase = formData.effectFadeEase;
+
+        if (formData.effectScaleIn !== undefined && formData.effectScaleIn !== "") effect.scaleIn = Number(formData.effectScaleIn);
+        else effect.scaleIn = null;
+        if (formData.effectScaleInDuration !== undefined && formData.effectScaleInDuration !== "") effect.scaleInDuration = Number(formData.effectScaleInDuration);
+        if (formData.effectScaleEase !== undefined) effect.scaleEase = formData.effectScaleEase;
     }
 
     /** @private */
@@ -2079,6 +2116,46 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             siren: game.i18n.localize("VISAGE.LightAnim.Siren"),
             smokepatch: game.i18n.localize("VISAGE.LightAnim.SmokePatch"),
         };
+    }
+
+    _getEasingChoices() {
+        const easings = [
+            "easeInSine",
+            "easeOutSine",
+            "easeInOutSine",
+            "easeInQuad",
+            "easeOutQuad",
+            "easeInOutQuad",
+            "easeInCubic",
+            "easeOutCubic",
+            "easeInOutCubic",
+            "easeInQuart",
+            "easeOutQuart",
+            "easeInOutQuart",
+            "easeInQuint",
+            "easeOutQuint",
+            "easeInOutQuint",
+            "easeInExpo",
+            "easeOutExpo",
+            "easeInOutExpo",
+            "easeInCirc",
+            "easeOutCirc",
+            "easeInOutCirc",
+            "easeInBack",
+            "easeOutBack",
+            "easeInOutBack",
+            "easeInElastic",
+            "easeOutElastic",
+            "easeInOutElastic",
+            "easeInBounce",
+            "easeOutBounce",
+            "easeInOutBounce",
+        ];
+        // Convert array to an object { "easeInSine": "easeInSine" } for selectOptions
+        return easings.reduce((acc, ease) => {
+            acc[ease] = ease;
+            return acc;
+        }, {});
     }
 
     _getLocalizedLightAnim() {

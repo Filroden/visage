@@ -39,6 +39,37 @@
             </div>
         </div>
 
+        <hr class="visage-divider" />
+
+        {{! Dimensions }}
+        <fieldset class="visage-fieldset">
+            <legend>{{localize "VISAGE.GlobalEditor.Dimensions"}}</legend>
+
+            <div class="form-group checkbox-input-group">
+                <input class="visage-checkbox" type="checkbox" name="width_active" data-action="toggleField" data-target="width" {{checked width.active}} />
+                <label>{{localize "VISAGE.Config.List.DimX"}}</label>
+                <div class="visage-form-fields">
+                    <input type="number" name="width" value="{{width.value}}" {{disabled (not width.active)}} />
+                </div>
+            </div>
+
+            <div class="form-group checkbox-input-group">
+                <input class="visage-checkbox" type="checkbox" name="height_active" data-action="toggleField" data-target="height" {{checked height.active}} />
+                <label>{{localize "VISAGE.Config.List.DimY"}}</label>
+                <div class="visage-form-fields">
+                    <input type="number" name="height" value="{{height.value}}" {{disabled (not height.active)}} />
+                </div>
+            </div>
+
+            <div class="form-group checkbox-input-group">
+                <input class="visage-checkbox" type="checkbox" name="depth_active" data-action="toggleField" data-target="depth" {{checked depth.active}} />
+                <label>{{localize "VISAGE.Config.List.DimZ"}}</label>
+                <div class="visage-form-fields">
+                    <input type="number" name="depth" value="{{depth.value}}" {{disabled (not depth.active)}} />
+                </div>
+            </div>
+        </fieldset>
+
         {{! Scale }}
         <div class="form-group checkbox-input-group">
             <input class="visage-checkbox" type="checkbox" name="scale_active" data-action="toggleField" data-target="scale" {{checked scale.active}} />
@@ -48,36 +79,11 @@
             </div>
         </div>
 
-        {{! Dimensions }}
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="width_active" data-action="toggleField" data-target="width" {{checked width.active}} />
-            <label>{{localize "VISAGE.Config.List.DimX"}}</label>
-            <div class="visage-form-fields">
-                <input type="number" name="width" value="{{width.value}}" {{disabled (not width.active)}} />
-            </div>
-        </div>
-
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="height_active" data-action="toggleField" data-target="height" {{checked height.active}} />
-            <label>{{localize "VISAGE.Config.List.DimY"}}</label>
-            <div class="visage-form-fields">
-                <input type="number" name="height" value="{{height.value}}" {{disabled (not height.active)}} />
-            </div>
-        </div>
-
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="depth_active" data-action="toggleField" data-target="depth" {{checked depth.active}} />
-            <label>{{localize "VISAGE.Config.List.DimZ"}}</label>
-            <div class="visage-form-fields">
-                <input type="number" name="depth" value="{{depth.value}}" {{disabled (not depth.active)}} />
-            </div>
-        </div>
-
         {{! Anchors }}
         <div class="form-group checkbox-input-group">
             <input class="visage-checkbox" type="checkbox" name="anchor_active" data-action="toggleField" data-target="anchor" {{checked anchor.active}} />
             <label>{{localize "VISAGE.Config.List.Anchor"}}</label>
-            <div class="visage-form-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <div class="visage-form-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; justify-items: flex-end;">
                 <div class="visage-input-wrapper" data-tooltip="X">
                     <input type="number" name="anchorX" value="{{anchor.x}}" step="0.1" placeholder="0.5" {{disabled (not anchor.active)}} />
                 </div>
@@ -95,6 +101,8 @@
                 <input type="number" name="alpha" value="{{alpha.value}}" min="0" max="100" step="1" {{disabled (not alpha.active)}} />
             </div>
         </div>
+
+        <hr class="visage-divider" />
 
         {{! Disposition }}
         <div class="form-group checkbox-input-group">
@@ -125,23 +133,42 @@
         <hr class="visage-divider" />
 
         {{! Mirroring }}
-        <div class="form-group stacked">
-            <label>{{localize "VISAGE.GlobalEditor.Mirroring"}}</label>
-            <div class="visage-form-fields mirroring-grid">
-                {{! Row 1: Horizontal }}
-                <label>{{localize "VISAGE.Mirror.Label.Horizontal"}}</label>
-                <select name="isFlippedX">
-                    <option value="" {{visageSelected (eq isFlippedX.value null)}}>{{localize "VISAGE.Mirror.Option.NoChange"}}</option>
-                    <option value="false" {{visageSelected (eq isFlippedX.value false)}}>{{localize "VISAGE.Mirror.Option.Standard"}}</option>
-                    <option value="true" {{visageSelected (eq isFlippedX.value true)}}>{{localize "VISAGE.Mirror.Option.Flipped"}}</option>
-                </select>
+        <fieldset class="visage-fieldset">
+            <legend>{{localize "VISAGE.GlobalEditor.Mirroring"}}</legend>
 
-                {{! Row 2: Vertical }}
-                <label>{{localize "VISAGE.Mirror.Label.Vertical"}}</label>
-                <select name="isFlippedY">
-                    <option value="" {{visageSelected (eq isFlippedY.value null)}}>{{localize "VISAGE.Mirror.Option.NoChange"}}</option>
-                    <option value="false" {{visageSelected (eq isFlippedY.value false)}}>{{localize "VISAGE.Mirror.Option.Standard"}}</option>
-                    <option value="true" {{visageSelected (eq isFlippedY.value true)}}>{{localize "VISAGE.Mirror.Option.Flipped"}}</option>
+            <div class="form-group stacked">
+                <div class="visage-form-fields mirroring-grid">
+                    {{! Row 1: Horizontal }}
+                    <label>{{localize "VISAGE.Mirror.Label.Horizontal"}}</label>
+                    <select name="isFlippedX">
+                        <option value="" {{visageSelected (eq isFlippedX.value null)}}>{{localize "VISAGE.Mirror.Option.NoChange"}}</option>
+                        <option value="false" {{visageSelected (eq isFlippedX.value false)}}>{{localize "VISAGE.Mirror.Option.Standard"}}</option>
+                        <option value="true" {{visageSelected (eq isFlippedX.value true)}}>{{localize "VISAGE.Mirror.Option.Flipped"}}</option>
+                    </select>
+
+                    {{! Row 2: Vertical }}
+                    <label>{{localize "VISAGE.Mirror.Label.Vertical"}}</label>
+                    <select name="isFlippedY">
+                        <option value="" {{visageSelected (eq isFlippedY.value null)}}>{{localize "VISAGE.Mirror.Option.NoChange"}}</option>
+                        <option value="false" {{visageSelected (eq isFlippedY.value false)}}>{{localize "VISAGE.Mirror.Option.Standard"}}</option>
+                        <option value="true" {{visageSelected (eq isFlippedY.value true)}}>{{localize "VISAGE.Mirror.Option.Flipped"}}</option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+
+        <hr class="visage-divider" />
+
+        <div class="form-group checkbox-input-group">
+            <input type="checkbox" name="animateTransition_active" class="visage-checkbox" data-action="toggleField" data-target="animateTransition" {{checked animateTransition.active}} />
+            <label>
+                {{localize "VISAGE.GlobalEditor.AnimateTransition"}}
+                <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.GlobalEditor.AnimateTransitionHint'}}"></i>
+            </label>
+            <div class="visage-form-fields">
+                <select name="animateTransition" {{disabled (not animateTransition.active)}}>
+                    <option value="true" {{visageSelected (eq animateTransition.value "true")}}>{{localize "VISAGE.GlobalEditor.Yes"}}</option>
+                    <option value="false" {{visageSelected (eq animateTransition.value "false")}}>{{localize "VISAGE.GlobalEditor.No"}}</option>
                 </select>
             </div>
         </div>

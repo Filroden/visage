@@ -89,6 +89,7 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                 depth: new NumberField({ required: false, nullable: true, initial: null, min: 0.5, step: 0.5, label: "VISAGE.Config.List.DimZ" }),
                 alpha: new NumberField({ required: false, nullable: true, initial: null, min: 0, max: 1, label: "VISAGE.Config.Opacity.Label" }),
                 lockRotation: new BooleanField({ required: false, nullable: true, initial: null, label: "VISAGE.RotationLock.Label" }),
+                animateTransition: new BooleanField({ initial: null, required: false, nullable: true, label: "VISAGE.GlobalEditor.AnimateTransition" }),
                 disposition: new NumberField({
                     required: false,
                     nullable: true,
@@ -156,6 +157,12 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                         loop: new BooleanField({ initial: false, label: "VISAGE.Editor.Effects.Loop" }),
                         fadeIn: new NumberField({ initial: 0, label: "VISAGE.Editor.Effects.FadeIn" }),
                         fadeOut: new NumberField({ initial: 0, label: "VISAGE.Editor.Effects.FadeOut" }),
+                        maskToToken: new BooleanField({ initial: false, required: false, label: "VISAGE.Editor.Effects.MaskToToken" }),
+                        constrainedByWalls: new BooleanField({ initial: false, required: false, label: "VISAGE.Editor.Effects.ConstrainedByWalls" }),
+                        fadeEase: new StringField({ initial: null, required: false, nullable: true, label: "VISAGE.Editor.Effects.FadeEase" }),
+                        scaleEase: new StringField({ initial: null, required: false, nullable: true, label: "VISAGE.Editor.Effects.ScaleEase" }),
+                        scaleIn: new NumberField({ initial: null, required: false, nullable: true, label: "VISAGE.Editor.Effects.ScaleIn" }),
+                        scaleInDuration: new NumberField({ initial: null, required: false, nullable: true, label: "VISAGE.Editor.Effects.ScaleInDuration" }),
 
                         // Macro Properties
                         uuid: new StringField({ required: false, nullable: true, label: "VISAGE.Editor.Effects.MacroUUID" }),

@@ -269,6 +269,19 @@ li.context-item .visage-icon-domino {
 
 /* --- Layout Utils --- */
 
+.visage .form-group {
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-s);
+}
+
+.visage .form-group label {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--filroden-space-xs);
+}
+
 .visage .visage-form-fields {
     display: flex;
     flex-direction: row;
@@ -278,6 +291,10 @@ li.context-item .visage-icon-domino {
     justify-content: flex-end;
     gap: var(--filroden-space-m);
     width: 100%;
+}
+
+.visage .visage-form-fields.space-between {
+    justify-content: space-between;
 }
 
 .visage-divider {
@@ -1913,9 +1930,6 @@ li.context-item .visage-icon-domino {
     background: transparent;
     box-shadow: none;
 }
-.visage .inspector-fieldset legend {
-    display: none; /* Tabs serve as legends */
-}
 
 .visage .visage-missing-dependency {
     display: flex;
@@ -2655,6 +2669,12 @@ li.context-item .visage-icon-domino {
 
 .visage .visage-details {
     margin-block-start: var(--filroden-space-xs);
+}
+
+.visage .visage-details.active-settings .visage-summary {
+    color: var(--filroden-color-success);
+    border-left: 3px solid var(--filroden-color-success);
+    padding-left: 0.5rem;
 }
 
 .visage .visage-number {

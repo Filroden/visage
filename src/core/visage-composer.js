@@ -56,6 +56,7 @@ export class VisageComposer {
         await token.document.update(updateData, {
             visageUpdate: true,
             scenescape: true,
+            animate: finalData.animateTransition ?? true,
         });
     }
 
@@ -100,6 +101,7 @@ export class VisageComposer {
             state.finalData.depth = c.depth ?? state.finalData.depth;
             state.finalData.alpha = c.alpha ?? state.finalData.alpha;
             state.finalData.lockRotation = c.lockRotation ?? state.finalData.lockRotation;
+            state.finalData.animateTransition = c.animateTransition ?? state.finalData.animateTransition;
 
             if (c.ring?.enabled) state.finalData.ring = c.ring;
             if (c.light?.active) state.finalData.light = c.light;
@@ -169,7 +171,7 @@ export class VisageComposer {
                 [`flags.${MODULE_ID}.originalState`]: new foundry.data.operators.ForcedDeletion(),
                 [`flags.${MODULE_ID}.identity`]: new foundry.data.operators.ForcedDeletion(),
             };
-            return tokenDoc.update(clearFlags, { visageUpdate: true });
+            return tokenDoc.update(clearFlags, { visageUpdate: true, animate: true });
         }
 
         // Scenario B: Snapshot exists.
@@ -195,6 +197,7 @@ export class VisageComposer {
         await tokenDoc.update(updateData, {
             visageUpdate: true,
             scenescape: true, // Acts as a universal passport for Mass Edit compatibility
+            animate: original.animateTransition ?? true,
         });
     }
 
