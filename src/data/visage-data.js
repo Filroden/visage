@@ -415,6 +415,7 @@ export class VisageData {
                 ring: ringData,
                 alpha: sourceData.alpha ?? 1,
                 lockRotation: sourceData.lockRotation ?? false,
+                animateTransition: true,
             },
         };
     }

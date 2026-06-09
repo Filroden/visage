@@ -476,6 +476,75 @@
                         </select>
                     </div>
                 </div>
+
+                {{!-- ADVANCED SEQUENCER EFFECTS --}}
+                <details class="visage-details {{#if inspector.hasAdvancedSettings}}active-settings{{/if}}">
+                    <summary class="visage-summary">{{localize "VISAGE.Editor.Effects.AdvancedSequencer"}}</summary>
+
+                    {{!-- GROUP: Rendering & Playback --}}
+                    <fieldset class="visage-fieldset">
+                        <legend>{{localize "VISAGE.Editor.Effects.GroupRender"}}</legend>
+                        <div class="form-group">
+                            <input type="checkbox" name="effectMaskToToken" class="visage-checkbox" {{checked inspector.maskToToken}}>
+                            <label>{{localize "VISAGE.Editor.Effects.MaskToToken"}} <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.Editor.Effects.MaskToTokenHint'}}"></i></label>
+                        </div>
+                        <div class="form-group">
+                            <input type="checkbox" name="effectConstrainedByWalls" class="visage-checkbox" {{checked inspector.constrainedByWalls}}>
+                            <label>{{localize "VISAGE.Editor.Effects.ConstrainedByWalls"}}</label>
+                        </div>
+                    </fieldset>
+
+                    {{!-- GROUP: Fade Transitions --}}
+                    <fieldset class="visage-fieldset">
+                        <legend>{{localize "VISAGE.Editor.Effects.GroupFade"}}</legend>
+                        
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Effects.Duration"}}</label>
+                            <div class="visage-form-fields">
+                                <input type="number" name="effectFadeIn" value="{{inspector.fadeIn}}" step="100" placeholder="{{localize 'VISAGE.Editor.Effects.In'}}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Effects.Easing"}}</label>
+                            <div class="visage-form-fields">
+                                <select name="effectFadeEase">
+                                    {{selectOptions easingChoices selected=inspector.fadeEase blank="Linear (Default)"}}
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    {{!-- GROUP: Scale Transitions --}}
+                    <fieldset class="visage-fieldset">
+                        <legend>{{localize "VISAGE.Editor.Effects.GroupScale"}}</legend>
+                    
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Effects.Duration"}}</label>
+                            <div class="visage-form-fields">
+                                <input type="number" name="effectScaleInDuration" value="{{inspector.scaleInDuration}}" step="100" placeholder="{{localize 'VISAGE.Editor.Effects.In'}}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label data-tooltip="{{localize 'VISAGE.Editor.Effects.ScaleHint'}}">
+                                {{localize "VISAGE.Editor.Effects.Multiplier"}} <i class="visage-icon info"></i>
+                            </label>
+                            <div class="visage-form-fields">
+                                <input type="number" name="effectScaleIn" value="{{inspector.scaleIn}}" step="0.1" placeholder="{{localize 'VISAGE.Editor.Effects.In'}}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Effects.Easing"}}</label>
+                            <div class="visage-form-fields">
+                                <select name="effectScaleEase">
+                                    {{selectOptions easingChoices selected=inspector.scaleEase blank="Linear (Default)"}}
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
+                </details>
             {{/if}}
 
             {{!-- AUDIO SPECIFIC --}}

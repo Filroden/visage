@@ -150,6 +150,16 @@ export class VisageSequencer {
                         seqEffect.spriteOffset({ x: pixelOffsetX, y: pixelOffsetY });
                     }
 
+                    if (effect.maskToToken) seqEffect.mask(token);
+
+                    if (effect.fadeIn > 0) {
+                        seqEffect.fadeIn(effect.fadeIn, { ease: effect.fadeEase || "linear" });
+                    }
+
+                    if (effect.scaleIn != null) {
+                        seqEffect.scaleIn(effect.scaleIn, effect.scaleInDuration || 500, { ease: effect.scaleEase || "linear" });
+                    }
+
                     if (isLoop) seqEffect.duration(31536000000);
                     else seqEffect.missed(false);
 
