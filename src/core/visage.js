@@ -17,6 +17,34 @@ export class Visage {
     static _lastDirectoryWarn = 0;
 
     /**
+     * Maps token IDs to their active Promise queues to prevent race conditions.
+     * @type {Map<string, Promise>}
+     * @private
+     */
+    static _updateQueues = new Map();
+
+    /**
+     * Queues a task for a specific token to ensure database reads/writes are strictly sequential.
+     * @private
+     */
+    static async _queueTask(tokenId, taskFn) {
+        if (!this._updateQueues.has(tokenId)) {
+            this._updateQueues.set(tokenId, Promise.resolve());
+        }
+
+        // Chain the new task onto the existing promise for this token
+        const queue = this._updateQueues
+            .get(tokenId)
+            .then(taskFn)
+            .catch((err) => {
+                console.error(`Visage | Task Queue Error for token ${tokenId}:`, err);
+            });
+
+        this._updateQueues.set(tokenId, queue);
+        return queue;
+    }
+
+    /**
      * Throttled UI warning to prevent notification spam when applying
      * auto-mapped Visages to multiple tokens simultaneously.
      */
@@ -36,7 +64,7 @@ export class Visage {
     }
 
     /**
-     * Initializes the Visage API and registers necessary hooks.
+     * Initialises the Visage API and registers necessary hooks.
      * Sets up the public API under `game.modules.get('visage').api`.
      */
     static initialize() {
@@ -116,7 +144,7 @@ export class Visage {
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
 
-        // 1. Fetch Data
+        // 1. Fetch Data (Safe to do outside the queue)
         const visageRecord = this._getVisageData(token, maskId);
         if (!visageRecord) return false;
 
@@ -125,35 +153,42 @@ export class Visage {
         const switchIdentity = options.switchIdentity ?? mode === "identity";
         const clearStack = options.clearStack ?? false;
 
-        const layer = await VisageData.toLayer(data, source);
-        const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
+        // Wrap the read/modify/write cycle in the queue
+        return this._queueTask(token.id, async () => {
+            const layer = await VisageData.toLayer(data, source);
 
-        // 2. Compute Stack and Data Deltas
-        const { stack, updateFlags } = await this._prepareApplyStack(token, layer, { switchIdentity, clearStack }, currentStack);
-        const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
-        const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor?.img);
+            // Re-read the stack inside the queue so it is guaranteed to be fresh!
+            const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
-        // 3. Compute Timing Anchors
-        // (Guaranteed by VisageDataModel: effects is an array, delay is a number)
-        const activeEffects = layer.changes.effects.filter((e) => !e.disabled);
-        const minDelaySeconds = activeEffects.length ? Math.min(0, ...activeEffects.map((e) => e.delay)) : 0;
-        const offsetMS = Math.abs(minDelaySeconds) * 1000;
+            // 2. Compute Stack and Data Deltas
+            const { stack, updateFlags } = await this._prepareApplyStack(token, layer, { switchIdentity, clearStack }, currentStack);
+            const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
+            const targetPortrait = VisageComposer.resolvePortrait(stack, originalState, token.actor?.img);
 
-        // 4. Orchestrate Subsystems
-        this._runVisualFX(token, layer, stack, matrixChanged, anticipatedState, switchIdentity || clearStack);
-        this._runMacros(token, data, offsetMS, activeEffects);
-        this._runTMFX(token, layer.id, offsetMS, activeEffects);
+            // 3. Compute Timing Anchors
+            const activeEffects = layer.changes.effects.filter((e) => !e.disabled);
+            const minDelaySeconds = activeEffects.length ? Math.min(0, ...activeEffects.map((e) => e.delay)) : 0;
+            const offsetMS = Math.abs(minDelaySeconds) * 1000;
 
-        // 5. Execute Core Data Update
-        const executeDataUpdate = async () => {
-            await this._runDataUpdate(token, updateFlags, targetPortrait);
-            Hooks.callAll("visageApplied", token, data);
-        };
+            // 4. Orchestrate Subsystems
+            this._runVisualFX(token, layer, stack, matrixChanged, anticipatedState, switchIdentity || clearStack);
+            this._runMacros(token, data, offsetMS, activeEffects);
+            this._runTMFX(token, layer.id, offsetMS, activeEffects);
 
-        if (offsetMS > 0) setTimeout(executeDataUpdate, offsetMS);
-        else await executeDataUpdate();
+            // 5. Execute Core Data Update
+            const executeDataUpdate = async () => {
+                await this._runDataUpdate(token, updateFlags, targetPortrait);
+                Hooks.callAll("visageApplied", token, data);
+            };
 
-        return true;
+            if (offsetMS > 0) {
+                // Pause the queue so the pre-effect can play before the DB is written
+                await new Promise((resolve) => setTimeout(resolve, offsetMS));
+            }
+
+            await executeDataUpdate();
+            return true;
+        });
     }
 
     // ==========================================
@@ -311,28 +346,30 @@ export class Visage {
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
 
-        const currentIdentity = token.document.getFlag(DATA_NAMESPACE, "identity");
-        const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
+        return this._queueTask(token.id, async () => {
+            const currentIdentity = token.document.getFlag(DATA_NAMESPACE, "identity");
+            const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
-        // Safely extract the target from the stack
-        const stack = foundry.utils.deepClone(currentStack).filter((l) => l.id !== maskId);
-        if (stack.length === currentStack.length) return false; // Exit if nothing was actually removed
+            // Safely extract the target from the stack
+            const stack = foundry.utils.deepClone(currentStack).filter((l) => l.id !== maskId);
+            if (stack.length === currentStack.length) return false; // Exit if nothing was actually removed
 
-        // 1. Calculate Deltas & Flags
-        const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
-        const updateFlags = this._buildRemovalFlags(maskId, currentIdentity, stack);
+            // 1. Calculate Deltas & Flags
+            const { originalState, anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
+            const updateFlags = this._buildRemovalFlags(maskId, currentIdentity, stack);
 
-        // 2. Update Core Data
-        await token.document.update(updateFlags);
-        await VisageComposer.compose(token);
+            // 2. Update Core Data
+            await token.document.update(updateFlags);
+            await VisageComposer.compose(token);
 
-        // 3. Tear down Visual/Shader Subsystems & Restore UI
-        await this._stopRemovedVisualFX(token, maskId, currentIdentity === maskId, matrixChanged, stack, anticipatedState);
-        await this._stopRemovedTMFX(token, maskId, currentStack);
-        await this._restorePortraitAfterRemoval(token, stack, originalState);
+            // 3. Tear down Visual/Shader Subsystems & Restore UI
+            await this._stopRemovedVisualFX(token, maskId, currentIdentity === maskId, matrixChanged, stack, anticipatedState);
+            await this._stopRemovedTMFX(token, maskId, currentStack);
+            await this._restorePortraitAfterRemoval(token, stack, originalState);
 
-        Hooks.callAll("visageRemoved", token, maskId);
-        return true;
+            Hooks.callAll("visageRemoved", token, maskId);
+            return true;
+        });
     }
 
     // ==========================================
@@ -409,24 +446,26 @@ export class Visage {
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return;
 
-        const flags = token.document.flags[MODULE_ID] || {};
-        const originalPortrait = flags.originalState?.portrait;
+        return this._queueTask(token.id, async () => {
+            const flags = token.document.flags[MODULE_ID] || {};
+            const originalPortrait = flags.originalState?.portrait;
 
-        // Remove all Sequencer effects
-        await VisageSequencer.revert(token);
+            // Remove all Sequencer effects
+            await VisageSequencer.revert(token);
 
-        // Remove all Visage-owned TMFX filters
-        if (VisageTokenMagic.isActive) await VisageTokenMagic.revert(token);
+            // Remove all Visage-owned TMFX filters
+            if (VisageTokenMagic.isActive) await VisageTokenMagic.revert(token);
 
-        // Revert Token Data (Composer wipes flags here)
-        await VisageComposer.revertToDefault(token.document);
+            // Revert Token Data (Composer wipes flags here)
+            await VisageComposer.revertToDefault(token.document);
 
-        // Revert Actor Portrait (using cached value)
-        if (token.actor && originalPortrait && token.actor.img !== originalPortrait) {
-            await token.actor.update({ img: originalPortrait });
-        }
+            // Revert Actor Portrait (using cached value)
+            if (token.actor && originalPortrait && token.actor.img !== originalPortrait) {
+                await token.actor.update({ img: originalPortrait });
+            }
 
-        Hooks.callAll("visageReverted", token);
+            Hooks.callAll("visageReverted", token);
+        });
     }
 
     /**
@@ -528,23 +567,25 @@ export class Visage {
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return;
 
-        const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
-        const stack = foundry.utils.deepClone(currentStack);
-        const layer = stack.find((l) => l.id === layerId);
-        if (!layer) return;
+        return this._queueTask(token.id, async () => {
+            const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
+            const stack = foundry.utils.deepClone(currentStack);
+            const layer = stack.find((l) => l.id === layerId);
+            if (!layer) return;
 
-        // 1. Toggle State & Compute Deltas
-        layer.disabled = !layer.disabled;
-        const isVisible = !layer.disabled;
-        const { anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
+            // 1. Toggle State & Compute Deltas
+            layer.disabled = !layer.disabled;
+            const isVisible = !layer.disabled;
+            const { anticipatedState, matrixChanged } = this._evaluateMatrixDiff(token.document, currentStack, stack);
 
-        // 2. Update Core Data
-        await token.document.update({ [`flags.${DATA_NAMESPACE}.activeStack`]: stack });
-        await VisageComposer.compose(token);
+            // 2. Update Core Data
+            await token.document.update({ [`flags.${DATA_NAMESPACE}.activeStack`]: stack });
+            await VisageComposer.compose(token);
 
-        // 3. Fire Subsystems
-        await this._toggleSequencerFX(token, layer, stack, isVisible, matrixChanged, anticipatedState);
-        await this._toggleTMFX(token, layer, isVisible);
+            // 3. Fire Subsystems
+            await this._toggleSequencerFX(token, layer, stack, isVisible, matrixChanged, anticipatedState);
+            await this._toggleTMFX(token, layer, isVisible);
+        });
     }
 
     // ==========================================
@@ -595,31 +636,29 @@ export class Visage {
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return;
 
-        const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
+        return this._queueTask(token.id, async () => {
+            const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
-        // Sort the stack to match the new ID order
-        // Layers not in newOrderIds (shouldn't happen) are moved to the bottom
-        const newStack = currentStack.sort((a, b) => {
-            const indexA = newOrderIds.indexOf(a.id);
-            const indexB = newOrderIds.indexOf(b.id);
-            return (indexA === -1 ? 0 : indexA) - (indexB === -1 ? 0 : indexB);
+            // Sort the stack to match the new ID order
+            const newStack = currentStack.sort((a, b) => {
+                const indexA = newOrderIds.indexOf(a.id);
+                const indexB = newOrderIds.indexOf(b.id);
+                return (indexA === -1 ? 0 : indexA) - (indexB === -1 ? 0 : indexB);
+            });
+
+            // 1. Update Data
+            await token.document.update({
+                [`flags.${DATA_NAMESPACE}.activeStack`]: newStack,
+            });
+
+            // 2. Update Composer (Recalculate Stacking Rules)
+            await VisageComposer.compose(token);
+
+            // 3. Update Sequencer (Z-Index Only)
+            if (Visage.sequencerReady && VisageSequencer.updateStackOrder) {
+                await VisageSequencer.updateStackOrder(token);
+            }
         });
-
-        // 1. Update Data
-        await token.document.update({
-            [`flags.${DATA_NAMESPACE}.activeStack`]: newStack,
-        });
-
-        // 2. Update Composer (Recalculate Stacking Rules)
-        await VisageComposer.compose(token);
-
-        // 3. Update Sequencer (Z-Index Only)
-        // We do NOT call apply() here to avoid replaying explosions.
-        // Assuming VisageSequencer has a method to just refresh Z-sorting.
-        // If not, this is where you'd implement a 'softRefresh' method.
-        if (Visage.sequencerReady && VisageSequencer.updateStackOrder) {
-            await VisageSequencer.updateStackOrder(token);
-        }
     }
 
     /**
