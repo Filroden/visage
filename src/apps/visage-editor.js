@@ -23,6 +23,7 @@ import { VisageAttributePicker } from "./helpers/visage-attribute-picker.js";
 import { VisageMediaTimeline } from "./helpers/visage-media-timeline.js";
 import { VisageTokenMagic } from "../integrations/visage-tmfx.js";
 import { VisageDataModel } from "../data/visage-data-model.js";
+import { VisageDAT } from "../integrations/visage-dat.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -175,7 +176,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async _prepareContext(_options) {
-        // 1. Fetch & Initialize Base Data
+        // 1. Fetch & Initialise Base Data
         const baseData = this._getInitialData();
         if (!baseData) return this.close();
 
@@ -215,6 +216,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             active: val !== null && val !== undefined && val !== "",
         });
         const c = data.changes || {};
+
+        // Extract DAT Flags
+        const datFlags = c.flags?.["dylans-animated-tokens"];
 
         // Format Condition Summaries
         if (this._automationData?.conditions) {
@@ -303,6 +307,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             tmfxPresets: await VisageTokenMagic.getAvailablePresets(),
             easingChoices: this._getEasingChoices(),
             preview: stageData,
+
+            // DAT Context
+            isDATActive: VisageDAT.isActive,
+            dat: {
+                active: !!datFlags,
+                spritesheet: datFlags?.spritesheet ?? false,
+                sheetsrc: datFlags?.sheetsrc ?? "",
+                sheetstyle: datFlags?.sheetstyle ?? "dlru",
+                separateidle: datFlags?.separateidle ?? false,
+            },
         };
     }
 
@@ -711,6 +725,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._syncRingState(formData);
         this._syncAutomationState(formData);
 
+        // --- ENFORCE DAT ACTIVE STATE ---
+        if (!formData.dat_active && formData.flags?.["dylans-animated-tokens"]) {
+            delete formData.flags["dylans-animated-tokens"];
+        }
+
         // 2. Assemble the raw payload matching the DataModel's root structure
         const rawPayload = {
             id: this.visageId,
@@ -1090,11 +1109,21 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onToggleField(event, target) {
         const fieldName = target.dataset.target;
-        const group = target.closest(".form-group");
-        const inputs = fieldName === "anchor" ? group.querySelectorAll('[name="anchorX"], [name="anchorY"]') : group.querySelectorAll(`[name="${fieldName}"]`);
+        let group, inputs;
 
+        if (fieldName === "datGroup") {
+            group = target.closest(".visage-fieldset");
+            inputs = group.querySelectorAll('[data-group="datGroup"] input, [data-group="datGroup"] select');
+        } else {
+            group = target.closest(".form-group");
+            inputs = fieldName === "anchor" ? group.querySelectorAll('[name="anchorX"], [name="anchorY"]') : group.querySelectorAll(`[name="${fieldName}"]`);
+        }
+
+        // Apply the disabled state
         inputs.forEach((input) => (input.disabled = !target.checked));
-        const button = group.querySelector("button.file-picker-button");
+
+        // Handle file picker buttons if they exist
+        const button = group?.querySelector("button.file-picker-button");
         if (button) button.disabled = !target.checked;
 
         this._markDirty();

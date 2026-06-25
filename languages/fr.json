@@ -535,6 +535,11 @@
     "VISAGE.Config.List.DimX": "Dimension X",
     "VISAGE.Config.List.DimY": "Dimension Y",
     "VISAGE.Config.List.DimZ": "Dimension Z",
+    "VISAGE.Editor.DAT.Title": "Dylan's Animated Tokens",
+    "VISAGE.Editor.DAT.SpriteSheet": "Activer la Feuille de Sprites",
+    "VISAGE.Editor.DAT.SheetImage": "Image de la Feuille",
+    "VISAGE.Editor.DAT.SheetStyle": "Style de Formatage de la Feuille",
+    "VISAGE.Editor.DAT.SeparateIdle": "Image de Repos Séparée",
 
-    "_comment": "Updated to v5.4.0"
+    "_comment": "Updated to v5.5.0"
 }

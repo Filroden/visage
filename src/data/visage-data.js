@@ -416,6 +416,7 @@ export class VisageData {
                 alpha: sourceData.alpha ?? 1,
                 lockRotation: sourceData.lockRotation ?? false,
                 animateTransition: true,
+                flags: sourceData.flags || {},
             },
         };
     }
@@ -642,13 +643,24 @@ export class VisageData {
 
     /**
      * Determines the most representative image path for a Visage.
-     * Prioritizes Dynamic Token Ring subjects over standard texture files.
+     * Prioritises Dynamic Token Ring subjects over DAT Sprite Sheets over standard texture files.
      * @param {Object} changes - The changes object containing visual data.
      * @returns {string} The resolved file path.
      */
     static getRepresentativeImage(changes) {
         if (!changes) return "";
-        if (changes.ring?.enabled && changes.ring.subject?.texture) return changes.ring.subject.texture;
+
+        // PRIORITY 1: Dynamic Ring Subject
+        if (changes.ring?.enabled && changes.ring.subject?.texture) {
+            return changes.ring.subject.texture;
+        }
+
+        // PRIORITY 2: Dylan's Animated Tokens (DAT) Sprite Sheet
+        if (changes.flags?.["dylans-animated-tokens"]?.spritesheet && changes.flags["dylans-animated-tokens"].sheetsrc) {
+            return changes.flags["dylans-animated-tokens"].sheetsrc;
+        }
+
+        // PRIORITY 3: Core Texture
         return changes.texture?.src || "";
     }
 

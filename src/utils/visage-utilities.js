@@ -1,15 +1,16 @@
 import { MODULE_ID } from "../core/visage-constants.js";
 import { VisageDataModel } from "../data/visage-data-model.js";
+import { VisageDAT } from "../integrations/visage-dat.js";
 
 /**
  * @file Shared utility functions for the Visage module.
- * Centralizes logging, path resolution, token state extraction, and theme management.
+ * Centralises logging, path resolution, token state extraction, and theme management.
  * @module visage
  */
 
 export class VisageUtilities {
     /**
-     * Centralized logging helper.
+     * Centralised logging helper.
      * respect's the developer mode module if present to suppress noise.
      * @param {string} message - The message to log.
      * @param {boolean} [force=false] - If true, logs even if debug mode is off.
@@ -315,7 +316,15 @@ export class VisageUtilities {
             light: source.light?.toObject?.() ?? source.light ?? {},
             portrait: portrait,
             delay: 0,
+            flags: {},
         };
+
+        // Capture Third-Party Integration States
+        const targetDocument = data.document || data;
+        const datState = VisageDAT.extractState(targetDocument);
+        if (datState) {
+            rawChanges.flags["dylans-animated-tokens"] = datState;
+        }
 
         // Pass through the schema to enforce defaults (e.g. scales to 1, anchors to 0.5)
         const model = new VisageDataModel({ changes: rawChanges });

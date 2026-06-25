@@ -173,6 +173,59 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                     }),
                     { initial: [], label: "VISAGE.Editor.Tabs.Effects" },
                 ),
+
+                // THIRD-PARTY INTEGRATION DATA
+                flags: new SchemaField(
+                    {
+                        "dylans-animated-tokens": new SchemaField(
+                            {
+                                spritesheet: new BooleanField({
+                                    initial: false,
+                                    label: "VISAGE.Editor.DAT.SpriteSheet",
+                                }),
+                                sheetstyle: new StringField({
+                                    initial: "dlru",
+                                    label: "VISAGE.Editor.DAT.SheetStyle",
+                                }),
+                                separateidle: new BooleanField({
+                                    initial: false,
+                                    label: "VISAGE.Editor.DAT.SeparateIdle",
+                                }),
+                                // Prevent cleansing of implicit/inferred properties during state capture
+                                sheetsrc: new StringField({
+                                    required: false,
+                                    nullable: true,
+                                    initial: null,
+                                }),
+                                animationframes: new NumberField({
+                                    required: false,
+                                    nullable: true,
+                                    initial: null,
+                                    integer: true,
+                                }),
+                                noidle: new BooleanField({
+                                    initial: false,
+                                }),
+                                dirorder: new ArrayField(new StringField(), {
+                                    initial: null,
+                                    nullable: true,
+                                }),
+                                animlist: new ArrayField(new ArrayField(new DataField()), {
+                                    initial: null,
+                                    nullable: true,
+                                }),
+                                unlockedanchor: new BooleanField({
+                                    initial: false,
+                                }),
+                                unlockedfit: new BooleanField({
+                                    initial: false,
+                                }),
+                            },
+                            { required: false, nullable: true },
+                        ),
+                    },
+                    { required: false, nullable: true },
+                ),
             }),
         };
     }
@@ -233,7 +286,6 @@ export class VisageDataModel extends foundry.abstract.DataModel {
      * @param {Object} payload - The mutable payload object being constructed.
      * @private
      */
-    _apply;
     _applyScaleToPayload(raw, payload) {
         // Fallback: No override exists, pass the native values through
         if (raw.scale === null) {
