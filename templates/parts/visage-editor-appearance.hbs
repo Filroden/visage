@@ -29,6 +29,67 @@
             </div>
         </div>
 
+        {{! Dylan's Animated Tokens (Conditional) }}
+        {{#if isDATActive}}
+            <fieldset class="visage-fieldset">
+                <legend>
+                    <div class="form-group checkbox-input-group">
+                        <input class="visage-checkbox" type="checkbox" name="dat_active" data-action="toggleField" data-target="datGroup" {{checked dat.active}} />
+                        <label>{{localize "VISAGE.Editor.DAT.Title"}}</label>
+                    </div>
+                </legend>
+
+                <div class="visage-column" data-group="datGroup">
+                    {{! Sprite Sheet Toggle }}
+                    <div class="form-group">
+                        <label>{{localize "VISAGE.Editor.DAT.SpriteSheet"}}</label>
+                        <div class="visage-form-fields">
+                            <input type="checkbox" class="visage-checkbox" name="flags.dylans-animated-tokens.spritesheet" {{checked dat.spritesheet}} {{disabled (not dat.active)}} />
+                        </div>
+                    </div>
+
+                    {{! Sprite Sheet Image }}
+                    <div class="form-group">
+                        <label>{{localize "VISAGE.Editor.DAT.SheetImage"}}</label>
+                        <div class="visage-form-fields">
+                            <input type="text" name="flags.dylans-animated-tokens.sheetsrc" value="{{dat.sheetsrc}}" {{disabled (not dat.active)}} />
+                            <button type="button" class="file-picker-button" data-action="openFilePicker" data-file-type="image" tabindex="-1" {{disabled (not dat.active)}}>
+                                <i class="visage-icon image-search"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{! Sheet Style Select }}
+                    <div class="form-group">
+                        <label>{{localize "VISAGE.Editor.DAT.SheetStyle"}}</label>
+                        <div class="visage-form-fields">
+                            <select name="flags.dylans-animated-tokens.sheetstyle" {{disabled (not dat.active)}}>
+                                <option value="dlru" {{visageSelected (eq dat.sheetstyle "dlru")}}>Down, Left, Right, Up (Default)</option>
+                                <option value="durlReduced" {{visageSelected (eq dat.sheetstyle "durlReduced")}}>Down, Up, Right, Left (Reduced)</option>
+                                <option value="eight" {{visageSelected (eq dat.sheetstyle "eight")}}>8-Directional</option>
+                                <option value="diagonal" {{visageSelected (eq dat.sheetstyle "diagonal")}}>Diagonal Only</option>
+                                <option value="nihey" {{visageSelected (eq dat.sheetstyle "nihey")}}>Nihey (3 Frames)</option>
+                                <option value="universalLPC" {{visageSelected (eq dat.sheetstyle "universalLPC")}}>Universal LPC</option>
+                                <option value="memao" {{visageSelected (eq dat.sheetstyle "memao")}}>Memao</option>
+                                <option value="tdsm3" {{visageSelected (eq dat.sheetstyle "tdsm3")}}>TDSM Gen 3</option>
+                                <option value="tdsm4" {{visageSelected (eq dat.sheetstyle "tdsm4")}}>TDSM Gen 4</option>
+                                <option value="tdsmpc" {{visageSelected (eq dat.sheetstyle "tdsmpc")}}>TDSM PixelCitizen</option>
+                                <option value="tdsmte" {{visageSelected (eq dat.sheetstyle "tdsmte")}}>TDSM Time Elements</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{! Separate Idle Frame }}
+                    <div class="form-group">
+                        <label>{{localize "VISAGE.Editor.DAT.SeparateIdle"}}</label>
+                        <div class="visage-form-fields">
+                            <input type="checkbox" class="visage-checkbox" name="flags.dylans-animated-tokens.separateidle" {{checked dat.separateidle}} {{disabled (not dat.active)}} />
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        {{/if}}
+
         {{! Actor Portrait }}
         <div class="form-group checkbox-input-group">
             <input class="visage-checkbox" type="checkbox" name="portrait_active" data-action="toggleField" data-target="portrait" {{checked portrait.active}} />

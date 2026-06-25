@@ -8,6 +8,7 @@
 import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageSystems } from "../integrations/visage-systems.js";
 import { MODULE_ID } from "./visage-constants.js";
+import { VisageDAT } from "../integrations/visage-dat.js";
 
 /**
  * The VisageComposer class handles the mathematical composition of token data.
@@ -50,7 +51,26 @@ export class VisageComposer {
         };
 
         delete updateData.effects; // Sanity check
+        if (updateData.flags) delete updateData.flags;
+
         if (finalData.light) updateData.light = finalData.light;
+
+        // Dylan's Automated Tokens compatibility
+        const datPayload = VisageDAT.getUpdatePayload(token.document, state.finalData?.flags?.["dylans-animated-tokens"]);
+        Object.assign(updateData, datPayload);
+
+        // Actively calculate and enforce DAT anchors
+        if (VisageDAT.isActive) {
+            const datState = state.finalData?.flags?.["dylans-animated-tokens"];
+            if (datState?.spritesheet && !datState?.unlockedanchor) {
+                const currentScale = updateData.texture?.scaleX ?? 1;
+                const anchors = await VisageDAT.getCalculatedAnchors(datState.sheetsrc, datState.sheetstyle, datState.animationframes, currentScale);
+
+                updateData.texture = updateData.texture || {};
+                updateData.texture.anchorX = anchors.anchorX;
+                updateData.texture.anchorY = anchors.anchorY;
+            }
+        }
 
         // 5. Execute Native Update
         await token.document.update(updateData, {
@@ -77,37 +97,56 @@ export class VisageComposer {
             finalData: foundry.utils.deepClone(base),
         };
 
-        if (!state.finalData.texture) state.finalData.texture = {};
+        if (!state.finalData.texture) {
+            state.finalData.texture = {};
+        }
 
-        // Cascade Layer Overrides
         for (const layer of stack) {
             if (layer.disabled) continue;
-            const c = layer.changes || {};
-
-            state.src = c.texture?.src || state.src;
-            state.anchorX = c.texture?.anchorX ?? state.anchorX;
-            state.anchorY = c.texture?.anchorY ?? state.anchorY;
-
-            state.scaleX = c.scale ?? state.scaleX;
-            state.scaleY = c.scale ?? state.scaleY;
-
-            state.mirrorX = c.mirrorX ?? state.mirrorX;
-            state.mirrorY = c.mirrorY ?? state.mirrorY;
-
-            state.finalData.disposition = c.disposition ?? state.finalData.disposition;
-            state.finalData.name = c.name || state.finalData.name;
-            state.finalData.width = c.width ?? state.finalData.width;
-            state.finalData.height = c.height ?? state.finalData.height;
-            state.finalData.depth = c.depth ?? state.finalData.depth;
-            state.finalData.alpha = c.alpha ?? state.finalData.alpha;
-            state.finalData.lockRotation = c.lockRotation ?? state.finalData.lockRotation;
-            state.finalData.animateTransition = c.animateTransition ?? state.finalData.animateTransition;
-
-            if (c.ring?.enabled) state.finalData.ring = c.ring;
-            if (c.light?.active) state.finalData.light = c.light;
+            this._applyLayerChanges(state, layer.changes || {}, layer.mode);
         }
 
         return state;
+    }
+
+    /**
+     * Helper to apply layer overrides.
+     * @private
+     */
+    static _applyLayerChanges(state, c, mode) {
+        state.src = c.texture?.src || state.src;
+        state.anchorX = c.texture?.anchorX ?? state.anchorX;
+        state.anchorY = c.texture?.anchorY ?? state.anchorY;
+        state.scaleX = c.scale ?? state.scaleX;
+        state.scaleY = c.scale ?? state.scaleY;
+        state.mirrorX = c.mirrorX ?? state.mirrorX;
+        state.mirrorY = c.mirrorY ?? state.mirrorY;
+
+        // Merge properties
+        Object.assign(state.finalData, {
+            disposition: c.disposition ?? state.finalData.disposition,
+            name: c.name || state.finalData.name,
+            width: c.width ?? state.finalData.width,
+            height: c.height ?? state.finalData.height,
+            depth: c.depth ?? state.finalData.depth,
+            alpha: c.alpha ?? state.finalData.alpha,
+            lockRotation: c.lockRotation ?? state.finalData.lockRotation,
+            animateTransition: c.animateTransition ?? state.finalData.animateTransition,
+        });
+
+        if (c.ring?.enabled) state.finalData.ring = c.ring;
+        if (c.light?.active) state.finalData.light = c.light;
+
+        this._applyThirdPartyFlags(state, c.flags?.["dylans-animated-tokens"], mode);
+    }
+
+    static _applyThirdPartyFlags(state, datFlag, mode) {
+        if (!datFlag) {
+            if (mode === "identity") delete state.finalData.flags["dylans-animated-tokens"];
+            return;
+        }
+
+        state.finalData.flags["dylans-animated-tokens"] = datFlag;
     }
 
     /**
@@ -191,6 +230,11 @@ export class VisageComposer {
             scaleX: original.texture?.scaleX ?? 1,
             scaleY: original.texture?.scaleY ?? 1,
         };
+
+        // Dylan's Automated Tokens compatibility
+        const datRestore = VisageDAT.getRestorePayload(original);
+        Object.assign(updateData, datRestore);
+        delete updateData.flags; // Clean up our temporary data transfer object
 
         VisageSystems.process(updateData, original, context);
 

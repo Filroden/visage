@@ -610,5 +610,12 @@
     "VISAGE.GlobalEditor.Dimensions": "Token Dimensions (Grid)",
     "VISAGE.Config.List.DimX": "X Dimension",
     "VISAGE.Config.List.DimY": "Y Dimension",
-    "VISAGE.Config.List.DimZ": "Z Dimension"
+    "VISAGE.Config.List.DimZ": "Z Dimension",
+
+    "_comment_V5_5_KEYS": "--- V5.5 KEYS ---",
+    "VISAGE.Editor.DAT.Title": "Dylan's Animated Tokens",
+    "VISAGE.Editor.DAT.SpriteSheet": "Enable Sprite Sheet",
+    "VISAGE.Editor.DAT.SheetImage": "Sheet Image",
+    "VISAGE.Editor.DAT.SheetStyle": "Sheet Formatting Style",
+    "VISAGE.Editor.DAT.SeparateIdle": "Separate Idle Frame"
 }

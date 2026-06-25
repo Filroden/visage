@@ -293,6 +293,12 @@ li.context-item .visage-icon-domino {
     width: 100%;
 }
 
+.visage .visage-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--filroden-space-m);
+}
+
 .visage .visage-form-fields.space-between {
     justify-content: space-between;
 }
