@@ -18,6 +18,7 @@ import { VisageSequencer } from "./src/integrations/visage-sequencer.js";
 import { VisageAutomation } from "./src/core/visage-automation.js";
 import { VisageMassEdit } from "./src/integrations/visage-mass-edit.js";
 import { VisageSettings } from "./src/core/visage-settings.js";
+import { VisageComposer } from "./src/core/visage-composer.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -327,7 +328,7 @@ Hooks.once("ready", async () => {
     }
 });
 
-// Initialize application registry
+// Initialise application registry
 Visage.apps = {};
 
 /**
