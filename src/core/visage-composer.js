@@ -72,6 +72,14 @@ export class VisageComposer {
             }
         }
 
+        // Flatten the texture object to bypass third-party module collisions
+        if (updateData.texture) {
+            for (const [key, val] of Object.entries(updateData.texture)) {
+                updateData[`texture.${key}`] = val;
+            }
+            delete updateData.texture; // Remove the nested object to force flat-key updates
+        }
+
         // 5. Execute Native Update
         await token.document.update(updateData, {
             visageUpdate: true,
@@ -238,6 +246,15 @@ export class VisageComposer {
 
         VisageSystems.process(updateData, original, context);
 
+        // Flatten the texture object to bypass third-party module collisions
+        if (updateData.texture) {
+            for (const [key, val] of Object.entries(updateData.texture)) {
+                updateData[`texture.${key}`] = val;
+            }
+            delete updateData.texture; // Remove the nested object to force flat-key updates
+        }
+
+        // Execute Native Update
         await tokenDoc.update(updateData, {
             visageUpdate: true,
             scenescape: true, // Acts as a universal passport for Mass Edit compatibility

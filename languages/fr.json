@@ -539,7 +539,7 @@
     "VISAGE.Editor.DAT.SpriteSheet": "Activer la Feuille de Sprites",
     "VISAGE.Editor.DAT.SheetImage": "Image de la Feuille",
     "VISAGE.Editor.DAT.SheetStyle": "Style de Formatage de la Feuille",
-    "VISAGE.Editor.DAT.SeparateIdle": "Image de Repos Séparée",
+    "VISAGE.Editor.DAT.SeparateIdle": "Image d'Inactivité Séparée",
 
     "_comment": "Updated to v5.5.0"
 }
