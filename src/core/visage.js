@@ -551,9 +551,23 @@ export class Visage {
                 inplace: false,
             });
 
-            // Sanitize and re-compose the token to maintain the illusion over the new base
+            // Sanitise and re-compose the token to maintain the illusion over the new base
             const cleanBase = VisageUtilities.extractVisualState(dirtyBase);
             await VisageComposer.compose(tokenDocument.object, null, cleanBase);
+
+            // Alert Sequencer to realign effects to the new physical matrix
+            if (VisageUtilities.hasSequencer) {
+                const updatedStack = tokenDocument.flags[MODULE_ID]?.activeStack || [];
+                const anticipatedState = VisageComposer.resolveTextureState(updatedStack, cleanBase);
+                const anticipatedDim = VisageComposer.resolveScale(updatedStack, cleanBase);
+                const compositeState = { ...anticipatedState, ...anticipatedDim };
+
+                for (const layer of updatedStack) {
+                    if (!layer.disabled) {
+                        VisageSequencer.refreshMatrix(tokenDocument.object, layer.id, compositeState);
+                    }
+                }
+            }
         }
     }
 
