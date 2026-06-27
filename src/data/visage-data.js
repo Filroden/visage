@@ -314,11 +314,19 @@ export class VisageData {
 
         // 1. Purify the raw database entry through the model to guarantee structural integrity
         const cleanData = new VisageDataModel(data).toObject();
+        const resolvedMode = cleanData.mode || (source === "local" ? "identity" : "overlay");
+
+        // If a Visage does not explicitly override the root scale, strip out
+        // any rogue texture scales inherited from older database schemas to prevent merge collisions.
+        if (cleanData.changes?.scale === null && cleanData.changes?.texture) {
+            cleanData.changes.texture.scaleX = null;
+            cleanData.changes.texture.scaleY = null;
+        }
 
         const layer = {
             id: cleanData.id,
             label: cleanData.label,
-            mode: cleanData.mode || (source === "local" ? "identity" : "overlay"),
+            mode: resolvedMode,
             source: source,
             changes: cleanData.changes,
             automation: cleanData.automation,

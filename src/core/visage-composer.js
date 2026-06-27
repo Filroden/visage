@@ -50,9 +50,8 @@ export class VisageComposer {
             [`flags.${MODULE_ID}.originalState`]: base,
         };
 
-        delete updateData.effects; // Sanity check
+        delete updateData.effects;
         if (updateData.flags) delete updateData.flags;
-
         if (finalData.light) updateData.light = finalData.light;
 
         // Dylan's Automated Tokens compatibility
@@ -315,5 +314,42 @@ export class VisageComposer {
             width: width ?? originalState?.width ?? 1,
             height: height ?? originalState?.height ?? 1,
         };
+    }
+
+    /**
+     * Analyzes the active stack and returns an array of property paths
+     * that are currently being actively overridden by Visage layers.
+     * @param {Array<Object>} stack - The active Visage stack.
+     * @returns {Array<string>} List of flattened property keys.
+     */
+    static getOverriddenKeys(stack) {
+        const keys = new Set();
+        for (const layer of stack) {
+            if (layer.disabled) continue;
+            const c = layer.changes || {};
+
+            if (c.texture?.src != null) keys.add("texture.src");
+            if (c.texture?.anchorX != null) keys.add("texture.anchorX");
+            if (c.texture?.anchorY != null) keys.add("texture.anchorY");
+
+            // If scale is explicitly controlled, claim the axis properties
+            if (c.scale != null) {
+                keys.add("texture.scaleX");
+                keys.add("texture.scaleY");
+            }
+            if (c.mirrorX != null) keys.add("texture.scaleX");
+            if (c.mirrorY != null) keys.add("texture.scaleY");
+
+            if (c.disposition != null) keys.add("disposition");
+            if (c.name != null) keys.add("name");
+            if (c.width != null) keys.add("width");
+            if (c.height != null) keys.add("height");
+            if (c.depth != null) keys.add("depth");
+            if (c.alpha != null) keys.add("alpha");
+            if (c.lockRotation != null) keys.add("lockRotation");
+            if (c.ring?.enabled) keys.add("ring");
+            if (c.light?.active) keys.add("light");
+        }
+        return Array.from(keys);
     }
 }

@@ -725,9 +725,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._syncRingState(formData);
         this._syncAutomationState(formData);
 
-        // --- ENFORCE DAT ACTIVE STATE ---
+        // ENFORCE DAT ACTIVE STATE
         if (!formData.dat_active && formData.flags?.["dylans-animated-tokens"]) {
             delete formData.flags["dylans-animated-tokens"];
+        }
+
+        // Retrieve the preserved texture state to avoid destroying hidden scales/flips
+        const preservedTexture = this._preservedData?.changes?.texture || {};
+        const rootScale = formData.scale !== undefined && formData.scale !== "" && formData.scale !== null ? Number(formData.scale) / 100 : null;
+
+        const texturePayload = {
+            ...preservedTexture, // Preserve native scales if they exist
+            src: formData.img_active ? formData.img : null,
+            anchorX: formData.anchor_active && formData.anchorX !== "" && !Number.isNaN(Number.parseFloat(formData.anchorX)) ? Number.parseFloat(formData.anchorX) : null,
+            anchorY: formData.anchor_active && formData.anchorY !== "" && !Number.isNaN(Number.parseFloat(formData.anchorY)) ? Number.parseFloat(formData.anchorY) : null,
+            scaleX: rootScale === null ? null : (preservedTexture.scaleX ?? 1),
+            scaleY: rootScale === null ? null : (preservedTexture.scaleY ?? 1),
+        };
+
+        // Aggressive cleanup: if saving as an Overlay without a root scale, eradicate the background texture scales
+        if (formData.mode === "overlay" && rootScale === null) {
+            texturePayload.scaleX = null;
+            texturePayload.scaleY = null;
         }
 
         // 2. Assemble the raw payload matching the DataModel's root structure
@@ -741,13 +760,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             automation: this._automationData,
             changes: {
                 ...formData,
-                scale: formData.scale !== undefined && formData.scale !== "" && formData.scale !== null ? Number(formData.scale) / 100 : null,
+                scale: rootScale,
                 alpha: formData.alpha !== undefined && formData.alpha !== "" && formData.alpha !== null ? Number(formData.alpha) / 100 : null,
-                texture: {
-                    src: formData.img_active ? formData.img : null,
-                    anchorX: formData.anchor_active && formData.anchorX !== "" && !Number.isNaN(Number.parseFloat(formData.anchorX)) ? Number.parseFloat(formData.anchorX) : null,
-                    anchorY: formData.anchor_active && formData.anchorY !== "" && !Number.isNaN(Number.parseFloat(formData.anchorY)) ? Number.parseFloat(formData.anchorY) : null,
-                },
+                texture: texturePayload,
                 mirrorX: formData.isFlippedX === undefined || formData.isFlippedX === "" ? null : formData.isFlippedX === "true",
                 mirrorY: formData.isFlippedY === undefined || formData.isFlippedY === "" ? null : formData.isFlippedY === "true",
                 lockRotation: formData.lockRotation === undefined || formData.lockRotation === "" ? null : formData.lockRotation === "true",
