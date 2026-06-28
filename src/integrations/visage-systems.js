@@ -30,32 +30,32 @@ export class VisageSystems {
      */
     static _handlePF2E(finalData, base, context) {
         // 1. Dimensions
-        // Use nullish coalescing to ensure undefined values are treated as default (1)
         const baseWidth = base.width ?? 1;
         const baseHeight = base.height ?? 1;
 
-        // If finalData lacks the key, it implies no change, so we default to the base value
         const finalWidth = finalData.width ?? baseWidth;
         const finalHeight = finalData.height ?? baseHeight;
 
         const modifiesDimensions = finalWidth !== baseWidth || finalHeight !== baseHeight;
 
         // 2. Scale
-        // Compare the Composer's calculated scale (context) against the Base state
         const baseScaleX = base.texture?.scaleX ?? 1;
         const baseScaleY = base.texture?.scaleY ?? 1;
 
-        // Direct comparison (Assuming consistent data types from the Composer)
-        const modifiesScale = context.scaleX !== baseScaleX || context.scaleY !== baseScaleY;
+        // Use a floating-point tolerance to prevent JS math discrepancies
+        const modifiesScale = Math.abs(context.scaleX - baseScaleX) > 0.001 || Math.abs(context.scaleY - baseScaleY) > 0.001;
 
         // 3. Apply Flags
         if (modifiesDimensions || modifiesScale) {
             finalData["flags.pf2e.linkToActorSize"] = false;
             finalData["flags.pf2e.autoscale"] = false;
-        } else {
-            // Restore the lock if values match the base state
-            finalData["flags.pf2e.linkToActorSize"] = true;
-            finalData["flags.pf2e.autoscale"] = true;
+        } else if (base.flags?.pf2e) {
+            if (base.flags.pf2e.linkToActorSize !== undefined) {
+                finalData["flags.pf2e.linkToActorSize"] = base.flags.pf2e.linkToActorSize;
+            }
+            if (base.flags.pf2e.autoscale !== undefined) {
+                finalData["flags.pf2e.autoscale"] = base.flags.pf2e.autoscale;
+            }
         }
     }
 }

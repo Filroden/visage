@@ -307,7 +307,7 @@ export class VisageData {
      * Guarantees shape via DataModel, resolves wildcards, and prepares for canvas application.
      * @param {Object} data - The stored Visage data.
      * @param {string} [source="unknown"] - The source type ('local' or 'global').
-     * @returns {Promise<Object|null>} The sanitized runtime Layer object.
+     * @returns {Promise<Object|null>} The sanitised runtime Layer object.
      */
     static async toLayer(data, source = "unknown") {
         if (!data) return null;
