@@ -34,7 +34,20 @@ export class VisageComposer {
             return this.revertToDefault(token.document);
         }
 
-        const base = baseOverride ?? allFlags.originalState ?? VisageUtilities.extractVisualState(token.document);
+        let base = baseOverride ?? allFlags.originalState;
+
+        if (!base) {
+            base = VisageUtilities.extractVisualState(token.document);
+
+            // Explicitly snapshot PF2E linkage flags so they can be perfectly restored
+            if (game.system.id === "pf2e") {
+                base.flags = base.flags || {};
+                base.flags.pf2e = {
+                    linkToActorSize: token.document.getFlag("pf2e", "linkToActorSize"),
+                    autoscale: token.document.getFlag("pf2e", "autoscale"),
+                };
+            }
+        }
 
         // 2. Calculate the single composite state
         const state = this._calculateCompositeState(base, currentStack);
