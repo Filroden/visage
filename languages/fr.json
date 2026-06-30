@@ -540,6 +540,22 @@
     "VISAGE.Editor.DAT.SheetImage": "Image de la Feuille",
     "VISAGE.Editor.DAT.SheetStyle": "Style de Formatage de la Feuille",
     "VISAGE.Editor.DAT.SeparateIdle": "Image d'Inactivité Séparée",
+    "VISAGE.Settings.SanitizeSelected.Name": "Nettoyer les Lumières des Pions Sélectionnés",
+    "VISAGE.Settings.SanitizeSelected.Hint": "Analyse les pions actuellement sélectionnés, réinitialise leurs schémas de lumière de base aux valeurs par défaut de Foundry, et efface tout instantané Visage corrompu des paramètres de lumière.",
+    "VISAGE.Settings.SanitizeSelected.Label": "Nettoyer la Sélection",
+    "VISAGE.Settings.SanitizeWorld.Name": "Nettoyer TOUTES les Lumières des Pions",
+    "VISAGE.Settings.SanitizeWorld.Hint": "Analyse CHAQUE pion de TOUTES les scènes et du Répertoire des Acteurs, réinitialise leurs schémas de lumière de base aux valeurs par défaut de Foundry, et efface tout instantané Visage corrompu des paramètres de lumière.",
+    "VISAGE.Settings.SanitizeWorld.Label": "Nettoyer le Monde",
+    "VISAGE.Notifications.SanitizeSelectWarning": "Veuillez sélectionner au moins un pion à nettoyer.",
+    "VISAGE.Notifications.SanitizeSelectedSuccess": "Les paramètres de lumière ont été réinitialisés aux valeurs par défaut de Foundry avec succès pour {successCount} pion(s). ({skippedCount} déjà propre(s)).",
+    "VISAGE.Notifications.SanitizeSelectedClean": "Les {skippedCount} pion(s) sélectionné(s) sont déjà propres.",
+    "VISAGE.Notifications.SanitizeWorldStart": "Démarrage du nettoyage des lumières à l'échelle du monde...",
+    "VISAGE.Notifications.SanitizeWorldSuccess": "Les paramètres de lumière ont été réinitialisés aux valeurs par défaut de Foundry avec succès pour {successCount} pion(s) dans le monde. ({skippedCount} étaient déjà propres).",
+    "VISAGE.Notifications.SanitizeWorldClean": "Les {skippedCount} pion(s) analysé(s) dans le monde sont déjà propres.",
+    "VISAGE.Dialog.SanitizeSelected.Title": "Nettoyer les Lumières des Pions Sélectionnés",
+    "VISAGE.Dialog.SanitizeSelected.Content": "<p>Cela réinitialisera complètement les paramètres de lumière des pions sélectionnés sur le schéma par défaut de Foundry et effacera leurs instantanés de lumière Visage.</p><p>Êtes-vous sûr ?</p>",
+    "VISAGE.Dialog.SanitizeWorld.Title": "Nettoyer TOUTES les Lumières des Pions",
+    "VISAGE.Dialog.SanitizeWorld.Content": "<p>Cela réinitialisera complètement les paramètres de lumière de <strong>TOUS les pions à travers TOUTES les scènes et le Répertoire des Acteurs</strong> sur le schéma par défaut, et effacera tous les instantanés de lumière Visage persistants.</p><p>Cette action ne peut pas être annulée. Êtes-vous sûr ?</p>",
 
-    "_comment": "Updated to v5.5.0"
+    "_comment": "Updated to v5.5.1"
 }

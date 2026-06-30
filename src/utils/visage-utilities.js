@@ -275,10 +275,10 @@ export class VisageUtilities {
 
     /**
      * Captures the current visual properties of a token document or a plain data object.
-     * Extracts the raw properties and passes them through the DataModel to guarantee
-     * a perfectly sanitized v3 schema with correct fallbacks.
+     * Extracts the raw properties directly to guarantee perfect fidelity of core Foundry
+     * properties that are not tracked in the strict Visage mask schema.
      * @param {TokenDocument|Object} data - The token document or data object to inspect.
-     * @returns {Object} A standardized visual state object ready to be saved as a Visage.
+     * @returns {Object} A standardised visual state object ready to be saved as a Visage.
      */
     static extractVisualState(data) {
         if (!data) return {};
@@ -295,22 +295,22 @@ export class VisageUtilities {
             if (actor) portrait = actor.img;
         }
 
-        // Gather raw properties directly from the source Document
+        // Gather raw properties directly from the source Document with safe fallbacks
         const rawChanges = {
             name: get("name"),
             displayName: get("displayName"),
             disposition: get("disposition"),
-            width: get("width"),
-            height: get("height"),
-            depth: get("depth"),
-            alpha: get("alpha"),
-            lockRotation: get("lockRotation"),
+            width: get("width") ?? 1,
+            height: get("height") ?? 1,
+            depth: get("depth") ?? 1,
+            alpha: get("alpha") ?? 1,
+            lockRotation: get("lockRotation") ?? false,
             texture: {
                 src: get("texture.src"),
-                scaleX: get("texture.scaleX"),
-                scaleY: get("texture.scaleY"),
-                anchorX: get("texture.anchorX"),
-                anchorY: get("texture.anchorY"),
+                scaleX: get("texture.scaleX") ?? 1,
+                scaleY: get("texture.scaleY") ?? 1,
+                anchorX: get("texture.anchorX") ?? 0.5,
+                anchorY: get("texture.anchorY") ?? 0.5,
             },
             ring: source.ring?.toObject?.() ?? source.ring ?? {},
             light: source.light?.toObject?.() ?? source.light ?? {},
@@ -326,9 +326,9 @@ export class VisageUtilities {
             rawChanges.flags["dylans-animated-tokens"] = datState;
         }
 
-        // Pass through the schema to enforce defaults (e.g. scales to 1, anchors to 0.5)
-        const model = new VisageDataModel({ changes: rawChanges });
-        return model.toObject().changes;
+        // Return the raw snapshot directly to protect core properties
+        // bypassed from the strict DataModel schema.
+        return rawChanges;
     }
 
     /**

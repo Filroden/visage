@@ -17,5 +17,15 @@
     "_comment_V5_3_KEYS": "--- V5.3 KEYS ---",
     "VISAGE.Editor.Effects.Tint": "Tint Colour",
 
-    "_comment": "Updated to v5.4.0"
+    "_comment_V5_5_KEYS": "--- V5.5 KEYS ---",
+    "VISAGE.Settings.SanitizeSelected.Name": "Sanitise Selected Token Lights",
+    "VISAGE.Settings.SanitizeSelected.Label": "Sanitise Selected",
+    "VISAGE.Settings.SanitizeWorld.Name": "Sanitise ALL Token Lights",
+    "VISAGE.Settings.SanitizeWorld.Label": "Sanitise World",
+    "VISAGE.Notifications.SanitizeSelectWarning": "Please select at least one token to sanitise.",
+    "VISAGE.Notifications.SanitizeWorldStart": "Starting world-wide light sanitisation...",
+    "VISAGE.Dialog.SanitizeSelected.Title": "Sanitise Selected Token Lights",
+    "VISAGE.Dialog.SanitizeWorld.Title": "Sanitise ALL Token Lights",
+
+    "_comment": "Updated to v5.5.1"
 }
