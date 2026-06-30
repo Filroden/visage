@@ -316,13 +316,6 @@ export class VisageData {
         const cleanData = new VisageDataModel(data).toObject();
         const resolvedMode = cleanData.mode || (source === "local" ? "identity" : "overlay");
 
-        // If a Visage does not explicitly override the root scale, strip out
-        // any rogue texture scales inherited from older database schemas to prevent merge collisions.
-        if (cleanData.changes?.scale === null && cleanData.changes?.texture) {
-            cleanData.changes.texture.scaleX = null;
-            cleanData.changes.texture.scaleY = null;
-        }
-
         const layer = {
             id: cleanData.id,
             label: cleanData.label,
@@ -845,10 +838,13 @@ export class VisageData {
         // 2. Prepare new default data by merging the target into the current state
         const newDefaultData = foundry.utils.mergeObject(foundry.utils.deepClone(currentDefault), foundry.utils.deepClone(targetVisage), { inplace: false, insertKeys: true, overwrite: true });
 
-        // 3. Leverage the DataModel to extract exact database payloads
+        // 3. Leverage the DataModel to validate and sanitize the merged data
         const commitModel = new VisageDataModel(newDefaultData);
-        const tokenUpdatePayload = commitModel.getTokenPayload();
-        const actorUpdatePayload = commitModel.getActorPayload();
+        const cleanData = commitModel.toObject();
+
+        // Build payloads using the controller's internal translators
+        const tokenUpdatePayload = this._buildTokenPayload(cleanData);
+        const actorUpdatePayload = this._buildActorPayload(cleanData);
 
         // 4. Apply Updates
         await token.document.update(tokenUpdatePayload);
@@ -914,5 +910,54 @@ export class VisageData {
         }
 
         if (dirty) await game.settings.set(MODULE_ID, this.SETTING_KEY, all);
+    }
+
+    // ==========================================
+    // 6. PAYLOAD GENERATORS
+    // ==========================================
+
+    /**
+     * Translates atomic Visage data into a flat payload ready for Token.update()
+     * @private
+     */
+    static _buildTokenPayload(cleanData) {
+        const c = cleanData.changes;
+        const payload = {};
+
+        // A. Handle simple root properties
+        const rootKeys = ["name", "width", "height", "depth", "alpha", "lockRotation", "disposition", "ring", "light", "effects"];
+        for (const key of rootKeys) {
+            if (c[key] !== null) payload[key] = c[key];
+        }
+
+        // B. Handle basic texture properties
+        const texKeys = ["src", "anchorX", "anchorY"];
+        for (const key of texKeys) {
+            if (c.texture?.[key] !== null) {
+                payload[`texture.${key}`] = c.texture[key];
+            }
+        }
+
+        // C. Translate Atomic Scale & Mirroring into Foundry's composite syntax
+        const scale = c.scale ?? 1;
+        const signX = c.mirrorX ? -1 : 1;
+        const signY = c.mirrorY ? -1 : 1;
+
+        payload["texture.scaleX"] = scale * signX;
+        payload["texture.scaleY"] = scale * signY;
+
+        return payload;
+    }
+
+    /**
+     * Extracts properties destined for an Actor Document update.
+     * @private
+     */
+    static _buildActorPayload(cleanData) {
+        const payload = {};
+        if (cleanData.changes?.portrait) {
+            payload.img = cleanData.changes.portrait;
+        }
+        return payload;
     }
 }

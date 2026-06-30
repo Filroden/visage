@@ -617,5 +617,25 @@
     "VISAGE.Editor.DAT.SpriteSheet": "Enable Sprite Sheet",
     "VISAGE.Editor.DAT.SheetImage": "Sheet Image",
     "VISAGE.Editor.DAT.SheetStyle": "Sheet Formatting Style",
-    "VISAGE.Editor.DAT.SeparateIdle": "Separate Idle Frame"
+    "VISAGE.Editor.DAT.SeparateIdle": "Separate Idle Frame",
+
+    "VISAGE.Settings.SanitizeSelected.Name": "Sanitize Selected Token Lights",
+    "VISAGE.Settings.SanitizeSelected.Hint": "Scans the currently selected tokens, resets their base light schemas to Foundry default values, and clears any broken Visage snapshots of light settings.",
+    "VISAGE.Settings.SanitizeSelected.Label": "Sanitize Selected",
+
+    "VISAGE.Settings.SanitizeWorld.Name": "Sanitize ALL Token Lights",
+    "VISAGE.Settings.SanitizeWorld.Hint": "Scans EVERY token across ALL scenes and the Actor Directory, resets their base light schemas to Foundry default values, and clears any broken Visage snapshots of light settings.",
+    "VISAGE.Settings.SanitizeWorld.Label": "Sanitize World",
+
+    "VISAGE.Notifications.SanitizeSelectWarning": "Please select at least one token to sanitize.",
+    "VISAGE.Notifications.SanitizeSelectedSuccess": "Successfully reset light settings to Foundry defaults for {successCount} token(s). ({skippedCount} already clean).",
+    "VISAGE.Notifications.SanitizeSelectedClean": "All {skippedCount} selected token(s) are already clean.",
+    "VISAGE.Notifications.SanitizeWorldStart": "Starting world-wide light sanitization...",
+    "VISAGE.Notifications.SanitizeWorldSuccess": "Successfully reset light settings to Foundry defaults for {successCount} token(s) world-wide. ({skippedCount} were already clean).",
+    "VISAGE.Notifications.SanitizeWorldClean": "All {skippedCount} scanned token(s) world-wide are already clean.",
+
+    "VISAGE.Dialog.SanitizeSelected.Title": "Sanitize Selected Token Lights",
+    "VISAGE.Dialog.SanitizeSelected.Content": "<p>This will completely reset the light settings of the selected tokens to the Foundry default schema and clear their Visage light snapshots.</p><p>Are you sure?</p>",
+    "VISAGE.Dialog.SanitizeWorld.Title": "Sanitize ALL Token Lights",
+    "VISAGE.Dialog.SanitizeWorld.Content": "<p>This will completely reset the light settings of <strong>ALL tokens across ALL scenes and the Actor Directory</strong> to the default schema, and clear any lingering Visage light snapshots.</p><p>This action cannot be undone. Are you sure?</p>"
 }

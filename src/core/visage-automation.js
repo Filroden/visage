@@ -251,7 +251,7 @@ export class VisageAutomation {
             clearTimeout(this._evaluationQueue.get(tokenDoc.id));
         }
 
-        // 2. Set a rapid debounce. 50ms is enough to catch duplicate data packets
+        // 2. Set a rapid debounce. 250ms is enough to catch duplicate data packets
         // without introducing any human-perceptible input lag.
         const timeoutId = setTimeout(() => {
             this._evaluationQueue.delete(tokenDoc.id);
@@ -259,7 +259,7 @@ export class VisageAutomation {
             // Fetch the freshest canvas object and evaluate instantly
             const freshToken = canvas.tokens.get(tokenDoc.id);
             if (freshToken) this._evaluate(freshToken);
-        }, 50);
+        }, 250);
 
         this._evaluationQueue.set(tokenDoc.id, timeoutId);
     }

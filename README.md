@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-5.5.1-beta2-blue)
+![Latest Version](https://img.shields.io/badge/Version-5.5.1-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v14-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)

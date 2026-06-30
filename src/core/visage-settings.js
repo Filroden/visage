@@ -1,7 +1,7 @@
 import { MODULE_ID } from "./visage-constants.js";
 import { VisageSamples } from "../data/visage-samples.js";
 import { VisageUtilities } from "../utils/visage-utilities.js";
-import { cleanseSceneTokens, cleanseAllTokens } from "../data/visage-cleanup.js";
+import { cleanseSceneTokens, cleanseAllTokens, sanitizeSelectedTokensLight, sanitizeAllTokensLight } from "../data/visage-cleanup.js";
 import { migrateWorldData } from "../data/visage-migration.js";
 
 export class VisageSettings {
@@ -13,20 +13,6 @@ export class VisageSettings {
             icon: "visage-icon open",
             type: VisageSamples,
             restricted: true,
-        });
-
-        // Register Diagnostic Export Menu Button
-        game.settings.registerMenu(MODULE_ID, "exportDiagnostics", {
-            name: "VISAGE.Settings.ExportLog.Name",
-            hint: "VISAGE.Settings.ExportLog.Hint",
-            label: "VISAGE.Settings.ExportLog.Label",
-            type: class extends foundry.applications.api.ApplicationV2 {
-                render(_force, _options) {
-                    VisageUtilities.exportDiagnostics();
-                    return this;
-                }
-            },
-            restricted: false,
         });
 
         // --- Auto-Mapped Image Settings ---
@@ -111,6 +97,50 @@ export class VisageSettings {
             type: Boolean,
             default: false,
         });
+
+        // Diagnostic Tools
+        game.settings.registerMenu(MODULE_ID, "exportDiagnostics", {
+            name: "VISAGE.Settings.ExportLog.Name",
+            hint: "VISAGE.Settings.ExportLog.Hint",
+            label: "VISAGE.Settings.ExportLog.Label",
+            type: class extends foundry.applications.api.ApplicationV2 {
+                render(_force, _options) {
+                    VisageUtilities.exportDiagnostics();
+                    return this;
+                }
+            },
+            restricted: false,
+        });
+
+        // --- Diagnostic Tools ---
+
+        game.settings.registerMenu(MODULE_ID, "sanitizeSelectedLights", {
+            name: "VISAGE.Settings.SanitizeSelected.Name",
+            hint: "VISAGE.Settings.SanitizeSelected.Hint",
+            label: "VISAGE.Settings.SanitizeSelected.Label",
+            type: class extends foundry.applications.api.ApplicationV2 {
+                render(_force, _options) {
+                    sanitizeSelectedTokensLight();
+                    return this;
+                }
+            },
+            restricted: true,
+        });
+
+        game.settings.registerMenu(MODULE_ID, "sanitizeAllLights", {
+            name: "VISAGE.Settings.SanitizeWorld.Name",
+            hint: "VISAGE.Settings.SanitizeWorld.Hint",
+            label: "VISAGE.Settings.SanitizeWorld.Label",
+            type: class extends foundry.applications.api.ApplicationV2 {
+                render(_force, _options) {
+                    sanitizeAllTokensLight();
+                    return this;
+                }
+            },
+            restricted: true,
+        });
+
+        // Scene Cleansing Tools
 
         game.settings.register(MODULE_ID, "cleanseScene", {
             name: "VISAGE.Settings.CleanseScene.Name",

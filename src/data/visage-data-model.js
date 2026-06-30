@@ -100,8 +100,6 @@ export class VisageDataModel extends foundry.abstract.DataModel {
 
                 texture: new SchemaField({
                     src: new StringField({ required: false, nullable: true, label: "VISAGE.GlobalEditor.TokenImage" }),
-                    scaleX: new NumberField({ required: false, nullable: true, initial: null }),
-                    scaleY: new NumberField({ required: false, nullable: true, initial: null }),
                     anchorX: new NumberField({ required: false, nullable: true, initial: null, label: "VISAGE.Config.List.Anchor" }),
                     anchorY: new NumberField({ required: false, nullable: true, initial: null, label: "VISAGE.Config.List.Anchor" }),
                 }),
@@ -228,77 +226,5 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                 ),
             }),
         };
-    }
-
-    /**
-     * Extracts and formats the visual properties destined for a Token Document update.
-     * Safely applies Visage-specific scale overrides and ignores Actor-specific data.
-     *
-     * @returns {Object} A sanitised, flat payload ready for Token.update()
-     */
-    getTokenPayload() {
-        // Isolate the visual changes payload
-        const rawChanges = this.toObject().changes;
-        const payload = {};
-
-        // A. Handle simple root properties via a mapping array
-        const rootKeys = ["name", "width", "height", "depth", "alpha", "lockRotation", "disposition", "ring", "light", "effects"];
-
-        for (const key of rootKeys) {
-            if (rawChanges[key] !== null) payload[key] = rawChanges[key];
-        }
-
-        // B. Handle basic texture properties
-        const texKeys = ["src", "anchorX", "anchorY"];
-        for (const key of texKeys) {
-            if (rawChanges.texture[key] !== null) {
-                payload[`texture.${key}`] = rawChanges.texture[key];
-            }
-        }
-
-        // C. Handle Scale Override vs Native Fallback
-        this._applyScaleToPayload(rawChanges, payload);
-
-        return payload;
-    }
-
-    /**
-     * Extracts properties destined for an Actor Document update (e.g., prototype token updates or portraits).
-     *
-     * @returns {Object} A sanitised payload ready for Actor.update()
-     */
-    getActorPayload() {
-        const payload = {};
-
-        // Target the nested changes object
-        if (this.changes.portrait) {
-            payload.img = this.changes.portrait;
-        }
-
-        return payload;
-    }
-
-    /**
-     * Helper to process scale inheritance and atomic overrides.
-     * Extracts complexity to maintain low cognitive load metrics.
-     *
-     * @param {Object} rawChanges - The raw, validated changes object from the model.
-     * @param {Object} payload - The mutable payload object being constructed.
-     * @private
-     */
-    _applyScaleToPayload(raw, payload) {
-        // Fallback: No override exists, pass the native values through
-        if (raw.scale === null) {
-            if (raw.texture.scaleX !== null) payload["texture.scaleX"] = raw.texture.scaleX;
-            if (raw.texture.scaleY !== null) payload["texture.scaleY"] = raw.texture.scaleY;
-            return;
-        }
-
-        // Override: Apply the custom Visage scalar while preserving the native mirror signs
-        const signX = raw.texture.scaleX < 0 ? -1 : 1;
-        const signY = raw.texture.scaleY < 0 ? -1 : 1;
-
-        payload["texture.scaleX"] = raw.scale * signX;
-        payload["texture.scaleY"] = raw.scale * signY;
     }
 }
