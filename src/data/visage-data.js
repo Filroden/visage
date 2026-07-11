@@ -95,6 +95,7 @@ export class VisageData {
                     mode: data.mode || "identity",
                     changes: foundry.utils.deepClone(data.changes),
                     automation: data.automation ? foundry.utils.deepClone(data.automation) : undefined,
+                    updated: data.updated,
                     deleted: !!data.deleted,
                 });
             }
@@ -323,6 +324,7 @@ export class VisageData {
             source: source,
             changes: cleanData.changes,
             automation: cleanData.automation,
+            updated: cleanData.updated,
         };
 
         // 2. Resolve Wildcard Paths

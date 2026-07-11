@@ -314,16 +314,11 @@ export class VisageAutomation {
         const activeInstance = activeStack.find((v) => v.id === visage.id);
         if (!activeInstance) return false;
 
-        // 1. Timestamp validation (if preserved by the API)
-        if (visage.updated && activeInstance.updated && visage.updated > activeInstance.updated) {
-            return true;
+        if (visage.updated && activeInstance.updated) {
+            return visage.updated > activeInstance.updated;
         }
 
-        // 2. Data signature fallback (if timestamps are stripped)
-        const freshSig = JSON.stringify(visage.changes || {});
-        const activeSig = JSON.stringify(activeInstance.changes || {});
-
-        return freshSig !== activeSig;
+        return false;
     }
 
     /**
@@ -395,12 +390,12 @@ export class VisageAutomation {
         if (isTrue && (!isActive || needsRefresh)) {
             const action = auto.onEnter?.action || "apply";
             if (queue[action]) queue[action].push(visage);
-        } else if (!isTrue && isActive) {
+            return;
+        }
+
+        if (!isTrue && isActive) {
             const action = auto.onExit?.action || "remove";
             if (queue[action]) queue[action].push(visage);
-        } else if (isTrue && isActive && visage.mode === "identity") {
-            const action = auto.onEnter?.action || "apply";
-            if (action === "apply" && queue.apply) queue.apply.push(visage);
         }
     }
 
