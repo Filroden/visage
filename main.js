@@ -18,7 +18,7 @@ import { VisageSequencer } from "./src/integrations/visage-sequencer.js";
 import { VisageAutomation } from "./src/core/visage-automation.js";
 import { VisageMassEdit } from "./src/integrations/visage-mass-edit.js";
 import { VisageSettings } from "./src/core/visage-settings.js";
-import { VisageComposer } from "./src/core/visage-composer.js";
+import { VisageInterceptor } from "./src/core/visage-interceptor.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -398,8 +398,8 @@ Hooks.on("closeTokenConfig", (app) => {
 Hooks.on("renderTokenHUD", handleTokenHUD);
 
 // Monitor token updates to capture default state changes or maintain Visage persistence
-Hooks.on("updateToken", (document, change, options, userId) => {
-    Visage.handleTokenUpdate(document, change, options, userId);
+Hooks.on("preUpdateToken", (document, change, options, userId) => {
+    VisageInterceptor.handlePreUpdate(document, change, options, userId);
 });
 
 /* -------------------------------------------- */
