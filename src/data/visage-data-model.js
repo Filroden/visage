@@ -8,6 +8,60 @@ const { StringField, NumberField, BooleanField, ObjectField, ArrayField, SchemaF
  * @extends {foundry.abstract.DataModel}
  */
 export class VisageDataModel extends foundry.abstract.DataModel {
+    /**
+     * The explicit whitelist of flattened properties that Visage actively intercepts
+     * to maintain dynamic visual authority over third-party updates.
+     */
+    static CONTROLLED_KEYS = [
+        "name",
+        "width",
+        "height",
+        "depth",
+        "alpha",
+        "lockRotation",
+        "animateTransition",
+        "disposition",
+
+        // Texture Properties
+        "texture.src",
+        "texture.scaleX",
+        "texture.scaleY",
+        "texture.anchorX",
+        "texture.anchorY",
+
+        // Dynamic Ring Properties
+        "ring.enabled",
+        "ring.colors.ring",
+        "ring.colors.background",
+        "ring.subject.texture",
+        "ring.subject.scale",
+        "ring.effects",
+
+        // Light Properties
+        "light.dim",
+        "light.bright",
+        "light.color",
+        "light.alpha",
+        "light.angle",
+        "light.luminosity",
+        "light.priority",
+        "light.animation.type",
+        "light.animation.speed",
+        "light.animation.intensity",
+
+        // Third-Party Integrations
+        "flags.dylans-animated-tokens.spritesheet",
+        "flags.dylans-animated-tokens.sheetstyle",
+        "flags.dylans-animated-tokens.separateidle",
+        "flags.dylans-animated-tokens.sheetsrc",
+        "flags.dylans-animated-tokens.animationframes",
+        "flags.dylans-animated-tokens.noidle",
+        "flags.dylans-animated-tokens.dirorder",
+        "flags.dylans-animated-tokens.animlist",
+        "flags.dylans-animated-tokens.unlockedanchor",
+        "flags.dylans-animated-tokens.unlockedfit",
+    ];
+
     // 1. Define the Unified Schema (Everything a Visage represents)
     static defineSchema() {
         return {

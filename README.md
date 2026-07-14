@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-5.5.2-blue)
+![Latest Version](https://img.shields.io/badge/Version-5.6.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v14-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -72,11 +72,23 @@ Visage was built with User Experience in mind, offering three distinct tools:
 
    ![Visage Selector HUD](https://github.com/Filroden/visage/blob/main/images/visage_selector_hud.png)
 
-## Documentation & How-To Guides
+### Compatibility and Interaction with Other Modules
+
+Visage is built with a "Dynamic Pass-Through" architecture, meaning it plays nicely with other modules that alter the same appearance properties of the token as Visage (e.g., size, scale, or lighting).
+
+However, Visage acts as the ultimate visual authority for the properties it controls. If a conflict occurs, active Visages always win.
+
+- **If an active Visage controls a property:** (e.g., a "Giant" mask changes the token size to 3). If another module tries to shrink the token, the token will visually remain at width 3. The new size is safely saved in the background, but the Visage mask takes visual priority. When the Visage is removed, the token will correctly reveal its new, shrunken size.
+
+- **If an active Visage ignores a property:** (e.g., a "Ghost" mask that only changes opacity). If another module changes the token's size, Visage will let that size change pass through to the canvas while keeping the token transparent.
+
+If a token's appearance does not update the way you would expect when a spell or macro is used, check if an active Visage is suppressing the change. Simply remove or toggle the visibility of the Visage to reveal the token's true base state.
+
+## Documentation and How-To Guides
 
 Visage is a powerful tool with a lot of depth. For full tutorials, macro API documentation, and setup guides, **[please visit the Visage Wiki](https://github.com/Filroden/visage/wiki)**.
 
-## Troubleshooting & Bug Reports
+## Troubleshooting and Bug Reports
 
 If you encounter an issue, please use the **Export Diagnostic Log** button located in the Visage module settings. This will download a JSON file containing your environment details and token state, which you can attach to your bug report to help me fix it faster.
 

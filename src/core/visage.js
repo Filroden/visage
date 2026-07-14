@@ -501,66 +501,6 @@ export class Visage {
     }
 
     /**
-     * Monitors standard Token updates to maintain Visage persistence.
-     * Intercepts core Foundry updates to apply Ghost Edits, or triggers
-     * Sequencer matrix refreshes when the physical token dimensions change.
-     */
-    static async handleTokenUpdate(tokenDocument, change, options, userId) {
-        if (options.visageUpdate) return;
-        if (game.user.id !== userId) return;
-        if (!tokenDocument.object) return;
-
-        const flatChange = foundry.utils.flattenObject(change);
-        if ("hidden" in flatChange) return;
-
-        // 1. Ghost Edit & Visual Authority Logic
-        const flags = tokenDocument.flags[MODULE_ID] || {};
-        const stack = flags.activeStack || flags.stack || [];
-
-        if (stack.length > 0) {
-            this._queueTask(tokenDocument.id, async () => {
-                const overriddenKeys = VisageComposer.getOverriddenKeys(stack);
-                const sanitizedChange = { ...flatChange };
-                let enforcesRecomposition = false;
-
-                // Strip properties that Visage actively controls to protect the base state
-                for (const key of Object.keys(sanitizedChange)) {
-                    const isOverridden = overriddenKeys.some((ok) => key === ok || key.startsWith(ok + "."));
-                    if (isOverridden) {
-                        delete sanitizedChange[key];
-                        enforcesRecomposition = true; // External module tampered with Visage's domain
-                    }
-                }
-
-                const ghostKeys = ["name", "displayName", "disposition", "width", "height", "depth", "texture", "ring", "texture.anchorX", "texture.anchorY", "alpha", "lockRotation", "light"];
-                const hasValidGhostKeys = Object.keys(sanitizedChange).some((key) => ghostKeys.some((rk) => key === rk || key.startsWith(rk + ".")));
-
-                if (hasValidGhostKeys) {
-                    let base = flags.originalState;
-                    if (!base) base = VisageUtilities.extractVisualState(tokenDocument);
-
-                    const expandedChange = foundry.utils.expandObject(sanitizedChange);
-                    const dirtyBase = foundry.utils.mergeObject(base, expandedChange, { insertKeys: true, inplace: false });
-                    const cleanBase = VisageUtilities.extractVisualState(dirtyBase);
-
-                    await VisageComposer.compose(tokenDocument.object, null, cleanBase);
-                } else if (enforcesRecomposition) {
-                    // Re-assert Visage's visual authority if a module bypassed the UI
-                    await VisageComposer.compose(tokenDocument.object);
-                }
-            });
-        }
-
-        // 2. Physical Matrix Processing (Sequencer Alignment)
-        const physicalKeys = new Set(["texture.scaleX", "texture.scaleY", "width", "height"]);
-        const isPhysicalChange = Object.keys(flatChange).some((k) => physicalKeys.has(k));
-
-        if (isPhysicalChange && VisageUtilities.hasSequencer) {
-            this._queuePhysicalMatrixRefresh(tokenDocument);
-        }
-    }
-
-    /**
      * Debounces and executes a physical matrix refresh for Sequencer effects.
      * Waits for the canvas ticker to redraw the PIXI mesh before recalculating offsets.
      * @param {TokenDocument} tokenDocument - The document being updated.
