@@ -1,0 +1,14 @@
+name: Trigger Portfolio Rebuild
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # This specifically aborts the job if the release is marked as a pre-release
+    if: github.event.release.prerelease == false 
+    steps:
+      - name: Ping Cloudflare Pages
+        run: curl -X POST "${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}"
