@@ -408,6 +408,7 @@ export class VisageData {
                     scaleY: Math.abs(scaleY) * (scaleY < 0 ? -1 : 1),
                     anchorX: sourceData.texture?.anchorX ?? 0.5,
                     anchorY: sourceData.texture?.anchorY ?? 0.5,
+                    fit: sourceData.texture?.fit ?? "contain",
                 },
                 width: sourceData.width ?? 1,
                 height: sourceData.height ?? 1,
@@ -933,7 +934,7 @@ export class VisageData {
         }
 
         // B. Handle basic texture properties
-        const texKeys = ["src", "anchorX", "anchorY"];
+        const texKeys = ["src", "anchorX", "anchorY", "fit"];
         for (const key of texKeys) {
             if (c.texture?.[key] !== null) {
                 payload[`texture.${key}`] = c.texture[key];

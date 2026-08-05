@@ -273,6 +273,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 x: c.texture?.anchorX ?? 0.5,
                 y: c.texture?.anchorY ?? 0.5,
             },
+            fitOptions: this._getFitOptions(),
+            fit: prep(c.texture?.fit, "contain"),
             isFlippedX: { value: c.mirrorX, active: c.mirrorX != null },
             isFlippedY: { value: c.mirrorY, active: c.mirrorY != null },
             alpha: {
@@ -739,6 +741,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             src: formData.img_active ? formData.img : null,
             anchorX: formData.anchor_active && formData.anchorX !== "" && !Number.isNaN(Number.parseFloat(formData.anchorX)) ? Number.parseFloat(formData.anchorX) : null,
             anchorY: formData.anchor_active && formData.anchorY !== "" && !Number.isNaN(Number.parseFloat(formData.anchorY)) ? Number.parseFloat(formData.anchorY) : null,
+            fit: formData.fit_active && formData.fit !== "" ? formData.fit : null,
             scaleX: rootScale === null ? null : (preservedTexture.scaleX ?? 1),
             scaleY: rootScale === null ? null : (preservedTexture.scaleY ?? 1),
         };
@@ -2237,5 +2240,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (offsetY !== 0) topPct += offsetY * 100 * (flipY ? -1 : 1);
 
         return `position: absolute; margin: 0; top: ${topPct}%; left: ${leftPct}%; transform: translate(-50%, -50%) rotate(${rotation}deg) scale(${scale});`;
+    }
+
+    _getFitOptions() {
+        return {
+            contain: game.i18n.localize("VISAGE.Fit.Contain"),
+            cover: game.i18n.localize("VISAGE.Fit.Cover"),
+            fill: game.i18n.localize("VISAGE.Fit.Fill"),
+            width: game.i18n.localize("VISAGE.Fit.Width"),
+            height: game.i18n.localize("VISAGE.Fit.Height"),
+        };
     }
 }
