@@ -1,5 +1,4 @@
 import { MODULE_ID } from "../core/visage-constants.js";
-import { VisageDataModel } from "../data/visage-data-model.js";
 import { VisageDAT } from "../integrations/visage-dat.js";
 
 /**

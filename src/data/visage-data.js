@@ -290,7 +290,7 @@ export class VisageData {
             const footer = game.i18n.localize("VISAGE.Notifications.SaveReview");
 
             // UX Sanitisation: Strip out the technical Foundry prefix and the JSON formatting, leaving only the human-readable list of validation errors
-            const cleanMessage = foundryError.message.replaceAll(/\[.*\] validation errors:.*?\n/g, "").trim();
+            const cleanMessage = foundryError.message.split("validation errors:").pop().trim();
 
             // Throw a standard Error using the beautifully formatted plain-text message
             throw new Error(`${header}\n${cleanMessage}\n\n${footer}`);
