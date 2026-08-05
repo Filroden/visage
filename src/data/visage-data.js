@@ -290,7 +290,7 @@ export class VisageData {
             const footer = game.i18n.localize("VISAGE.Notifications.SaveReview");
 
             // UX Sanitisation: Strip out the technical Foundry prefix and the JSON formatting, leaving only the human-readable list of validation errors
-            const cleanMessage = foundryError.message.replaceAll(/\[.*\] validation errors:.*?\n/g, "").trim();
+            const cleanMessage = foundryError.message.split("validation errors:").pop().trim();
 
             // Throw a standard Error using the beautifully formatted plain-text message
             throw new Error(`${header}\n${cleanMessage}\n\n${footer}`);
@@ -408,6 +408,7 @@ export class VisageData {
                     scaleY: Math.abs(scaleY) * (scaleY < 0 ? -1 : 1),
                     anchorX: sourceData.texture?.anchorX ?? 0.5,
                     anchorY: sourceData.texture?.anchorY ?? 0.5,
+                    fit: sourceData.texture?.fit ?? "contain",
                 },
                 width: sourceData.width ?? 1,
                 height: sourceData.height ?? 1,
@@ -933,7 +934,7 @@ export class VisageData {
         }
 
         // B. Handle basic texture properties
-        const texKeys = ["src", "anchorX", "anchorY"];
+        const texKeys = ["src", "anchorX", "anchorY", "fit"];
         for (const key of texKeys) {
             if (c.texture?.[key] !== null) {
                 payload[`texture.${key}`] = c.texture[key];

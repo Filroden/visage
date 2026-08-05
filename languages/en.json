@@ -637,5 +637,13 @@
     "VISAGE.Dialog.SanitizeSelected.Title": "Sanitize Selected Token Lights",
     "VISAGE.Dialog.SanitizeSelected.Content": "<p>This will completely reset the light settings of the selected tokens to the Foundry default schema and clear their Visage light snapshots.</p><p>Are you sure?</p>",
     "VISAGE.Dialog.SanitizeWorld.Title": "Sanitize ALL Token Lights",
-    "VISAGE.Dialog.SanitizeWorld.Content": "<p>This will completely reset the light settings of <strong>ALL tokens across ALL scenes and the Actor Directory</strong> to the default schema, and clear any lingering Visage light snapshots.</p><p>This action cannot be undone. Are you sure?</p>"
+    "VISAGE.Dialog.SanitizeWorld.Content": "<p>This will completely reset the light settings of <strong>ALL tokens across ALL scenes and the Actor Directory</strong> to the default schema, and clear any lingering Visage light snapshots.</p><p>This action cannot be undone. Are you sure?</p>",
+
+    "_comment_V5_7_KEYS": "--- V5.7 KEYS ---",
+    "VISAGE.Config.List.Fit": "Image Fit Mode",
+    "VISAGE.Fit.Contain": "Contain",
+    "VISAGE.Fit.Cover": "Cover",
+    "VISAGE.Fit.Fill": "Fill",
+    "VISAGE.Fit.Width": "Full Width",
+    "VISAGE.Fit.Height": "Full Height"
 }

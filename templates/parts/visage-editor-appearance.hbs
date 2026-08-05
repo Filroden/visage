@@ -131,6 +131,19 @@
             </div>
         </fieldset>
 
+        {{! Image Fit Mode }}
+        <div class="form-group checkbox-input-group">
+            <input class="visage-checkbox" type="checkbox" name="fit_active" data-action="toggleField" data-target="fit" {{checked fit.active}} />
+            <label>{{localize "VISAGE.Config.List.Fit"}}</label>
+            <div class="visage-form-fields">
+                <select name="fit" {{disabled (not fit.active)}}>
+                    {{#each fitOptions as |label key|}}
+                        <option value="{{key}}" {{visageSelected (eq ../fit.value key)}}>{{label}}</option>
+                    {{/each}}
+                </select>
+            </div>
+        </div>
+
         {{! Scale }}
         <div class="form-group checkbox-input-group">
             <input class="visage-checkbox" type="checkbox" name="scale_active" data-action="toggleField" data-target="scale" {{checked scale.active}} />

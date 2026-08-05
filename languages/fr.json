@@ -557,5 +557,12 @@
     "VISAGE.Dialog.SanitizeWorld.Title": "Nettoyer TOUTES les Lumières des Pions",
     "VISAGE.Dialog.SanitizeWorld.Content": "<p>Cela réinitialisera complètement les paramètres de lumière de <strong>TOUS les pions à travers TOUTES les scènes et le Répertoire des Acteurs</strong> sur le schéma par défaut, et effacera tous les instantanés de lumière Visage persistants.</p><p>Cette action ne peut pas être annulée. Êtes-vous sûr ?</p>",
 
-    "_comment": "Updated to v5.5.1"
+    "VISAGE.Config.List.Fit": "Mode d'Ajustement de l'Image",
+    "VISAGE.Fit.Contain": "Contenir",
+    "VISAGE.Fit.Cover": "Couvrir",
+    "VISAGE.Fit.Fill": "Remplir",
+    "VISAGE.Fit.Width": "Pleine Largeur",
+    "VISAGE.Fit.Height": "Pleine Hauteur",
+
+    "_comment": "Updated to v5.7.0"
 }

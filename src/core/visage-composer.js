@@ -114,6 +114,7 @@ export class VisageComposer {
             mirrorY: (base.texture?.scaleY ?? 1) < 0,
             anchorX: base.texture?.anchorX ?? 0.5,
             anchorY: base.texture?.anchorY ?? 0.5,
+            fit: base.texture?.fit ?? "contain",
             finalData: foundry.utils.deepClone(base),
         };
 
@@ -137,6 +138,7 @@ export class VisageComposer {
         state.src = c.texture?.src || state.src;
         state.anchorX = c.texture?.anchorX ?? state.anchorX;
         state.anchorY = c.texture?.anchorY ?? state.anchorY;
+        state.fit = c.texture?.fit ?? state.fit;
         state.scaleX = c.scale ?? state.scaleX;
         state.scaleY = c.scale ?? state.scaleY;
         state.mirrorX = c.mirrorX ?? state.mirrorX;
@@ -182,6 +184,8 @@ export class VisageComposer {
         // Invert the physical anchor if the texture is mirrored so it remains inside the bounding box
         data.texture.anchorX = state.mirrorX ? 1 - (state.anchorX ?? 0.5) : (state.anchorX ?? 0.5);
         data.texture.anchorY = state.mirrorY ? 1 - (state.anchorY ?? 0.5) : (state.anchorY ?? 0.5);
+
+        data.texture.fit = state.fit;
 
         return data;
     }
@@ -344,6 +348,7 @@ export class VisageComposer {
             if (c.texture?.src != null) keys.add("texture.src");
             if (c.texture?.anchorX != null) keys.add("texture.anchorX");
             if (c.texture?.anchorY != null) keys.add("texture.anchorY");
+            if (c.texture?.fit != null) keys.add("texture.fit");
 
             // If scale is explicitly controlled, claim the axis properties
             if (c.scale != null) {

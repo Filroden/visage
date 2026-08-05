@@ -52,6 +52,7 @@ export function handleGhostEdit(app, html, _data) {
     _setInput(form, "scale", Math.abs(scaleX));
     _setInput(form, "texture.anchorX", tex.anchorX ?? 0.5);
     _setInput(form, "texture.anchorY", tex.anchorY ?? 0.5);
+    _setInput(form, "texture.fit", tex.fit ?? "contain");
 }
 
 /**

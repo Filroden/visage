@@ -28,6 +28,7 @@ export class VisageDataModel extends foundry.abstract.DataModel {
         "texture.scaleY",
         "texture.anchorX",
         "texture.anchorY",
+        "texture.fit",
 
         // Dynamic Ring Properties
         "ring.enabled",
@@ -138,9 +139,9 @@ export class VisageDataModel extends foundry.abstract.DataModel {
             changes: new SchemaField({
                 // FOUNDRY PROPERTIES:
                 name: new StringField({ required: false, nullable: true, label: "VISAGE.GlobalEditor.NameOverride" }),
-                width: new NumberField({ required: false, nullable: true, initial: null, min: 0.5, step: 0.5, label: "VISAGE.Config.List.Width" }),
-                height: new NumberField({ required: false, nullable: true, initial: null, min: 0.5, step: 0.5, label: "VISAGE.Config.List.Height" }),
-                depth: new NumberField({ required: false, nullable: true, initial: null, min: 0.5, step: 0.5, label: "VISAGE.Config.List.DimZ" }),
+                width: new NumberField({ required: false, nullable: true, initial: null, min: 0, label: "VISAGE.Config.List.Width" }),
+                height: new NumberField({ required: false, nullable: true, initial: null, min: 0, label: "VISAGE.Config.List.Height" }),
+                depth: new NumberField({ required: false, nullable: true, initial: null, min: 0, label: "VISAGE.Config.List.DimZ" }),
                 alpha: new NumberField({ required: false, nullable: true, initial: null, min: 0, max: 1, label: "VISAGE.Config.Opacity.Label" }),
                 lockRotation: new BooleanField({ required: false, nullable: true, initial: null, label: "VISAGE.RotationLock.Label" }),
                 animateTransition: new BooleanField({ initial: null, required: false, nullable: true, label: "VISAGE.GlobalEditor.AnimateTransition" }),
@@ -156,6 +157,13 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                     src: new StringField({ required: false, nullable: true, label: "VISAGE.GlobalEditor.TokenImage" }),
                     anchorX: new NumberField({ required: false, nullable: true, initial: null, label: "VISAGE.Config.List.Anchor" }),
                     anchorY: new NumberField({ required: false, nullable: true, initial: null, label: "VISAGE.Config.List.Anchor" }),
+                    fit: new StringField({
+                        required: false,
+                        nullable: true,
+                        initial: null,
+                        choices: ["contain", "cover", "fill", "width", "height"],
+                        label: "VISAGE.Config.List.Fit",
+                    }),
                 }),
 
                 ring: new SchemaField(

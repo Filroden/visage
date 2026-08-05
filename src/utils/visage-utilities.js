@@ -1,5 +1,4 @@
 import { MODULE_ID } from "../core/visage-constants.js";
-import { VisageDataModel } from "../data/visage-data-model.js";
 import { VisageDAT } from "../integrations/visage-dat.js";
 
 /**
@@ -311,6 +310,7 @@ export class VisageUtilities {
                 scaleY: get("texture.scaleY") ?? 1,
                 anchorX: get("texture.anchorX") ?? 0.5,
                 anchorY: get("texture.anchorY") ?? 0.5,
+                fit: get("texture.fit") ?? "contain",
             },
             ring: source.ring?.toObject?.() ?? source.ring ?? {},
             light: source.light?.toObject?.() ?? source.light ?? {},
