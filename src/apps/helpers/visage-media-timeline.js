@@ -142,8 +142,8 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(ApplicationV
         // Inherit theme from parent Editor
         VisageUtilities.applyVisageTheme(this.element, this.editor?.isLocal);
 
-        const trackArea = this.element.querySelector(".timeline-tracks");
-        const blocks = this.element.querySelectorAll(".timeline-block");
+        const trackArea = this.element.querySelector(".visage-timeline-tracks");
+        const blocks = this.element.querySelectorAll(".visage-timeline-block");
 
         blocks.forEach((block) => {
             block.addEventListener("pointerdown", (e) => this._onDragStart(e, block, trackArea));

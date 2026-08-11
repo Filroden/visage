@@ -1,31 +1,31 @@
 <div class="visage-timeline-container">
     {{!-- THE RULER (Time Markers) --}}
-    <div class="timeline-ruler">
-        <div class="ruler-ticks">
+    <div class="visage-timeline-ruler">
+        <div class="visage-ruler-ticks">
             {{#each ticks}}
-                <div class="tick top {{#if this.isZero}}zero-anchor{{/if}}" style="inset-inline-start: {{this.position}}%;">
-                    <span class="tick-label top">{{this.label}}</span>
+                <div class="visage-tick top {{#if this.isZero}}visage-zero-anchor{{/if}}" style="inset-inline-start: {{this.position}}%;">
+                    <span class="visage-tick-label top">{{this.label}}</span>
                 </div>
             {{/each}}
         </div>
     </div>
 
     {{!-- THE TRACKS --}}
-    <div class="timeline-tracks visage-scrollable">
+    <div class="visage-timeline-tracks visage-scrollable">
         
         {{#if hasSequencer}}
             {{!-- VISUAL TRACK --}}
-            <div class="timeline-track visual-track">
-                <div class="track-header" data-tooltip="{{localize 'VISAGE.Editor.Groups.Foreground'}} / {{localize 'VISAGE.Editor.Groups.Background'}}">
+            <div class="visage-timeline-track visual-track">
+                <div class="visage-track-header" data-tooltip="{{localize 'VISAGE.Editor.Groups.Foreground'}} / {{localize 'VISAGE.Editor.Groups.Background'}}">
                     <i class="visage-icon visual"></i>
                 </div>
-                <div class="track-lanes" style="height: {{visualHeight}}px;">
+                <div class="visage-track-lanes" style="height: {{visualHeight}}px;">
                     {{#each visualEffects}}
-                        <div class="timeline-block" 
+                        <div class="visage-timeline-block" 
                              data-id="{{this.id}}" 
                              style="inset-inline-start: {{this.position}}%; top: {{this.top}}px;"
                              data-tooltip="{{this.label}} ({{this.delay}}s)">
-                            <span class="block-label">{{this.label}}</span>
+                            <span class="visage-block-label">{{this.label}}</span>
                         </div>
                     {{/each}}
                 </div>
@@ -33,17 +33,17 @@
         {{/if}}
 
         {{!-- AUDIO TRACK --}}
-        <div class="timeline-track audio-track">
-            <div class="track-header" data-tooltip="{{localize 'VISAGE.Editor.Groups.Audio'}}">
+        <div class="visage-timeline-track audio-track">
+            <div class="visage-track-header" data-tooltip="{{localize 'VISAGE.Editor.Groups.Audio'}}">
                 <i class="visage-icon audio"></i>
             </div>
-            <div class="track-lanes" style="height: {{audioHeight}}px;">
+            <div class="visage-track-lanes" style="height: {{audioHeight}}px;">
                 {{#each audioEffects}}
-                    <div class="timeline-block" 
+                    <div class="visage-timeline-block" 
                             data-id="{{this.id}}" 
                             style="inset-inline-start: {{this.position}}%; top: {{this.top}}px;"
                             data-tooltip="{{this.label}} ({{this.delay}}s)">
-                        <span class="block-label">{{this.label}}</span>
+                        <span class="visage-block-label">{{this.label}}</span>
                     </div>
                 {{/each}}
             </div>
@@ -51,17 +51,17 @@
 
         {{!-- TMFX TRACK --}}
         {{#if hasTmfx}}
-            <div class="timeline-track tmfx-track">
-                <div class="track-header" data-tooltip="{{localize 'VISAGE.Editor.Groups.Tmfx'}}">
+            <div class="visage-timeline-track tmfx-track">
+                <div class="visage-track-header" data-tooltip="{{localize 'VISAGE.Editor.Groups.Tmfx'}}">
                     <i class="visage-icon filter-fx"></i>
                 </div>
-                <div class="track-lanes" style="height: {{tmfxHeight}}px;">
+                <div class="visage-track-lanes" style="height: {{tmfxHeight}}px;">
                     {{#each tmfxEffects}}
-                        <div class="timeline-block" 
+                        <div class="visage-timeline-block" 
                              data-id="{{this.id}}" 
                              style="inset-inline-start: {{this.position}}%; top: {{this.top}}px;"
                              data-tooltip="{{this.label}} ({{this.delay}}s)">
-                            <span class="block-label">{{this.label}}</span>
+                            <span class="visage-block-label">{{this.label}}</span>
                         </div>
                     {{/each}}
                 </div>
@@ -69,33 +69,33 @@
         {{/if}}
 
         {{!-- MACRO TRACK --}}
-        <div class="timeline-track macro-track">
-            <div class="track-header" data-tooltip="{{localize 'VISAGE.Editor.Groups.Macro'}}">
+        <div class="visage-timeline-track macro-track">
+            <div class="visage-track-header" data-tooltip="{{localize 'VISAGE.Editor.Groups.Macro'}}">
                 <i class="visage-icon macro"></i>
             </div>
-            <div class="track-lanes" style="height: {{macroHeight}}px;">
+            <div class="visage-track-lanes" style="height: {{macroHeight}}px;">
                 {{#each macroEffects}}
-                    <div class="timeline-block" 
+                    <div class="visage-timeline-block" 
                          data-id="{{this.id}}" 
                          style="inset-inline-start: {{this.position}}%; top: {{this.top}}px;"
                          data-tooltip="{{this.label}} ({{this.delay}}s)">
-                        <span class="block-label">{{this.label}}</span>
+                        <span class="visage-block-label">{{this.label}}</span>
                     </div>
                 {{/each}}
             </div>
         </div>
 
         {{!-- THE PLAYHEAD / ZERO ANCHOR LINE --}}
-        <div class="zero-anchor-line" style="inset-inline-start: {{zeroPosition}}%;"></div>
+        <div class="visage-zero-anchor-line" style="inset-inline-start: {{zeroPosition}}%;"></div>
 
     </div>
 
     {{!-- THE RULER (Time Markers) --}}
-    <div class="timeline-ruler">
-        <div class="ruler-ticks">
+    <div class="visage-timeline-ruler">
+        <div class="visage-ruler-ticks">
             {{#each ticks}}
-                <div class="tick bottom {{#if this.isZero}}zero-anchor{{/if}}" style="inset-inline-start: {{this.position}}%;">
-                    <span class="tick-label bottom">{{this.label}}</span>
+                <div class="visage-tick bottom {{#if this.isZero}}visage-zero-anchor{{/if}}" style="inset-inline-start: {{this.position}}%;">
+                    <span class="visage-tick-label bottom">{{this.label}}</span>
                 </div>
             {{/each}}
         </div>
