@@ -59,6 +59,15 @@
         
         {{!-- LEFT: Sidebar for Glyphs --}}
         <div class="visage-dashboard-sidebar">
+
+            {{!-- Name Override --}}
+            {{#if this.meta.tokenName}}
+            <div class="visage-sidebar-glyph name-override" 
+                 data-tooltip="{{localize 'VISAGE.GlobalEditor.NameOverride'}}: {{this.meta.tokenName}}"
+                 data-tooltip-class="visage-tooltip">
+                <i class="visage-icon id-card"></i>
+            </div>
+            {{/if}}
             
             {{!-- Portrait --}}
             {{#if this.meta.hasPortrait}}

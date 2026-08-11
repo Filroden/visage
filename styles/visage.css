@@ -1221,6 +1221,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.pin      { -webkit-mask-image: url('../icons/keep.svg'); mask-image: url('../icons/keep.svg'); }
 .visage-icon.unpin      { -webkit-mask-image: url('../icons/keep_off.svg'); mask-image: url('../icons/keep_off.svg'); }
 .visage-icon.config   { -webkit-mask-image: url('../icons/settings.svg'); mask-image: url('../icons/settings.svg'); }
+.visage-icon.id-card      { -webkit-mask-image: url('../icons/id_card.svg'); mask-image: url('../icons/id_card.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
