@@ -30,6 +30,10 @@
     --filroden-dir-flip: 1;
 }
 
+.visage :is(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--filroden-font-family) !important;
+}
+
 .visage[dir="rtl"] {
     --filroden-dir-flip: -1;
 }
@@ -1217,6 +1221,7 @@ li.context-item .visage-icon-domino {
 .visage-icon.pin      { -webkit-mask-image: url('../icons/keep.svg'); mask-image: url('../icons/keep.svg'); }
 .visage-icon.unpin      { -webkit-mask-image: url('../icons/keep_off.svg'); mask-image: url('../icons/keep_off.svg'); }
 .visage-icon.config   { -webkit-mask-image: url('../icons/settings.svg'); mask-image: url('../icons/settings.svg'); }
+.visage-icon.id-card      { -webkit-mask-image: url('../icons/id_card.svg'); mask-image: url('../icons/id_card.svg'); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -1821,7 +1826,7 @@ li.context-item .visage-icon-domino {
     text-align: start;
 }
 
-.meta-item.inactive { opacity: 0.4; }
+.visage .meta-item.inactive { opacity: 0.4; }
 
 .visage-disposition-text {
     font-weight: bold;
@@ -3120,7 +3125,7 @@ li.context-item .visage-icon-domino {
     flex-shrink: 0;
 }
 
-.visage .metadata-slot .slot-value {
+.visage .metadata-slot .visage-slot-value {
     font-family: var(--filroden-font-family) !important;
     font-weight: bold;
     white-space: nowrap;
@@ -3147,7 +3152,7 @@ li.context-item .visage-icon-domino {
 }
 
 /* Mirroring Icons */
-.metadata-slot img.visage-icon-nav {
+.visage .metadata-slot img.visage-icon-nav {
     width: var(--filroden-font-size-m);
     height: var(--filroden-font-size-m);
     border: none;
@@ -3954,39 +3959,39 @@ button.visage-tool-icon {
 }
 
 /* --- Ruler --- */
-.timeline-ruler {
+.visage-timeline-ruler {
     height: 30px;
     background: var(--visage-color-bg-medium-solid);
     position: relative;
     padding-inline-start: 40px; /* Space for the track headers */
 }
 
-.ruler-ticks {
+.visage-ruler-ticks {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
-.ruler-ticks .tick {
+.visage-ruler-ticks .visage-tick {
     position: absolute;
     height: 35%;
     border-inline-start: 1px solid var(--visage-color-text-muted);
     transform: translateX(calc(-50% * var(--filroden-dir-flip)));
 }
 
-.ruler-ticks .tick.top {
+.visage-ruler-ticks .visage-tick.top {
     bottom: 0;
 }
 
-.ruler-ticks .tick.bottom {
+.visage-ruler-ticks .visage-tick.bottom {
     top: 0;
 }
 
-.ruler-ticks .tick.zero-anchor {
+.visage-ruler-ticks .visage-tick.zero-anchor {
     border-inline-start: 2px solid var(--visage-color-text-muted);
 }
 
-.ruler-ticks .tick-label {
+.visage-ruler-ticks .visage-tick-label {
     position: absolute;
     inset-inline-start: 4px; /* Anchor exactly to the tick line */
     transform: translateX(calc(-50% * var(--filroden-dir-flip))); /* Pull it back by exactly half its own width */
@@ -3997,27 +4002,27 @@ button.visage-tool-icon {
     unicode-bidi: isolate;
 }
 
-.ruler-ticks .tick:last-child,
-.ruler-ticks .tick:last-child .tick-label {
+.visage-ruler-ticks .visage-tick:last-child,
+.visage-ruler-ticks .visage-tick:last-child .visage-tick-label {
     display: none;
     border: none;
 }
 
-.ruler-ticks .tick-label.top {
+.visage-ruler-ticks .visage-tick-label.top {
     bottom: 14px;
 }
 
-.ruler-ticks .tick-label.bottom {
+.visage-ruler-ticks .visage-tick-label.bottom {
     top: 14px;
 }
 
-.ruler-ticks .tick.zero-anchor .tick-label {
+.visage-ruler-ticks .visage-tick.visage-zero-anchor .visage-tick-label {
     color: var(--visage-color-text-muted);
     font-weight: bold;
 }
 
 /* --- Tracks --- */
-.timeline-tracks {
+.visage-timeline-tracks {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -4025,14 +4030,14 @@ button.visage-tool-icon {
     overflow-x: hidden;
 }
 
-.timeline-track {
+.visage-timeline-track {
     display: flex;
     border-bottom: 1px solid var(--visage-color-border);
     border-top: 1px solid var(--visage-color-border);
     min-height: 40px; /* Minimum 1 swimlane */
 }
 
-.track-header {
+.visage-track-header {
     width: 40px;
     flex-shrink: 0;
     background: var(--visage-color-bg-medium);
@@ -4044,7 +4049,7 @@ button.visage-tool-icon {
     z-index: 2; /* Sit above the zero line */
 }
 
-.track-lanes {
+.visage-track-lanes {
     flex: 1;
     position: relative;
     background: repeating-linear-gradient(
@@ -4058,7 +4063,7 @@ button.visage-tool-icon {
 }
 
 /* --- The Zero Anchor Line --- */
-.zero-anchor-line {
+.visage-zero-anchor-line {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -4071,7 +4076,7 @@ button.visage-tool-icon {
 }
 
 /* --- Draggable Blocks --- */
-.timeline-block {
+.visage-timeline-block {
     position: absolute;
     height: 28px;
     min-width: 60px;
@@ -4089,7 +4094,7 @@ button.visage-tool-icon {
     background: hsl(var(--visage-hue), 40%, 30%);
     border: 1px solid hsl(var(--visage-hue), 50%, 40%);
 }
-.timeline-block::before {
+.visage-timeline-block::before {
     content: '';
     position: absolute;
     top: 0;
@@ -4103,19 +4108,19 @@ button.visage-tool-icon {
     pointer-events: none;
 }
 
-.timeline-block:active {
+.visage-timeline-block:active {
     cursor: grabbing;
     z-index: 100;
     box-shadow: var(--filroden-shadow-popout);
     filter: brightness(1.2);
     border-color: var(--visage-color-bg-hover);
 }
-.timeline-block:active::before {
+.visage-timeline-block:active::before {
     background: var(--visage-color-bg-hover);
     opacity: 0.8;
 }
 
-.block-label {
+.visage-block-label {
     position: relative;
     z-index: 2; /* Keep text above the center notch */
     white-space: nowrap;
