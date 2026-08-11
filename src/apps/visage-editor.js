@@ -763,6 +763,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             automation: this._automationData,
             changes: {
                 ...formData,
+                name: formData.nameOverride_active && formData.nameOverride !== "" ? formData.nameOverride : null,
                 scale: rootScale,
                 alpha: formData.alpha !== undefined && formData.alpha !== "" && formData.alpha !== null ? Number(formData.alpha) / 100 : null,
                 texture: texturePayload,
