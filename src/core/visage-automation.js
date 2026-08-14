@@ -148,7 +148,7 @@ export class VisageAutomation {
     }
 
     static _onCombatChange(_combat, _changes, _options, _userId) {
-        for (const tokenId of this._registry.entries()) {
+        for (const tokenId of this._registry.keys()) {
             const token = canvas.tokens.get(tokenId);
             if (token) this._queueEvaluation(token.document);
         }
