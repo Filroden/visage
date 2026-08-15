@@ -39,6 +39,9 @@ export class VisageAutomation {
         Hooks.on("createActiveEffect", this._onStatusChange.bind(this));
         Hooks.on("updateActiveEffect", this._onStatusChange.bind(this));
         Hooks.on("deleteActiveEffect", this._onStatusChange.bind(this));
+        Hooks.on("createItem", this._onItemChange.bind(this));
+        Hooks.on("updateItem", this._onItemChange.bind(this));
+        Hooks.on("deleteItem", this._onItemChange.bind(this));
 
         // 3. Event Hooks
         Hooks.on("updateCombat", this._onCombatChange.bind(this));
@@ -131,6 +134,25 @@ export class VisageAutomation {
 
     static _onStatusChange(effect, _options, _userId) {
         const actor = effect.parent?.documentName === "Item" ? effect.parent.parent : effect.parent;
+        if (actor?.documentName !== "Actor") return;
+
+        if (actor.isToken) {
+            // Unlinked Token
+            if (this._registry.has(actor.token.id)) {
+                this._queueEvaluation(actor.token);
+            }
+        } else {
+            // Linked Token
+            const linkedTokens = canvas.tokens.placeables.filter((t) => t.actor?.id === actor.id && t.document.actorLink && this._registry.has(t.id));
+            for (const token of linkedTokens) {
+                this._queueEvaluation(token.document);
+            }
+        }
+    }
+
+    static _onItemChange(item, _options, _userId) {
+        const actor = item.parent;
+        // Ensure the item belongs to an Actor (not a compendium or world item)
         if (actor?.documentName !== "Actor") return;
 
         if (actor.isToken) {
@@ -534,11 +556,19 @@ export class VisageAutomation {
 
         // 2. If not a core status, check all Active Effects by Name (e.g., "Rage", "Disguise Self")
         else {
-            // Fallback to .effects if .appliedEffects doesn't exist for some reason (backward compatibility)
+            // Fallback to .effects if .appliedEffects doesn't exist for some reason
             const effectsToSearch = actor.appliedEffects || actor.effects || [];
             isActive = effectsToSearch.some((e) => {
                 const effectName = (e.name || e.label || "").toLowerCase();
-                return effectName === searchKey;
+                const effectSlug = (e.system?.slug || "").toLowerCase();
+
+                // Safely check the native statuses array, normalising hyphens for user-typed strings
+                const hasStatus = Array.from(e.statuses || []).some((s) => {
+                    const cleanStatus = s.toLowerCase();
+                    return cleanStatus === searchKey || cleanStatus.replaceAll("-", " ") === searchKey;
+                });
+
+                return effectName === searchKey || effectSlug === searchKey || hasStatus;
             });
         }
 

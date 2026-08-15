@@ -2,6 +2,7 @@
 
 | Version | Changes |
 | :--- | :--- |
+| **Version 5.8.0** | **IMPROVEMENTS**<br>- Expanded the Automation Engine to watch item changes. This provides compatibility with systems that use items to apply core conditions such as "Prone". It also makes sure automations trigger when equipping items that alter derived attributes.<br>- Improved the detection of active effects for systems which apply scaled effects like "Enfeebled 1". |
 | **Version 5.7.2** | **BUG FIXES**<br>- Fixed an issue where Visages with automations enabled for combat start/end were not being applied until the token was moved (or otherwise updated on the canvas). |
 | **Version 5.7.1** | **IMPROVEMENTS**<br>- Added an icon (an ID badge) into Selector HUD tiles to show if a Visage changes a token's name. This appears first in the list of icons.<br><br>**BUG FIXES**<br>- Fixed an issue where the token name was not being saved in a Visage.<br>- Fixed issues where module headers, Visage card slot metadata and timeline HUD styles were sometimes inheriting incorrect styling from Foundry, the game system or from other modules. |
 | **Version 5.7.0** | **IMPROVEMENTS**<br>- Added "Image Fit Mode" as an option on the Appearance tab in the Editor so you can set the mode on a Visage-by-Visage basis.<br><br>**BUG FIXES**<br>- Fixed a bug that was rounding input values for token width, height and depth to the nearest 0.5. Visage will now accept any positive value. |
