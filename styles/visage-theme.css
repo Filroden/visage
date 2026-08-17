@@ -1,0 +1,290 @@
+/* ===================================================================
+   --- FILRODEN GLOBAL THEME ---
+   This file defines the global CSS variables for all 'filroden'
+   modules. Using these variables ensures a consistent look and
+   feel across all applications.
+=================================================================== */
+
+:root {
+
+    --visage-version: 3.0;
+
+    /* ==========================================
+       TIER 1: CORE PALETTES
+       ========================================== */
+       
+    /* Hue 1: Gold (HSL: 48, 15%) */
+    --visage-gold-100: hsl(48, 15%, 95%);
+    --visage-gold-200: hsl(48, 15%, 85%);
+    --visage-gold-300: hsl(48, 15%, 75%);
+    --visage-gold-400: hsl(48, 15%, 60%);
+    --visage-gold-500: hsl(48, 15%, 50%);
+    --visage-gold-600: hsl(48, 15%, 40%);
+    --visage-gold-700: hsl(48, 15%, 30%);
+    --visage-gold-800: hsl(48, 15%, 20%);
+    --visage-gold-900: hsl(48, 15%, 10%);
+
+    --visage-gold-accent:        hsl(48, 60%, 50%);
+    --visage-gold-accent-bright: hsl(48, 60%, 60%);
+    --visage-gold-accent-dark:   hsl(48, 60%, 40%);
+
+    /* Hue 2: Teal (HSL: 205, 15%) */
+    --visage-teal-100: hsl(205, 15%, 95%);
+    --visage-teal-200: hsl(205, 15%, 85%);
+    --visage-teal-300: hsl(205, 15%, 75%);
+    --visage-teal-400: hsl(205, 15%, 60%);
+    --visage-teal-500: hsl(205, 15%, 50%);
+    --visage-teal-600: hsl(205, 15%, 40%);
+    --visage-teal-700: hsl(205, 15%, 30%);
+    --visage-teal-800: hsl(205, 15%, 20%);
+    --visage-teal-900: hsl(205, 15%, 10%);
+
+    --visage-teal-accent:        hsl(205, 60%, 50%);
+    --visage-teal-accent-bright: hsl(205, 60%, 60%);
+    --visage-teal-accent-dark:   hsl(205, 60%, 40%);
+    
+    /* Neutrals */
+    --visage-neutral-000: hsl(0, 0%, 100%);
+    --visage-neutral-999: hsl(0, 0%, 0%);
+
+    /* Other colours */
+    --visage-success: hsl(130, 50%, 50%);
+    --visage-warning: hsl(33, 100%, 50%);
+    --visage-danger:  hsl(4, 90%, 60%);
+}
+
+/* ==========================================
+   TIER 2: THE HUE ROUTER
+   ========================================== */
+
+:root,
+.visage-theme-local {
+    --visage-primary-100: var(--visage-gold-100);
+    --visage-primary-200: var(--visage-gold-200);
+    --visage-primary-300: var(--visage-gold-300);
+    --visage-primary-400: var(--visage-gold-400);
+    --visage-primary-500: var(--visage-gold-500);
+    --visage-primary-600: var(--visage-gold-600);
+    --visage-primary-700: var(--visage-gold-700);
+    --visage-primary-800: var(--visage-gold-800);
+    --visage-primary-900: var(--visage-gold-900);
+
+    --visage-primary-accent: var(--visage-gold-accent);
+    --visage-primary-accent-bright: var(--visage-gold-accent-bright);
+    --visage-primary-accent-dark: var(--visage-gold-accent-dark);
+}
+
+.visage-theme-global {
+    --visage-primary-100: var(--visage-teal-100);
+    --visage-primary-200: var(--visage-teal-200);
+    --visage-primary-300: var(--visage-teal-300);
+    --visage-primary-400: var(--visage-teal-400);
+    --visage-primary-500: var(--visage-teal-500);
+    --visage-primary-600: var(--visage-teal-600);
+    --visage-primary-700: var(--visage-teal-700);
+    --visage-primary-800: var(--visage-teal-800);
+    --visage-primary-900: var(--visage-teal-900);
+
+    --visage-primary-accent: var(--visage-teal-accent);
+    --visage-primary-accent-bright: var(--visage-teal-accent-bright);
+    --visage-primary-accent-dark: var(--visage-teal-accent-dark);
+}
+
+/* ===================================
+    --- Colour Palettes ---
+    Defines the core background and UI colours for all components.
+    =================================== */
+:root {    
+    /* Hue 1: Gold */
+    --visage-hue1: 48;
+
+    /* Backgrounds */
+    --visage-color1-bg-darkest: hsl(var(--visage-hue1), 15%, 10%);
+    --visage-color1-bg-medium: hsl(var(--visage-hue1), 15%, 15%);
+    --visage-color1-bg-light: hsl(var(--visage-hue1), 15%, 20%);
+    --visage-color1-bg-hover: hsl(var(--visage-hue1), 15%, 30%);
+
+    /* Text */
+    --visage-color1-text-main: hsl(var(--visage-hue1), 15%, 85%);
+    --visage-color1-text-muted: hsl(var(--visage-hue1), 15%, 75%);
+    --visage-color1-text-placeholder: hsl(var(--visage-hue1), 15%, 50%);
+
+    /* Accent Colours */
+    --visage-color1-text-accent: hsl(var(--visage-hue1), 50%, 50%);
+    --visage-color1-text-accent-rgb: 198, 175, 83;
+    --visage-color1-text-accent-hover: hsl(var(--visage-hue1), 50%, 60%);
+    --visage-color1-text-on-accent: hsl(var(--visage-hue1), 15%, 10%);
+
+    /* Hue 2: Blue */
+    --visage-hue2: 205;
+
+    /* Backgrounds */
+    --visage-color2-bg-darkest: hsl(var(--visage-hue2), 15%, 10%);
+    --visage-color2-bg-medium: hsl(var(--visage-hue2), 15%, 15%);
+    --visage-color2-bg-light: hsl(var(--visage-hue2), 15%, 20%);
+    --visage-color2-bg-hover: hsl(var(--visage-hue2), 15%, 30%);
+
+    /* Text */
+    --visage-color2-text-main: hsl(var(--visage-hue2), 15%, 85%);
+    --visage-color2-text-muted: hsl(var(--visage-hue2), 15%, 75%);
+    --visage-color2-text-placeholder: hsl(var(--visage-hue2), 15%, 50%);
+
+    /* Accent Colours */
+    --visage-color2-text-accent: hsl(var(--visage-hue2), 50%, 50%);
+    --visage-color2-text-accent-rgb: 57, 124, 172;
+    --visage-color2-text-accent-hover: hsl(var(--visage-hue2), 50%, 60%);
+    --visage-color2-text-on-accent: hsl(var(--visage-hue2), 15%, 10%);
+
+
+    /* ==========================================
+       LAYOUT & SPACING
+       ========================================== */
+    
+    --visage-radius-small: 3px;
+    --visage-radius-medium: 6px;
+    --visage-radius-large: 12px;
+
+    /** Default fonts */
+    --visage-font-family: 'Roboto', 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', 'sans-serif';
+
+    /** Font sizes */
+    --visage-font-size-xxs: 0.5rem;
+    --visage-font-size-xs: 0.75rem;
+    --visage-font-size-s: 0.9rem;
+    --visage-font-size-m: 1.0rem;
+    --visage-font-size-l: 1.2rem;
+    --visage-font-size-xl: 1.5rem;
+    --visage-font-size-xxl: 2rem;
+
+    /** Spacing */
+    --visage-space-xxs: 0.125rem;     /* 2px */
+    --visage-space-xs: 0.25rem;       /* 4px */
+    --visage-space-s: 0.5rem;         /* 8px */
+    --visage-space-m: 0.625rem;       /* 10px */
+    --visage-space-l: 1rem;           /* 16px */
+    --visage-space-xl: 1.5rem;        /* 24px */
+    --visage-space-xxl: 2rem;         /* 32px */
+
+    /* Line Heights */
+    --visage-line-height-heading: 1.2; /* For window titles, tight lists, and badges */
+    --visage-line-height-body: 1.4; /* For tooltips, textareas, and paragraph text */
+
+    /** Wide letter spacing for titles. */
+    --visage-letter-spacing-wide: 0.05em;
+
+    /* ==========================================
+       DIRECTIONALITY
+       ========================================== */
+
+    /* 1 = Normal (LTR), -1 = Flipped (RTL) */
+    --visage-dir-flip: 1;
+
+    /* Default Chevron (Pointing Right for 'Next' or 'Open') */
+    --visage-icon-chevron-next: "\f054"; /* fa-chevron-right */
+
+    /* ===================================
+        --- Borders & Radii ---
+        Standardises borders, outlines, and corner rounding.
+    =================================== */
+    
+    /** The standard colour for all borders and rules. */
+    --visage-color1-border: hsla(0, 0%, 100%, 0.2);
+    
+    /** A standard 1px solid border. */
+    --visage-border-main: 1px solid var(--visage-color1-border);
+    
+    /** A standard 1px dashed border, for sub-sections or fieldsets. */
+    --visage-border-dashed: 1px dashed var(--visage-color1-border);
+
+    /** A border that uses the darkest background colour. */
+    --visage-border-dark: 1px solid var(--visage-color1-bg-darkest);
+
+    /** A subtle text shadow for legibility on complex backgrounds. */
+    --visage-shadow-text: 1px 1px 1px var(--visage-color1-bg-darkest);
+}
+
+
+/* ==========================================
+   TIER 3: SEMANTIC TOKENS (DARK THEME)
+   ========================================== */
+
+.theme-dark {
+        /* --- Backgrounds --- */
+    --visage-bg-base:          var(--visage-primary-900); /* Deepest background (App Window) */
+    --visage-bg-panel:         var(--visage-primary-800); /* Elevated elements (Cards, Inputs, Sidebars) */
+    --visage-bg-muted:         var(--visage-neutral-500); /* Disabled elements*/
+    --visage-bg-hover:         var(--visage-primary-700); /* Interactive hover states */
+    --visage-bg-highlight:     var(--visage-primary-600); /* Selected/Active states */
+
+    /* --- Text --- */
+    --visage-text-primary:     var(--visage-primary-100); /* Main readable text */
+    --visage-text-secondary:   var(--visage-primary-200); /* Slightly dimmed text */
+    --visage-text-muted:       var(--visage-primary-400); /* Placeholders, hints, disabled text */
+    --visage-text-inverse:     var(--visage-primary-900); /* Text placed on top of the accent color */
+
+    /* --- Borders & Outlines --- */
+    --visage-border-main:      var(--visage-primary-700); /* Standard structural borders */
+    --visage-border-subtle:    var(--visage-primary-800); /* Dividers inside panels */
+    --visage-border-focus:     var(--visage-primary-accent); /* Focus rings (Accent) */
+
+    /* --- Accents & Status --- */
+    --visage-accent-main:      var(--visage-primary-accent);
+    --visage-accent-hover:     var(--visage-primary-accent-bright);
+
+    --visage-color-success:    var(--visage-success);
+    --visage-color-warning:    var(--visage-warning);
+    --visage-color-danger:     var(--visage-danger);
+
+    /* --- Shadows --- */
+    --visage-shadow-window:    0 8px 24px rgba(0, 0, 0, 0.15);
+    --visage-shadow-popout:  0 4px 12px rgba(0, 0, 0, 0.1);
+    --visage-shadow-focus:   0 0 5px var(--visage-color1-text-accent); 
+    
+    /** A smaller shadow for cards. */
+    --visage-shadow-card:  inset 0 1px 2px hsla(0, 0%, 100%, 0.19), /* top highlight */ 
+                            0 1px 2px hsla(0, 0%, 0%, 0.19), /* dark shadow */ 
+                            0 2px 4px hsla(0, 0%, 0%, 0.08); /* soft shadow */
+}
+
+
+/* ==========================================
+   TIER 3: SEMANTIC TOKENS (LIGHT THEME)
+   ========================================== */
+
+.theme-light {
+    /* --- Backgrounds --- */
+    --visage-bg-base:          var(--visage-primary-100);
+    --visage-bg-panel:         var(--visage-neutral-000);
+    --visage-bg-muted:         var(--visage-neutral-400);
+    --visage-bg-hover:         var(--visage-primary-200);
+    --visage-bg-highlight:     var(--visage-primary-300);
+
+    /* --- Text --- */
+    --visage-text-primary:     var(--visage-primary-900);
+    --visage-text-secondary:   var(--visage-primary-800);
+    --visage-text-muted:       var(--visage-primary-600);
+    --visage-text-inverse:     var(--visage-neutral-000);
+
+    /* --- Borders & Outlines --- */
+    --visage-border-main:      var(--visage-primary-300);
+    --visage-border-subtle:    var(--visage-primary-200);
+    --visage-border-focus:     var(--visage-primary-accent-dark);
+
+    /* --- Accents & Status --- */
+    --visage-accent-main:      var(--visage-primary-accent-dark);
+    --visage-accent-hover:     var(--visage-primary-accent);
+
+    --visage-color-success:    hsl(130, 60%, 35%);
+    --visage-color-warning:    hsl(33, 100%, 35%);
+    --visage-color-danger:     hsl(4, 90%, 45%);
+
+    /* --- Shadows --- */
+    --visage-shadow-window:  0 8px 24px rgba(0, 0, 0, 0.15);
+    --visage-shadow-popout:  0 4px 12px rgba(0, 0, 0, 0.1);
+    --visage-shadow-focus:   0 0 5px var(--visage-color1-text-accent); 
+    
+    /** A smaller shadow for cards. */
+    --visage-shadow-card:  inset 0 1px 2px hsla(0, 0%, 100%, 0.19), /* top highlight */ 
+                            0 1px 2px hsla(0, 0%, 0%, 0.19), /* dark shadow */ 
+                            0 2px 4px hsla(0, 0%, 0%, 0.08); /* soft shadow */
+}
