@@ -9,7 +9,7 @@
     },
     "authors": [{ "name": "Ken Dearman" }],
     "esmodules": ["main.js"],
-    "styles": ["styles/visage-theme.css", "styles/visage.css"],
+    "styles": ["styles/filroden-theme.css", "styles/visage.css"],
     "languages": [
         { "lang": "en", "name": "English", "path": "languages/en.json" },
         { "lang": "en-GB", "name": "English (UK)", "path": "languages/en-gb.json" },
