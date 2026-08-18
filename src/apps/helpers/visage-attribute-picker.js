@@ -13,7 +13,7 @@ export class VisageAttributePicker extends HandlebarsApplicationMixin(Applicatio
     static DEFAULT_OPTIONS = {
         tag: "div",
         id: "visage-attribute-picker",
-        classes: ["visage", "visage-dark-theme", "visage-attribute-picker-app"],
+        classes: ["visage", "visage-attribute-picker-app"],
         window: {
             title: "VISAGE.Editor.Triggers.AttributePicker",
             icon: "visage-icon attribute-picker ",

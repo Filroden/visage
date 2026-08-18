@@ -21,7 +21,7 @@ export class VisageMediaTimeline extends HandlebarsApplicationMixin(ApplicationV
     static DEFAULT_OPTIONS = {
         tag: "div",
         id: "visage-media-timeline",
-        classes: ["visage", "visage-timeline-app", "visage-dark-theme"],
+        classes: ["visage", "visage-timeline-app"],
         window: {
             title: "VISAGE.Editor.Timeline.Title",
             icon: "visage-icon timeline",

@@ -130,7 +130,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         tag: "div",
         id: "visage-gallery",
-        classes: ["visage", "visage-gallery", "visage-dark-theme"],
+        classes: ["visage", "visage-gallery"],
         window: {
             title: "VISAGE.Directory.Title.Global",
             icon: "visage-icon-domino",

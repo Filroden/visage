@@ -85,7 +85,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         tag: "form",
         id: "visage-editor",
-        classes: ["visage", "visage-editor", "visage-dark-theme"],
+        classes: ["visage", "visage-editor"],
         window: {
             title: "VISAGE.GlobalEditor.TitleNew.Global",
             icon: "visage-icon-domino",
