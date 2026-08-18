@@ -526,25 +526,28 @@ li.context-item .visage-icon-domino {
     z-index: 10;
 }
 
-.visage .visage-chip img,
-.visage .visage-default-indicator img {
+.visage .visage-chip i,
+.visage .visage-default-indicator i {
     width: var(--visage-font-size-m);
     height: var(--visage-font-size-m);
     font-size: var(--visage-font-size-xs);
     border: none;
-    filter: invert(100%);
 }
 
 .visage .visage-chip {
     top: -8px;
     inset-inline-end: -8px;
-    background-color: var(--visage-color-success);
+    color: var(--visage-color-success);
+    background-color: var(--visage-bg-panel);
+    border: 1px solid var(--visage-color-success);
 }
 
 .visage .visage-default-indicator {
     top: -8px;
     inset-inline-start: -8px;
-    background-color: var(--visage-accent-main); 
+    color: var(--visage-accent-main);
+    background-color: var(--visage-bg-panel);
+    border: 1px solid var(--visage-accent-main);
 }
 
 /* --- Data Chips --- */
@@ -562,7 +565,7 @@ li.context-item .visage-icon-domino {
     padding-inline: var(--visage-space-xs);
     border-radius: var(--visage-radius-large);
     border: 1px solid var(--visage-accent-main);
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--visage-shadow-popout);
     z-index: 10;
     display: flex;
     align-items: center;
@@ -651,6 +654,7 @@ li.context-item .visage-icon-domino {
 }
 
 .visage.visage-selector-app .window-content {
+    background-color: var(--visage-bg-main) !important;
     padding: var(--visage-space-m);
     box-shadow: var(--visage-shadow-window);
     z-index: 20;
@@ -774,7 +778,7 @@ li.context-item .visage-icon-domino {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(var(--visage-accent-rgb), 0.1); 
+    background: var(--visage-bg-panel); 
     border: 1px solid var(--visage-accent-main);
     border-radius: var(--visage-radius-small);
     padding: var(--visage-space-xs) var(--visage-space-s);
@@ -825,7 +829,7 @@ li.context-item .visage-icon-domino {
     align-self: flex-end;    
     background: transparent;
     border: none;
-    color: var(--visage-text-muted);
+    color: var(--visage-text-secondary);
     font-size: var(--visage-font-size-xs);
     cursor: pointer;
     padding: var(--visage-space-xxs) var(--visage-space-xs);
@@ -940,7 +944,7 @@ li.context-item .visage-icon-domino {
 }
 
 .visage .visage-tile:hover {
-    background-color: var(--visage-bg-highlight);
+    background-color: var(--visage-bg-hover);
     border-color: var(--visage-accent-hover);
 }
 
@@ -989,7 +993,9 @@ li.context-item .visage-icon-domino {
 }
 
 .visage .visage-tile-name {
+    color: var(--visage-text-main);
     font-size: var(--visage-font-size-xs);
+    font-weight: bold;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
@@ -997,7 +1003,6 @@ li.context-item .visage-icon-domino {
     width: 100%;
     margin-top: var(--visage-space-xs);
     margin-bottom: var(--visage-space-s);
-    color: var(--visage-text-main);
 }
 
 .visage-image-wrapper {
@@ -1046,19 +1051,20 @@ li.context-item .visage-icon-domino {
 /* Disposition Chip: Bottom-Center */
 .visage .visage-tile .visage-disposition-chip {
     position: absolute;
-    width: auto;
     bottom: -8px;
     inset-inline-start: 50%;
     inset-inline-end: auto;
     transform: translateX(calc(-50% * var(--visage-dir-flip)));
+    width: auto;
+    background-color: var(--visage-bg-panel);
+    color: var(--visage-text-main);
     padding-inline: var(--visage-space-s);
     border-radius: var(--visage-radius-large);
     font-size: var(--visage-font-size-xs);
     font-weight: bold;
-    background-color: var(--visage-bg-panel);
-    color: var(--visage-text-main);
     border-width: 1px;
     border-style: solid;
+    box-shadow: var(--visage-shadow-popout);
     text-transform: uppercase;
     z-index: 9;
     white-space: nowrap;
@@ -1215,8 +1221,8 @@ li.context-item .visage-icon-domino {
 .visage-icon.anchor             { --visage-icon-mask: url('../icons/transform.svg'); }
 .visage-icon.public             { --visage-icon-mask: url('../icons/person.svg'); }
 .visage-icon.private            { --visage-icon-mask: url('../icons/person_off.svg'); }
-.visage-icon.toggle_on          { --visage-icon-mask: url('../icons/toggle_on.svg'); }
-.visage-icon.toggle_off         { --visage-icon-mask: url('../icons/toggle_off.svg'); }
+.visage-icon.toggle_on          { --visage-icon-mask: url('../icons/toggle_on.svg'); color: var(--visage-color-success); }
+.visage-icon.toggle_off         { --visage-icon-mask: url('../icons/toggle_off.svg'); color: var(--visage-color-danger); }
 .visage-icon.ring               { --visage-icon-mask: url('../icons/orbit.svg'); }
 .visage-icon.power              { --visage-icon-mask: url('../icons/power_settings_circle.svg'); }
 .visage-icon.list               { --visage-icon-mask: url('../icons/list.svg'); }
@@ -1228,6 +1234,8 @@ li.context-item .visage-icon-domino {
 .visage-icon.unpin              { --visage-icon-mask: url('../icons/keep_off.svg'); }
 .visage-icon.config             { --visage-icon-mask: url('../icons/settings.svg'); }
 .visage-icon.id-card            { --visage-icon-mask: url('../icons/id_card.svg'); }
+.visage-icon.check-circle       { --visage-icon-mask: url('../icons/check_circle.svg'); color: var(--visage-color-success); }
+.visage-icon.stars              { --visage-icon-mask: url('../icons/stars.svg'); color: var(--visage-accent-main); }
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
