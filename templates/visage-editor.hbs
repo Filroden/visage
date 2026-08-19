@@ -15,12 +15,12 @@
             <label>{{localize "VISAGE.GlobalEditor.Visibility"}}</label>
             <div class="visage-mode-toggle">
                 <input type="radio" name="public" id="visibility-private-{{appId}}" value="false" {{checked (not isPublic)}}>
-                <label for="visibility-private-{{appId}}" data-tooltip="VISAGE.GlobalEditor.VisibilityPrivateHint">
+                <label class="visage-btn-first" for="visibility-private-{{appId}}" data-tooltip="VISAGE.GlobalEditor.VisibilityPrivateHint">
                     <i class="visage-icon private"></i> {{localize "VISAGE.GlobalEditor.Private"}}
                 </label>
 
                 <input type="radio" name="public" id="visibility-public-{{appId}}" value="true" {{checked isPublic}}>
-                <label for="visibility-public-{{appId}}" data-tooltip="VISAGE.GlobalEditor.VisibilityPublicHint">
+                <label class="visage-btn-second" for="visibility-public-{{appId}}" data-tooltip="VISAGE.GlobalEditor.VisibilityPublicHint">
                     <i class="visage-icon public"></i> {{localize "VISAGE.GlobalEditor.Public"}}
                 </label>
             </div>
@@ -32,12 +32,12 @@
             <label>{{localize "VISAGE.GlobalEditor.Mode"}}</label>
             <div class="visage-mode-toggle">
                 <input type="radio" name="mode" id="mode-identity-{{appId}}" value="identity" {{checked (visageEq mode "identity")}}>
-                <label for="mode-identity-{{appId}}" data-tooltip="VISAGE.Mode.IdentityHint">
+                <label class="visage-btn-first" for="mode-identity-{{appId}}" data-tooltip="VISAGE.Mode.IdentityHint">
                     {{localize "VISAGE.Mode.Identity"}}
                 </label>
 
                 <input type="radio" name="mode" id="mode-overlay-{{appId}}" value="overlay" {{checked (visageEq mode "overlay")}}>
-                <label for="mode-overlay-{{appId}}" data-tooltip="VISAGE.Mode.OverlayHint">
+                <label class="visage-btn-second" for="mode-overlay-{{appId}}" data-tooltip="VISAGE.Mode.OverlayHint">
                     {{localize "VISAGE.Mode.Overlay"}}
                 </label>
             </div>

@@ -103,7 +103,7 @@ li.context-item .visage-icon-domino {
     padding: var(--visage-space-s);
     background: var(--visage-bg-panel);
     color: var(--visage-text-secondary);
-    box-shadow: var(--visage-shadow-popout);
+    box-shadow: var(--visage-shadow-window);
     filter: grayscale(100%);
     font-family: var(--visage-font-family);
     font-size: var(--visage-font-size-s);
@@ -217,6 +217,47 @@ li.context-item .visage-icon-domino {
     line-height: var(--visage-line-height-body);
 }
 
+.visage select {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.visage select,
+.visage select::picker(select) {
+    appearance: base-select;
+}
+
+.visage select::picker(select) {
+    position-area: top;
+    margin-block-end: var(--visage-space-xs);
+    border: 1px solid var(--visage-border-focus);
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--visage-accent-main) var(--visage-bg-base);
+}
+
+.visage option {
+    background: var(--visage-bg-panel);
+    color: var(--visage-text-primary);
+    padding: var(--visage-space-xs) var(--visage-space-s);
+}
+
+.visage option:hover,
+.visage option:focus {
+    background: var(--visage-accent-hover);
+    color: var(--visage-text-inverse);
+    outline: none;
+}
+
+.visage optgroup {
+    background-color: var(--visage-bg-base);
+    color: var(--visage-text-primary);
+    font-weight: bold;
+    font-style: italic;
+    padding-block: 3px 1px;
+}
+
 /* --- Buttons --- */
 
 .visage button {
@@ -231,6 +272,20 @@ li.context-item .visage-icon-domino {
     background: var(--visage-bg-highlight);
     border-color: var(--visage-accent-main);
     box-shadow: none;
+}
+
+.visage .visage-btn-first {
+    border-start-start-radius: var(--visage-radius-medium);
+    border-end-start-radius: var(--visage-radius-medium);
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+}
+
+.visage .visage-btn-second {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    border-start-end-radius: var(--visage-radius-medium);
+    border-end-end-radius: var(--visage-radius-medium);
 }
 
 /* --- Accessibility Interactions --- */
@@ -604,19 +659,19 @@ li.context-item .visage-icon-domino {
     border-style: solid;
     letter-spacing: var(--visage-letter-spacing-wide);
 }
-.visage-disposition-chip.friendly { 
+.visage .friendly { 
     border-color: var(--visage-friendly); 
     background-image: linear-gradient(color-mix(in srgb, var(--visage-friendly) 40%, transparent), color-mix(in srgb, var(--visage-friendly) 40%, transparent)); 
 }
-.visage-disposition-chip.neutral  { 
+.visage .neutral  { 
     border-color: var(--visage-neutral); 
     background-image: linear-gradient(color-mix(in srgb, var(--visage-neutral) 40%, transparent), color-mix(in srgb, var(--visage-neutral) 40%, transparent)); 
 }
-.visage-disposition-chip.hostile  { 
+.visage .hostile  { 
     border-color: var(--visage-hostile); 
     background-image: linear-gradient(color-mix(in srgb, var(--visage-hostile) 40%, transparent), color-mix(in srgb, var(--visage-hostile) 40%, transparent)); 
 }
-.visage-disposition-chip.secret   { 
+.visage .secret   { 
     border-color: var(--visage-secret); 
     background-image: linear-gradient(color-mix(in srgb, var(--visage-secret) 40%, transparent), color-mix(in srgb, var(--visage-secret) 40%, transparent)); 
 }
@@ -726,7 +781,7 @@ li.context-item .visage-icon-domino {
     display: flex;
     align-items: center;
     gap: var(--visage-space-s);
-    box-shadow: var(--visage-shadow-popout);
+    box-shadow: var(--visage-shadow-window);
 }
 
 .visage-section-header i {
@@ -1331,23 +1386,6 @@ li.context-item .visage-icon-domino {
     box-shadow: none !important;
 }
 
-.visage.visage-editor select {
-    background-color: var(--visage-bg-hover) !important;
-    color: var(--visage-text-main) !important;
-    border: 1px solid var(--visage-border-focus);
-    border-radius: var(--visage-radius-small);
-}
-
-.visage.visage-editor select option {
-    background-color: var(--visage-bg-base) !important; 
-    color: var(--visage-text-main) !important;
-}
-
-.visage.visage-editor select optgroup {
-    background-color: var(--visage-bg-panel) !important; 
-    color: var(--visage-accent-main) !important;
-}
-
 /* --- Checkboxes & Input Groups --- */
 
 .visage .checkbox-input-group {
@@ -1520,9 +1558,7 @@ li.context-item .visage-icon-domino {
     display: flex;
     background: var(--visage-bg-base);
     border: 1px solid var(--visage-border-focus);
-    border-radius: var(--visage-radius-small);
-    padding: 2px;
-    gap: 2px;
+    border-radius: var(--visage-radius-medium);
 }
 
 .visage-mode-toggle input[type="radio"] {
@@ -1553,6 +1589,7 @@ li.context-item .visage-icon-domino {
     background: var(--visage-accent-main);
     color: var(--visage-bg-base);
     font-weight: bold;
+    min-height: 1.9rem;
 }
 
 /* --- Input Overrides for Header --- */
@@ -1574,7 +1611,7 @@ li.context-item .visage-icon-domino {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: #000; /* Cinema black for preview */
+    background-color: var(--visage-bg-panel); /* Cinema black for preview */
     position: relative;
     border-inline-end: 1px solid var(--visage-border-focus);
     min-width: 0; /* Flexbox text overflow fix */
@@ -1593,6 +1630,11 @@ li.context-item .visage-icon-domino {
     
     /* Define this as a query container for size relative units */
     container-type: size;
+
+    margin: var(--visage-space-s);
+    border: 1px solid var(--visage-border-subtle);
+    border-radius: var(--visage-radius-medium);
+    box-shadow: var(--visage-shadow-inset);
 
     /* Checkerboard background */
     background-color: var(--visage-bg-muted);
@@ -1715,16 +1757,12 @@ li.context-item .visage-icon-domino {
     transition: opacity 0.2s ease;
 }
 
-.visage-live-preview-stage:hover .visage-zoom-controls {
-    opacity: 1;
-}
-
 .visage-zoom-controls button {
     width: var(--visage-font-size-xxl);
     height: var(--visage-font-size-xxl);
     background: transparent;
     border: 1px solid transparent;
-    color: var(--visage-text-main);
+    color: var(--visage-primary-100);
     padding: 0;
     display: flex;
     align-items: center;
@@ -1733,7 +1771,7 @@ li.context-item .visage-icon-domino {
 
 .visage-zoom-controls button:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: var(--visage-accent-main);
+    border-color: var(--visage-border-focus);
 }
 
 /* Interaction Hint Overlay */
@@ -1741,20 +1779,21 @@ li.context-item .visage-icon-domino {
     position: absolute;
     top: var(--visage-space-m);
     inset-inline-start: var(--visage-space-m);
-    color: var(--visage-text-muted);
+    color: var(--visage-primary-100);
     font-size: var(--visage-font-size-xs);
-    background: rgba(0, 0, 0, 0.3);
-    padding: 2px 6px;
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: var(--visage-space-xxs) var(--visage-space-s);
+    border-radius: var(--visage-radius-small);
     pointer-events: none;
     z-index: 10;
     opacity: 0;
     transition: opacity 0.2s ease;
 }
 
-/* Show hint on hover */
+/* Show controls and hint on hover */
+.visage-live-preview-stage:hover .visage-zoom-controls,
 .visage-live-preview-stage:hover .visage-stage-hint {
-    opacity: 0.8;
+    opacity: 1;
 }
 
 .visage-preview-content.stage-mode:active {
@@ -1846,11 +1885,14 @@ li.context-item .visage-icon-domino {
     font-weight: bold;
     text-transform: uppercase;
     font-size: 0.8rem;
+    color: var(--visage-text-main);
+    width: fit-content;
 }
-.visage-disposition-text.friendly { color: var(--visage-friendly); }
-.visage-disposition-text.neutral  { color: var(--visage-neutral); }
-.visage-disposition-text.hostile  { color: var(--visage-hostile); }
-.visage-disposition-text.secret   { color: var(--visage-secret); }
+
+.visage-disposition-text:is(.friendly, .neutral, .hostile, .secret) {
+    padding: var(--visage-space-xxs) var(--visage-space-s);
+    border-radius: var(--visage-radius-small);
+}
 
 .visage .meta-item.mirror-split {
     display: grid;
@@ -1939,7 +1981,6 @@ li.context-item .visage-icon-domino {
 .visage-tab-content {
     flex: 1;
     overflow-y: auto;
-    padding: var(--visage-space-l);
 }
 
 /* Ensure form groups in inspector have spacing */
@@ -2076,7 +2117,7 @@ li.context-item .visage-icon-domino {
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: var(--visage-space-l);
+    padding: var(--visage-space-m);
     overflow-y: hidden;
     scrollbar-gutter: stable;
     background: var(--visage-bg-base);
@@ -2126,22 +2167,23 @@ li.context-item .visage-icon-domino {
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: var(--visage-letter-spacing-wide);
-    color: var(--visage-text-muted);
+    color: var(--visage-accent-main);
     
     /* Background must be opaque for sticky behavior to hide content behind it */
-    background: var(--visage-bg-base);
+    background: var(--visage-bg-panel);
+    box-shadow: var(--visage-shadow-window);
     
-    margin: 0 0 var(--visage-space-xs) 0;
-    padding: var(--visage-space-s) 0;
-    border-bottom: 1px solid var(--visage-border-focus);
-    
-    z-index: 5;
+    margin: 0 0 var(--visage-space-m) 0;
+    padding: var(--visage-space-xs) var(--visage-space-s);
+    border-bottom: 2px solid var(--visage-border-focus);
+    border-radius: var(--visage-radius-small);
 }
 
 /* Sticky positioning logic */
 .visage .group-header.sticky {
     position: sticky;
     top: 0;
+    z-index: 5;
 }
 
 /* Icon styling within the header */
@@ -2340,8 +2382,8 @@ li.context-item .visage-icon-domino {
     margin-top: var(--visage-space-xs);
     border: 2px dashed var(--visage-border-focus);
     border-radius: var(--visage-radius-medium);
-    background: rgba(0, 0, 0, 0.2);
-    color: var(--visage-text-muted);
+    background: var(--visage-bg-panel);
+    color: var(--visage-text-secondary);
     text-align: center;
     opacity: 0.7;
     transition: all 0.2s ease;
@@ -2358,7 +2400,8 @@ li.context-item .visage-icon-domino {
     opacity: 1;
     color: var(--visage-text-main);
     border-color: var(--visage-accent-main);
-    background: rgba(var(--visage-accent-rgb), 0.1);
+    border-style: solid;
+    background-color: rgba(var(--visage-accent-rgb), 0.1);
 }
 
 .visage .macro-drop-target:hover i {
@@ -2802,20 +2845,6 @@ li.context-item .visage-icon-domino {
     transition: all 0.2s;
 }
 
-.visage-mode-switcher button.visage-btn-first {
-    border-start-start-radius: var(--visage-radius-medium);
-    border-end-start-radius: var(--visage-radius-medium);
-    border-start-end-radius: 0;
-    border-end-end-radius: 0;
-}
-
-.visage-mode-switcher button.visage-btn-second {
-    border-start-start-radius: 0;
-    border-end-start-radius: 0;
-    border-start-end-radius: var(--visage-radius-medium);
-    border-end-end-radius: var(--visage-radius-medium);
-}
-
 .visage-mode-switcher button:hover {
     background: var(--visage-bg-hover);
     color: var(--visage-text-main);
@@ -3083,7 +3112,7 @@ li.context-item .visage-icon-domino {
     display: flex;
     flex-direction: column;
     width: 100%;
-    box-shadow: var(--visage-shadow-popout);
+    box-shadow: var(--visage-shadow-window);
     transition: border-color 0.2s;
     position: relative; /* Context for z-index */
     z-index: 1; /* Base z-index */
@@ -3205,8 +3234,10 @@ li.context-item .visage-icon-domino {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-    gap: 8px;
+    border-radius: var(--visage-radius-medium);
+    border: 1px solid var(--visage-border-subtle);
+    box-shadow: var(--visage-shadow-inset);
+    gap: var(--visage-space-s);
 }
 
 .visage .visual-target {
@@ -3658,7 +3689,7 @@ li.context-item .visage-icon-domino {
     background: var(--visage-bg-hover);
     border: 1px solid var(--visage-accent-main);
     border-radius: var(--visage-radius-medium);
-    box-shadow: var(--visage-shadow-popout);
+    box-shadow: var(--visage-shadow-window);
     backdrop-filter: blur(10px);
     z-index: 100;
     display: flex;
@@ -3775,7 +3806,7 @@ button.visage-tool-icon {
     border: 1px solid var(--visage-border-focus);
     border-radius: var(--visage-radius-medium);
     background: var(--visage-bg-base);
-    box-shadow: var(--visage-shadow-popout);
+    box-shadow: var(--visage-shadow-window);
     overflow: hidden;
     margin: 5px 0;
 }
@@ -4131,8 +4162,8 @@ button.visage-tool-icon {
     transform: translateX(calc(-50% * var(--visage-dir-flip)));
     transition: top 0.2s ease;
     z-index: 10;
-    background: hsl(var(--visage-hue), 40%, 30%);
-    border: 1px solid hsl(var(--visage-hue), 50%, 40%);
+    background: var(--visage-accent-main);
+    border: 1px solid var(--visage-border-main);
 }
 .visage-timeline-block::before {
     content: '';
@@ -4151,7 +4182,7 @@ button.visage-tool-icon {
 .visage-timeline-block:active {
     cursor: grabbing;
     z-index: 100;
-    box-shadow: var(--visage-shadow-popout);
+    box-shadow: var(--visage-shadow-window);
     filter: brightness(1.2);
     border-color: var(--visage-bg-highlight);
 }
@@ -4168,10 +4199,9 @@ button.visage-tool-icon {
     text-overflow: ellipsis;
     font-size: 0.8rem;
     font-weight: bold;
-    color: var(--visage-text-main);
-    background: hsl(var(--visage-hue), 40%, 30%);
+    color: var(--visage-primary-100);
     pointer-events: none;
-    text-shadow: 0 0 3px var(--visage-bg-base), 0 0 5px var(--visage-bg-base);
+    text-shadow: 0 0 3px var(--visage-primary-900), 0 0 5px var(--visage-primary-900);
 }
 
 
