@@ -386,27 +386,69 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         VisageUtilities.applyVisageTheme(this.element, this.isLocal);
 
-        // Form Event Delegation
+        // --- 1. ROOT EVENT DELEGATION (Execute Once) ---
+        if (!this._rootListenersBound) {
+            const UPDATE_TRIGGERS = "select, input[type='text'], input[type='checkbox'], input[type='radio'], file-picker, color-picker, range-picker";
+
+            this.element.addEventListener("change", (e) => {
+                this._markDirty();
+
+                // If the user changes an Inspector type/mode, fully re-render to swap the dynamic form fields
+                if (e.target.name === "inspector.eventId" || e.target.name === "inspector.dataType" || e.target.name === "inspector.mode") {
+                    this.render();
+                    return;
+                }
+
+                if (e.target.matches(UPDATE_TRIGGERS)) {
+                    this._updatePreview();
+                }
+            });
+
+            this.element.addEventListener("input", () => this._markDirty());
+            this._dragDropManager.bind(this.element);
+
+            // --- Global Drag & Drop for External Foundry Documents ---
+            this.element.addEventListener("dragover", (e) => e.preventDefault());
+            this.element.addEventListener(
+                "drop",
+                async (e) => {
+                    try {
+                        const dragDataText = e.dataTransfer.getData("text/plain");
+                        if (!dragDataText) return;
+
+                        const data = JSON.parse(dragDataText);
+
+                        if (data?.type === "Macro" && data?.uuid) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            if (typeof this._onDropMacro === "function") {
+                                await this._onDropMacro(data.uuid);
+                            }
+                        }
+                    } catch (err) {
+                        console.debug("Visage | Silently ignoring non-JSON drag data.", err);
+                    }
+                },
+                { capture: true },
+            );
+
+            // Text input debouncing
+            const debouncedTextUpdate = foundry.utils.debounce(() => this._updatePreview(), 250);
+            this.element.addEventListener("input", (e) => {
+                if (e.target.matches("input[type='text'], input[type='number'], color-picker, range-picker, textarea")) {
+                    debouncedTextUpdate();
+                }
+            });
+
+            this._rootListenersBound = true;
+        }
+
+        // --- 2. CHILD NODE BINDINGS (Execute Every Render) ---
+
         const debouncedUpdate = foundry.utils.debounce(() => this._updatePreview(), 50);
 
-        // Define all valid elements that should trigger a live preview update
-        const UPDATE_TRIGGERS = "select, input[type='text'], input[type='checkbox'], input[type='radio'], file-picker, color-picker, range-picker";
-
-        this.element.addEventListener("change", (e) => {
-            this._markDirty();
-
-            // If the user changes an Inspector type/mode, fully re-render to swap the dynamic form fields
-            if (e.target.name === "inspector.eventId" || e.target.name === "inspector.dataType" || e.target.name === "inspector.mode") {
-                this.render();
-                return;
-            }
-
-            if (e.target.matches(UPDATE_TRIGGERS)) {
-                this._updatePreview();
-            }
-        });
-
-        // Setup Range Sliders (This automatically catches the new .visage-slider)
+        // Setup Range Sliders
         this.element.querySelectorAll('input[type="range"]').forEach((slider) => {
             slider.addEventListener("input", () => {
                 this._markDirty();
@@ -443,9 +485,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         });
 
         // Bind Sub-systems
-        this.element.addEventListener("input", () => this._markDirty());
         this._bindTagInput();
-        this._dragDropManager.bind(this.element);
 
         // --- Global Drag & Drop for External Foundry Documents ---
         this.element.addEventListener("dragover", (e) => e.preventDefault());
@@ -693,6 +733,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return {
             ...context.meta,
             img: context.resolvedPath,
+            name: c.name,
             isVideo: context.isVideo,
             flipX: context.isFlippedX,
             flipY: context.isFlippedY,
@@ -1845,7 +1886,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         stage.innerHTML = html;
         if (controls) stage.appendChild(controls);
         if (hint) stage.appendChild(hint);
-        if (overlay) stage.appendChild(overlay);
+
+        // Update the text and re-attach
+        if (overlay) {
+            overlay.textContent = changes.name || ""; // <-- Dynamically updates as you type
+            stage.appendChild(overlay);
+        }
 
         // Apply Transforms
         const newImg = stage.querySelector(".visage-preview-img, .visage-preview-video, .fallback-icon");

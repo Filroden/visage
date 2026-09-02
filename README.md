@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-5.8.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-5.9.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v14-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -71,6 +71,8 @@ Visage was built with User Experience in mind, offering three distinct tools:
 3. **The Selector HUD:** A transient quick-menu that appears next to a token on the canvas. It allows players to quickly swap their active Visages, toggle visibility, reorder their active stack via drag-and-drop and create **Quick Visages**. The HUD includes a **Pin toggle**, allowing you to switch it from a floating panel to a standard, resizable window.
 
    ![Visage Selector HUD](https://github.com/Filroden/visage/blob/main/images/visage_selector_hud.png)
+
+> **Note:** The UI colour theme shows whether you have a Global or Local Library or Visage Editor open. Global libraries and editors are shown in blue; local libraries and editors are shown in gold.
 
 ### Compatibility and Interaction with Other Modules
 

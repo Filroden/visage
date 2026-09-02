@@ -143,69 +143,73 @@
 .visage,
 .theme-dark .visage {
     /* --- Backgrounds --- */
-    --visage-bg-base:           var(--visage-primary-900); 
-    --visage-bg-panel:          var(--visage-primary-800);
-    --visage-bg-muted:          var(--visage-neutral-600);
-    --visage-bg-hover:          var(--visage-primary-700);
-    --visage-bg-highlight:      var(--visage-primary-600);
+    --visage-bg-base:               var(--visage-primary-900); 
+    --visage-bg-panel:              var(--visage-primary-800);
+    --visage-bg-muted:              var(--visage-neutral-600);
+    --visage-bg-hover:              var(--visage-primary-700);
+    --visage-bg-highlight:          var(--visage-primary-600);
     
     /* --- Text --- */
-    --visage-text-main:         var(--visage-primary-100); 
-    --visage-text-secondary:    var(--visage-primary-200);
-    --visage-text-muted:        var(--visage-primary-300);
-    --visage-text-inverse:      var(--visage-primary-900);
+    --visage-text-main:             var(--visage-primary-100); 
+    --visage-text-secondary:        var(--visage-primary-200);
+    --visage-text-muted:            var(--visage-primary-300);
+    --visage-text-inverse:          var(--visage-primary-900);
     
     /* --- Borders & Outlines --- */
-    --visage-border-main:       var(--visage-primary-700);
-    --visage-border-subtle:     var(--visage-primary-800);
-    --visage-border-focus:      var(--visage-primary-accent);
+    --visage-border-main:           var(--visage-primary-700);
+    --visage-border-subtle:         var(--visage-primary-800);
+    --visage-border-focus:          var(--visage-primary-accent);
 
     /* --- Accents & Status --- */
-    --visage-accent-main:       var(--visage-primary-accent);
-    --visage-accent-hover:      var(--visage-primary-accent-bright);
+    --visage-accent-main:           var(--visage-primary-accent);
+    --visage-accent-hover:          var(--visage-primary-accent-bright);
+    --visage-translucent-overlay:   color-mix(in srgb, var(--visage-text-main) 10%, transparent);
 
-    --visage-color-success:     hsl(130, 50%, 50%);
-    --visage-color-warning:     hsl(33, 100%, 50%);
-    --visage-color-danger:      hsl(4, 90%, 60%);
+    --visage-color-success:         hsl(130, 50%, 50%);
+    --visage-color-warning:         hsl(33, 100%, 50%);
+    --visage-color-danger:          hsl(4, 90%, 60%);
 
     /* --- Shadows --- */
-    --visage-shadow-window:     0 0 10px rgba(0, 0, 0, 0.85);
-    --visage-shadow-popout:     inset 0 4px 10px rgba(var(--visage-accent-rgb), 0.5);
-    --visage-shadow-focus:      0 0 5px var(--visage-accent-main);
-    --visage-shadow-inset:      inset 0 0 10px var(--visage-primary-500);
+    --visage-shadow-window:         0 0 10px rgba(0, 0, 0, 0.85);
+    --visage-shadow-popout:         inset 0 4px 10px rgba(var(--visage-accent-rgb), 0.5);
+    --visage-shadow-focus:          0 0 5px var(--visage-accent-main);
+    --visage-shadow-inset:          inset 0 0 10px var(--visage-primary-500);
+    --visage-shadow-text:           0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .theme-light #tooltip.visage-tooltip,
 .theme-light .visage {
     /* --- Backgrounds --- */
-    --visage-bg-base:          var(--visage-primary-100);
-    --visage-bg-panel:         var(--visage-neutral-000);
-    --visage-bg-muted:         var(--visage-neutral-400);
-    --visage-bg-hover:         var(--visage-primary-200);
-    --visage-bg-highlight:     var(--visage-primary-300);
+    --visage-bg-base:               var(--visage-primary-100);
+    --visage-bg-panel:              var(--visage-neutral-000);
+    --visage-bg-muted:              var(--visage-neutral-400);
+    --visage-bg-hover:              var(--visage-primary-200);
+    --visage-bg-highlight:          var(--visage-primary-300);
 
     /* --- Text --- */
-    --visage-text-main:        var(--visage-primary-900);
-    --visage-text-secondary:   var(--visage-primary-800);
-    --visage-text-muted:       var(--visage-primary-600);
-    --visage-text-inverse:     var(--visage-neutral-000);
+    --visage-text-main:             var(--visage-primary-900);
+    --visage-text-secondary:        var(--visage-primary-800);
+    --visage-text-muted:            var(--visage-primary-600);
+    --visage-text-inverse:          var(--visage-neutral-000);
 
     /* --- Borders & Outlines --- */
-    --visage-border-main:      var(--visage-primary-300);
-    --visage-border-subtle:    var(--visage-primary-200);
-    --visage-border-focus:     var(--visage-primary-accent-dark);
+    --visage-border-main:           var(--visage-primary-300);
+    --visage-border-subtle:         var(--visage-primary-200);
+    --visage-border-focus:          var(--visage-primary-accent-dark);
 
     /* --- Accents & Status --- */
-    --visage-accent-main:      var(--visage-primary-accent-dark);
-    --visage-accent-hover:     var(--visage-primary-accent);
+    --visage-accent-main:           var(--visage-primary-accent-dark);
+    --visage-accent-hover:          var(--visage-primary-accent);
+    --visage-translucent-overlay:   color-mix(in srgb, var(--visage-text-main) 10%, transparent);
 
-    --visage-color-success:    hsl(130, 60%, 35%);
-    --visage-color-warning:    hsl(33, 100%, 35%);
-    --visage-color-danger:     hsl(4, 90%, 45%);
+    --visage-color-success:         hsl(130, 60%, 35%);
+    --visage-color-warning:         hsl(33, 100%, 35%);
+    --visage-color-danger:          hsl(4, 90%, 45%);
 
     /* --- Shadows --- */
-    --visage-shadow-window:    0 8px 24px rgba(0, 0, 0, 0.15);
-    --visage-shadow-popout:    0 4px 12px rgba(var(--visage-accent-rgb), 0.1);
-    --visage-shadow-focus:     0 0 5px var(--visage-accent-main);
-    --visage-shadow-inset:     inset 0 0 10px var(--visage-primary-500);
+    --visage-shadow-window:         0 8px 24px rgba(0, 0, 0, 0.15);
+    --visage-shadow-popout:         0 4px 12px rgba(var(--visage-accent-rgb), 0.1);
+    --visage-shadow-focus:          0 0 5px var(--visage-accent-main);
+    --visage-shadow-inset:          inset 0 0 10px var(--visage-primary-500);
+    --visage-shadow-text:           0 2px 4px rgba(255, 255, 255, 0.8);
 }
