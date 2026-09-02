@@ -78,6 +78,17 @@ export class VisageSettings {
             restricted: true,
         });
 
+        // --- Disable Player Access to Visage ---
+        game.settings.register(MODULE_ID, "gmOnlyMode", {
+            name: "VISAGE.Settings.GMOnlyMode.Name",
+            hint: "VISAGE.Settings.GMOnlyMode.Hint",
+            scope: "world",
+            config: true,
+            type: Boolean,
+            default: false,
+            restricted: true,
+        });
+
         // --- System Override Setting ---
         game.settings.register(MODULE_ID, "allowSystemOverrides", {
             name: "VISAGE.Settings.AllowSystemOverrides.Name",

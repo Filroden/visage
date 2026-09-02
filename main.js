@@ -162,8 +162,13 @@ Hooks.once("init", () => {
         };
 
         // Hook into both standard and enriched directory context menus
-        Hooks.on("getActorContextOptions", (html, options) => addSidebarOption(options));
+        Hooks.on("getActorContextOptions", (html, options) => {
+            if (!game.user.isGM && game.settings.get(MODULE_ID, "gmOnlyMode")) return;
+            addSidebarOption(options);
+        });
         Hooks.on("getActorDirectoryEntryContext", (html, options) => {
+            if (!game.user.isGM && game.settings.get(MODULE_ID, "gmOnlyMode")) return;
+
             // Prevent duplicate entries if other modules trigger this hook multiple times
             if (!options.some((o) => o.name === "VISAGE.Title")) addSidebarOption(options);
         });
@@ -174,7 +179,7 @@ Hooks.once("init", () => {
          * @param {Array} buttons - The existing header buttons.
          */
         Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
-            if (!sheet.actor.isOwner) return;
+            if (!sheet.actor.isOwner || game.settings.get("visage", "gmOnlyMode")) return;
             buttons.unshift({
                 label: "VISAGE.Title",
                 class: "visage-config",
@@ -215,8 +220,14 @@ Hooks.once("init", () => {
             { capture: true, passive: true },
         );
 
-        Hooks.on("getHeaderControlsActorSheetV2", addAppV2Control);
-        Hooks.on("getActorSheetV2HeaderControls", addAppV2Control);
+        Hooks.on("getHeaderControlsActorSheetV2", (app, controls) => {
+            if (!game.user.isGM && game.settings.get(MODULE_ID, "gmOnlyMode")) return;
+            addAppV2Control(app, controls);
+        });
+        Hooks.on("getActorSheetV2HeaderControls", (app, controls) => {
+            if (!game.user.isGM && game.settings.get(MODULE_ID, "gmOnlyMode")) return;
+            addAppV2Control(app, controls);
+        });
     } catch (err) {
         console.error("Visage | Initialization failed:", err);
     }
@@ -395,7 +406,10 @@ Hooks.on("closeTokenConfig", (app) => {
 });
 
 // Integrate with the Token HUD
-Hooks.on("renderTokenHUD", handleTokenHUD);
+Hooks.on("renderTokenHUD", (app, html, data) => {
+    if (!game.user.isGM && game.settings.get(MODULE_ID, "gmOnlyMode")) return;
+    handleTokenHUD(app, html, data);
+});
 
 // Monitor token updates to capture default state changes or maintain Visage persistence
 Hooks.on("preUpdateToken", (document, change, options, userId) => {

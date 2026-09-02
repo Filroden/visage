@@ -54,6 +54,7 @@ export class Visage {
     static log(message, force = false) {
         VisageUtilities.log(message, force);
     }
+
     static async resolvePath(path) {
         return VisageUtilities.resolvePath(path);
     }
@@ -136,6 +137,8 @@ export class Visage {
      * @returns {Promise<boolean>} True if application was successful, false otherwise.
      */
     static async apply(tokenOrId, maskId, options = {}) {
+        if (!game.user.isGM && game.settings.get(MODULE_ID, "gmOnlyMode")) return false;
+
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
 
@@ -338,6 +341,8 @@ export class Visage {
      * @returns {Promise<boolean>} True if removed successfully, false if not found.
      */
     static async remove(tokenOrId, maskId) {
+        if (!game.user.isGM && game.settings.get(MODULE_ID, "gmOnlyMode")) return false;
+
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return false;
 
@@ -438,6 +443,8 @@ export class Visage {
      * @returns {Promise<boolean>} True if successful.
      */
     static async revert(tokenOrId) {
+        if (!game.user.isGM && game.settings.get(MODULE_ID, "gmOnlyMode")) return false;
+
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return;
 
@@ -543,6 +550,8 @@ export class Visage {
      * @param {string} layerId
      */
     static async toggleLayer(tokenOrId, layerId) {
+        if (!game.user.isGM && game.settings.get(MODULE_ID, "gmOnlyMode")) return false;
+
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return;
 
@@ -612,6 +621,8 @@ export class Visage {
      * @param {Array<string>} newOrderIds - Array of Layer IDs in the desired order (Bottom to Top).
      */
     static async reorderStack(tokenOrId, newOrderIds) {
+        if (!game.user.isGM && game.settings.get(MODULE_ID, "gmOnlyMode")) return false;
+
         const token = typeof tokenOrId === "string" ? canvas.tokens.get(tokenOrId) : tokenOrId;
         if (!token) return;
 

@@ -645,5 +645,9 @@
     "VISAGE.Fit.Cover": "Cover",
     "VISAGE.Fit.Fill": "Fill",
     "VISAGE.Fit.Width": "Full Width",
-    "VISAGE.Fit.Height": "Full Height"
+    "VISAGE.Fit.Height": "Full Height",
+
+    "_comment_V5_9_KEYS": "--- V5.9 KEYS ---",
+    "VISAGE.Settings.GMOnlyMode.Name": "GM-Only Mode",
+    "VISAGE.Settings.GMOnlyMode.Hint": "Prevent players from accessing Visage features, either from the token or via the API (macros)."
 }
