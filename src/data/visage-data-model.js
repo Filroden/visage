@@ -75,6 +75,12 @@ export class VisageDataModel extends foundry.abstract.DataModel {
             tags: new ArrayField(new StringField(), { initial: [], label: "VISAGE.GlobalEditor.Tags" }),
             mode: new StringField({ required: true, initial: "identity", choices: ["identity", "overlay"], label: "VISAGE.GlobalEditor.Mode" }),
             public: new BooleanField({ initial: false, label: "VISAGE.GlobalEditor.Visibility" }),
+            playerVisibility: new StringField({
+                required: true,
+                initial: "visible",
+                choices: ["visible", "locked", "hidden"],
+                label: "VISAGE.GlobalEditor.PlayerVisibility",
+            }),
             deleted: new BooleanField({ initial: false }),
             updated: new NumberField({ required: false, nullable: true, integer: true }),
 

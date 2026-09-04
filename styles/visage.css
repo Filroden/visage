@@ -98,13 +98,12 @@ li.context-item .visage-icon-domino {
 
 #tooltip.visage-tooltip {
     max-width: 300px !important;
-    border: 1px solid var(--visage-accent-main);
+    border: 1px solid oklch(from var(--visage-accent-main) l 0 h);
     border-radius: var(--visage-radius-small);
     padding: var(--visage-space-s);
-    background: var(--visage-bg-panel);
-    color: var(--visage-text-secondary);
+    background: oklch(from var(--visage-bg-panel) l 0 h);
+    color: oklch(from var(--visage-text-secondary) l 0 h);
     box-shadow: var(--visage-shadow-window);
-    filter: grayscale(100%);
     font-family: var(--visage-font-family);
     font-size: var(--visage-font-size-s);
     line-height: var(--visage-line-height-body);
@@ -139,7 +138,7 @@ li.context-item .visage-icon-domino {
 .visage-tooltip-row i {
     width: var(--visage-font-size-m);
     text-align: center;
-    color: var(--visage-accent-main);
+    color: oklch(from var(--visage-accent-main) l 0 h);
 }
 
 .visage-tooltip-row .label {
@@ -149,6 +148,15 @@ li.context-item .visage-icon-domino {
 
 .visage-tooltip-row .meta {
     opacity: 0.7;
+}
+
+.visage-tooltip-image {
+    max-width: 150px;
+    height: auto;
+    border-radius: 4px;
+    border: 1px solid oklch(from var(--visage-border-focus) l 0 h);
+    display: block;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
 }
 
 /* --- Labels --- */
@@ -270,7 +278,7 @@ li.context-item .visage-icon-domino {
     transition: background-color 0.1s, border-color 0.1s, color 0.1s ease;
 }
 
-.visage button:hover {
+.visage button:not(:disabled):hover {
     background: var(--visage-bg-highlight);
     border-color: var(--visage-accent-main);
     box-shadow: none;
@@ -548,7 +556,7 @@ li.context-item .visage-icon-domino {
     border: 1px solid var(--visage-border-focus);
     border-radius: var(--visage-radius-medium);
     padding: var(--visage-space-m);
-    margin-block-start: var(--visage-space-m);
+    margin-block: var(--visage-space-m);
     gap: var(--visage-space-s);
     background: transparent;
     height: 100%;
@@ -753,7 +761,7 @@ li.context-item .visage-icon-domino {
     transition: opacity 0.1s ease;
 }
 
-.visage .visage-config-button:hover {
+.visage .visage-config-button:not(:disabled):hover {
     opacity: 1;
     background-color: inherit;
     border: none;
@@ -1774,7 +1782,7 @@ li.context-item .visage-icon-domino {
     justify-content: center;
 }
 
-.visage-zoom-controls button:hover {
+.visage-zoom-controls button:not(:disabled):hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--visage-border-focus);
 }
@@ -2860,7 +2868,7 @@ li.context-item .visage-icon-domino {
     transition: all 0.2s;
 }
 
-.visage-mode-switcher button:hover {
+.visage-mode-switcher button:not(:disabled):hover {
     background: var(--visage-bg-hover);
     color: var(--visage-text-main);
     border: none;
@@ -3293,15 +3301,6 @@ li.context-item .visage-icon-domino {
     inset-inline-end: var(--visage-space-s);
 }
 
-.visage-tooltip-image {
-    max-width: 150px;
-    height: auto;
-    border-radius: 4px;
-    border: 1px solid var(--visage-border-focus);
-    display: block;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-}
-
 .visage-preview-content {
     position: relative;
     width: 100%;
@@ -3456,7 +3455,7 @@ li.context-item .visage-icon-domino {
     padding: 0;
 }
 
-.visage .card-zone-right button:hover {
+.visage .card-zone-right button:not(:disabled):hover {
     background: var(--visage-bg-hover);
     color: var(--visage-text-main);
     border-color: var(--visage-accent-main);
@@ -3464,7 +3463,7 @@ li.context-item .visage-icon-domino {
     transform: translateY(-1px);
 }
 
-.visage .card-zone-right button.danger:hover {
+.visage .card-zone-right button.danger:not(:disabled):hover {
     color: var(--visage-color-warning);
     border-color: var(--visage-color-warning);
 }
@@ -3479,34 +3478,26 @@ li.context-item .visage-icon-domino {
 }
 
 .visage .card-footer {
+    display: flex;
+    flex-direction: column;
     background: var(--visage-bg-hover);
-    padding: 0 var(--visage-space-m);
+    padding: var(--visage-space-s) var(--visage-space-m);
+    gap: var(--visage-space-xs);
     border-radius: 0 0 var(--visage-radius-medium) var(--visage-radius-medium);
-    align-content: center;
-    overflow: hidden; 
-    position: relative;
     flex-basis: var(--visage-font-size-xxl);
 }
 
-.visage .footer-slider {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.visage .footer-slide {
-    position: absolute;
-    inset-inline-start: 0;
-    width: 100%;
-    height: 100%;
+.visage-card .footer-row.title-row {
     display: flex;
+    justify-content: space-between;
     align-items: center;
 }
 
-.visage .title-slide {
-    top: 0;
-    justify-content: space-between; 
+.visage-card .footer-row.tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    min-height: var(--visage-space-xl);
+    align-items: center;
 }
 
 .visage .card-title {
@@ -3518,16 +3509,6 @@ li.context-item .visage-icon-domino {
     white-space: nowrap; 
     overflow: hidden; 
     text-overflow: ellipsis;
-}
-
-.visage .tags-slide {
-    top: 100%;
-    background: var(--visage-bg-hover); 
-    justify-content: flex-start;
-}
-
-.visage-card:hover .footer-slider {
-    transform: translateY(-100%);
 }
 
 .visage .card-tags {

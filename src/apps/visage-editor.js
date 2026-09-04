@@ -229,6 +229,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             ...context,
             isEdit: !!this.visageId,
             isLocal: this.isLocal,
+            isGM: game.user.isGM,
+            playerVisibility: data.playerVisibility ?? "visible",
             isDirty: this.isDirty,
             isPublic: data.public ?? false,
             categories: Array.from(categorySet).sort((a, b) => a.localeCompare(b)),
@@ -793,6 +795,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             texturePayload.scaleY = null;
         }
 
+        // Safely extract visibility or fall back to memory if the inputs were not rendered (e.g. Player editing)
+        const fallbackVisibility = this._preservedData?.playerVisibility || this._getInitialData()?.playerVisibility || "visible";
+
         // 2. Assemble the raw payload matching the DataModel's root structure
         const rawPayload = {
             id: this.visageId,
@@ -801,6 +806,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             tags: formData.tags ? formData.tags.split(",").filter((t) => t.trim()) : [],
             mode: formData.mode,
             public: formData.public === "true",
+            playerVisibility: formData.playerVisibility || fallbackVisibility,
             automation: this._automationData,
             changes: {
                 ...formData,

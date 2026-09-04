@@ -79,7 +79,7 @@
 
             <div class="filter-divider"></div>
 
-            <button class="clear-filters" data-action="toggleAutomationFilter" data-tooltip="{{localize 'VISAGE.Directory.FilterAutomation'}}" style="color: {{#if filters.automation}}var(--visage-color-success){{else}}var(--visage-text-main){{/if}};">
+            <button class="clear-filters" data-action="toggleAutomationFilter" data-tooltip="{{localize 'VISAGE.Directory.FilterAutomation'}}" style="{{#if filters.automation}}background-color: var(--visage-accent-main); color: var(--visage-neutral-000);{{else}}color: var(--visage-text-main);{{/if}}">
                 <i class="visage-icon power"></i>
             </button>
 

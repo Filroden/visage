@@ -113,12 +113,15 @@
                 
                 {{#unless this.isDefault}}
                     {{!-- 2. EDIT --}}
-                    <button class="icon-btn" data-action="edit" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Edit'}}"><i class="visage-icon edit"></i></button>
+                    <button class="icon-btn" data-action="edit" data-tooltip="{{localize 'VISAGE.Directory.Tooltip.Edit'}}" {{#if isLocked}}hidden{{/if}}>
+                        <i class="visage-icon edit"></i>
+                    </button>
                     
                     {{!-- 3. MODE TOGGLE (New) --}}
                     <button class="icon-btn" data-action="toggleMode" 
                             data-mode="{{this.mode}}"
-                            data-tooltip="{{#if (visageEq this.mode 'identity')}}{{localize 'VISAGE.Directory.Tooltip.ModeIdentity'}}{{else}}{{localize 'VISAGE.Directory.Tooltip.ModeOverlay'}}{{/if}}">
+                            data-tooltip="{{#if (visageEq this.mode 'identity')}}{{localize 'VISAGE.Directory.Tooltip.ModeIdentity'}}{{else}}{{localize 'VISAGE.Directory.Tooltip.ModeOverlay'}}{{/if}}"
+                            {{#if isLocked}}hidden{{/if}}>
                         {{#if (visageEq this.mode 'identity')}}
                             <i class="visage-icon domino"></i> {{!-- Identity Icon --}}
                         {{else}}
@@ -150,7 +153,9 @@
                             
                             {{!-- Local-Specific Actions --}}
                             {{#if @root.isLocal}}
-                                <button data-action="promote" data-visage-id="{{this.id}}"><i class="visage-icon domino"></i> {{localize "VISAGE.Actions.Promote"}}</button>
+                                {{#if @root.isGM}}
+                                    <button data-action="promote" data-visage-id="{{this.id}}"><i class="visage-icon domino"></i> {{localize "VISAGE.Actions.Promote"}}</button>
+                                {{/if}}
                                 <button data-action="exportIndividual"><i class="visage-icon save"></i> {{localize "VISAGE.Actions.Export"}}</button>
                                 <hr>
                                 <button data-action="swapDefault" data-visage-id="{{this.id}}">
@@ -163,8 +168,10 @@
                                 <button data-action="copyToLocal"><i class="visage-icon domino"></i> {{localize "VISAGE.Gallery.Action.CopyToLocal"}}</button>
                             {{/unless}}
                             
-                            <hr>
-                            <button data-action="delete" class="danger"><i class="visage-icon delete"></i> {{localize "VISAGE.Actions.Delete"}}</button>
+                            <hr {{#unless @root.isGM}}{{#if (visageEq this.playerVisibility "locked")}}hidden{{/if}}{{/unless}}>
+                            <button data-action="delete" {{#unless @root.isGM}}{{#if (visageEq this.playerVisibility "locked")}}hidden{{/if}}{{/unless}}>
+                                <i class="visage-icon delete"></i> {{localize "VISAGE.Actions.Delete"}}
+                            </button>
                         </div>
                     </div>
                 {{/unless}}
@@ -175,29 +182,41 @@
 
     {{!-- FOOTER --}}
     <div class="card-footer">
-       <div class="footer-slider">
-            <div class="footer-slide title-slide">
-                {{!-- Visage Label --}}
-                <h4 class="card-title">{{this.label}}</h4>
+        {{!-- Row 1: Title & Icons --}}
+        <div class="footer-row title-row">
+            <h4 class="card-title">{{this.label}}</h4>
 
-                {{!-- Public/Private Indicator (Global Only) --}}
+            {{!-- Visibility Indicators --}}
+            {{#if @root.isGM}}
                 {{#unless @root.isLocal}}
+                    {{!-- Global: Public / Private --}}
                     {{#if this.isPublic}}
-                        <i class="visage-icon public"></i>
+                        <i class="visage-icon public" data-tooltip="{{localize 'VISAGE.GlobalEditor.Public'}}"></i>
                     {{else}}
-                        <i class="visage-icon private"></i>
+                        <i class="visage-icon private" data-tooltip="{{localize 'VISAGE.GlobalEditor.Private'}}"></i>
+                    {{/if}}
+                {{else}}
+                    {{!-- Local: Visible / Locked / Hidden --}}
+                    {{#if (visageEq this.playerVisibility "hidden")}}
+                        <i class="visage-icon visage-hidden" data-tooltip="{{localize 'VISAGE.GlobalEditor.PlayerHidden'}}"></i>
+                    {{else if (visageEq this.playerVisibility "locked")}}
+                        <i class="visage-icon lock" data-tooltip="{{localize 'VISAGE.GlobalEditor.PlayerLocked'}}"></i>
+                    {{else}}
+                        <i class="visage-icon visible" data-tooltip="{{localize 'VISAGE.GlobalEditor.PlayerVisible'}}"></i>
                     {{/if}}
                 {{/unless}}
-            </div>
-            <div class="footer-slide tags-slide">
-                <div class="card-tags">
-                    {{#each this.meta.itemTags}}
-                    <span class="tag {{#if this.active}}active{{/if}}" data-action="toggleTag" data-tag="{{this.label}}">{{this.label}}</span>
-                    {{/each}}
-                    {{#unless this.meta.itemTags}}
-                    <span class="no-tags">{{localize "VISAGE.Directory.NoTags"}}</span>
-                    {{/unless}}
-                </div>
+            {{/if}}
+        </div>
+
+        {{!-- Row 2: Tags --}}
+        <div class="footer-row tags-row">
+            <div class="card-tags">
+                {{#each this.meta.itemTags}}
+                <span class="tag {{#if this.active}}active{{/if}}" data-action="toggleTag" data-tag="{{this.label}}">{{this.label}}</span>
+                {{/each}}
+                {{#unless this.meta.itemTags}}
+                <span class="no-tags">{{localize "VISAGE.Directory.NoTags"}}</span>
+                {{/unless}}
             </div>
         </div>
     </div>

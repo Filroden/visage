@@ -140,18 +140,37 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         // (e.g., it's a private GM Visage or the player hid public globals),
         // fetch it and inject it so the player knows why their token is changed.
         if (currentFormKey !== "default" && !identities.some((i) => i.isActive)) {
-            const globalIdentity = VisageData.getGlobal(currentFormKey);
-            if (globalIdentity) {
-                const globalPresentation = await VisageData.buildPresentationContext(globalIdentity, {
-                    isActive: true,
-                    isGlobal: true,
-                });
+            const globalSource = VisageData.getGlobal(currentFormKey);
+            const localSource = VisageData.getLocal(token.actor).find((v) => v.id === currentFormKey);
+            const source = globalSource || localSource;
 
-                globalPresentation.key = currentFormKey;
-                globalPresentation.themeClass = "visage-theme-global"; // Triggers the Blue Border
+            if (source) {
+                let isHidden = false;
 
-                // Inject it right after the "Default" tile so it sits at the front
-                identities.splice(1, 0, globalPresentation);
+                if (!game.user.isGM) {
+                    if (globalSource && !globalSource.public) isHidden = true;
+                    if (localSource?.playerVisibility === "hidden") isHidden = true;
+                }
+
+                if (isHidden) {
+                    identities.splice(1, 0, {
+                        key: currentFormKey,
+                        label: game.i18n.localize("VISAGE.Selector.HiddenIdentity"),
+                        themeClass: globalSource ? "visage-theme-global" : "visage-theme-local",
+                        isActive: true,
+                        isEnforced: true,
+                        img: "icons/svg/mystery-man.svg",
+                    });
+                } else {
+                    const p = await VisageData.buildPresentationContext(source, {
+                        isActive: true,
+                        isGlobal: !!globalSource,
+                    });
+                    p.key = currentFormKey;
+                    p.themeClass = globalSource ? "visage-theme-global" : "visage-theme-local";
+                    p.isEnforced = false; // Locked visages are NOT enforced in the HUD
+                    identities.splice(1, 0, p);
+                }
             }
         }
 
@@ -170,17 +189,27 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         const stackDisplay = visibleStack
             .map((layer) => {
                 const img = layer.changes.img || layer.changes.texture?.src || "icons/svg/aura.svg";
+                const globalSource = VisageData.getGlobal(layer.id);
+                const isGlobal = globalSource !== null;
 
-                // Determine theme for stack items
-                // We check if this ID exists in the Global registry to color it Blue
-                const isGlobal = VisageData.getGlobal(layer.id) !== null;
+                let isHidden = false;
+
+                if (!game.user.isGM) {
+                    if (isGlobal) {
+                        if (!globalSource.public) isHidden = true;
+                    } else {
+                        const localSource = VisageData.getLocal(token.actor).find((v) => v.id === layer.id);
+                        if (localSource?.playerVisibility === "hidden") isHidden = true;
+                    }
+                }
 
                 return {
                     id: layer.id,
-                    label: layer.label,
-                    icon: img,
+                    label: isHidden ? game.i18n.localize("VISAGE.Selector.HiddenOverlay") : layer.label,
+                    icon: isHidden ? "icons/svg/mystery-man.svg" : img,
                     themeClass: isGlobal ? "visage-theme-global" : "visage-theme-local",
                     disabled: layer.disabled,
+                    isEnforced: isHidden, // Only hidden/private visages lose their drag/remove tools
                 };
             })
             .reverse();
@@ -409,9 +438,13 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             if (formKey === "default") {
                 const token = canvas.tokens.get(this.tokenId);
                 const currentIdentity = token.document.getFlag(MODULE_ID, "identity");
-                if (currentIdentity) await Visage.remove(this.tokenId, currentIdentity);
+                if (currentIdentity) {
+                    const success = await Visage.remove(this.tokenId, currentIdentity);
+                    if (success === false && !game.user.isGM) return;
+                }
             } else {
-                await Visage.apply(this.tokenId, formKey);
+                const success = await Visage.apply(this.tokenId, formKey);
+                if (success === false && !game.user.isGM) return;
             }
 
             // Auto-close only if acting as a transient HUD (pinned). Stay open if unpinned.

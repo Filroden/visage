@@ -649,5 +649,15 @@
 
     "_comment_V5_9_KEYS": "--- V5.9 KEYS ---",
     "VISAGE.Settings.GMOnlyMode.Name": "GM-Only Mode",
-    "VISAGE.Settings.GMOnlyMode.Hint": "Prevent players from accessing Visage features, either from the token or via the API (macros)."
+    "VISAGE.Settings.GMOnlyMode.Hint": "Prevent players from accessing Visage features, either from the token or via the API (macros).",
+    "VISAGE.GlobalEditor.PlayerVisibility": "Player Visibility",
+    "VISAGE.GlobalEditor.PlayerVisible": "Visible",
+    "VISAGE.GlobalEditor.PlayerVisibleHint": "This Visage will be visible and editable by the player that owns this token.",
+    "VISAGE.GlobalEditor.PlayerLocked": "Locked",
+    "VISAGE.GlobalEditor.PlayerLockedHint": "This Visage will be visible to the player that owns this token, but they cannot edit it.",
+    "VISAGE.GlobalEditor.PlayerHidden": "Hidden",
+    "VISAGE.GlobalEditor.PlayerHiddenHint": "This Visage will not be visible to the player that owns this token.",
+    "VISAGE.Selector.HiddenOverlay": "GM Enforced Overlay",
+    "VISAGE.Selector.HiddenIdentity": "GM Enforced Identity",
+    "VISAGE.Notifications.EnforcedVisage": "The GM has enforced this appearance. You cannot remove it."
 }

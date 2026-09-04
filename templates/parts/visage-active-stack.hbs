@@ -3,10 +3,11 @@
     <div class="stack-header">{{localize "VISAGE.Selector.ActiveEffects"}}</div>
     <ul class="visage-sortable-list">
         {{#each activeStack}}
-            <li class="stack-item {{this.themeClass}} {{#if this.disabled}}visage-disabled{{/if}}" 
-                draggable="true" 
+            <li class="stack-item {{this.themeClass}} {{#if this.disabled}}visage-disabled{{/if}} {{#if this.isEnforced}}is-enforced{{/if}}" 
+                {{#unless this.isEnforced}}draggable="true"{{/unless}} 
                 data-layer-id="{{this.id}}">
                 
+                {{#unless this.isEnforced}}
                 {{!-- Drag Handle --}}
                 <div class="drag-handle" data-tooltip="{{localize 'VISAGE.Selector.DragToReorder'}}">
                     <i class="visage-icon kebab"></i> 
@@ -19,17 +20,25 @@
                         data-tooltip="{{#if this.disabled}}{{localize 'VISAGE.Selector.Show'}}{{else}}{{localize 'VISAGE.Selector.Hide'}}{{/if}}">
                     <i class="visage-icon {{#if this.disabled}}visage-hidden{{else}}visible{{/if}}"></i>
                 </button>
+                {{else}}
+                {{!-- Pad the layout so the label aligns with non-enforced items --}}
+                <div class="enforced-handle" style="padding: 0 8px; opacity: 0.5;" data-tooltip="{{localize 'VISAGE.Notifications.EnforcedVisage'}}">
+                    <i class="visage-icon lock"></i>
+                </div>
+                {{/unless}}
 
                 <span class="effect-label" data-tooltip="{{this.label}}">
                     {{this.label}}
                 </span>
 
+                {{#unless this.isEnforced}}
                 <button type="button" class="remove-layer-btn" 
                         data-action="removeLayer" 
                         data-layer-id="{{this.id}}"
                         data-tooltip="{{localize 'VISAGE.Selector.RemoveEffect'}}">
                     <i class="visage-icon close"></i>
                 </button>
+                {{/unless}}
             </li>
         {{/each}}
     </ul>

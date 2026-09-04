@@ -86,18 +86,15 @@ export class VisageData {
 
             // Handle legacy data structure where ID might not be in the body
             const id = key.length === 16 ? key : data.id || foundry.utils.randomID(16);
+
             if (data.changes) {
-                results.push({
-                    id: id,
-                    label: data.label || data.name || "Unknown",
-                    category: data.category || "",
-                    tags: Array.isArray(data.tags) ? data.tags : [],
-                    mode: data.mode || "identity",
-                    changes: foundry.utils.deepClone(data.changes),
-                    automation: data.automation ? foundry.utils.deepClone(data.automation) : undefined,
-                    updated: data.updated,
-                    deleted: !!data.deleted,
-                });
+                try {
+                    // Let the DataModel automatically sanitise, apply defaults, and map the object
+                    const model = new VisageDataModel({ ...data, id: id });
+                    results.push(model.toObject());
+                } catch (err) {
+                    console.warn(`Visage | Could not parse legacy local Visage '${id}' for ${actor.name}. It may be corrupted.`, err);
+                }
             }
         }
         return results.sort((a, b) => a.label.localeCompare(b.label));

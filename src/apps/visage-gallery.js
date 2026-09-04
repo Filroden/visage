@@ -239,6 +239,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         return {
             isLocal: this.isLocal,
+            isGM: game.user.isGM,
 
             identities: identities,
             overlays: overlays,
@@ -271,15 +272,16 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         if (!this.actor) return [];
-        const rawItems = VisageData.getLocal(this.actor).filter((v) => (this.filters.showBin ? v.deleted : !v.deleted));
+        let rawItems = VisageData.getLocal(this.actor).filter((v) => (this.filters.showBin ? v.deleted : !v.deleted));
+
+        // Remove hidden visages from the gallery for players
+        if (!game.user.isGM) {
+            rawItems = rawItems.filter((v) => v.playerVisibility !== "hidden");
+        }
 
         // Inject Default Entry
         if (!this.filters.showBin) {
-            // 1. Determine the source of truth.
-            // If a token is on the canvas, use its document. Otherwise, use the actor's prototype.
             const targetDocument = (this.tokenId ? canvas.tokens.get(this.tokenId)?.document : null) || this.actor.prototypeToken;
-
-            // 2. Let your existing data layer extract the exact schema perfectly
             if (targetDocument) {
                 const defaultRaw = VisageData.getDefaultAsVisage(targetDocument);
                 if (defaultRaw) rawItems.unshift(defaultRaw);
@@ -362,6 +364,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             Object.assign(context, context.meta);
             context.meta.itemTags = (entry.tags || []).map((t) => ({ label: t, active: this.filters.tags.has(t) }));
             context.changes.img = context.resolvedPath;
+
+            context.isLocked = entry.playerVisibility === "locked" && !game.user.isGM;
 
             if (context.mode === "identity") identities.push(context);
             else overlays.push(context);
@@ -528,16 +532,13 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!source) return;
 
         const copySuffix = game.i18n.localize("VISAGE.Suffix.Copy");
-        const copy = {
-            label: `${source.label}${copySuffix}`,
-            category: source.category,
-            tags: source.tags ? [...source.tags] : [],
-            changes: foundry.utils.deepClone(source.changes),
-            mode: source.mode,
-            automation: source.automation ? foundry.utils.deepClone(source.automation) : undefined,
-        };
 
-        await VisageData.save(copy, this.isLocal ? this.actor : null);
+        // Deep clone the entire source to preserve all properties
+        const payload = foundry.utils.deepClone(source);
+        payload.label = `${source.label}${copySuffix}`;
+        delete payload.id; // Force the creation of a new ID upon saving
+
+        await VisageData.save(payload, this.isLocal ? this.actor : null);
         target.closest(".visage-popover-menu").classList.remove("active");
     }
 
@@ -628,18 +629,13 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const targetActors = new Set(tokens.map((t) => t.actor).filter(Boolean));
 
+        // Deep clone to preserve all properties
+        const basePayload = foundry.utils.deepClone(globalMask);
+        delete basePayload.id; // Force new local IDs for each actor
+
         let count = 0;
         for (const actor of targetActors) {
-            const payload = {
-                label: globalMask.label,
-                category: globalMask.category,
-                tags: globalMask.tags ? [...globalMask.tags] : [],
-                mode: globalMask.mode,
-                changes: foundry.utils.deepClone(globalMask.changes),
-                automation: globalMask.automation ? foundry.utils.deepClone(globalMask.automation) : undefined,
-            };
-
-            await VisageData.save(payload, actor);
+            await VisageData.save(basePayload, actor);
             count++;
         }
 
@@ -1103,6 +1099,9 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
                 p.key = v.id;
                 p.themeClass = isGlobal ? "visage-theme-global" : "visage-theme-local";
+
+                p.isLocked = v.playerVisibility === "locked" && !game.user.isGM;
+
                 return p;
             }),
         );

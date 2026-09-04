@@ -1,4 +1,5 @@
 import { Visage } from "../../core/visage.js";
+import { VisageData } from "../../data/visage-data.js";
 import { VisageComposer } from "../../core/visage-composer.js";
 import { DATA_NAMESPACE } from "../../core/visage-constants.js";
 
@@ -8,7 +9,8 @@ import { DATA_NAMESPACE } from "../../core/visage-constants.js";
  */
 export class VisageStackController {
     /**
-     * Reverts a token to its base Identity, stripping away all Overlays.
+     * Clears all overlays from a token's stack.
+     * Protects the active identity, and prevents players from removing GM-hidden overlays.
      */
     static async revertGlobal(tokenId) {
         const token = canvas.tokens.get(tokenId);
@@ -17,9 +19,27 @@ export class VisageStackController {
         const currentFormKey = token.document.getFlag(DATA_NAMESPACE, "identity") || "default";
         const currentStack = token.document.getFlag(DATA_NAMESPACE, "activeStack") || [];
 
-        // Filter stack to keep only the active Identity layer
-        const newStack = currentStack.filter((layer) => layer.id === currentFormKey);
-        await VisageComposer.compose(token, newStack);
+        const layersToRemove = currentStack.filter((layer) => {
+            // 1. Never remove the active Identity
+            if (layer.id === currentFormKey || layer.mode === "identity") return false;
+
+            // 2. GMs can remove all remaining overlays
+            if (game.user.isGM) return true;
+
+            // 3. Players cannot remove hidden/private overlays
+            const globalSource = VisageData.getGlobal(layer.id);
+            if (globalSource && !globalSource.public) return false;
+
+            const localSource = VisageData.getLocal(token.actor).find((v) => v.id === layer.id);
+            if (localSource?.playerVisibility === "hidden") return false;
+
+            return true;
+        });
+
+        // Route removals through the core API to ensure Sequencer/TMFX teardowns fire correctly
+        for (const layer of layersToRemove) {
+            await Visage.remove(tokenId, layer.id);
+        }
     }
 
     /**
