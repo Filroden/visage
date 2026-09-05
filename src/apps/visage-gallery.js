@@ -37,6 +37,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             tags: new Set(),
             automation: false,
             showBin: false,
+            globalPublic: false,
+            localRestricted: false,
         };
 
         // Token Panel
@@ -159,6 +161,8 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleTag: VisageGallery.prototype._onToggleTag,
             clearTags: VisageGallery.prototype._onClearTags,
             toggleAutomationFilter: VisageGallery.prototype._onToggleAutomationFilter,
+            filterPublic: VisageGallery.prototype._onFilterPublic,
+            filterRestricted: VisageGallery.prototype._onFilterRestricted,
 
             // Menu / Data Actions
             toggleMenu: VisageGallery.prototype._onToggleMenu,
@@ -346,6 +350,12 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
             if (this.filters.automation && !entry.automation?.conditions?.length) return false;
 
+            // GM Auditing Filters
+            if (this.filters.globalPublic && !this.isLocal && !entry.public) return false;
+            if (this.filters.localRestricted && this.isLocal) {
+                if (entry.playerVisibility !== "locked" && entry.playerVisibility !== "hidden") return false;
+            }
+
             return true;
         });
     }
@@ -395,6 +405,16 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onToggleAutomationFilter(_event, _target) {
         this.filters.automation = !this.filters.automation;
+        this.render();
+    }
+
+    _onFilterPublic(_event, _target) {
+        this.filters.globalPublic = !this.filters.globalPublic;
+        this.render();
+    }
+
+    _onFilterRestricted(_event, _target) {
+        this.filters.localRestricted = !this.filters.localRestricted;
         this.render();
     }
 

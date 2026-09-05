@@ -106,21 +106,20 @@ export class VisageComposer {
      * @private
      */
     static _calculateCompositeState(base, stack) {
-        const state = {
-            src: base.texture?.src || "",
-            scaleX: Math.abs(base.texture?.scaleX ?? 1),
-            scaleY: Math.abs(base.texture?.scaleY ?? 1),
-            mirrorX: (base.texture?.scaleX ?? 1) < 0,
-            mirrorY: (base.texture?.scaleY ?? 1) < 0,
-            anchorX: base.texture?.anchorX ?? 0.5,
-            anchorY: base.texture?.anchorY ?? 0.5,
-            fit: base.texture?.fit ?? "contain",
-            finalData: foundry.utils.deepClone(base),
-        };
+        // Guarantee nested object structures exist before deep cloning
+        const safeBase = foundry.utils.mergeObject({ texture: {}, flags: {} }, base);
 
-        if (!state.finalData.texture) {
-            state.finalData.texture = {};
-        }
+        const state = {
+            src: safeBase.texture.src || "",
+            scaleX: Math.abs(safeBase.texture.scaleX ?? 1),
+            scaleY: Math.abs(safeBase.texture.scaleY ?? 1),
+            mirrorX: (safeBase.texture.scaleX ?? 1) < 0,
+            mirrorY: (safeBase.texture.scaleY ?? 1) < 0,
+            anchorX: safeBase.texture.anchorX ?? 0.5,
+            anchorY: safeBase.texture.anchorY ?? 0.5,
+            fit: safeBase.texture.fit ?? "contain",
+            finalData: foundry.utils.deepClone(safeBase),
+        };
 
         for (const layer of stack) {
             if (layer.disabled) continue;

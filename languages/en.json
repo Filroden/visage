@@ -659,5 +659,9 @@
     "VISAGE.GlobalEditor.PlayerHiddenHint": "This Visage will not be visible to the player that owns this token.",
     "VISAGE.Selector.HiddenOverlay": "GM Enforced Overlay",
     "VISAGE.Selector.HiddenIdentity": "GM Enforced Identity",
-    "VISAGE.Notifications.EnforcedVisage": "The GM has enforced this appearance. You cannot remove it."
+    "VISAGE.Notifications.EnforcedVisage": "The GM has enforced this appearance. You cannot remove it.",
+    "VISAGE.Directory.Filter.GlobalPublic": "Show Only Global Public Visages",
+    "VISAGE.Directory.Filter.GlobalPublicDisabled": "Filter not available in Local mode",
+    "VISAGE.Directory.Filter.LocalRestricted": "Show Only Local GM Restricted (Locked or Hidden) Visages",
+    "VISAGE.Directory.Filter.LocalRestrictedDisabled": "Filter not available in Global mode"
 }

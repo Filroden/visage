@@ -77,8 +77,31 @@
                 {{/each}}
             </div>
 
+            {{!-- GM Auditing Filters --}}
+            {{#if @root.isGM}}
+                <div class="filter-divider"></div>
+
+                {{!-- Button 1: Global Public (Disabled in Local) --}}
+                <button class="clear-filters" data-action="filterPublic" 
+                        data-tooltip="{{#if @root.isLocal}}{{localize 'VISAGE.Directory.Filter.GlobalPublicDisabled'}}{{else}}{{localize 'VISAGE.Directory.Filter.GlobalPublic'}}{{/if}}" style="{{#if filters.globalPublic}}background-color: var(--visage-accent-main); color: var(--visage-neutral-000);{{else}}color: var(--visage-text-main);{{/if}}"
+                        {{#if @root.isLocal}}disabled{{/if}}>
+                    <i class="visage-icon public"></i>
+                </button>
+
+                <div class="filter-divider"></div>
+
+                {{!-- Button 2: Local Restricted (Disabled in Global) --}}
+                <button class="clear-filters" data-action="filterRestricted" 
+                        data-tooltip="{{#if @root.isLocal}}{{localize 'VISAGE.Directory.Filter.LocalRestricted'}}{{else}}{{localize 'VISAGE.Directory.Filter.LocalRestrictedDisabled'}}{{/if}}" style="{{#if filters.localRestricted}}background-color: var(--visage-accent-main); color: var(--visage-neutral-000);{{else}}color: var(--visage-text-main);{{/if}}"
+                        {{#unless @root.isLocal}}disabled{{/unless}}>
+                    <i class="visage-icon lock"></i>
+                </button>
+
+            {{/if}}
+
             <div class="filter-divider"></div>
 
+            {{!-- Automation Filter --}}
             <button class="clear-filters" data-action="toggleAutomationFilter" data-tooltip="{{localize 'VISAGE.Directory.FilterAutomation'}}" style="{{#if filters.automation}}background-color: var(--visage-accent-main); color: var(--visage-neutral-000);{{else}}color: var(--visage-text-main);{{/if}}">
                 <i class="visage-icon power"></i>
             </button>
