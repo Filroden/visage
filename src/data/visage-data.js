@@ -126,7 +126,16 @@ export class VisageData {
         if (!actor && !game.user.isGM) return;
 
         if (actor) {
-            await actor.setFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}.deleted`, true);
+            // 1. Fetch clean array
+            const visages = this.getLocal(actor);
+
+            // 2. Target the item
+            const target = visages.find((v) => v.id === id);
+            if (target) target.deleted = true;
+
+            // 3. Write back strictly as an Array
+            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: visages });
+
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -140,7 +149,12 @@ export class VisageData {
      */
     static async restore(id, actor = null) {
         if (actor) {
-            await actor.setFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}.deleted`, false);
+            const visages = this.getLocal(actor);
+            const target = visages.find((v) => v.id === id);
+
+            if (target) target.deleted = false;
+
+            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: visages });
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -154,8 +168,10 @@ export class VisageData {
      */
     static async destroy(id, actor = null) {
         if (actor) {
-            // Use native unsetFlag for cleaner database operations
-            await actor.unsetFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}`);
+            const visages = this.getLocal(actor);
+            const updatedVisages = visages.filter((v) => v.id !== id);
+
+            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: updatedVisages });
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -229,31 +245,31 @@ export class VisageData {
     /** @private */
     static async _saveLocal(data, actor) {
         const id = data.id || foundry.utils.randomID(16);
-        const existing = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY]?.[id];
 
-        // 1. Purify and STRICTLY VALIDATE the payload
         const purifiedData = this._validateDataModel(data, id);
-
-        // 2. Attach DB-specific tracking metadata
         const entry = {
             ...purifiedData,
             updated: Date.now(),
         };
 
-        // 1. Update Database FIRST
+        // 1. Fetch clean array
+        const visages = this.getLocal(actor);
+        const existingIndex = visages.findIndex((v) => v.id === id);
+        const existing = existingIndex > -1 ? visages[existingIndex] : null;
+
+        // 2. Inject or Update
         if (existing) {
-            // Explicitly delete old bloat first to bypass Foundry's deep merge resurrection
-            await actor.unsetFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}`);
+            visages[existingIndex] = entry;
+        } else {
+            visages.push(entry);
         }
 
-        // Write the new payload natively
-        await actor.setFlag(DATA_NAMESPACE, `${this.ALTERNATE_FLAG_KEY}.${id}`, entry);
+        // 3. Write back strictly as an Array
+        await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: visages });
         console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
 
-        // 2. Clear Watcher Memory SECOND
         Hooks.callAll("visageDataChanged");
 
-        // 3. Clean the Canvas THIRD
         if (existing?.automation?.enabled && !data.automation?.enabled) {
             const VisageApi = game.modules.get(MODULE_ID)?.api;
             if (VisageApi) {
