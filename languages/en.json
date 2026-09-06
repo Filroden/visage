@@ -6,8 +6,6 @@
     "VISAGE.GlobalEditor.Mode": "Mode",
     "VISAGE.Mode.Identity": "Identity",
     "VISAGE.Mode.Overlay": "Overlay",
-    "VISAGE.Mode.IdentityHint": "This item replaces the token's base appearance (e.g., Polymorph, Disguise).",
-    "VISAGE.Mode.OverlayHint": "This item adds effects on top of the token (e.g., Fire, Spirit Guardians).",
 
     "_comment_HUD": "--- VISAGE SELECTOR (HUD) ---",
     "VISAGE.Selector.Title": "Visage Selector",
@@ -657,11 +655,13 @@
     "VISAGE.GlobalEditor.PlayerLockedHint": "This Visage will be visible to the player that owns this token, but they cannot edit it.",
     "VISAGE.GlobalEditor.PlayerHidden": "Hidden",
     "VISAGE.GlobalEditor.PlayerHiddenHint": "This Visage will not be visible to the player that owns this token.",
-    "VISAGE.Selector.HiddenOverlay": "GM Enforced Overlay",
-    "VISAGE.Selector.HiddenIdentity": "GM Enforced Identity",
-    "VISAGE.Notifications.EnforcedVisage": "The GM has enforced this appearance. You cannot remove it.",
+    "VISAGE.Selector.HiddenOverlay": "GM Applied Overlay",
+    "VISAGE.Selector.HiddenIdentity": "GM Applied Identity",
+    "VISAGE.Notifications.EnforcedVisage": "The GM has applied this Visage. You cannot remove it.",
     "VISAGE.Directory.Filter.GlobalPublic": "Show Only Global Public Visages",
     "VISAGE.Directory.Filter.GlobalPublicDisabled": "Filter not available in Local mode",
     "VISAGE.Directory.Filter.LocalRestricted": "Show Only Local GM Restricted (Locked or Hidden) Visages",
-    "VISAGE.Directory.Filter.LocalRestrictedDisabled": "Filter not available in Global mode"
+    "VISAGE.Directory.Filter.LocalRestrictedDisabled": "Filter not available in Global mode",
+    "VISAGE.Mode.IdentityHint": "This places the Visage underneath the stack of Overlay Visages, making it ideal for establishing a new Identity (e.g., Polymorph, Disguise).",
+    "VISAGE.Mode.OverlayHint": "Layers the Visage on top of the active Identity (or base token) where it can combine with other Overlay Visages, perfect for smaller or temporary changes (e.g., size alterations, lights, postures/stances)."
 }
