@@ -153,6 +153,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             swapDefault: VisageGallery.prototype._onSwapDefault,
             promote: VisageGallery.prototype._onPromote,
             copyToLocal: VisageGallery.prototype._onCopyToLocal,
+            applyAlternate: VisageGallery.prototype._onApplyAlternate,
 
             // Filtering Actions
             selectCategory: VisageGallery.prototype._onSelectCategory,
@@ -665,6 +666,29 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
                 count: count,
             }),
         );
+    }
+
+    /**
+     * Handles applying a Visage in its non-native mode via the context menu.
+     * @param {Event} event - The triggering click event.
+     * @param {HTMLElement} target - The button element clicked.
+     * @private
+     */
+    async _onApplyAlternate(event, target) {
+        event.stopPropagation();
+
+        const card = target.closest(".visage-card");
+        const visageId = card.dataset.id;
+        const requestedMode = target.dataset.mode;
+
+        // Translate the requested mode into the API option
+        const switchIdentity = requestedMode === "identity";
+
+        await game.modules.get("visage").api.apply(this.tokenId, visageId, { switchIdentity });
+
+        // Close the popover menu after application
+        const menu = target.closest(".visage-popover-menu");
+        if (menu) menu.classList.remove("show");
     }
 
     /**
