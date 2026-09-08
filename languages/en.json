@@ -663,5 +663,8 @@
     "VISAGE.Directory.Filter.LocalRestricted": "Show Only Local GM Restricted (Locked or Hidden) Visages",
     "VISAGE.Directory.Filter.LocalRestrictedDisabled": "Filter not available in Global mode",
     "VISAGE.Mode.IdentityHint": "This places the Visage underneath the stack of Overlay Visages, making it ideal for establishing a new Identity (e.g., Polymorph, Disguise).",
-    "VISAGE.Mode.OverlayHint": "Layers the Visage on top of the active Identity (or base token) where it can combine with other Overlay Visages, perfect for smaller or temporary changes (e.g., size alterations, lights, postures/stances)."
+    "VISAGE.Mode.OverlayHint": "Layers the Visage on top of the active Identity (or base token) where it can combine with other Overlay Visages, perfect for smaller or temporary changes (e.g., size alterations, lights, postures/stances).",
+
+    "_comment_V5_10_KEYS": "--- V5.10 KEYS ---",
+    "VISAGE.Directory.Tooltip.MissingDependencies": "Missing Module(s)"
 }

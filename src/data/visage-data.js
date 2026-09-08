@@ -632,6 +632,11 @@ export class VisageData {
             portraitTooltip = `<img src='${displayPortrait}' class='visage-tooltip-image' alt='Portrait' />`;
         }
 
+        // 6. Dependency Evaluation
+        const missingDependencies = this._getMissingDependencies(c);
+        const hasMissingDependencies = missingDependencies.length > 0;
+        const missingDependencyTooltip = hasMissingDependencies ? `${game.i18n.localize("VISAGE.Directory.Tooltip.MissingDependencies")}: ${missingDependencies.join(", ")}` : "";
+
         return {
             ...data,
             isActive: options.isActive ?? false,
@@ -666,6 +671,8 @@ export class VisageData {
                 effectsTooltip: showEffectsBadge ? this._getTooltipContent(c, activeEffects) : "",
                 hasPortrait: !!c.portrait,
                 portraitTooltip,
+                hasMissingDependencies,
+                missingDependencyTooltip,
                 slots: {
                     scale: {
                         active: isScaleActive,
@@ -886,6 +893,37 @@ export class VisageData {
         }
 
         return `<div class='visage-tooltip-content'>${content}</div>`;
+    }
+
+    /**
+     * Evaluates a Visage payload against currently active modules to find missing dependencies.
+     * @param {Object} changes - The visual payload of the Visage.
+     * @returns {Array<string>} An array of missing module names (empty if all dependencies are met).
+     * @private
+     */
+    static _getMissingDependencies(changes) {
+        const missing = [];
+        const effects = changes.effects || [];
+
+        // 1. Evaluate Sequencer
+        if (!game.modules.get("sequencer")?.active) {
+            const needsSequencer = effects.some((e) => (e.type === "visual" && !e.disabled) || (e.type === "audio" && !e.disabled && e.path && !e.path.includes("/")));
+            if (needsSequencer) missing.push("Sequencer");
+        }
+
+        // 2. Evaluate Token Magic FX
+        if (!game.modules.get("tokenmagic")?.active) {
+            const needsTMFX = effects.some((e) => e.type === "tmfx" && !e.disabled);
+            if (needsTMFX) missing.push("Token Magic FX");
+        }
+
+        // 3. Evaluate Dylan's Animated Tokens
+        if (!game.modules.get("dylans-animated-tokens")?.active) {
+            const needsDAT = changes.flags?.["dylans-animated-tokens"]?.spritesheet === true;
+            if (needsDAT) missing.push("Dylan's Animated Tokens");
+        }
+
+        return missing;
     }
 
     // ==========================================

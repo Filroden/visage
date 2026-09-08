@@ -33,6 +33,10 @@
     font-family: var(--visage-font-family) !important;
 }
 
+.visage-error-text {
+    color: var(--visage-color-danger) !important;
+}
+
 .visage[dir="rtl"] {
     --visage-dir-flip: -1;
 }

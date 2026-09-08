@@ -47,6 +47,13 @@
             {{!-- Indicators Row --}}
             <div class="visage-card-indicators-row">
 
+                {{!-- Missing Dependencies Warning --}}
+                {{#if this.meta.hasMissingDependencies}}
+                    <div class="visage-card-effect-indicator warning visage-error-text" data-tooltip="{{this.meta.missingDependencyTooltip}}">
+                        <i class="visage-icon warning"></i>
+                    </div>
+                {{/if}}
+
                 {{!-- Effects --}}
                 {{#if this.meta.showEffectsBadge}}
                     <div class="visage-card-effect-indicator behavior" data-tooltip="{{{this.meta.effectsTooltip}}}">
