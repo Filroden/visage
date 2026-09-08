@@ -125,7 +125,8 @@ export class VisageMediaController {
 
                 const playResult = foundry.audio.AudioHelper.play({ src: resolvedPath, volume: vol, loop: e.loop ?? true }, false);
                 const handleSoundLoad = (sound) => {
-                    if (!effects.some((fx) => fx.id === e.id && !fx.disabled) || !sound || !isRendered) {
+                    // Prevent memory leak: If the Promise was evicted from the map while loading (e.g. window closed), abort.
+                    if (!this.audioPreviews.has(e.id) || !effects.some((fx) => fx.id === e.id && !fx.disabled) || !sound || !isRendered) {
                         this._stopSound(sound);
                         this.audioPreviews.delete(e.id);
                         return null;

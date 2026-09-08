@@ -39,6 +39,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(options = {}) {
         super(options);
 
+        // --- ORPHAN PREVENTION ---
+        // If another VisageEditor instance already exists in Foundry's V2 registry,
+        // it must be explicitly closed before this new instance overwrites the DOM.
+        for (const app of foundry.applications.instances.values()) {
+            if (app instanceof VisageEditor && app !== this) {
+                app.close();
+            }
+        }
+
         // Core Identity
         this.visageId = options.visageId || null;
         this.actorId = options.actorId || null;
@@ -163,7 +172,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.render(options);
     }
 
-    async close(options) {
+    async _onClose(options) {
         // 1. Audio preview cleanup
         if (this._mediaController) this._mediaController.stopAll();
 
@@ -172,7 +181,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._timelineApp.close();
         }
 
-        return super.close(options);
+        return super._onClose(options);
     }
 
     async _prepareContext(_options) {
