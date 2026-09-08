@@ -799,20 +799,6 @@ li.context-item .visage-icon-domino {
     font-size: 1.1em;
 }
 
-/* --- Section Theme Overrides --- */
-
-/* Local Section = Gold Theme */
-.visage-section.local-section {
-    --visage-accent-main: var(--visage-color1-text-accent); 
-    --visage-accent-hover: var(--visage-accent-hover);
-}
-
-/* Global Section = Blue Theme */
-.visage-section.global-section {
-    --visage-accent-main: var(--visage-color2-text-accent);
-    --visage-accent-hover: var(--visage-color2-text-accent-hover);
-}
-
 /* --- Stack List --- */
 
 .visage .visage-stack-list {
