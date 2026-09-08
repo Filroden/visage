@@ -144,6 +144,19 @@ export class VisageData {
     }
 
     /**
+     * Determines if a local flag is still using a legacy array or integer-keyed object structure.
+     * @param {any} flag - The raw flag data.
+     * @returns {boolean} True if unmigrated.
+     * @private
+     */
+    static _isUnmigrated(flag) {
+        if (!flag) return false;
+        if (Array.isArray(flag)) return true;
+        const keys = Object.keys(flag);
+        return keys.some((k) => k.length !== 16);
+    }
+
+    /**
      * Soft-deletes a Visage.
      * @param {string} id - The ID of the visage.
      * @param {Actor|null} [actor=null] - The target actor (null implies Global storage).
@@ -155,7 +168,7 @@ export class VisageData {
             const currentFlag = actor.getFlag(DATA_NAMESPACE, this.ALTERNATE_FLAG_KEY);
 
             // Defensive Guard: Fallback to full-array write if unmigrated
-            if (Array.isArray(currentFlag)) {
+            if (this._isUnmigrated(currentFlag)) {
                 console.warn(`Visage | Actor ${actor.name} contains unmigrated arrays. Falling back to legacy delete.`);
                 const visages = this.getLocal(actor);
                 const target = visages.find((v) => v.id === id);
@@ -185,7 +198,7 @@ export class VisageData {
             const currentFlag = actor.getFlag(DATA_NAMESPACE, this.ALTERNATE_FLAG_KEY);
 
             // Defensive Guard: Fallback to full-array write if unmigrated
-            if (Array.isArray(currentFlag)) {
+            if (this._isUnmigrated(currentFlag)) {
                 console.warn(`Visage | Actor ${actor.name} contains unmigrated arrays. Falling back to legacy restore.`);
                 const visages = this.getLocal(actor);
                 const target = visages.find((v) => v.id === id);
@@ -215,7 +228,7 @@ export class VisageData {
             const currentFlag = actor.getFlag(DATA_NAMESPACE, this.ALTERNATE_FLAG_KEY);
 
             // Defensive Guard: Fallback to full-array write if unmigrated
-            if (Array.isArray(currentFlag)) {
+            if (this._isUnmigrated(currentFlag)) {
                 console.warn(`Visage | Actor ${actor.name} contains unmigrated arrays. Falling back to legacy destroy.`);
                 const visages = this.getLocal(actor);
                 const updatedVisages = visages.filter((v) => v.id !== id);
@@ -225,8 +238,8 @@ export class VisageData {
                 return;
             }
 
-            // V5.10+ Targeted Dictionary Write using native key-deletion syntax
-            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.-=${id}`]: null });
+            // V5.10+ Targeted Dictionary Write using modern ForcedDeletion operator
+            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: new foundry.data.operators.ForcedDeletion() });
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -311,7 +324,7 @@ export class VisageData {
         let existing = null;
 
         // Defensive Guard: Fallback to full-array write if unmigrated
-        if (Array.isArray(currentFlag)) {
+        if (this._isUnmigrated(currentFlag)) {
             console.warn(`Visage | Actor ${actor.name} contains unmigrated arrays. Falling back to legacy save.`);
             const visages = this.getLocal(actor);
             const existingIndex = visages.findIndex((v) => v.id === id);
