@@ -62,6 +62,31 @@ export class VisageData {
     }
 
     /**
+     * Retrieves a single Visage by ID.
+     * Checks the Local actor dictionary first, then falls back to the Global library.
+     * @param {string} id - The ID of the Visage to retrieve.
+     * @param {Actor|null} [actor=null] - The context actor for local lookups.
+     * @returns {Object|null} The cloned Visage data object, or null if not found.
+     */
+    static getVisage(id, actor = null) {
+        // 1. Check Local Actor Storage
+        if (actor) {
+            const localDict = this.getLocalDictionary(actor);
+            if (localDict[id]) {
+                return foundry.utils.deepClone(localDict[id]);
+            }
+        }
+
+        // 2. Check Global World Storage
+        const globalDict = this._getRawGlobal();
+        if (globalDict[id]) {
+            return foundry.utils.deepClone(globalDict[id]);
+        }
+
+        return null;
+    }
+
+    /**
      * Retrieves a single global visage by its ID.
      * @param {string} id - The ID of the visage.
      * @returns {Object|null} The cloned visage data or null if not found.

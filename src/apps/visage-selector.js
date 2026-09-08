@@ -140,23 +140,23 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         // (e.g., it's a private GM Visage or the player hid public globals),
         // fetch it and inject it so the player knows why their token is changed.
         if (currentFormKey !== "default" && !identities.some((i) => i.isActive)) {
-            const globalSource = VisageData.getGlobal(currentFormKey);
-            const localSource = VisageData.getLocal(token.actor).find((v) => v.id === currentFormKey);
-            const source = globalSource || localSource;
+            const localDict = VisageData.getLocalDictionary(token.actor);
+            const isLocal = !!localDict[currentFormKey];
+            const source = VisageData.getVisage(currentFormKey, token.actor);
 
             if (source) {
                 let isHidden = false;
 
                 if (!game.user.isGM) {
-                    if (globalSource && !globalSource.public) isHidden = true;
-                    if (localSource?.playerVisibility === "hidden") isHidden = true;
+                    if (!isLocal && !source.public) isHidden = true;
+                    if (isLocal && source.playerVisibility === "hidden") isHidden = true;
                 }
 
                 if (isHidden) {
                     identities.splice(1, 0, {
                         key: currentFormKey,
                         label: game.i18n.localize("VISAGE.Selector.HiddenIdentity"),
-                        themeClass: globalSource ? "visage-theme-global" : "visage-theme-local",
+                        themeClass: !isLocal ? "visage-theme-global" : "visage-theme-local",
                         isActive: true,
                         isEnforced: true,
                         img: "icons/svg/mystery-man.svg",
@@ -164,10 +164,10 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
                 } else {
                     const p = await VisageData.buildPresentationContext(source, {
                         isActive: true,
-                        isGlobal: !!globalSource,
+                        isGlobal: !isLocal,
                     });
                     p.key = currentFormKey;
-                    p.themeClass = globalSource ? "visage-theme-global" : "visage-theme-local";
+                    p.themeClass = !isLocal ? "visage-theme-global" : "visage-theme-local";
                     p.isEnforced = false; // Locked visages are NOT enforced in the HUD
                     identities.splice(1, 0, p);
                 }
@@ -186,28 +186,26 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         // Filter out the current identity from the sidebar stack (it's shown in the main grid)
         const visibleStack = activeStack.filter((layer) => layer.id !== currentFormKey);
 
+        const localDict = VisageData.getLocalDictionary(token.actor);
+
         const stackDisplay = visibleStack
             .map((layer) => {
                 const img = layer.changes.img || layer.changes.texture?.src || "icons/svg/aura.svg";
-                const globalSource = VisageData.getGlobal(layer.id);
-                const isGlobal = globalSource !== null;
+                const isLocal = !!localDict[layer.id];
+                const source = VisageData.getVisage(layer.id, token.actor);
 
                 let isHidden = false;
 
-                if (!game.user.isGM) {
-                    if (isGlobal) {
-                        if (!globalSource.public) isHidden = true;
-                    } else {
-                        const localSource = VisageData.getLocal(token.actor).find((v) => v.id === layer.id);
-                        if (localSource?.playerVisibility === "hidden") isHidden = true;
-                    }
+                if (!game.user.isGM && source) {
+                    if (!isLocal && !source.public) isHidden = true;
+                    if (isLocal && source.playerVisibility === "hidden") isHidden = true;
                 }
 
                 return {
                     id: layer.id,
                     label: isHidden ? game.i18n.localize("VISAGE.Selector.HiddenOverlay") : layer.label,
                     icon: isHidden ? "icons/svg/mystery-man.svg" : img,
-                    themeClass: isGlobal ? "visage-theme-global" : "visage-theme-local",
+                    themeClass: !isLocal ? "visage-theme-global" : "visage-theme-local",
                     disabled: layer.disabled,
                     isEnforced: isHidden, // Only hidden/private visages lose their drag/remove tools
                 };
@@ -571,13 +569,9 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!actor) return;
 
         // Determine if the Visage is Local or Global
-        let source = VisageData.getLocal(actor).find((v) => v.id === id);
-        let isLocal = true;
-
-        if (!source) {
-            source = VisageData.getGlobal(id);
-            isLocal = false;
-        }
+        const localDict = VisageData.getLocalDictionary(actor);
+        const isLocal = !!localDict[id];
+        const source = VisageData.getVisage(id, actor);
 
         if (!source?.automation) return;
 

@@ -560,7 +560,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _getInitialData() {
         if (this.visageId) {
-            const data = this.isLocal ? VisageData.getLocal(this.actor).find((v) => v.id === this.visageId) : VisageData.getGlobal(this.visageId);
+            const data = VisageData.getVisage(this.visageId, this.isLocal ? this.actor : null);
             if (data) this._currentLabel = data.label;
             return data;
         } else {

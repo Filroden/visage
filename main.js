@@ -380,7 +380,7 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
     const { Visage } = await import("./src/core/visage.js");
 
     // Ensure the dropped ID is valid
-    const visageData = VisageData.getGlobal(data.id);
+    const visageData = VisageData.getVisage(data.id);
     if (!visageData) return;
 
     // Calculate intersection to find the token under the cursor
