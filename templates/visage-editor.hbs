@@ -206,9 +206,9 @@
             
             {{!-- TABS NAVIGATION --}}
             <nav class="visage-tabs tabs" aria-label="{{localize 'VISAGE.NavLabel'}}">
-                <a class="item active" data-tab="appearance">{{localize "VISAGE.Editor.Tabs.Appearance"}}</a>
-                <a class="item" data-tab="effects">{{localize "VISAGE.Editor.Tabs.Effects"}}</a>
-                <a class="item" data-tab="triggers">{{localize "VISAGE.Editor.Tabs.Triggers"}}</a>
+                <a class="item {{#if tabs.appearance.active}}active{{/if}}" data-action="tab" data-group="primary" data-tab="appearance">{{localize "VISAGE.Editor.Tabs.Appearance"}}</a>
+                <a class="item {{#if tabs.effects.active}}active{{/if}}" data-action="tab" data-group="primary" data-tab="effects">{{localize "VISAGE.Editor.Tabs.Effects"}}</a>
+                <a class="item {{#if tabs.triggers.active}}active{{/if}}" data-action="tab" data-group="primary" data-tab="triggers">{{localize "VISAGE.Editor.Tabs.Triggers"}}</a>
             </nav>
 
             {{!-- TAB CONTENT --}}

@@ -55,7 +55,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.isDirty = false;
 
         // Viewport & Sub-system State
-        this._activeTab = "appearance";
         this._viewState = {
             scale: 1,
             x: 0,
@@ -103,6 +102,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             contentClasses: ["standard-form"],
         },
         position: { width: 960, height: "auto" },
+        tabGroups: { primary: "appearance" },
         actions: {
             save: VisageEditor.prototype._onSave,
             toggleField: VisageEditor.prototype._onToggleField,
@@ -234,6 +234,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._automationData.conditions.forEach((c) => this._formatConditionSummary(c));
         }
 
+        const activeTab = this.tabGroups?.primary || "appearance";
+
         return {
             ...context,
             isEdit: !!this.visageId,
@@ -248,9 +250,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             mode: data.mode || (this.isLocal ? "identity" : "overlay"),
             appId: this.id,
             tabs: {
-                appearance: { active: this._activeTab === "appearance" },
-                effects: { active: this._activeTab === "effects" },
-                triggers: { active: this._activeTab === "triggers" },
+                appearance: { active: activeTab === "appearance" },
+                effects: { active: activeTab === "effects" },
+                triggers: { active: activeTab === "triggers" },
             },
             img: prep(rawImg, ""),
             portrait: prep(c.portrait, ""),
@@ -532,11 +534,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         });
 
-        // Tabs & Viewport Init
-        this.element.querySelectorAll(".visage-tabs .item").forEach((t) => {
-            t.addEventListener("click", (e) => this._activateTab(e.currentTarget.dataset.tab));
-        });
-        if (this._activeTab) this._activateTab(this._activeTab);
+        // Viewport Init
         if (this._activeEffectId || this._editingLight || this._editingRing) {
             this.element.querySelector(".effects-tab-container")?.classList.add("editing");
         }
@@ -1253,16 +1251,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    _activateTab(tabName) {
-        this._activeTab = tabName;
-        this.element.querySelectorAll(".visage-tabs .item").forEach((n) => n.classList.toggle("active", n.dataset.tab === tabName));
-        this.element.querySelectorAll(".visage-tab-content .tab").forEach((c) => {
-            const isActive = c.dataset.tab === tabName;
-            c.classList.toggle("active", isActive);
-            if (isActive && tabName === "effects") c.querySelector(".effects-tab-container")?.classList.remove("active");
-        });
-    }
-
     // -- Sub-Editors --
     _onToggleRing() {
         if (!this._ringData) return;
@@ -1643,7 +1631,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingLight = false;
         this._editingRing = false;
 
-        this._activeTab = "effects";
+        this.changeTab("effects", "primary");
 
         this._markDirty();
         this.render({ force: true });
