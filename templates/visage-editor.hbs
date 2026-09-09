@@ -100,30 +100,32 @@
             
             {{!-- A. THE STAGE --}}
             <div class="visage-live-preview-stage">
-                {{> "modules/visage/templates/parts/visage-preview.hbs" 
-                    resolvedPath=preview.img 
-                    name=preview.name
-                    hasCheckerboard=true
-                    alpha=preview.alpha
-                    isVideo=preview.isVideo
-                    
-                    hasRing=preview.hasRing 
-                    hasInvisibility=preview.hasInvisibility
-                    hasPulse=preview.hasPulse
-                    hasGradient=preview.hasGradient
-                    hasWave=preview.hasWave
-                    ringColor=preview.ringColor
-                    ringBkg=preview.ringBkg
-                    
-                    hasLight=preview.hasLight
-                    lightColor=preview.lightColor
-                    lightDim=preview.lightDim
-                    lightBright=preview.lightBright
-                    
-                    forceFlipX=preview.flipX
-                    forceFlipY=preview.flipY
-                    wrapperClass="visage-preview-content stage-mode"
-                }}
+                <div class="preview-injection-target">
+                    {{> "modules/visage/templates/parts/visage-preview.hbs" 
+                        resolvedPath=preview.img 
+                        name=preview.name
+                        hasCheckerboard=true
+                        alpha=preview.alpha
+                        isVideo=preview.isVideo
+                        
+                        hasRing=preview.hasRing 
+                        hasInvisibility=preview.hasInvisibility
+                        hasPulse=preview.hasPulse
+                        hasGradient=preview.hasGradient
+                        hasWave=preview.hasWave
+                        ringColor=preview.ringColor
+                        ringBkg=preview.ringBkg
+                        
+                        hasLight=preview.hasLight
+                        lightColor=preview.lightColor
+                        lightDim=preview.lightDim
+                        lightBright=preview.lightBright
+                        
+                        forceFlipX=preview.flipX
+                        forceFlipY=preview.flipY
+                        wrapperClass="visage-preview-content stage-mode"
+                    }}
+                </div>
                  
                 <div class="stage-overlay-name">{{preview.name}}</div>
                 <div class="visage-stage-hint">{{localize "VISAGE.Editor.StageHint"}}</div>

@@ -1871,23 +1871,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const stage = this.element.querySelector(".visage-live-preview-stage");
         if (!stage) return;
 
-        // Preserve native controls before replacing HTML
-        const controls = stage.querySelector(".visage-zoom-controls");
-        const hint = stage.querySelector(".visage-stage-hint");
+        // Overwrite only the target box, leaving controls untouched
+        const target = stage.querySelector(".preview-injection-target");
+        if (target) target.innerHTML = html;
+
+        // Fast-update the overlay text
         const overlay = stage.querySelector(".stage-overlay-name");
-
-        stage.innerHTML = html;
-        if (controls) stage.appendChild(controls);
-        if (hint) stage.appendChild(hint);
-
-        // Update the text and re-attach
-        if (overlay) {
-            overlay.textContent = changes.name || ""; // <-- Dynamically updates as you type
-            stage.appendChild(overlay);
-        }
+        if (overlay) overlay.textContent = changes.name || "";
 
         // Apply Transforms
-        const newImg = stage.querySelector(".visage-preview-img, .visage-preview-video, .fallback-icon");
+        const newImg = target?.querySelector(".visage-preview-img, .visage-preview-video, .fallback-icon");
         if (newImg) {
             newImg.style.transform = imgTransform;
             newImg.style.transformOrigin = originStyle;
@@ -1895,7 +1888,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             newImg.style.top = "50%";
         }
 
-        const ringEl = stage.querySelector(".visage-ring-preview");
+        const ringEl = target?.querySelector(".visage-ring-preview");
         if (ringEl) {
             ringEl.style.width = "100%";
             ringEl.style.height = "100%";
@@ -1907,7 +1900,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // Apply grid dimension variables
-        const newContent = stage.querySelector(".visage-preview-content.stage-mode");
+        const newContent = target?.querySelector(".visage-preview-content.stage-mode");
         if (newContent) {
             newContent.style.setProperty("--visage-dim-w", changes.width || 1);
             newContent.style.setProperty("--visage-dim-h", changes.height || 1);
