@@ -103,6 +103,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         },
         position: { width: 960, height: "auto" },
         tabGroups: { primary: "appearance" },
+        form: { handler: VisageEditor, submitOnChange: false, closeOnSubmit: false },
         actions: {
             save: VisageEditor.prototype._onSave,
             toggleField: VisageEditor.prototype._onToggleField,
@@ -401,23 +402,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // --- 1. ROOT EVENT DELEGATION (Execute Once) ---
         if (!this._rootListenersBound) {
-            const UPDATE_TRIGGERS = "select, input[type='text'], input[type='checkbox'], input[type='radio'], file-picker, color-picker, range-picker";
-
-            this.element.addEventListener("change", (e) => {
-                this._markDirty();
-
-                // If the user changes an Inspector type/mode, fully re-render to swap the dynamic form fields
-                if (e.target.name === "inspector.eventId" || e.target.name === "inspector.dataType" || e.target.name === "inspector.mode") {
-                    this.render();
-                    return;
-                }
-
-                if (e.target.matches(UPDATE_TRIGGERS)) {
-                    this._updatePreview();
-                }
-            });
-
-            this.element.addEventListener("input", () => this._markDirty());
             this._dragDropManager.bind(this.element);
 
             // --- Global Drag & Drop for External Foundry Documents ---
@@ -526,14 +510,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             { capture: true },
         );
 
-        // Text input debouncing (This automatically catches the new .visage-number)
-        const debouncedTextUpdate = foundry.utils.debounce(() => this._updatePreview(), 250);
-        this.element.addEventListener("input", (e) => {
-            if (e.target.matches("input[type='text'], input[type='number'], color-picker, range-picker, textarea")) {
-                debouncedTextUpdate();
-            }
-        });
-
         // Viewport Init
         if (this._activeEffectId || this._editingLight || this._editingRing) {
             this.element.querySelector(".effects-tab-container")?.classList.add("editing");
@@ -561,6 +537,20 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         requestAnimationFrame(() => {
             this._isReady = true;
         });
+    }
+
+    async _onChangeForm(formConfig, event) {
+        this._markDirty();
+
+        // If the user changes an Inspector type/mode, fully re-render to swap the dynamic form fields
+        const triggerNames = ["inspector.eventId", "inspector.dataType", "inspector.mode"];
+        if (triggerNames.includes(event.target.name)) {
+            this.render();
+            return;
+        }
+
+        // For all other standard changes, fast-update the preview
+        this._updatePreview();
     }
 
     // --- Private Context Builders ---
