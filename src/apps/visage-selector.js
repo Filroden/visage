@@ -283,6 +283,7 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
         // 2. Bind the Token Update Hook using the Registry
         if (this._activeHooks.length === 0) {
             const hookId = Hooks.on("updateToken", (document) => {
+                if (this._isTransitioning) return;
                 if (document.id === this.tokenId) {
                     this.render();
                 }
@@ -432,7 +433,13 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _onSelectVisage(event, target) {
         const formKey = target.dataset.formKey;
-        if (formKey) {
+
+        // Block rapid double-clicks and intermediate database hooks
+        if (!formKey || this._isTransitioning) return;
+
+        this._isTransitioning = true;
+
+        try {
             if (formKey === "default") {
                 const token = canvas.tokens.get(this.tokenId);
                 const currentIdentity = token.document.getFlag(MODULE_ID, "identity");
@@ -448,7 +455,12 @@ export class VisageSelector extends HandlebarsApplicationMixin(ApplicationV2) {
             // Auto-close only if acting as a transient HUD (pinned). Stay open if unpinned.
             if (!this.isWindowMode) {
                 this.close();
+            } else {
+                // Force one final clean render after all operations are complete
+                this.render();
             }
+        } finally {
+            this._isTransitioning = false;
         }
     }
 
