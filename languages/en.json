@@ -666,5 +666,6 @@
     "VISAGE.Mode.OverlayHint": "Layers the Visage on top of the active Identity (or base token) where it can combine with other Overlay Visages, perfect for smaller or temporary changes (e.g., size alterations, lights, postures/stances).",
 
     "_comment_V5_10_KEYS": "--- V5.10 KEYS ---",
-    "VISAGE.Directory.Tooltip.MissingDependencies": "Missing Module(s)"
+    "VISAGE.Directory.Tooltip.MissingDependencies": "Missing Module(s)",
+    "VISAGE.Editor.Triggers.EventVisibility": "Hide/Show Token"
 }

@@ -26,7 +26,8 @@ export class VisageAutomation {
      * Called once during the `ready` hook.
      */
     static initialize() {
-        if (!game.user.isGM) return; // The Watcher only runs on the GM's machine to prevent race conditions
+        // The Watcher only runs on the primary active GM's machine to prevent multi-GM race conditions
+        if (!game.users.activeGM?.isSelf) return;
 
         // 1. Registry Maintenance Hooks
         Hooks.on("canvasReady", () => this._sweepRegistry());
@@ -86,6 +87,8 @@ export class VisageAutomation {
                     actorId: token.actor.id,
                     visages: combinedAutomations,
                     _lastRegionState: oldRecord ? oldRecord._lastRegionState : undefined,
+                    _lastVisibilityState: oldRecord?._lastVisibilityState !== undefined ? oldRecord._lastVisibilityState : token.document.hidden,
+                    _visibilityChangedAt: oldRecord ? oldRecord._visibilityChangedAt : 0,
                 });
             }
         }
@@ -187,10 +190,20 @@ export class VisageAutomation {
 
         if (!this._registry.has(tokenDoc.id)) return;
 
-        // 1. Throttle: Spatial changes AND Unlinked Token attribute changes
+        // 1. Throttle: Spatial changes, Visibility, AND Unlinked Token attribute changes
         const keys = Object.keys(changes);
         const isRelevant = keys.some(
-            (k) => k === "x" || k === "y" || k === "elevation" || k === "-=elevation" || k === "rotation" || k === "delta" || k.startsWith("delta.") || k === "actorData" || k.startsWith("actorData."),
+            (k) =>
+                k === "x" ||
+                k === "y" ||
+                k === "elevation" ||
+                k === "-=elevation" ||
+                k === "rotation" ||
+                k === "hidden" ||
+                k === "delta" ||
+                k.startsWith("delta.") ||
+                k === "actorData" ||
+                k.startsWith("actorData."),
         );
 
         if (!isRelevant) return;
@@ -206,6 +219,13 @@ export class VisageAutomation {
         const registryEntry = this._registry.get(tokenDoc.id);
         const previousRegionIds = registryEntry._lastRegionState ?? currentRegionIds;
         registryEntry._lastRegionState = currentRegionIds;
+
+        // Visibility Cache for Edge-Tracking
+        const currentVisibility = tokenDoc.hidden;
+        if (registryEntry._lastVisibilityState !== undefined && registryEntry._lastVisibilityState !== currentVisibility) {
+            registryEntry._visibilityChangedAt = Date.now();
+        }
+        registryEntry._lastVisibilityState = currentVisibility;
 
         // 3. Evaluation Routing
         if (currentRegionIds !== previousRegionIds) {
@@ -312,12 +332,14 @@ export class VisageAutomation {
     static async _buildTransitionQueue(token, visages, activeStack, VisageApi) {
         const queue = { apply: [], remove: [] };
         const refreshSet = new Set();
+        const record = this._registry.get(token.id); // Fetch the registry cache
 
         for (const visage of visages) {
-            const hasMetConditions = this._checkConditions(token.actor, token, visage.automation);
+            const isActive = await VisageApi.isActive(token.id, visage.id);
+            const hasMetConditions = this._checkConditions(token.actor, token, visage.automation, record, isActive);
+
             if (hasMetConditions === null) continue;
 
-            const isActive = await VisageApi.isActive(token.id, visage.id);
             const needsRefresh = isActive && this._checkNeedsRefresh(visage, activeStack);
 
             if (needsRefresh) refreshSet.add(visage.id);
@@ -389,13 +411,13 @@ export class VisageAutomation {
     /**
      * Checks if a visage's conditions are met. Returns null if no valid conditions exist.
      */
-    static _checkConditions(actor, token, auto) {
+    static _checkConditions(actor, token, auto, record, isActive) {
         const results = [];
         for (const cond of auto.conditions) {
             if (cond.disabled) continue;
             if (cond.type === "attribute") results.push(this._evalAttribute(actor, cond));
             else if (cond.type === "status") results.push(this._evalStatus(actor, cond));
-            else if (cond.type === "event") results.push(this._evalEvent(token, cond));
+            else if (cond.type === "event") results.push(this._evalEvent(token, cond, record, isActive));
         }
 
         if (results.length === 0) return null;
@@ -587,7 +609,7 @@ export class VisageAutomation {
      * @param {Object} condition - The condition configuration.
      * @returns {boolean} True if the condition is met.
      */
-    static _evalEvent(token, condition) {
+    static _evalEvent(token, condition, record, isActive) {
         switch (condition.eventId) {
             case "combat":
                 return this._evalCombatEvent(token, condition);
@@ -607,6 +629,8 @@ export class VisageAutomation {
                 return this._evalTimeEvent(condition);
             case "weather":
                 return this._evalWeatherEvent(condition);
+            case "visibility":
+                return this._evalVisibilityEvent(token, condition, record, isActive);
             default:
                 return false;
         }
@@ -681,6 +705,24 @@ export class VisageAutomation {
         if (!targetWeather) return false;
         const isMatch = (canvas.scene?.weather || "") === targetWeather;
         return condition.operator === "active" ? isMatch : !isMatch;
+    }
+
+    static _evalVisibilityEvent(token, condition, record, isActive) {
+        const isHidden = token.document.hidden;
+        const wantsHidden = condition.operator === "active";
+        const isMet = wantsHidden ? isHidden : !isHidden;
+
+        // --- EDGE TRACKING ---
+        // Suppress the initial wave: if the Visage isn't currently active on the token,
+        // ONLY allow it to apply if the token explicitly toggled its visibility within the last 3000ms.
+        if (isMet && !isActive && record) {
+            const timeSinceChange = Date.now() - (record._visibilityChangedAt || 0);
+            if (timeSinceChange > 3000) {
+                return false;
+            }
+        }
+
+        return isMet;
     }
 
     // -- Numeric Comparison Utility --

@@ -245,12 +245,13 @@
                             <option value="targeted" {{visageSelected (eq inspector.condition.eventId "targeted")}}>{{localize "VISAGE.Editor.Triggers.EventTargeted"}}</option>
                             <option value="time" {{visageSelected (eq inspector.condition.eventId "time")}}>{{localize "VISAGE.Editor.Triggers.EventTime"}}</option>
                             <option value="weather" {{visageSelected (eq inspector.condition.eventId "weather")}}>{{localize "VISAGE.Editor.Triggers.EventWeather"}}</option>
+                            <option value="visibility" {{visageSelected (eq inspector.condition.eventId "visibility")}}>{{localize "VISAGE.Editor.Triggers.EventVisibility"}}</option>
                         </select>
                     </div>
                 </div>
 
                 {{!-- Dynamic Fields: Combat, Targeted, & Global Light (Binary State) --}}
-                {{#if (or (eq inspector.condition.eventId 'combat') (or (eq inspector.condition.eventId 'targeted') (eq inspector.condition.eventId 'globalLight')))}}
+                {{#if (or (eq inspector.condition.eventId 'combat') (or (eq inspector.condition.eventId 'targeted') (or (eq inspector.condition.eventId 'visibility') (eq inspector.condition.eventId 'globalLight'))))}}
                     <div class="form-group">
                         <label>{{localize "VISAGE.Editor.Triggers.State"}}</label>
                         <div class="visage-form-fields">
