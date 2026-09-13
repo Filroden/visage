@@ -5,7 +5,7 @@ import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
 /**
  * The primary data controller class for Visage.
  * Responsible for CRUD operations on both Global (World Settings) and Local (Actor Flags) data.
- * Handles data normalization, presentation formatting, and state extraction.
+ * Handles data normalisation, presentation formatting, and state extraction.
  */
 export class VisageData {
     // ==========================================
@@ -62,6 +62,31 @@ export class VisageData {
     }
 
     /**
+     * Retrieves a single Visage by ID.
+     * Checks the Local actor dictionary first, then falls back to the Global library.
+     * @param {string} id - The ID of the Visage to retrieve.
+     * @param {Actor|null} [actor=null] - The context actor for local lookups.
+     * @returns {Object|null} The cloned Visage data object, or null if not found.
+     */
+    static getVisage(id, actor = null) {
+        // 1. Check Local Actor Storage
+        if (actor) {
+            const localDict = this.getLocalDictionary(actor);
+            if (localDict[id]) {
+                return foundry.utils.deepClone(localDict[id]);
+            }
+        }
+
+        // 2. Check Global World Storage
+        const globalDict = this._getRawGlobal();
+        if (globalDict[id]) {
+            return foundry.utils.deepClone(globalDict[id]);
+        }
+
+        return null;
+    }
+
+    /**
      * Retrieves a single global visage by its ID.
      * @param {string} id - The ID of the visage.
      * @returns {Object|null} The cloned visage data or null if not found.
@@ -72,32 +97,104 @@ export class VisageData {
     }
 
     /**
+     * Pure computation pass: normalises an actor's raw local flag (array, legacy
+     * integer-keyed object, or already-clean dictionary) into a repaired ID-keyed
+     * dictionary. Never writes to the database - callers decide how/when to persist.
+     * @param {Actor} actor - The actor document.
+     * @returns {{dictionary: Object, isArray: boolean, staleKeys: string[], isDirty: boolean}}
+     * @private
+     */
+    static _computeRepairedLocal(actor) {
+        const sourceData = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY] || {};
+        const isArray = Array.isArray(sourceData);
+        const entries = isArray ? sourceData.map((data, i) => [String(i), data]) : Object.entries(sourceData);
+
+        const dictionary = {};
+        const staleKeys = [];
+
+        for (const [key, data] of entries) {
+            if (!data) continue;
+
+            // Handle legacy objects where ID might not be in the body
+            const id = !isArray && key.length === 16 ? key : data.id || foundry.utils.randomID(16);
+
+            // Only object-shaped storage can have "stale" keys that need explicit removal;
+            // a straggler array is replaced wholesale, so there's nothing to individually clear.
+            if (!isArray && key !== id) staleKeys.push(key);
+
+            try {
+                const model = new VisageDataModel({ ...data, id });
+                dictionary[id] = model.toObject();
+            } catch (err) {
+                console.warn(`Visage | Could not parse local Visage '${id}' for ${actor.name}. It may be corrupted.`, err);
+                if (!isArray) staleKeys.push(key);
+            }
+        }
+
+        const isDirty = isArray || staleKeys.length > 0;
+        return { dictionary, isArray, staleKeys, isDirty };
+    }
+
+    /**
+     * Persists a repaired local dictionary in a single atomic write, explicitly clearing
+     * any stale legacy keys so the actor is fully upgraded rather than merged-and-lingering.
+     * @param {Actor} actor - The actor document.
+     * @param {Object} dictionary - The final, repaired dictionary to write.
+     * @param {string[]} [keysToDelete=[]] - Legacy/removed keys to force-delete alongside the write.
+     * @param {boolean} [isArray=false] - Whether the source flag was a raw array (full replace).
+     * @returns {Promise<Actor>}
+     * @private
+     */
+    static async _persistRepairedLocal(actor, dictionary, keysToDelete = [], isArray = false) {
+        const base = `flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`;
+
+        // A straggler array vs. an object is a type mismatch, so a plain assignment
+        // fully replaces it - no separate deletion step needed.
+        if (isArray) {
+            return actor.update({ [base]: dictionary });
+        }
+
+        const payload = {};
+        for (const key of keysToDelete) {
+            payload[`${base}.${key}`] = new foundry.data.operators.ForcedDeletion();
+        }
+        for (const [id, entry] of Object.entries(dictionary)) {
+            payload[`${base}.${id}`] = entry;
+        }
+        return actor.update(payload);
+    }
+
+    /**
+     * Retrieves all local visages stored on a specific Actor as an ID-keyed dictionary.
+     * Includes a lazy-evaluation fallback for unmigrated legacy arrays.
+     * @param {Actor} actor - The actor document.
+     * @returns {Object} Dictionary of local visages.
+     */
+    static getLocalDictionary(actor) {
+        if (!actor) return {};
+        const { dictionary, isArray, staleKeys, isDirty } = this._computeRepairedLocal(actor);
+
+        // Fire-and-forget self-heal for plain reads (e.g. getAvailable()). This is not paired
+        // with any other write in the same call stack, so it cannot race - unlike delete/restore/
+        // destroy/_saveLocal, which build and persist their own repaired copy in one atomic call.
+        if (isDirty && actor.isOwner) {
+            this._persistRepairedLocal(actor, dictionary, staleKeys, isArray).catch((err) => {
+                console.warn(`Visage | Could not persist self-healed dictionary for ${actor.name}.`, err);
+            });
+        }
+
+        return dictionary;
+    }
+
+    /**
      * Retrieves all local visages stored on a specific Actor.
+     * Preserves legacy Array return format for UI component compatibility.
      * @param {Actor} actor - The actor document.
      * @returns {Array} Sorted list of local visages (alphabetical by label).
      */
     static getLocal(actor) {
-        if (!actor) return [];
-        const sourceData = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY] || {};
-        const results = [];
-
-        for (const [key, data] of Object.entries(sourceData)) {
-            if (!data) continue;
-
-            // Handle legacy data structure where ID might not be in the body
-            const id = key.length === 16 ? key : data.id || foundry.utils.randomID(16);
-
-            if (data.changes) {
-                try {
-                    // Let the DataModel automatically sanitise, apply defaults, and map the object
-                    const model = new VisageDataModel({ ...data, id: id });
-                    results.push(model.toObject());
-                } catch (err) {
-                    console.warn(`Visage | Could not parse legacy local Visage '${id}' for ${actor.name}. It may be corrupted.`, err);
-                }
-            }
-        }
-        return results.sort((a, b) => a.label.localeCompare(b.label));
+        const dictionary = this.getLocalDictionary(actor);
+        return Object.values(dictionary).sort((a, b) => a.label.localeCompare(b.label));
     }
 
     // ==========================================
@@ -126,19 +223,15 @@ export class VisageData {
         if (!actor && !game.user.isGM) return;
 
         if (actor) {
-            // 1. Fetch clean array
-            const visages = this.getLocal(actor);
+            const { dictionary, staleKeys, isArray } = this._computeRepairedLocal(actor);
+            if (!dictionary[id]) return;
 
-            // 2. Target the item
-            const target = visages.find((v) => v.id === id);
-            if (target) target.deleted = true;
-
-            // 3. Write back strictly as an Array
-            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: visages });
-
+            dictionary[id].deleted = true;
+            await this._persistRepairedLocal(actor, dictionary, staleKeys, isArray);
             Hooks.callAll("visageDataChanged");
             return;
         }
+
         return this.updateGlobal(id, { deleted: true, deletedAt: Date.now() });
     }
 
@@ -149,15 +242,15 @@ export class VisageData {
      */
     static async restore(id, actor = null) {
         if (actor) {
-            const visages = this.getLocal(actor);
-            const target = visages.find((v) => v.id === id);
+            const { dictionary, staleKeys, isArray } = this._computeRepairedLocal(actor);
+            if (!dictionary[id]) return;
 
-            if (target) target.deleted = false;
-
-            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: visages });
+            dictionary[id].deleted = false;
+            await this._persistRepairedLocal(actor, dictionary, staleKeys, isArray);
             Hooks.callAll("visageDataChanged");
             return;
         }
+
         return this.updateGlobal(id, { deleted: false, deletedAt: null });
     }
 
@@ -168,13 +261,19 @@ export class VisageData {
      */
     static async destroy(id, actor = null) {
         if (actor) {
-            const visages = this.getLocal(actor);
-            const updatedVisages = visages.filter((v) => v.id !== id);
+            const { dictionary, staleKeys, isArray } = this._computeRepairedLocal(actor);
+            if (!dictionary[id]) return;
 
-            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: updatedVisages });
+            delete dictionary[id];
+            // The target id itself must also be force-deleted: it may already have been
+            // stored under its own correct 16-char key, so it wouldn't appear in staleKeys.
+            const keysToDelete = isArray ? [] : [...staleKeys, id];
+
+            await this._persistRepairedLocal(actor, dictionary, keysToDelete, isArray);
             Hooks.callAll("visageDataChanged");
             return;
         }
+
         const all = this._getRawGlobal();
         if (all[id]) {
             delete all[id];
@@ -245,31 +344,24 @@ export class VisageData {
     /** @private */
     static async _saveLocal(data, actor) {
         const id = data.id || foundry.utils.randomID(16);
-
         const purifiedData = this._validateDataModel(data, id);
         const entry = {
             ...purifiedData,
             updated: Date.now(),
         };
 
-        // 1. Fetch clean array
-        const visages = this.getLocal(actor);
-        const existingIndex = visages.findIndex((v) => v.id === id);
-        const existing = existingIndex > -1 ? visages[existingIndex] : null;
+        // Fetch the repaired dictionary (fixes any stale keys / missing ids in the same pass),
+        // fold in this save, and persist it all as a single atomic write.
+        const { dictionary, staleKeys, isArray } = this._computeRepairedLocal(actor);
+        const existing = dictionary[id] || null;
+        dictionary[id] = entry;
 
-        // 2. Inject or Update
-        if (existing) {
-            visages[existingIndex] = entry;
-        } else {
-            visages.push(entry);
-        }
+        await this._persistRepairedLocal(actor, dictionary, staleKeys, isArray);
 
-        // 3. Write back strictly as an Array
-        await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: visages });
         console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
-
         Hooks.callAll("visageDataChanged");
 
+        // Clean the Canvas if automation was disabled
         if (existing?.automation?.enabled && !data.automation?.enabled) {
             const VisageApi = game.modules.get(MODULE_ID)?.api;
             if (VisageApi) {
@@ -283,7 +375,7 @@ export class VisageData {
 
     /**
      * Validates a Visage payload against the strict DataModel.
-     * Allows Foundry to natively clamp/sanitize values, throwing UI errors
+     * Allows Foundry to natively clamp/sanitise values, throwing UI errors
      * only when structural validation completely fails.
      * @param {Object} data - The raw payload.
      * @param {string} id - The document ID.
@@ -351,7 +443,7 @@ export class VisageData {
             if (resolvedPortrait) layer.changes.portrait = resolvedPortrait;
         }
 
-        // 3. Handle Ring Data Structure Normalization
+        // 3. Handle Ring Data Structure Normalsation
         // (Since the model uses ObjectField for rings, we still need to format it for the UI/Canvas)
         if (layer.changes.ring) {
             if (layer.changes.ring.enabled === true) {
@@ -530,6 +622,11 @@ export class VisageData {
             portraitTooltip = `<img src='${displayPortrait}' class='visage-tooltip-image' alt='Portrait' />`;
         }
 
+        // 6. Dependency Evaluation
+        const missingDependencies = this._getMissingDependencies(c);
+        const hasMissingDependencies = missingDependencies.length > 0;
+        const missingDependencyTooltip = hasMissingDependencies ? `${game.i18n.localize("VISAGE.Directory.Tooltip.MissingDependencies")}: ${missingDependencies.join(", ")}` : "";
+
         return {
             ...data,
             isActive: options.isActive ?? false,
@@ -564,6 +661,8 @@ export class VisageData {
                 effectsTooltip: showEffectsBadge ? this._getTooltipContent(c, activeEffects) : "",
                 hasPortrait: !!c.portrait,
                 portraitTooltip,
+                hasMissingDependencies,
+                missingDependencyTooltip,
                 slots: {
                     scale: {
                         active: isScaleActive,
@@ -786,6 +885,37 @@ export class VisageData {
         return `<div class='visage-tooltip-content'>${content}</div>`;
     }
 
+    /**
+     * Evaluates a Visage payload against currently active modules to find missing dependencies.
+     * @param {Object} changes - The visual payload of the Visage.
+     * @returns {Array<string>} An array of missing module names (empty if all dependencies are met).
+     * @private
+     */
+    static _getMissingDependencies(changes) {
+        const missing = [];
+        const effects = changes.effects || [];
+
+        // 1. Evaluate Sequencer
+        if (!game.modules.get("sequencer")?.active) {
+            const needsSequencer = effects.some((e) => (e.type === "visual" && !e.disabled) || (e.type === "audio" && !e.disabled && e.path && !e.path.includes("/")));
+            if (needsSequencer) missing.push("Sequencer");
+        }
+
+        // 2. Evaluate Token Magic FX
+        if (!game.modules.get("tokenmagic")?.active) {
+            const needsTMFX = effects.some((e) => e.type === "tmfx" && !e.disabled);
+            if (needsTMFX) missing.push("Token Magic FX");
+        }
+
+        // 3. Evaluate Dylan's Animated Tokens
+        if (!game.modules.get("dylans-animated-tokens")?.active) {
+            const needsDAT = changes.flags?.["dylans-animated-tokens"]?.spritesheet === true;
+            if (needsDAT) missing.push("Dylan's Animated Tokens");
+        }
+
+        return missing;
+    }
+
     // ==========================================
     // 5. BUSINESS OPERATIONS (State Logic)
     // ==========================================
@@ -854,7 +984,7 @@ export class VisageData {
         // 2. Prepare new default data by merging the target into the current state
         const newDefaultData = foundry.utils.mergeObject(foundry.utils.deepClone(currentDefault), foundry.utils.deepClone(targetVisage), { inplace: false, insertKeys: true, overwrite: true });
 
-        // 3. Leverage the DataModel to validate and sanitize the merged data
+        // 3. Leverage the DataModel to validate and sanitise the merged data
         const commitModel = new VisageDataModel(newDefaultData);
         const cleanData = commitModel.toObject();
 

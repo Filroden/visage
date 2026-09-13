@@ -121,7 +121,7 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                             eventId: new StringField({
                                 required: false,
                                 nullable: true,
-                                choices: ["combat", "targeted", "facing", "elevation", "globalLight", "darkness", "region", "time", "weather"],
+                                choices: ["combat", "targeted", "facing", "elevation", "globalLight", "darkness", "region", "time", "weather", "visibility"],
                                 label: "VISAGE.Editor.Triggers.EventId",
                             }),
                             startAngle: new NumberField({ required: false, nullable: true, label: "VISAGE.Editor.Triggers.AngleStart" }),

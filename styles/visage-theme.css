@@ -141,7 +141,9 @@
 /* The base .visage class acts as the fallback default for Dark Theme */
 .theme-dark #tooltip.visage-tooltip,
 .visage,
-.theme-dark .visage {
+.theme-dark .visage,
+.theme-dark .visage-theme-local,
+.theme-dark .visage-theme-global {
     /* --- Backgrounds --- */
     --visage-bg-base:               var(--visage-primary-900); 
     --visage-bg-panel:              var(--visage-primary-800);
@@ -178,7 +180,9 @@
 }
 
 .theme-light #tooltip.visage-tooltip,
-.theme-light .visage {
+.theme-light .visage,
+.theme-light .visage-theme-local,
+.theme-light .visage-theme-global {
     /* --- Backgrounds --- */
     --visage-bg-base:               var(--visage-primary-100);
     --visage-bg-panel:              var(--visage-neutral-000);

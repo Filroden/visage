@@ -60,6 +60,15 @@
         {{!-- LEFT: Sidebar for Glyphs --}}
         <div class="visage-dashboard-sidebar">
 
+            {{!-- Missing Dependencies Warning --}}
+            {{#if this.meta.hasMissingDependencies}}
+            <div class="visage-sidebar-glyph warning visage-error-text"
+                 data-tooltip="{{this.meta.missingDependencyTooltip}}"
+                 data-tooltip-class="visage-tooltip">
+                <i class="visage-icon warning"></i>
+            </div>
+            {{/if}}
+
             {{!-- Name Override --}}
             {{#if this.meta.tokenName}}
             <div class="visage-sidebar-glyph name-override" 

@@ -39,6 +39,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(options = {}) {
         super(options);
 
+        // --- ORPHAN PREVENTION ---
+        // If another VisageEditor instance already exists in Foundry's V2 registry,
+        // it must be explicitly closed before this new instance overwrites the DOM.
+        for (const app of foundry.applications.instances.values()) {
+            if (app instanceof VisageEditor && app !== this) {
+                app.close();
+            }
+        }
+
         // Core Identity
         this.visageId = options.visageId || null;
         this.actorId = options.actorId || null;
@@ -46,7 +55,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.isDirty = false;
 
         // Viewport & Sub-system State
-        this._activeTab = "appearance";
         this._viewState = {
             scale: 1,
             x: 0,
@@ -94,6 +102,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             contentClasses: ["standard-form"],
         },
         position: { width: 960, height: "auto" },
+        tabGroups: { primary: "appearance" },
+        form: { handler: VisageEditor, submitOnChange: false, closeOnSubmit: false },
         actions: {
             save: VisageEditor.prototype._onSave,
             toggleField: VisageEditor.prototype._onToggleField,
@@ -163,7 +173,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         return super.render(options);
     }
 
-    async close(options) {
+    async _onClose(options) {
         // 1. Audio preview cleanup
         if (this._mediaController) this._mediaController.stopAll();
 
@@ -172,7 +182,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._timelineApp.close();
         }
 
-        return super.close(options);
+        return super._onClose(options);
     }
 
     async _prepareContext(_options) {
@@ -225,6 +235,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._automationData.conditions.forEach((c) => this._formatConditionSummary(c));
         }
 
+        const activeTab = this.tabGroups?.primary || "appearance";
+
         return {
             ...context,
             isEdit: !!this.visageId,
@@ -239,9 +251,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             mode: data.mode || (this.isLocal ? "identity" : "overlay"),
             appId: this.id,
             tabs: {
-                appearance: { active: this._activeTab === "appearance" },
-                effects: { active: this._activeTab === "effects" },
-                triggers: { active: this._activeTab === "triggers" },
+                appearance: { active: activeTab === "appearance" },
+                effects: { active: activeTab === "effects" },
+                triggers: { active: activeTab === "triggers" },
             },
             img: prep(rawImg, ""),
             portrait: prep(c.portrait, ""),
@@ -390,23 +402,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // --- 1. ROOT EVENT DELEGATION (Execute Once) ---
         if (!this._rootListenersBound) {
-            const UPDATE_TRIGGERS = "select, input[type='text'], input[type='checkbox'], input[type='radio'], file-picker, color-picker, range-picker";
-
-            this.element.addEventListener("change", (e) => {
-                this._markDirty();
-
-                // If the user changes an Inspector type/mode, fully re-render to swap the dynamic form fields
-                if (e.target.name === "inspector.eventId" || e.target.name === "inspector.dataType" || e.target.name === "inspector.mode") {
-                    this.render();
-                    return;
-                }
-
-                if (e.target.matches(UPDATE_TRIGGERS)) {
-                    this._updatePreview();
-                }
-            });
-
-            this.element.addEventListener("input", () => this._markDirty());
             this._dragDropManager.bind(this.element);
 
             // --- Global Drag & Drop for External Foundry Documents ---
@@ -515,19 +510,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             { capture: true },
         );
 
-        // Text input debouncing (This automatically catches the new .visage-number)
-        const debouncedTextUpdate = foundry.utils.debounce(() => this._updatePreview(), 250);
-        this.element.addEventListener("input", (e) => {
-            if (e.target.matches("input[type='text'], input[type='number'], color-picker, range-picker, textarea")) {
-                debouncedTextUpdate();
-            }
-        });
-
-        // Tabs & Viewport Init
-        this.element.querySelectorAll(".visage-tabs .item").forEach((t) => {
-            t.addEventListener("click", (e) => this._activateTab(e.currentTarget.dataset.tab));
-        });
-        if (this._activeTab) this._activateTab(this._activeTab);
+        // Viewport Init
         if (this._activeEffectId || this._editingLight || this._editingRing) {
             this.element.querySelector(".effects-tab-container")?.classList.add("editing");
         }
@@ -556,11 +539,25 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         });
     }
 
+    async _onChangeForm(formConfig, event) {
+        this._markDirty();
+
+        // If the user changes an Inspector type/mode, fully re-render to swap the dynamic form fields
+        const triggerNames = ["inspector.eventId", "inspector.dataType", "inspector.mode"];
+        if (triggerNames.includes(event.target.name)) {
+            this.render();
+            return;
+        }
+
+        // For all other standard changes, fast-update the preview
+        this._updatePreview();
+    }
+
     // --- Private Context Builders ---
 
     _getInitialData() {
         if (this.visageId) {
-            const data = this.isLocal ? VisageData.getLocal(this.actor).find((v) => v.id === this.visageId) : VisageData.getGlobal(this.visageId);
+            const data = VisageData.getVisage(this.visageId, this.isLocal ? this.actor : null);
             if (data) this._currentLabel = data.label;
             return data;
         } else {
@@ -1244,16 +1241,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    _activateTab(tabName) {
-        this._activeTab = tabName;
-        this.element.querySelectorAll(".visage-tabs .item").forEach((n) => n.classList.toggle("active", n.dataset.tab === tabName));
-        this.element.querySelectorAll(".visage-tab-content .tab").forEach((c) => {
-            const isActive = c.dataset.tab === tabName;
-            c.classList.toggle("active", isActive);
-            if (isActive && tabName === "effects") c.querySelector(".effects-tab-container")?.classList.remove("active");
-        });
-    }
-
     // -- Sub-Editors --
     _onToggleRing() {
         if (!this._ringData) return;
@@ -1634,7 +1621,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._editingLight = false;
         this._editingRing = false;
 
-        this._activeTab = "effects";
+        this.changeTab("effects", "primary");
 
         this._markDirty();
         this.render({ force: true });
@@ -1884,23 +1871,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const stage = this.element.querySelector(".visage-live-preview-stage");
         if (!stage) return;
 
-        // Preserve native controls before replacing HTML
-        const controls = stage.querySelector(".visage-zoom-controls");
-        const hint = stage.querySelector(".visage-stage-hint");
+        // Overwrite only the target box, leaving controls untouched
+        const target = stage.querySelector(".preview-injection-target");
+        if (target) target.innerHTML = html;
+
+        // Fast-update the overlay text
         const overlay = stage.querySelector(".stage-overlay-name");
-
-        stage.innerHTML = html;
-        if (controls) stage.appendChild(controls);
-        if (hint) stage.appendChild(hint);
-
-        // Update the text and re-attach
-        if (overlay) {
-            overlay.textContent = changes.name || ""; // <-- Dynamically updates as you type
-            stage.appendChild(overlay);
-        }
+        if (overlay) overlay.textContent = changes.name || "";
 
         // Apply Transforms
-        const newImg = stage.querySelector(".visage-preview-img, .visage-preview-video, .fallback-icon");
+        const newImg = target?.querySelector(".visage-preview-img, .visage-preview-video, .fallback-icon");
         if (newImg) {
             newImg.style.transform = imgTransform;
             newImg.style.transformOrigin = originStyle;
@@ -1908,7 +1888,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             newImg.style.top = "50%";
         }
 
-        const ringEl = stage.querySelector(".visage-ring-preview");
+        const ringEl = target?.querySelector(".visage-ring-preview");
         if (ringEl) {
             ringEl.style.width = "100%";
             ringEl.style.height = "100%";
@@ -1920,7 +1900,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // Apply grid dimension variables
-        const newContent = stage.querySelector(".visage-preview-content.stage-mode");
+        const newContent = target?.querySelector(".visage-preview-content.stage-mode");
         if (newContent) {
             newContent.style.setProperty("--visage-dim-w", changes.width || 1);
             newContent.style.setProperty("--visage-dim-h", changes.height || 1);

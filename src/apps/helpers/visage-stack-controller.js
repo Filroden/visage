@@ -27,11 +27,14 @@ export class VisageStackController {
             if (game.user.isGM) return true;
 
             // 3. Players cannot remove hidden/private overlays
-            const globalSource = VisageData.getGlobal(layer.id);
-            if (globalSource && !globalSource.public) return false;
+            const localDict = VisageData.getLocalDictionary(token.actor);
+            const isLocal = !!localDict[layer.id];
+            const source = VisageData.getVisage(layer.id, token.actor);
 
-            const localSource = VisageData.getLocal(token.actor).find((v) => v.id === layer.id);
-            if (localSource?.playerVisibility === "hidden") return false;
+            if (source) {
+                if (!isLocal && !source.public) return false;
+                if (isLocal && source.playerVisibility === "hidden") return false;
+            }
 
             return true;
         });

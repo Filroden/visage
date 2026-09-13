@@ -1,8 +1,5 @@
 /**
- * @file Main entry point for the Visage module.
- * Initializes the API, registers settings, and manages hooks for UI integration.
- * @module visage
- * @version 3.0.0
+ * Initialises the API, registers settings, and manages hooks for UI integration.
  */
 
 import { Visage } from "./src/core/visage.js";
@@ -31,7 +28,7 @@ let globalDirectoryInstance = null;
  * Worlds on a version older than this will trigger the migration utility.
  * @constant {string}
  */
-const NEEDS_MIGRATION_VERSION = "3.0.0";
+const NEEDS_MIGRATION_VERSION = "5.10.0";
 
 /**
  * Opens the Visage Configuration window (Gallery) for a specific actor or token.
@@ -287,7 +284,9 @@ Hooks.on("getSceneControlButtons", (controls) => {
  * Performs environment checks, garbage collection, and data migration if necessary.
  */
 Hooks.once("ready", async () => {
-    if (!game.user.isGM) return;
+    // Enforce Active GM strictly to prevent database write race conditions
+    const isActiveGM = game.user.isGM && game.users.activeGM?.id === game.user.id;
+    if (!isActiveGM) return;
 
     const lastVersion = game.settings.get(MODULE_ID, "worldVersion");
     const currentVersion = game.modules.get(MODULE_ID).version;
@@ -316,10 +315,10 @@ Hooks.once("ready", async () => {
         // Clean up deleted items older than retention period
         VisageData.runGarbageCollection();
 
-        // Initialize the Automation Engine Watcher
+        // Initialise the Automation Engine Watcher
         VisageAutomation.initialize();
 
-        // Initialize the Mass Edit Watcher
+        // Initialise the Mass Edit Watcher
         VisageMassEdit.initialize();
 
         // Check if a migration is required based on the version difference
@@ -381,7 +380,7 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
     const { Visage } = await import("./src/core/visage.js");
 
     // Ensure the dropped ID is valid
-    const visageData = VisageData.getGlobal(data.id);
+    const visageData = VisageData.getVisage(data.id);
     if (!visageData) return;
 
     // Calculate intersection to find the token under the cursor

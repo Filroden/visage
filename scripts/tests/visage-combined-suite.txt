@@ -1,0 +1,99 @@
+/**
+ * VISAGE — COMBINED TEST SUITE LAUNCHER
+ * ==========================================
+ * Runs the headless Regression Suite (always) and the E2E Visual Suite
+ * (only if a token is selected on the canvas), then posts one merged
+ * pass/fail report to chat.
+ *
+ * ── SETUP ──────────────────────────────────────────────────────────────
+ * Save the other two scripts as their own Foundry Macros, named EXACTLY:
+ *   - "Visage: Regression Suite"   (from visage-regression-suite.js)
+ *   - "Visage: E2E Visual Suite"   (from visage-e2e-visual-suite.js)
+ * (Adjust the name constants below if you'd rather use different names.)
+ * This macro finds and calls them via game.macros.getName(...).execute(),
+ * so no code is duplicated between the three macros.
+ * ──────────────────────────────────────────────────────────────────────
+ */
+
+const REGRESSION_MACRO_NAME = "Visage: Regression Suite";
+const E2E_MACRO_NAME = "Visage: E2E Visual Suite";
+
+const regressionMacro = game.macros.getName(REGRESSION_MACRO_NAME);
+const e2eMacro = game.macros.getName(E2E_MACRO_NAME);
+
+if (!regressionMacro) {
+    return ui.notifications.error(`Visage | Combined Suite: could not find a macro named "${REGRESSION_MACRO_NAME}".`);
+}
+if (!e2eMacro) {
+    return ui.notifications.error(`Visage | Combined Suite: could not find a macro named "${E2E_MACRO_NAME}".`);
+}
+
+console.group("Visage | Combined Test Suite");
+
+// Regression suite is headless - always run it, suppressing its own chat/notification
+// so we can fold its results into one combined report below.
+const regressionOutcome = (await regressionMacro.execute({ silent: true })) ?? {
+    skipped: true,
+    reason: "Macro returned no result.",
+    passed: 0,
+    failed: 0,
+    results: [],
+};
+
+// E2E suite requires a selected token - skip gracefully rather than failing the whole run.
+let e2eOutcome = { skipped: true, reason: "No token selected on the canvas.", passed: 0, failed: 0, results: [] };
+if (canvas.tokens.controlled[0]) {
+    e2eOutcome = (await e2eMacro.execute({ silent: true })) ?? {
+        skipped: true,
+        reason: "Macro returned no result.",
+        passed: 0,
+        failed: 0,
+        results: [],
+    };
+} else {
+    console.warn("Visage | Skipping E2E Visual Suite: no token selected on the canvas.");
+}
+
+console.groupEnd();
+
+const combinedResults = [...regressionOutcome.results.map((r) => ({ ...r, phase: "Regression" })), ...e2eOutcome.results.map((r) => ({ ...r, phase: "E2E Visual" }))];
+
+const totalPassed = regressionOutcome.passed + e2eOutcome.passed;
+const totalFailed = regressionOutcome.failed + e2eOutcome.failed;
+const totalRun = combinedResults.length;
+
+const rows = combinedResults
+    .map((r) => {
+        const status = r.passed ? "✅" : "❌";
+        const testName = `[${r.phase}] ${r.name}`;
+        const detail = r.error ? "<em>" + foundry.utils.escapeHTML(r.error) + "</em>" : "";
+        return "<tr><td>" + status + "</td><td>" + testName + "</td><td>" + detail + "</td></tr>";
+    })
+    .join("");
+
+const notes = [];
+if (regressionOutcome.skipped) notes.push(`Regression Suite skipped: ${foundry.utils.escapeHTML(regressionOutcome.reason ?? "unknown reason")}`);
+if (e2eOutcome.skipped) notes.push(`E2E Visual Suite skipped: ${foundry.utils.escapeHTML(e2eOutcome.reason ?? "unknown reason")}`);
+const notesHtml = notes.length ? `<p><em>${notes.join("<br>")}</em></p>` : "";
+
+await ChatMessage.create({
+    content: `
+        <h3>Visage Combined Test Suite: ${totalPassed}/${totalRun} passed</h3>
+        ${notesHtml}
+        <table style="width:100%; font-size: 12px;">
+            <tr><th></th><th>Test</th><th>Detail</th></tr>
+            ${rows}
+        </table>
+    `,
+    whisper: [game.user.id],
+});
+
+if (regressionOutcome.skipped) {
+    ui.notifications.error(`Visage Combined Suite: Regression Suite was skipped (${regressionOutcome.reason}). See chat/console.`);
+} else if (totalFailed > 0) {
+    ui.notifications.error(`Visage Combined Suite: ${totalFailed} test(s) failed. See chat/console for details.`);
+} else if (e2eOutcome.skipped) {
+    ui.notifications.warn(`Visage Combined Suite: Regression Suite passed (${regressionOutcome.passed}/${regressionOutcome.passed}). E2E Visual Suite skipped — select a token to include it.`);
+} else {
+    ui.notifications.info(`Visage Combined Suite: all ${totalRun} tests passed.`);
+}

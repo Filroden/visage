@@ -210,11 +210,12 @@ export class Visage {
      * @private
      */
     static _getVisageData(token, maskId) {
-        let data = VisageData.getLocal(token.actor).find((v) => v.id === maskId);
+        const localDict = VisageData.getLocalDictionary(token.actor);
         let source = "local";
+        let data = localDict[maskId] ? foundry.utils.deepClone(localDict[maskId]) : null;
 
         if (!data) {
-            data = VisageData.getGlobal(maskId);
+            data = VisageData.getVisage(maskId); // Fetches global directly since we didn't pass an actor
             source = "global";
         }
 

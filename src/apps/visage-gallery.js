@@ -542,13 +542,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onDuplicate(event, target) {
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
-
-        let source;
-        if (this.isLocal) {
-            source = VisageData.getLocal(this.actor).find((v) => v.id === id);
-        } else {
-            source = VisageData.getGlobal(id);
-        }
+        const source = VisageData.getVisage(id, this.isLocal ? this.actor : null);
 
         if (!source) return;
 
@@ -573,14 +567,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
-
-        // Fetch the source data to get the accurate label
-        let source;
-        if (this.isLocal) {
-            source = VisageData.getLocal(this.actor).find((v) => v.id === id);
-        } else {
-            source = VisageData.getGlobal(id);
-        }
+        const source = VisageData.getVisage(id, this.isLocal ? this.actor : null);
 
         if (!source) return;
 
@@ -605,13 +592,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onExportIndividual(event, target) {
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
-
-        let source;
-        if (this.isLocal) {
-            source = VisageData.getLocal(this.actor).find((v) => v.id === id);
-        } else {
-            source = VisageData.getGlobal(id);
-        }
+        const source = VisageData.getVisage(id, this.isLocal ? this.actor : null);
 
         if (!source) return;
 
@@ -639,7 +620,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
-        const globalMask = VisageData.getGlobal(id);
+        const globalMask = VisageData.getVisage(id);
         if (!globalMask) return;
 
         const tokens = canvas.tokens.controlled.filter((t) => t.document.isOwner);
@@ -1004,7 +985,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
             return ui.notifications.warn("VISAGE.Notifications.NoTokens", { localize: true });
         }
 
-        const visageData = VisageData.getGlobal(id);
+        const visageData = VisageData.getVisage(id);
         if (!visageData) return;
 
         for (const token of tokens) {
@@ -1021,13 +1002,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onToggleMode(event, target) {
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
-
-        let source;
-        if (this.isLocal) {
-            source = VisageData.getLocal(this.actor).find((v) => v.id === id);
-        } else {
-            source = VisageData.getGlobal(id);
-        }
+        const source = VisageData.getVisage(id, this.isLocal ? this.actor : null);
 
         if (!source) return;
 
@@ -1049,8 +1024,7 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const card = target.closest(".visage-card");
         const id = card.dataset.id;
-
-        let source = this.isLocal ? VisageData.getLocal(this.actor).find((v) => v.id === id) : VisageData.getGlobal(id);
+        const source = VisageData.getVisage(id, this.isLocal ? this.actor : null);
 
         if (!source?.automation) return;
 
@@ -1152,12 +1126,14 @@ export class VisageGallery extends HandlebarsApplicationMixin(ApplicationV2) {
 
         processedItems.sort((a, b) => a.label.localeCompare(b.label));
 
+        const localDict = VisageData.getLocalDictionary(token.actor);
+
         const activeStack = (token.document.flags[MODULE_ID]?.activeStack || [])
             .filter((layer) => layer.id !== currentFormKey)
             .map((layer) => ({
                 id: layer.id,
                 label: layer.label,
-                themeClass: VisageData.getGlobal(layer.id) ? "visage-theme-global" : "visage-theme-local",
+                themeClass: !localDict[layer.id] ? "visage-theme-global" : "visage-theme-local",
                 disabled: layer.disabled,
             }))
             .reverse();
