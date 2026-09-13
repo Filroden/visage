@@ -70,7 +70,20 @@ function _getMigrationTargetActors() {
  * @private
  */
 async function _convertActorVisageArrayToDictionary(actor, namespace) {
-    const rawVisages = foundry.utils.getProperty(actor, `flags.${namespace}.alternateVisages`);
+    const backupPath = `flags.${namespace}.migrationBackup_v510`;
+    const mainPath = `flags.${namespace}.alternateVisages`;
+
+    let rawVisages = foundry.utils.getProperty(actor, mainPath);
+    const backupData = foundry.utils.getProperty(actor, backupPath);
+
+    // Auto-recovery: If main data is missing/empty but backup exists, recover it.
+    let wasRecovered = false;
+    if ((!rawVisages || Object.keys(rawVisages).length === 0) && backupData) {
+        console.warn(`Visage | Recovering interrupted migration for actor ${actor.name}`);
+        rawVisages = backupData;
+        wasRecovered = true;
+    }
+
     if (!rawVisages) return 0;
 
     const isArray = Array.isArray(rawVisages);
@@ -78,17 +91,36 @@ async function _convertActorVisageArrayToDictionary(actor, namespace) {
     if (keys.length === 0) return 0;
 
     const isUnmigrated = isArray || keys.some((k) => k.length !== 16);
-    if (!isUnmigrated) return 0;
 
-    // Normalise into an array for the reducer
-    const iterableVisages = isArray ? rawVisages : Object.values(rawVisages);
-    const dictionary = _reduceVisageArrayToDictionary(iterableVisages, actor.name);
+    // A recovered backup is already a validated dictionary - it will look "migrated" by
+    // this check - but mainPath is still missing/empty, so it must still be written back.
+    if (!isUnmigrated && !wasRecovered) return 0;
+
+    // Normalise into an array for the reducer, unless we're just restoring an
+    // already-validated backup, in which case it needs no further repair.
+    let dictionary;
+    if (isUnmigrated) {
+        const rawArray = isArray ? rawVisages : Object.values(rawVisages);
+        dictionary = _reduceVisageArrayToDictionary(rawArray, actor.name);
+    } else {
+        dictionary = rawVisages;
+    }
 
     try {
-        // Explicitly force-delete the legacy property first so the integer keys
-        // do not linger alongside the new ID keys.
-        await actor.update({ [`flags.${namespace}.alternateVisages`]: new foundry.data.operators.ForcedDeletion() });
-        await actor.update({ [`flags.${namespace}.alternateVisages`]: dictionary });
+        // 1. Backup the parsed data safely first (skip if we're restoring FROM the backup already)
+        if (!wasRecovered) {
+            await actor.update({ [backupPath]: dictionary });
+        }
+
+        // 2. Perform the destructive clear of the old/empty value
+        await actor.update({ [mainPath]: new foundry.data.operators.ForcedDeletion() });
+
+        // 3. Write the real dictionary data
+        await actor.update({ [mainPath]: dictionary });
+
+        // 4. Clean up the backup
+        await actor.update({ [backupPath]: new foundry.data.operators.ForcedDeletion() });
+
         return 1;
     } catch (err) {
         console.error(`Visage | Failed to migrate actor ${actor.name}:`, err);
@@ -108,7 +140,9 @@ function _reduceVisageArrayToDictionary(rawVisages, actorName) {
     return rawVisages.reduce((acc, data) => {
         if (!data) return acc;
         try {
-            const model = new VisageDataModel(data);
+            // Ensure an ID exists before model validation
+            const id = data.id || foundry.utils.randomID(16);
+            const model = new VisageDataModel({ ...data, id });
             const cleanData = model.toObject();
             acc[cleanData.id] = cleanData;
         } catch (err) {
@@ -164,8 +198,9 @@ async function _migrateV5_3Global() {
  */
 async function _migrateV5_3Local(namespace) {
     let actorUpdates = 0;
+    const targetActors = _getMigrationTargetActors();
 
-    for (const actor of game.actors) {
+    for (const actor of targetActors) {
         const rawLocals = actor.getFlag(namespace, "alternateVisages");
         if (!rawLocals) continue;
 

@@ -5,7 +5,7 @@ import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
 /**
  * The primary data controller class for Visage.
  * Responsible for CRUD operations on both Global (World Settings) and Local (Actor Flags) data.
- * Handles data normalization, presentation formatting, and state extraction.
+ * Handles data normalisation, presentation formatting, and state extraction.
  */
 export class VisageData {
     // ==========================================
@@ -97,6 +97,74 @@ export class VisageData {
     }
 
     /**
+     * Pure computation pass: normalises an actor's raw local flag (array, legacy
+     * integer-keyed object, or already-clean dictionary) into a repaired ID-keyed
+     * dictionary. Never writes to the database - callers decide how/when to persist.
+     * @param {Actor} actor - The actor document.
+     * @returns {{dictionary: Object, isArray: boolean, staleKeys: string[], isDirty: boolean}}
+     * @private
+     */
+    static _computeRepairedLocal(actor) {
+        const sourceData = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY] || {};
+        const isArray = Array.isArray(sourceData);
+        const entries = isArray ? sourceData.map((data, i) => [String(i), data]) : Object.entries(sourceData);
+
+        const dictionary = {};
+        const staleKeys = [];
+
+        for (const [key, data] of entries) {
+            if (!data) continue;
+
+            // Handle legacy objects where ID might not be in the body
+            const id = !isArray && key.length === 16 ? key : data.id || foundry.utils.randomID(16);
+
+            // Only object-shaped storage can have "stale" keys that need explicit removal;
+            // a straggler array is replaced wholesale, so there's nothing to individually clear.
+            if (!isArray && key !== id) staleKeys.push(key);
+
+            try {
+                const model = new VisageDataModel({ ...data, id });
+                dictionary[id] = model.toObject();
+            } catch (err) {
+                console.warn(`Visage | Could not parse local Visage '${id}' for ${actor.name}. It may be corrupted.`, err);
+                if (!isArray) staleKeys.push(key);
+            }
+        }
+
+        const isDirty = isArray || staleKeys.length > 0;
+        return { dictionary, isArray, staleKeys, isDirty };
+    }
+
+    /**
+     * Persists a repaired local dictionary in a single atomic write, explicitly clearing
+     * any stale legacy keys so the actor is fully upgraded rather than merged-and-lingering.
+     * @param {Actor} actor - The actor document.
+     * @param {Object} dictionary - The final, repaired dictionary to write.
+     * @param {string[]} [keysToDelete=[]] - Legacy/removed keys to force-delete alongside the write.
+     * @param {boolean} [isArray=false] - Whether the source flag was a raw array (full replace).
+     * @returns {Promise<Actor>}
+     * @private
+     */
+    static async _persistRepairedLocal(actor, dictionary, keysToDelete = [], isArray = false) {
+        const base = `flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`;
+
+        // A straggler array vs. an object is a type mismatch, so a plain assignment
+        // fully replaces it - no separate deletion step needed.
+        if (isArray) {
+            return actor.update({ [base]: dictionary });
+        }
+
+        const payload = {};
+        for (const key of keysToDelete) {
+            payload[`${base}.${key}`] = new foundry.data.operators.ForcedDeletion();
+        }
+        for (const [id, entry] of Object.entries(dictionary)) {
+            payload[`${base}.${id}`] = entry;
+        }
+        return actor.update(payload);
+    }
+
+    /**
      * Retrieves all local visages stored on a specific Actor as an ID-keyed dictionary.
      * Includes a lazy-evaluation fallback for unmigrated legacy arrays.
      * @param {Actor} actor - The actor document.
@@ -104,40 +172,18 @@ export class VisageData {
      */
     static getLocalDictionary(actor) {
         if (!actor) return {};
-        const sourceData = actor.flags?.[DATA_NAMESPACE]?.[this.ALTERNATE_FLAG_KEY] || {};
+        const { dictionary, isArray, staleKeys, isDirty } = this._computeRepairedLocal(actor);
 
-        // Lazy-evaluation fallback for straggler arrays (e.g., imported compendium actors)
-        if (Array.isArray(sourceData)) {
-            return sourceData.reduce((acc, data) => {
-                if (!data) return acc;
-                const id = data.id || foundry.utils.randomID(16);
-                try {
-                    const model = new VisageDataModel({ ...data, id });
-                    acc[id] = model.toObject();
-                } catch (err) {
-                    console.warn(`Visage | Could not parse lazy-eval local Visage '${id}' for ${actor.name}.`, err);
-                }
-                return acc;
-            }, {});
+        // Fire-and-forget self-heal for plain reads (e.g. getAvailable()). This is not paired
+        // with any other write in the same call stack, so it cannot race - unlike delete/restore/
+        // destroy/_saveLocal, which build and persist their own repaired copy in one atomic call.
+        if (isDirty && actor.isOwner) {
+            this._persistRepairedLocal(actor, dictionary, staleKeys, isArray).catch((err) => {
+                console.warn(`Visage | Could not persist self-healed dictionary for ${actor.name}.`, err);
+            });
         }
 
-        const results = {};
-        for (const [key, data] of Object.entries(sourceData)) {
-            if (!data) continue;
-
-            // Handle legacy objects where ID might not be in the body
-            const id = key.length === 16 ? key : data.id || foundry.utils.randomID(16);
-
-            if (data.changes) {
-                try {
-                    const model = new VisageDataModel({ ...data, id });
-                    results[id] = model.toObject();
-                } catch (err) {
-                    console.warn(`Visage | Could not parse local Visage '${id}' for ${actor.name}. It may be corrupted.`, err);
-                }
-            }
-        }
-        return results;
+        return dictionary;
     }
 
     /**
@@ -169,19 +215,6 @@ export class VisageData {
     }
 
     /**
-     * Determines if a local flag is still using a legacy array or integer-keyed object structure.
-     * @param {any} flag - The raw flag data.
-     * @returns {boolean} True if unmigrated.
-     * @private
-     */
-    static _isUnmigrated(flag) {
-        if (!flag) return false;
-        if (Array.isArray(flag)) return true;
-        const keys = Object.keys(flag);
-        return keys.some((k) => k.length !== 16);
-    }
-
-    /**
      * Soft-deletes a Visage.
      * @param {string} id - The ID of the visage.
      * @param {Actor|null} [actor=null] - The target actor (null implies Global storage).
@@ -190,22 +223,11 @@ export class VisageData {
         if (!actor && !game.user.isGM) return;
 
         if (actor) {
-            const currentFlag = actor.getFlag(DATA_NAMESPACE, this.ALTERNATE_FLAG_KEY);
+            const { dictionary, staleKeys, isArray } = this._computeRepairedLocal(actor);
+            if (!dictionary[id]) return;
 
-            // Defensive Guard: Fallback to full-array write if unmigrated
-            if (this._isUnmigrated(currentFlag)) {
-                console.warn(`Visage | Actor ${actor.name} contains unmigrated arrays. Falling back to legacy delete.`);
-                const visages = this.getLocal(actor);
-                const target = visages.find((v) => v.id === id);
-                if (target) target.deleted = true;
-
-                await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: visages });
-                Hooks.callAll("visageDataChanged");
-                return;
-            }
-
-            // V5.10+ Targeted Dictionary Write
-            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: true });
+            dictionary[id].deleted = true;
+            await this._persistRepairedLocal(actor, dictionary, staleKeys, isArray);
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -220,22 +242,11 @@ export class VisageData {
      */
     static async restore(id, actor = null) {
         if (actor) {
-            const currentFlag = actor.getFlag(DATA_NAMESPACE, this.ALTERNATE_FLAG_KEY);
+            const { dictionary, staleKeys, isArray } = this._computeRepairedLocal(actor);
+            if (!dictionary[id]) return;
 
-            // Defensive Guard: Fallback to full-array write if unmigrated
-            if (this._isUnmigrated(currentFlag)) {
-                console.warn(`Visage | Actor ${actor.name} contains unmigrated arrays. Falling back to legacy restore.`);
-                const visages = this.getLocal(actor);
-                const target = visages.find((v) => v.id === id);
-                if (target) target.deleted = false;
-
-                await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: visages });
-                Hooks.callAll("visageDataChanged");
-                return;
-            }
-
-            // V5.10+ Targeted Dictionary Write
-            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}.deleted`]: false });
+            dictionary[id].deleted = false;
+            await this._persistRepairedLocal(actor, dictionary, staleKeys, isArray);
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -250,21 +261,15 @@ export class VisageData {
      */
     static async destroy(id, actor = null) {
         if (actor) {
-            const currentFlag = actor.getFlag(DATA_NAMESPACE, this.ALTERNATE_FLAG_KEY);
+            const { dictionary, staleKeys, isArray } = this._computeRepairedLocal(actor);
+            if (!dictionary[id]) return;
 
-            // Defensive Guard: Fallback to full-array write if unmigrated
-            if (this._isUnmigrated(currentFlag)) {
-                console.warn(`Visage | Actor ${actor.name} contains unmigrated arrays. Falling back to legacy destroy.`);
-                const visages = this.getLocal(actor);
-                const updatedVisages = visages.filter((v) => v.id !== id);
+            delete dictionary[id];
+            // The target id itself must also be force-deleted: it may already have been
+            // stored under its own correct 16-char key, so it wouldn't appear in staleKeys.
+            const keysToDelete = isArray ? [] : [...staleKeys, id];
 
-                await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: updatedVisages });
-                Hooks.callAll("visageDataChanged");
-                return;
-            }
-
-            // V5.10+ Targeted Dictionary Write using modern ForcedDeletion operator
-            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: new foundry.data.operators.ForcedDeletion() });
+            await this._persistRepairedLocal(actor, dictionary, keysToDelete, isArray);
             Hooks.callAll("visageDataChanged");
             return;
         }
@@ -345,28 +350,13 @@ export class VisageData {
             updated: Date.now(),
         };
 
-        const currentFlag = actor.getFlag(DATA_NAMESPACE, this.ALTERNATE_FLAG_KEY) || {};
-        let existing = null;
+        // Fetch the repaired dictionary (fixes any stale keys / missing ids in the same pass),
+        // fold in this save, and persist it all as a single atomic write.
+        const { dictionary, staleKeys, isArray } = this._computeRepairedLocal(actor);
+        const existing = dictionary[id] || null;
+        dictionary[id] = entry;
 
-        // Defensive Guard: Fallback to full-array write if unmigrated
-        if (this._isUnmigrated(currentFlag)) {
-            console.warn(`Visage | Actor ${actor.name} contains unmigrated arrays. Falling back to legacy save.`);
-            const visages = this.getLocal(actor);
-            const existingIndex = visages.findIndex((v) => v.id === id);
-
-            if (existingIndex > -1) {
-                existing = visages[existingIndex];
-                visages[existingIndex] = entry;
-            } else {
-                visages.push(entry);
-            }
-
-            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}`]: visages });
-        } else {
-            // V5.10+ Targeted Dictionary Write
-            existing = currentFlag[id];
-            await actor.update({ [`flags.${DATA_NAMESPACE}.${this.ALTERNATE_FLAG_KEY}.${id}`]: entry });
-        }
+        await this._persistRepairedLocal(actor, dictionary, staleKeys, isArray);
 
         console.log(`Visage | Saved Local Visage for ${actor.name}: ${entry.label}`);
         Hooks.callAll("visageDataChanged");
@@ -385,7 +375,7 @@ export class VisageData {
 
     /**
      * Validates a Visage payload against the strict DataModel.
-     * Allows Foundry to natively clamp/sanitize values, throwing UI errors
+     * Allows Foundry to natively clamp/sanitise values, throwing UI errors
      * only when structural validation completely fails.
      * @param {Object} data - The raw payload.
      * @param {string} id - The document ID.
@@ -453,7 +443,7 @@ export class VisageData {
             if (resolvedPortrait) layer.changes.portrait = resolvedPortrait;
         }
 
-        // 3. Handle Ring Data Structure Normalization
+        // 3. Handle Ring Data Structure Normalsation
         // (Since the model uses ObjectField for rings, we still need to format it for the UI/Canvas)
         if (layer.changes.ring) {
             if (layer.changes.ring.enabled === true) {
@@ -994,7 +984,7 @@ export class VisageData {
         // 2. Prepare new default data by merging the target into the current state
         const newDefaultData = foundry.utils.mergeObject(foundry.utils.deepClone(currentDefault), foundry.utils.deepClone(targetVisage), { inplace: false, insertKeys: true, overwrite: true });
 
-        // 3. Leverage the DataModel to validate and sanitize the merged data
+        // 3. Leverage the DataModel to validate and sanitise the merged data
         const commitModel = new VisageDataModel(newDefaultData);
         const cleanData = commitModel.toObject();
 

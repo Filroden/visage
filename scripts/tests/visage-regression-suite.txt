@@ -1,0 +1,364 @@
+/**
+ * VISAGE — LOCAL STORAGE REGRESSION SUITE
+ * ==========================================
+ * Run this macro as GM before shipping any change that touches
+ * visage-data.js or visage-migration.js. It exercises:
+ *   1. ID-collision safety on legacy array entries with no stored id
+ *   2. Stale-key cleanup when repairing an already-object-shaped legacy flag
+ *   3. Write atomicity (save/delete/restore/destroy each issue exactly 1 update)
+ *   4. ID stability across repeated reads of unmigrated data
+ *   5. Ownership gating (no write attempted when actor.isOwner is false)
+ *   6. Migration backup + auto-recovery from an interrupted (crashed) migration
+ *
+ * It creates a disposable actor, injects hand-crafted legacy flag shapes
+ * directly (bypassing the DataModel, the way genuinely old data would look),
+ * and cleans up after itself even if a test throws.
+ *
+ * ── SETUP ──────────────────────────────────────────────────────────────
+ * This suite needs direct access to the VisageData class, not just the
+ * public game.modules.get('visage').api surface. Easiest options:
+ *
+ *   (a) Add this once in your module's init hook (dev builds only):
+ *         game.modules.get(MODULE_ID).api.VisageData = VisageData;
+ *
+ *   (b) Or adjust FALLBACK_IMPORT_PATH below to match your actual file
+ *       layout, so the dynamic import() can find it directly.
+ * ──────────────────────────────────────────────────────────────────────
+ */
+
+const MODULE_ID = "visage";
+const DATA_NAMESPACE = "visage"; // adjust if your DATA_NAMESPACE constant differs
+const FALLBACK_IMPORT_PATH = `/modules/${MODULE_ID}/src/data/visage-data.js`;
+
+// ============================================================
+// Harness
+// ============================================================
+
+async function getVisageData() {
+    const api = game.modules.get(MODULE_ID)?.api;
+    if (api?.VisageData) return api.VisageData;
+
+    try {
+        const mod = await import(FALLBACK_IMPORT_PATH);
+        if (mod.VisageData) return mod.VisageData;
+    } catch (err) {
+        console.error("Visage Test Suite | Could not import VisageData.", err);
+    }
+
+    throw new Error("VisageData is not accessible. Expose it via game.modules.get('visage').api.VisageData " + "in your init hook, or fix FALLBACK_IMPORT_PATH at the top of this macro.");
+}
+
+/** Overwrites a raw flag value, bypassing Foundry's recursive merge so legacy shapes stick exactly. */
+async function setRawFlag(actor, value) {
+    await actor.update({ [`flags.${DATA_NAMESPACE}.-=alternateVisages`]: null });
+    await actor.update({ [`flags.${DATA_NAMESPACE}.alternateVisages`]: value });
+}
+
+/** Counts actor.update() calls made against a specific actor during fn(). Restores the prototype afterward. */
+async function countUpdateCalls(actor, fn) {
+    let count = 0;
+    const original = Actor.prototype.update;
+    Actor.prototype.update = function (...args) {
+        if (this.id === actor.id) count++;
+        return original.apply(this, args);
+    };
+    try {
+        await fn();
+    } finally {
+        Actor.prototype.update = original;
+    }
+    return count;
+}
+
+function assert(condition, message) {
+    if (!condition) throw new Error(message);
+}
+
+// ============================================================
+// Test Cases
+// ============================================================
+
+async function testIdCollision(VisageData, actor) {
+    await setRawFlag(actor, [
+        { label: "Wolf Form", mode: "identity", changes: { texture: { src: "wolf.webp" } } }, // no id
+        { label: "Bear Form", mode: "identity", changes: { texture: { src: "bear.webp" } } }, // no id
+        { id: "abcdefabcdefabcd", label: "Already Has ID", mode: "identity", changes: {} },
+    ]);
+
+    const dict = VisageData.getLocalDictionary(actor);
+    assert(Object.keys(dict).length === 3, `Expected 3 distinct visages, got ${Object.keys(dict).length}. Id-less entries are colliding.`);
+}
+
+async function testStaleKeyCleanup(VisageData, actor) {
+    await setRawFlag(actor, {
+        0: { label: "Legacy Zero", mode: "identity", changes: {} },
+        1: { id: "1234567890abcdef", label: "Real ID Under Wrong Key", mode: "identity", changes: {} },
+    });
+
+    // Trigger the repair + persist by touching any write path.
+    VisageData.getLocalDictionary(actor);
+    // getLocalDictionary's self-heal is fire-and-forget; give it a tick to land.
+    await new Promise((r) => setTimeout(r, 250));
+
+    const raw = actor.getFlag(DATA_NAMESPACE, "alternateVisages") || {};
+    assert(!("0" in raw) && !("1" in raw), `Stale legacy keys should have been force-deleted, found: ${Object.keys(raw).join(", ")}`);
+}
+
+async function testLocalCrudCorrectness(VisageData, actor) {
+    await setRawFlag(actor, {}); // clean slate
+
+    // CREATE
+    await VisageData.save({ label: "CRUD Local", mode: "identity", changes: { texture: { src: "crud.webp" } } }, actor);
+    let dict = VisageData.getLocalDictionary(actor);
+    let entry = Object.values(dict).find((v) => v.label === "CRUD Local");
+    assert(entry, "save() did not create a retrievable entry.");
+    assert(entry.mode === "identity", `Saved entry has wrong mode: ${entry.mode}`);
+    assert(entry.changes?.texture?.src === "crud.webp", "Saved entry's changes payload was not persisted correctly.");
+    assert(entry.deleted !== true, "A newly created entry should not be soft-deleted.");
+    const id = entry.id;
+
+    // UPDATE (same id -> in-place update, no duplicate created)
+    await VisageData.save({ id, label: "CRUD Local Renamed", mode: "identity", changes: { texture: { src: "crud.webp" } } }, actor);
+    dict = VisageData.getLocalDictionary(actor);
+    assert(Object.keys(dict).length === 1, `Expected exactly 1 entry after an update-by-id save, got ${Object.keys(dict).length}.`);
+    assert(dict[id].label === "CRUD Local Renamed", "save() with an existing id did not update in place.");
+
+    // SOFT DELETE
+    await VisageData.delete(id, actor);
+    dict = VisageData.getLocalDictionary(actor);
+    assert(dict[id]?.deleted === true, "delete() did not set the deleted flag.");
+
+    // RESTORE
+    await VisageData.restore(id, actor);
+    dict = VisageData.getLocalDictionary(actor);
+    assert(dict[id]?.deleted === false, "restore() did not clear the deleted flag.");
+
+    // DESTROY
+    await VisageData.destroy(id, actor);
+    dict = VisageData.getLocalDictionary(actor);
+    assert(!dict[id], "destroy() did not remove the entry from storage.");
+}
+
+async function testGlobalCrudCorrectness(VisageData) {
+    if (!game.user.isGM) return; // global writes require GM privileges; skip gracefully otherwise
+
+    const created = await VisageData.save({ label: "[Visage Test] CRUD Global", mode: "identity", changes: { texture: { src: "crud-global.webp" } } }, null);
+    const id = created?.id;
+
+    try {
+        assert(id, "Global save() did not return an entry with an id.");
+
+        let all = VisageData._getRawGlobal();
+        assert(all[id], "Global save() did not persist a retrievable entry.");
+        assert(all[id].changes?.texture?.src === "crud-global.webp", "Global entry's changes payload was not persisted correctly.");
+
+        // UPDATE
+        await VisageData.save({ id, label: "[Visage Test] CRUD Global Renamed", mode: "identity", changes: { texture: { src: "crud-global.webp" } } }, null);
+        all = VisageData._getRawGlobal();
+        assert(all[id]?.label === "[Visage Test] CRUD Global Renamed", "Global save() with an existing id did not update in place.");
+
+        // SOFT DELETE
+        await VisageData.delete(id, null);
+        all = VisageData._getRawGlobal();
+        assert(all[id]?.deleted === true, "Global delete() did not set the deleted flag.");
+
+        // RESTORE
+        await VisageData.restore(id, null);
+        all = VisageData._getRawGlobal();
+        assert(all[id]?.deleted === false, "Global restore() did not clear the deleted flag.");
+
+        // DESTROY
+        await VisageData.destroy(id, null);
+        all = VisageData._getRawGlobal();
+        assert(!all[id], "Global destroy() did not remove the entry from storage.");
+    } finally {
+        // Safety-net cleanup in case an assertion above threw before destroy() ran.
+        if (id) {
+            const all = VisageData._getRawGlobal();
+            if (all[id]) {
+                delete all[id];
+                await game.settings.set(MODULE_ID, VisageData.SETTING_KEY, all);
+            }
+        }
+    }
+}
+
+async function testAtomicity(VisageData, actor) {
+    const results = {};
+
+    // save()
+    await setRawFlag(actor, {});
+    results.save = await countUpdateCalls(actor, () => VisageData.save({ label: "Atomic Save", mode: "identity", changes: {} }, actor));
+
+    // delete()
+    const dict1 = VisageData.getLocalDictionary(actor);
+    const id1 = Object.keys(dict1)[0];
+    results.delete = await countUpdateCalls(actor, () => VisageData.delete(id1, actor));
+
+    // restore()
+    results.restore = await countUpdateCalls(actor, () => VisageData.restore(id1, actor));
+
+    // destroy()
+    results.destroy = await countUpdateCalls(actor, () => VisageData.destroy(id1, actor));
+
+    for (const [op, count] of Object.entries(results)) {
+        assert(count === 1, `${op}() issued ${count} actor.update() call(s), expected exactly 1.`);
+    }
+}
+
+async function testIdStability(VisageData, actor) {
+    await setRawFlag(actor, [{ label: "No ID Entry", mode: "identity", changes: {} }]);
+
+    const first = Object.keys(VisageData.getLocalDictionary(actor))[0];
+    await new Promise((r) => setTimeout(r, 250)); // let the self-heal write land
+    const second = Object.keys(VisageData.getLocalDictionary(actor))[0];
+
+    assert(first === second, `ID should be stable across reads, got '${first}' then '${second}'.`);
+}
+
+async function testOwnershipGating(VisageData, actor) {
+    await setRawFlag(actor, [{ label: "No ID, No Owner", mode: "identity", changes: {} }]);
+
+    const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(actor), "isOwner") || { configurable: true };
+    Object.defineProperty(actor, "isOwner", { value: false, configurable: true });
+
+    try {
+        const count = await countUpdateCalls(actor, () => {
+            VisageData.getLocalDictionary(actor);
+            return new Promise((r) => setTimeout(r, 250));
+        });
+        assert(count === 0, `Expected no write attempt when actor.isOwner is false, got ${count}.`);
+    } finally {
+        delete actor.isOwner; // restore the prototype getter
+        void descriptor; // (kept for clarity; no restoration action needed once own-property is deleted)
+    }
+}
+
+async function testMigrationBackupRecovery(actor) {
+    const recoveredId = "abcdefabcdefabcd";
+    await actor.setFlag(DATA_NAMESPACE, "migrationBackup_v510", {
+        [recoveredId]: { id: recoveredId, label: "Recovered Visage", mode: "identity", changes: {} },
+    });
+    await actor.update({ [`flags.${DATA_NAMESPACE}.-=alternateVisages`]: null }); // simulate the crash point
+
+    const migrationModule = await import(`/modules/${MODULE_ID}/src/data/visage-migration.js`).catch(() => null);
+    if (!migrationModule?.migrateWorldData) {
+        throw new Error("Could not import migrateWorldData for recovery test — adjust the import path in testMigrationBackupRecovery().");
+    }
+
+    await migrationModule.migrateWorldData();
+
+    const raw = actor.getFlag(DATA_NAMESPACE, "alternateVisages") || {};
+    assert(raw[recoveredId]?.label === "Recovered Visage", "Actor's alternateVisages should have been restored from migrationBackup_v510.");
+    assert(!actor.getFlag(DATA_NAMESPACE, "migrationBackup_v510"), "migrationBackup_v510 should be cleaned up after a successful recovery.");
+}
+
+// ============================================================
+// Runner
+// ============================================================
+
+const TESTS = [
+    { name: "ID collision on id-less legacy array entries", fn: testIdCollision, needsVisageData: true },
+    { name: "Stale key cleanup on legacy object-shaped flags", fn: testStaleKeyCleanup, needsVisageData: true },
+    { name: "Local CRUD correctness (save/get/delete/restore/destroy)", fn: testLocalCrudCorrectness, needsVisageData: true },
+    { name: "Global CRUD correctness (save/get/delete/restore/destroy)", fn: testGlobalCrudCorrectness, needsVisageData: true },
+    { name: "Write atomicity (save/delete/restore/destroy = 1 update each)", fn: testAtomicity, needsVisageData: true },
+    { name: "ID stability across repeated reads", fn: testIdStability, needsVisageData: true },
+    { name: "Ownership gating skips writes for non-owners", fn: testOwnershipGating, needsVisageData: true },
+    { name: "Migration backup auto-recovery", fn: testMigrationBackupRecovery, needsVisageData: false },
+];
+
+/**
+ * @param {object} [options]
+ * @param {boolean} [options.silent=false] - If true, skip this suite's own chat message/notification
+ *   (used when a combined runner wants to report one consolidated summary instead).
+ * @returns {Promise<{skipped: boolean, reason?: string, passed: number, failed: number, results: Array}>}
+ */
+async function runVisageRegressionSuite({ silent = false } = {}) {
+    if (!game.user.isGM) {
+        const reason = "Must be run as GM.";
+        if (!silent) ui.notifications.error(`Visage Test Suite | ${reason}`);
+        return { skipped: true, reason, passed: 0, failed: 0, results: [] };
+    }
+
+    console.groupCollapsed("Visage | Regression Suite");
+    let VisageData = null;
+    try {
+        VisageData = await getVisageData();
+    } catch (err) {
+        console.error(err);
+        console.groupEnd();
+        if (!silent) ui.notifications.error(err.message);
+        return { skipped: true, reason: err.message, passed: 0, failed: 0, results: [] };
+    }
+
+    const actorType = game.documentTypes?.Actor?.[0];
+    if (!actorType) {
+        const reason = "Could not determine a valid Actor type for this system.";
+        console.groupEnd();
+        if (!silent) ui.notifications.error(`Visage Test Suite | ${reason}`);
+        return { skipped: true, reason, passed: 0, failed: 0, results: [] };
+    }
+
+    let testActor;
+    try {
+        testActor = await Actor.create({ name: "[Visage Test] Do Not Use", type: actorType });
+    } catch (err) {
+        console.error(err);
+        console.groupEnd();
+        const reason = `Failed to create test actor (type "${actorType}"). See console.`;
+        if (!silent) ui.notifications.error(`Visage Test Suite | ${reason}`);
+        return { skipped: true, reason, passed: 0, failed: 0, results: [] };
+    }
+
+    const results = [];
+
+    try {
+        for (const test of TESTS) {
+            try {
+                await test.fn(...(test.needsVisageData ? [VisageData, testActor] : [testActor]));
+                results.push({ name: test.name, passed: true });
+                console.log(`%c✔ ${test.name}`, "color: #4caf50");
+            } catch (err) {
+                results.push({ name: test.name, passed: false, error: err.message });
+                console.error(`✘ ${test.name}`, err);
+            }
+        }
+    } finally {
+        await testActor.delete();
+    }
+
+    console.groupEnd();
+
+    const passCount = results.filter((r) => r.passed).length;
+    const failCount = results.length - passCount;
+    const allPassed = failCount === 0;
+
+    if (!silent) {
+        const rows = results.map((r) => `<tr><td>${r.passed ? "✅" : "❌"}</td><td>${r.name}</td><td>${r.error ? `<em>${foundry.utils.escapeHTML(r.error)}</em>` : ""}</td></tr>`).join("");
+
+        await ChatMessage.create({
+            content: `
+                <h3>Visage Regression Suite: ${passCount}/${results.length} passed</h3>
+                <table style="width:100%; font-size: 12px;">
+                    <tr><th></th><th>Test</th><th>Detail</th></tr>
+                    ${rows}
+                </table>
+            `,
+            whisper: [game.user.id],
+        });
+
+        if (allPassed) {
+            ui.notifications.info(`Visage Regression Suite: all ${results.length} tests passed.`);
+        } else {
+            ui.notifications.warn(`Visage Regression Suite: ${failCount} test(s) failed. See chat/console for details.`);
+        }
+    }
+
+    return { skipped: false, passed: passCount, failed: failCount, results };
+}
+
+// Standalone entry point. This macro can also be invoked by another macro (e.g. a
+// combined-suite launcher) via: game.macros.getName("Visage: Regression Suite").execute({ silent: true })
+// Foundry injects `scope` into every script macro automatically (empty object if none was passed).
+return await runVisageRegressionSuite(scope);
