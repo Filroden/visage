@@ -2,6 +2,8 @@
 /packs
 /dist
 /unpacked
+/design
+/wiki
 
 .eslintcache
 *.iml
