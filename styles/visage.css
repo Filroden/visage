@@ -72,10 +72,9 @@
     display: none;
 }
 
-.visage input[type=range] {
+.visage input[type="range"] {
     --range-thumb-border-color: var(--visage-accent-main);
 }
-
 
 /* ==========================================================================
    2. SHARED STYLES
@@ -160,7 +159,7 @@ li.context-item .visage-icon-domino {
     border-radius: 4px;
     border: 1px solid oklch(from var(--visage-border-focus) l 0 h);
     display: block;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* --- Labels --- */
@@ -193,12 +192,14 @@ li.context-item .visage-icon-domino {
     border-radius: var(--visage-radius-small);
     min-height: 1.6rem;
     padding-inline: var(--visage-space-xs);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
 }
 
 .visage input[type="number"],
 .visage input[type="time"] {
-    text-align: center; 
+    text-align: center;
 }
 
 .visage input[type="number"] {
@@ -279,7 +280,10 @@ li.context-item .visage-icon-domino {
     border: 1px solid var(--visage-border-focus);
     color: var(--visage-text-main);
     border-radius: var(--visage-radius-medium);
-    transition: background-color 0.1s, border-color 0.1s, color 0.1s ease;
+    transition:
+        background-color 0.1s,
+        border-color 0.1s,
+        color 0.1s ease;
 }
 
 .visage button:not(:disabled):hover {
@@ -366,6 +370,11 @@ li.context-item .visage-icon-domino {
     width: 100%;
 }
 
+.visage .visage-form-fields.stacked {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
 .visage .visage-column {
     display: flex;
     flex-direction: column;
@@ -389,14 +398,14 @@ li.context-item .visage-icon-domino {
 /* --- Combobox Overrides --- */
 
 .visage input:-webkit-autofill,
-.visage input:-webkit-autofill:hover, 
-.visage input:-webkit-autofill:focus, 
+.visage input:-webkit-autofill:hover,
+.visage input:-webkit-autofill:focus,
 .visage input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 1000px var(--visage-bg-panel) inset !important;
     -webkit-text-fill-color: var(--visage-text-main) !important;
     border: 1px solid var(--visage-border-focus) !important;
     caret-color: var(--visage-text-main);
-    transition: background-color 5000s ease-in-out 0s; 
+    transition: background-color 5000s ease-in-out 0s;
 }
 
 .visage input::-webkit-calendar-picker-indicator {
@@ -408,7 +417,7 @@ li.context-item .visage-icon-domino {
     opacity: 1;
 }
 .visage input:-webkit-autofill::-webkit-calendar-picker-indicator {
-    filter: invert(1); 
+    filter: invert(1);
 }
 
 /* --- SVG Icon Masks --- */
@@ -429,24 +438,19 @@ li.context-item .visage-icon-domino {
 }
 
 .visage-icon-action.domino {
-    -webkit-mask-image: url('../icons/domino_mask.svg');
-    mask-image: url('../icons/domino_mask.svg');
+    -webkit-mask-image: url("../icons/domino_mask.svg");
+    mask-image: url("../icons/domino_mask.svg");
 }
 .visage-icon-action.visage {
-    -webkit-mask-image: url('../icons/domino_mask.svg');
-    mask-image: url('../icons/domino_mask.svg');
+    -webkit-mask-image: url("../icons/domino_mask.svg");
+    mask-image: url("../icons/domino_mask.svg");
 }
 
 /* --- Opacity & Lock Indicators --- */
 
 .visage-checkerboard-bg {
     background-color: var(--visage-bg-base);
-    background-image: conic-gradient(
-        var(--visage-bg-hover) 90deg, 
-        var(--visage-bg-panel) 90deg 180deg, 
-        var(--visage-bg-hover) 180deg 270deg, 
-        var(--visage-bg-panel) 270deg
-    );
+    background-image: conic-gradient(var(--visage-bg-hover) 90deg, var(--visage-bg-panel) 90deg 180deg, var(--visage-bg-hover) 180deg 270deg, var(--visage-bg-panel) 270deg);
     background-size: 20px 20px;
     background-position: center;
 }
@@ -461,14 +465,14 @@ li.context-item .visage-icon-domino {
     z-index: 5;
     opacity: 0.5;
     pointer-events: none;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.8));
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
 }
 
 .visage-watermark-lock img {
     width: 100%;
     height: 100%;
     border: none;
-    filter: invert(100%); 
+    filter: invert(100%);
 }
 
 /* --- Effect Layers --- */
@@ -483,20 +487,23 @@ li.context-item .visage-icon-domino {
     transform-origin: center center;
     /* Size logic: Sequencer effects usually target the grid size. 
        In our preview, 100% = Token Width. */
-    width: 100%; 
+    width: 100%;
     height: auto;
     will-change: transform;
 }
 
-.visage-effect-layer.below { z-index: 0; }
-.visage-effect-layer.above { z-index: 10; }
+.visage-effect-layer.below {
+    z-index: 0;
+}
+.visage-effect-layer.above {
+    z-index: 10;
+}
 
 /* --- Dialog Overrides --- */
 
 .visage-dialog-compact .window-content .standard-form {
     gap: 0;
 }
-
 
 /* ==========================================================================
    3. APPLICATION: UNIVERSAL SHELL
@@ -531,8 +538,8 @@ li.context-item .visage-icon-domino {
     background: var(--visage-bg-base) !important;
     border: none !important;
     color: var(--visage-text-main);
-    flex: 0 0 auto !important; 
-    min-height: 34px; 
+    flex: 0 0 auto !important;
+    min-height: 34px;
     height: auto !important;
     display: flex;
     flex-direction: row;
@@ -543,7 +550,7 @@ li.context-item .visage-icon-domino {
     font-size: var(--visage-font-size-s);
     color: var(--visage-text-main);
     line-height: var(--visage-line-height-heading);
-    text-align: start; 
+    text-align: start;
     padding-inline-start: var(--visage-space-s);
     padding-inline-end: 0;
     flex: 1;
@@ -673,25 +680,25 @@ li.context-item .visage-icon-domino {
     border-style: solid;
     letter-spacing: var(--visage-letter-spacing-wide);
 }
-.visage .friendly { 
-    border-color: var(--visage-friendly); 
-    background-image: linear-gradient(color-mix(in srgb, var(--visage-friendly) 40%, transparent), color-mix(in srgb, var(--visage-friendly) 40%, transparent)); 
+.visage .friendly {
+    border-color: var(--visage-friendly);
+    background-image: linear-gradient(color-mix(in srgb, var(--visage-friendly) 40%, transparent), color-mix(in srgb, var(--visage-friendly) 40%, transparent));
 }
-.visage .neutral  { 
-    border-color: var(--visage-neutral); 
-    background-image: linear-gradient(color-mix(in srgb, var(--visage-neutral) 40%, transparent), color-mix(in srgb, var(--visage-neutral) 40%, transparent)); 
+.visage .neutral {
+    border-color: var(--visage-neutral);
+    background-image: linear-gradient(color-mix(in srgb, var(--visage-neutral) 40%, transparent), color-mix(in srgb, var(--visage-neutral) 40%, transparent));
 }
-.visage .hostile  { 
-    border-color: var(--visage-hostile); 
-    background-image: linear-gradient(color-mix(in srgb, var(--visage-hostile) 40%, transparent), color-mix(in srgb, var(--visage-hostile) 40%, transparent)); 
+.visage .hostile {
+    border-color: var(--visage-hostile);
+    background-image: linear-gradient(color-mix(in srgb, var(--visage-hostile) 40%, transparent), color-mix(in srgb, var(--visage-hostile) 40%, transparent));
 }
-.visage .secret   { 
-    border-color: var(--visage-secret); 
-    background-image: linear-gradient(color-mix(in srgb, var(--visage-secret) 40%, transparent), color-mix(in srgb, var(--visage-secret) 40%, transparent)); 
+.visage .secret {
+    border-color: var(--visage-secret);
+    background-image: linear-gradient(color-mix(in srgb, var(--visage-secret) 40%, transparent), color-mix(in srgb, var(--visage-secret) 40%, transparent));
 }
-.visage-disposition-chip.none { 
-    background: transparent; 
-    border: 1px dashed var(--visage-border-subtle); 
+.visage-disposition-chip.none {
+    background: transparent;
+    border: 1px dashed var(--visage-border-subtle);
     color: var(--visage-text-muted);
 }
 
@@ -706,16 +713,15 @@ li.context-item .visage-icon-domino {
     transform: scaleX(var(--visage-dir-flip));
 }
 
-
 /* ==========================================================================
    4. APPLICATION: VISAGE SELECTOR (HUD)
    ========================================================================== */
 
 .visage.visage-selector-app {
-    position: fixed; 
+    position: fixed;
     display: block;
     width: 33rem !important;
-    max-height: 80vh !important; 
+    max-height: 80vh !important;
 }
 
 .visage.visage-selector-app .window-header {
@@ -728,7 +734,7 @@ li.context-item .visage-icon-domino {
     box-shadow: var(--visage-shadow-window);
     z-index: 20;
     transition: all 0.2s ease-out;
-    overflow-y: auto !important; 
+    overflow-y: auto !important;
     max-height: 100%;
     flex-wrap: nowrap;
 }
@@ -784,7 +790,7 @@ li.context-item .visage-icon-domino {
     z-index: 200; /* Above tiles */
     background: var(--visage-bg-panel);
     padding: var(--visage-space-m) var(--visage-space-s);
-    margin: 0; 
+    margin: 0;
     margin-block-end: var(--visage-space-m);
     border-radius: var(--visage-radius-small);
     border-block-end: 2px solid var(--visage-accent-main);
@@ -834,13 +840,16 @@ li.context-item .visage-icon-domino {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--visage-bg-panel); 
+    background: var(--visage-bg-panel);
     border: 1px solid var(--visage-accent-main);
     border-radius: var(--visage-radius-small);
     padding: var(--visage-space-xs) var(--visage-space-s);
     min-height: var(--visage-font-size-xxl);
     cursor: default;
-    transition: background-color 0.2s, opacity 0.2s, transform 0.2s;
+    transition:
+        background-color 0.2s,
+        opacity 0.2s,
+        transform 0.2s;
 }
 
 .visage .stack-item .effect-label {
@@ -861,14 +870,14 @@ li.context-item .visage-icon-domino {
 .visage .stack-item .remove-layer-btn {
     flex: 0 0 var(--visage-space-xl);
     width: var(--visage-font-size-xl);
-    height: var(--visage-font-size-xl);    
+    height: var(--visage-font-size-xl);
     background: var(--visage-accent-main);
-    color: var(--visage-bg-base);    
+    color: var(--visage-bg-base);
     border: none;
     border-radius: var(--visage-radius-small);
     padding: 0;
     font-size: 10px;
-    cursor: pointer;    
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -882,7 +891,7 @@ li.context-item .visage-icon-domino {
 }
 
 .visage .revert-all-btn {
-    align-self: flex-end;    
+    align-self: flex-end;
     background: transparent;
     border: none;
     color: var(--visage-text-secondary);
@@ -974,7 +983,7 @@ li.context-item .visage-icon-domino {
 
 .visage .visage-selector-grid-wrapper {
     overflow-y: auto;
-    overflow-x: hidden; 
+    overflow-x: hidden;
     flex-grow: 1;
     padding-block: var(--visage-space-m) var(--visage-space-l);
     padding-inline: var(--visage-space-s);
@@ -987,7 +996,7 @@ li.context-item .visage-icon-domino {
 }
 
 .visage .visage-tile {
-    position: relative; 
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -996,7 +1005,9 @@ li.context-item .visage-icon-domino {
     padding: var(--visage-space-l) var(--visage-space-s);
     cursor: pointer;
     background: var(--visage-bg-panel);
-    transition: background-color 0.1s, border-color 0.1s;
+    transition:
+        background-color 0.1s,
+        border-color 0.1s;
 }
 
 .visage .visage-tile:hover {
@@ -1170,7 +1181,7 @@ li.context-item .visage-icon-domino {
 
 .visage-icon {
     display: inline-block;
-    width: var(--visage-font-size-l); 
+    width: var(--visage-font-size-l);
     height: var(--visage-font-size-l);
     min-width: var(--visage-font-size-l);
     background-color: currentColor;
@@ -1203,8 +1214,8 @@ li.context-item .visage-icon-domino {
     width: var(--visage-font-size-l);
     height: var(--visage-font-size-l);
     background-color: currentColor;
-    -webkit-mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
-    mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
+    -webkit-mask: url("../icons/domino_mask.svg") no-repeat center / 100% 100%;
+    mask: url("../icons/domino_mask.svg") no-repeat center / 100% 100%;
 }
 
 .visage-header-icon {
@@ -1212,8 +1223,8 @@ li.context-item .visage-icon-domino {
     width: var(--visage-font-size-l);
     height: var(--visage-font-size-l);
     background-color: currentColor;
-    -webkit-mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
-    mask: url('../icons/domino_mask.svg') no-repeat center / 100% 100%;
+    -webkit-mask: url("../icons/domino_mask.svg") no-repeat center / 100% 100%;
+    mask: url("../icons/domino_mask.svg") no-repeat center / 100% 100%;
     margin-inline-end: 0.5rem;
 }
 
@@ -1225,83 +1236,217 @@ li.context-item .visage-icon-domino {
 
 /* --- Global Rotation Classes --- */
 
-.visage-rotate-0   { transform: rotate(0deg); }   /* Points Up */
-.visage-rotate-90  { transform: rotate(90deg); }  /* Points Right */
-.visage-rotate-180 { transform: rotate(180deg); } /* Points Down */
-.visage-rotate-270 { transform: rotate(270deg); } /* Points Left */
+.visage-rotate-0 {
+    transform: rotate(0deg);
+} /* Points Up */
+.visage-rotate-90 {
+    transform: rotate(90deg);
+} /* Points Right */
+.visage-rotate-180 {
+    transform: rotate(180deg);
+} /* Points Down */
+.visage-rotate-270 {
+    transform: rotate(270deg);
+} /* Points Left */
 
 /* --- Specific Mappings --- */
 
-.visage-icon.play               { --visage-icon-mask: url('../icons/play_arrow.svg') }
-.visage-icon.edit               { --visage-icon-mask: url('../icons/edit_square.svg'); }
-.visage-icon.delete             { --visage-icon-mask: url('../icons/delete.svg'); }
-.visage-icon.restore            { --visage-icon-mask: url('../icons/restore_from_trash.svg'); }
-.visage-icon.save               { --visage-icon-mask: url('../icons/file_save.svg'); }
-.visage-icon.open               { --visage-icon-mask: url('../icons/file_open.svg'); }
-.visage-icon.copy               { --visage-icon-mask: url('../icons/content_copy.svg'); }
-.visage-icon.library            { --visage-icon-mask: url('../icons/menu_book.svg'); }
-.visage-icon.add                { --visage-icon-mask: url('../icons/add.svg'); }
-.visage-icon.filter             { --visage-icon-mask: url('../icons/filter.svg'); }
-.visage-icon.search             { --visage-icon-mask: url('../icons/search.svg'); }
-.visage-icon.kebab              { --visage-icon-mask: url('../icons/more_vert.svg'); }
-.visage-icon.close              { --visage-icon-mask: url('../icons/close.svg'); }
-.visage-icon.sync               { --visage-icon-mask: url('../icons/sync_alt.svg'); }
-.visage-icon.domino             { --visage-icon-mask: url('../icons/domino_mask.svg'); }
-.visage-icon.scale              { --visage-icon-mask: url('../icons/square_foot.svg'); }
-.visage-icon.dimensions         { --visage-icon-mask: url('../icons/aspect_ratio.svg'); }
-.visage-icon.wildcard           { --visage-icon-mask: url('../icons/shuffle.svg'); }
-.visage-icon.lock               { --visage-icon-mask: url('../icons/lock_reset.svg'); }
-.visage-icon.image-search       { --visage-icon-mask: url('../icons/image_search.svg'); }
-.visage-icon.undo               { --visage-icon-mask: url('../icons/undo.svg'); }
-.visage-icon.save-update        { --visage-icon-mask: url('../icons/save.svg'); }
-.visage-icon.wand-stars         { --visage-icon-mask: url('../icons/wand_stars.svg'); }
-.visage-icon.zoom-in            { --visage-icon-mask: url('../icons/zoom_in.svg'); }
-.visage-icon.zoom-out           { --visage-icon-mask: url('../icons/zoom_out.svg'); }
-.visage-icon.center-focus       { --visage-icon-mask: url('../icons/center_focus_strong.svg'); }
-.visage-icon.grid-on            { --visage-icon-mask: url('../icons/grid_3x3.svg'); }
-.visage-icon.grid-off           { --visage-icon-mask: url('../icons/grid_3x3_off.svg'); }
-.visage-icon.back               { --visage-icon-mask: url('../icons/arrow_back.svg'); }
-.visage-icon.visual             { --visage-icon-mask: url('../icons/style.svg'); }
-.visage-icon.audio              { --visage-icon-mask: url('../icons/music_note.svg'); }
-.visage-icon.visible            { --visage-icon-mask: url('../icons/visibility.svg'); }
-.visage-icon.visage-hidden      { --visage-icon-mask: url('../icons/visibility_off.svg'); }
-.visage-icon.stacks             { --visage-icon-mask: url('../icons/stacks.svg'); }
-.visage-icon.extension-off      { --visage-icon-mask: url('../icons/extension_off.svg'); }
-.visage-icon.warning            { --visage-icon-mask: url('../icons/warning.svg'); }
-.visage-icon.info               { --visage-icon-mask: url('../icons/info.svg'); }
-.visage-icon.repeat             { --visage-icon-mask: url('../icons/repeat.svg'); }
-.visage-icon.refresh            { --visage-icon-mask: url('../icons/refresh.svg'); }
-.visage-icon.light              { --visage-icon-mask: url('../icons/lightbulb.svg'); }
-.visage-icon.portrait           { --visage-icon-mask: url('../icons/account_box.svg'); }
-.visage-icon.timer              { --visage-icon-mask: url('../icons/timer.svg'); }
-.visage-icon.flip               { --visage-icon-mask: url('../icons/flip.svg'); }
-.visage-icon.anchor             { --visage-icon-mask: url('../icons/transform.svg'); }
-.visage-icon.public             { --visage-icon-mask: url('../icons/person.svg'); }
-.visage-icon.private            { --visage-icon-mask: url('../icons/person_off.svg'); }
-.visage-icon.toggle_on          { --visage-icon-mask: url('../icons/toggle_on.svg'); color: var(--visage-color-success); }
-.visage-icon.toggle_off         { --visage-icon-mask: url('../icons/toggle_off.svg'); color: var(--visage-color-danger); }
-.visage-icon.ring               { --visage-icon-mask: url('../icons/orbit.svg'); }
-.visage-icon.power              { --visage-icon-mask: url('../icons/power_settings_circle.svg'); }
-.visage-icon.list               { --visage-icon-mask: url('../icons/list.svg'); }
-.visage-icon.attribute-picker   { --visage-icon-mask: url('../icons/list_alt_check.svg'); }
-.visage-icon.timeline           { --visage-icon-mask: url('../icons/view_timeline.svg'); }
-.visage-icon.macro              { --visage-icon-mask: url('../icons/code.svg'); }
-.visage-icon.filter-fx          { --visage-icon-mask: url('../icons/filter_fx.svg'); }
-.visage-icon.pin                { --visage-icon-mask: url('../icons/keep.svg'); }
-.visage-icon.unpin              { --visage-icon-mask: url('../icons/keep_off.svg'); }
-.visage-icon.config             { --visage-icon-mask: url('../icons/settings.svg'); }
-.visage-icon.id-card            { --visage-icon-mask: url('../icons/id_card.svg'); }
-.visage-icon.check-circle       { --visage-icon-mask: url('../icons/check_circle.svg'); color: var(--visage-color-success); }
-.visage-icon.stars              { --visage-icon-mask: url('../icons/stars.svg'); color: var(--visage-accent-main); }
+.visage-icon.play {
+    --visage-icon-mask: url("../icons/play_arrow.svg");
+}
+.visage-icon.edit {
+    --visage-icon-mask: url("../icons/edit_square.svg");
+}
+.visage-icon.delete {
+    --visage-icon-mask: url("../icons/delete.svg");
+}
+.visage-icon.restore {
+    --visage-icon-mask: url("../icons/restore_from_trash.svg");
+}
+.visage-icon.save {
+    --visage-icon-mask: url("../icons/file_save.svg");
+}
+.visage-icon.open {
+    --visage-icon-mask: url("../icons/file_open.svg");
+}
+.visage-icon.copy {
+    --visage-icon-mask: url("../icons/content_copy.svg");
+}
+.visage-icon.library {
+    --visage-icon-mask: url("../icons/menu_book.svg");
+}
+.visage-icon.add {
+    --visage-icon-mask: url("../icons/add.svg");
+}
+.visage-icon.filter {
+    --visage-icon-mask: url("../icons/filter.svg");
+}
+.visage-icon.search {
+    --visage-icon-mask: url("../icons/search.svg");
+}
+.visage-icon.kebab {
+    --visage-icon-mask: url("../icons/more_vert.svg");
+}
+.visage-icon.close {
+    --visage-icon-mask: url("../icons/close.svg");
+}
+.visage-icon.sync {
+    --visage-icon-mask: url("../icons/sync_alt.svg");
+}
+.visage-icon.domino {
+    --visage-icon-mask: url("../icons/domino_mask.svg");
+}
+.visage-icon.scale {
+    --visage-icon-mask: url("../icons/square_foot.svg");
+}
+.visage-icon.dimensions {
+    --visage-icon-mask: url("../icons/aspect_ratio.svg");
+}
+.visage-icon.wildcard {
+    --visage-icon-mask: url("../icons/shuffle.svg");
+}
+.visage-icon.lock {
+    --visage-icon-mask: url("../icons/lock_reset.svg");
+}
+.visage-icon.image-search {
+    --visage-icon-mask: url("../icons/image_search.svg");
+}
+.visage-icon.undo {
+    --visage-icon-mask: url("../icons/undo.svg");
+}
+.visage-icon.save-update {
+    --visage-icon-mask: url("../icons/save.svg");
+}
+.visage-icon.wand-stars {
+    --visage-icon-mask: url("../icons/wand_stars.svg");
+}
+.visage-icon.zoom-in {
+    --visage-icon-mask: url("../icons/zoom_in.svg");
+}
+.visage-icon.zoom-out {
+    --visage-icon-mask: url("../icons/zoom_out.svg");
+}
+.visage-icon.center-focus {
+    --visage-icon-mask: url("../icons/center_focus_strong.svg");
+}
+.visage-icon.grid-on {
+    --visage-icon-mask: url("../icons/grid_3x3.svg");
+}
+.visage-icon.grid-off {
+    --visage-icon-mask: url("../icons/grid_3x3_off.svg");
+}
+.visage-icon.back {
+    --visage-icon-mask: url("../icons/arrow_back.svg");
+}
+.visage-icon.visual {
+    --visage-icon-mask: url("../icons/style.svg");
+}
+.visage-icon.audio {
+    --visage-icon-mask: url("../icons/music_note.svg");
+}
+.visage-icon.visible {
+    --visage-icon-mask: url("../icons/visibility.svg");
+}
+.visage-icon.visage-hidden {
+    --visage-icon-mask: url("../icons/visibility_off.svg");
+}
+.visage-icon.stacks {
+    --visage-icon-mask: url("../icons/stacks.svg");
+}
+.visage-icon.extension-off {
+    --visage-icon-mask: url("../icons/extension_off.svg");
+}
+.visage-icon.warning {
+    --visage-icon-mask: url("../icons/warning.svg");
+}
+.visage-icon.info {
+    --visage-icon-mask: url("../icons/info.svg");
+}
+.visage-icon.repeat {
+    --visage-icon-mask: url("../icons/repeat.svg");
+}
+.visage-icon.refresh {
+    --visage-icon-mask: url("../icons/refresh.svg");
+}
+.visage-icon.light {
+    --visage-icon-mask: url("../icons/lightbulb.svg");
+}
+.visage-icon.portrait {
+    --visage-icon-mask: url("../icons/account_box.svg");
+}
+.visage-icon.timer {
+    --visage-icon-mask: url("../icons/timer.svg");
+}
+.visage-icon.flip {
+    --visage-icon-mask: url("../icons/flip.svg");
+}
+.visage-icon.anchor {
+    --visage-icon-mask: url("../icons/transform.svg");
+}
+.visage-icon.public {
+    --visage-icon-mask: url("../icons/person.svg");
+}
+.visage-icon.private {
+    --visage-icon-mask: url("../icons/person_off.svg");
+}
+.visage-icon.toggle_on {
+    --visage-icon-mask: url("../icons/toggle_on.svg");
+    color: var(--visage-color-success);
+}
+.visage-icon.toggle_off {
+    --visage-icon-mask: url("../icons/toggle_off.svg");
+    color: var(--visage-color-danger);
+}
+.visage-icon.ring {
+    --visage-icon-mask: url("../icons/orbit.svg");
+}
+.visage-icon.power {
+    --visage-icon-mask: url("../icons/power_settings_circle.svg");
+}
+.visage-icon.list {
+    --visage-icon-mask: url("../icons/list.svg");
+}
+.visage-icon.attribute-picker {
+    --visage-icon-mask: url("../icons/list_alt_check.svg");
+}
+.visage-icon.timeline {
+    --visage-icon-mask: url("../icons/view_timeline.svg");
+}
+.visage-icon.macro {
+    --visage-icon-mask: url("../icons/code.svg");
+}
+.visage-icon.filter-fx {
+    --visage-icon-mask: url("../icons/filter_fx.svg");
+}
+.visage-icon.pin {
+    --visage-icon-mask: url("../icons/keep.svg");
+}
+.visage-icon.unpin {
+    --visage-icon-mask: url("../icons/keep_off.svg");
+}
+.visage-icon.config {
+    --visage-icon-mask: url("../icons/settings.svg");
+}
+.visage-icon.id-card {
+    --visage-icon-mask: url("../icons/id_card.svg");
+}
+.visage-icon.check-circle {
+    --visage-icon-mask: url("../icons/check_circle.svg");
+    color: var(--visage-color-success);
+}
+.visage-icon.stars {
+    --visage-icon-mask: url("../icons/stars.svg");
+    color: var(--visage-accent-main);
+}
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
-    display: block; 
+    display: block;
     margin: auto;
     width: 26px;
     height: 26px;
-    transform: none; 
-    background-color: inherit; 
+    transform: none;
+    background-color: inherit;
     opacity: 0.8;
 }
 
@@ -1314,7 +1459,6 @@ li.context-item .visage-icon-domino {
     width: 3rem;
     height: 3rem;
 }
-
 
 /* ==========================================================================
    6. APPLICATION: VISAGE EDITOR (Unified Workstation)
@@ -1332,10 +1476,10 @@ li.context-item .visage-icon-domino {
 }
 
 .visage.visage-editor .window-content {
-    flex: 1;    
+    flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 0 !important; 
+    padding: 0 !important;
     overflow: hidden;
     background: var(--visage-bg-base);
     min-height: 0;
@@ -1384,7 +1528,7 @@ li.context-item .visage-icon-domino {
     color: var(--visage-text-muted) !important;
     cursor: not-allowed !important;
     border-color: transparent !important;
-    background: rgba(0,0,0,0.2) !important;
+    background: rgba(0, 0, 0, 0.2) !important;
     box-shadow: none !important;
 }
 
@@ -1516,7 +1660,7 @@ li.context-item .visage-icon-domino {
 .visage-workstation {
     flex: 1;
     display: flex;
-    overflow: hidden; 
+    overflow: hidden;
     min-height: 0;
     height: 100%;
 }
@@ -1529,7 +1673,7 @@ li.context-item .visage-icon-domino {
     padding: var(--visage-space-m);
     flex: 0 0 auto;
     display: flex;
-    flex-direction: row; 
+    flex-direction: row;
     align-items: flex-end; /* Align inputs to bottom */
     gap: var(--visage-space-l);
 }
@@ -1541,7 +1685,7 @@ li.context-item .visage-icon-domino {
 }
 
 .visage .header-form-group.label-group {
-    flex: 1; 
+    flex: 1;
     min-width: 12rem;
 }
 
@@ -1629,7 +1773,7 @@ li.context-item .visage-icon-domino {
     min-height: 25rem;
 
     direction: inherit;
-    
+
     /* Define this as a query container for size relative units */
     container-type: size;
 
@@ -1640,12 +1784,7 @@ li.context-item .visage-icon-domino {
 
     /* Checkerboard background */
     background-color: var(--visage-bg-muted);
-    background-image: conic-gradient(
-        rgba(255,255,255,0.05) 90deg, 
-        transparent 90deg 180deg, 
-        rgba(255,255,255,0.05) 180deg 270deg, 
-        transparent 270deg
-    );
+    background-image: conic-gradient(rgba(255, 255, 255, 0.05) 90deg, transparent 90deg 180deg, rgba(255, 255, 255, 0.05) 180deg 270deg, transparent 270deg);
     background-size: 20px 20px;
     background-position: center;
 }
@@ -1656,9 +1795,7 @@ li.context-item .visage-icon-domino {
     position: absolute;
     inset: 0;
     opacity: 0.1;
-    background-image: 
-        linear-gradient(var(--visage-border-focus) 1px, transparent 1px),
-        linear-gradient(90deg, var(--visage-border-focus) 1px, transparent 1px);
+    background-image: linear-gradient(var(--visage-border-focus) 1px, transparent 1px), linear-gradient(90deg, var(--visage-border-focus) 1px, transparent 1px);
     background-size: var(--visage-font-size-xl) var(--visage-font-size-xl);
     z-index: 0;
     pointer-events: none;
@@ -1668,12 +1805,12 @@ li.context-item .visage-icon-domino {
 .visage-preview-content.stage-mode {
     width: 80cqmin;
     height: 80cqmin;
-    display: block;    
+    display: block;
     position: relative;
     z-index: 1;
     direction: ltr !important;
     transform-origin: center center;
-    overflow: visible;    
+    overflow: visible;
     cursor: grab;
     isolation: isolate;
     transition: transform 0.1s linear; /* Fast transition for smooth zooming */
@@ -1707,10 +1844,13 @@ li.context-item .visage-icon-domino {
     top: 50%;
     transform: translate(-50%, -50%) scale(1);
     transform-origin: center center;
-    transition: transform 0.2s ease, inset-inline-start 0.2s ease, top 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        inset-inline-start 0.2s ease,
+        top 0.2s ease;
 }
 
-.visage-preview-img, 
+.visage-preview-img,
 .visage-preview-video {
     width: 100%;
     height: 100%;
@@ -1732,7 +1872,7 @@ li.context-item .visage-icon-domino {
 .visage .stage-overlay-name {
     position: absolute;
     top: var(--visage-space-m);
-    inset-inline-start: 0; 
+    inset-inline-start: 0;
     inset-inline-end: 0;
     text-align: center;
     color: var(--visage-primary-100);
@@ -1808,22 +1948,20 @@ li.context-item .visage-icon-domino {
     content: "";
     position: absolute;
     inset: 0;
-    
+
     /* Default: Hidden */
     opacity: 0;
     transition: opacity 0.2s ease;
-    
+
     /* Grid Pattern: Uses CSS variables set by JS to match Token Dimensions */
     --grid-w: var(--visage-dim-w, 1);
     --grid-h: var(--visage-dim-h, 1);
-    
-    background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.5) 2px, transparent 2px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.5) 2px, transparent 2px);
-    
+
+    background-image: linear-gradient(rgba(255, 255, 255, 0.5) 2px, transparent 2px), linear-gradient(90deg, rgba(255, 255, 255, 0.5) 2px, transparent 2px);
+
     /* Calculate cell size based on token dimensions */
     background-size: calc(100% / var(--grid-w)) calc(100% / var(--grid-h));
-    
+
     /* Ensure border aligns with the edges */
     border: 2px solid rgba(255, 255, 255, 0.5);
     box-sizing: border-box;
@@ -1841,24 +1979,25 @@ li.context-item .visage-icon-domino {
 .visage .metadata-grid {
     flex: 0 0 auto;
     display: grid;
-    grid-template-columns: 1fr 1fr; 
-    gap: var(--visage-space-m); 
+    grid-template-columns: 1fr 1fr;
+    gap: var(--visage-space-m);
     padding: var(--visage-space-m);
     background: var(--visage-bg-panel);
     border-block-start: 1px solid var(--visage-border-focus);
-    font-size: var(--visage-font-size-m); 
+    font-size: var(--visage-font-size-m);
     color: var(--visage-text-muted);
 }
 
 .visage .meta-item {
     display: grid;
-    grid-template-columns: max-content 1fr 1fr; 
+    grid-template-columns: max-content 1fr 1fr;
     align-items: center;
     gap: var(--visage-space-s);
     min-width: 0;
 }
 
-.visage .meta-item i, .meta-item img {
+.visage .meta-item i,
+.meta-item img {
     width: 1.2em;
     height: 1.2em;
     font-size: 1em;
@@ -1882,7 +2021,9 @@ li.context-item .visage-icon-domino {
     text-align: start;
 }
 
-.visage .meta-item.inactive { opacity: 0.4; }
+.visage .meta-item.inactive {
+    opacity: 0.4;
+}
 
 .visage-disposition-text {
     font-weight: bold;
@@ -1933,7 +2074,7 @@ li.context-item .visage-icon-domino {
     height: 1.2em;
     margin-inline-end: var(--visage-space-xs);
     transform-origin: center;
-    transition: transform 0.2s ease; 
+    transition: transform 0.2s ease;
 }
 
 /* --- Right Panel (Inspector) --- */
@@ -2072,7 +2213,7 @@ li.context-item .visage-icon-domino {
 }
 
 .visage-reset-btn {
-    margin-inline-end: auto;    
+    margin-inline-end: auto;
     background: transparent;
     border: 1px solid var(--visage-text-muted);
     color: var(--visage-text-muted);
@@ -2132,7 +2273,7 @@ li.context-item .visage-icon-domino {
     overflow-y: hidden;
     scrollbar-gutter: stable;
     background: var(--visage-bg-base);
-    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .visage-effect-list {
@@ -2141,28 +2282,36 @@ li.context-item .visage-icon-domino {
 }
 
 /* State: Default (List visible, Inspector hidden to right) */
-.visage .view-list { transform: translateX(0); z-index: 1; }
-.visage .view-inspector { transform: translateX(100%); z-index: 2; overflow-y: auto;}
+.visage .view-list {
+    transform: translateX(0);
+    z-index: 1;
+}
+.visage .view-inspector {
+    transform: translateX(100%);
+    z-index: 2;
+    overflow-y: auto;
+}
 
 /* State: Editing (List hidden to left, Inspector visible) */
 .visage .effects-tab-container.editing .view-list,
-.visage .triggers-tab-container.editing .view-list { 
-    transform: translateX(-30%); 
-    opacity: 0; 
+.visage .triggers-tab-container.editing .view-list {
+    transform: translateX(-30%);
+    opacity: 0;
 }
 
 .visage .effects-tab-container.editing .view-inspector,
-.visage .triggers-tab-container.editing .view-inspector { 
-    transform: translateX(0); 
+.visage .triggers-tab-container.editing .view-inspector {
+    transform: translateX(0);
 }
-
 
 /* --- View 1: Effect Stack --- */
 
 .visage .effect-group {
     margin-block-end: var(--visage-space-m);
     position: relative;
-    transition: background-color 0.2s, border-color 0.2s;
+    transition:
+        background-color 0.2s,
+        border-color 0.2s;
     border-radius: var(--visage-radius-medium);
     padding: var(--visage-space-xxs); /* Padding for the outline */
     border: 1px solid transparent;
@@ -2172,18 +2321,18 @@ li.context-item .visage-icon-domino {
     display: flex;
     align-items: center;
     gap: var(--visage-space-s);
-    
+
     font-family: var(--visage-font-family);
     font-size: var(--visage-font-size-xs);
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: var(--visage-letter-spacing-wide);
     color: var(--visage-accent-main);
-    
+
     /* Background must be opaque for sticky behavior to hide content behind it */
     background: var(--visage-bg-panel);
     box-shadow: var(--visage-shadow-window);
-    
+
     margin: 0;
     margin-block-end: var(--visage-space-m);
     padding: var(--visage-space-xs) var(--visage-space-s);
@@ -2271,7 +2420,7 @@ li.context-item .visage-icon-domino {
 .visage .effect-icon {
     width: var(--visage-font-size-xxl);
     height: var(--visage-font-size-xxl);
-    background: rgba(0,0,0,0.3);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: var(--visage-radius-small);
     display: flex;
     align-items: center;
@@ -2316,8 +2465,12 @@ li.context-item .visage-icon-domino {
     color: var(--visage-text-muted);
     padding: 0;
 }
-.visage .effect-btn:hover { color: var(--visage-text-main); }
-.visage .effect-btn.delete:hover { color: var(--visage-color-danger); }
+.visage .effect-btn:hover {
+    color: var(--visage-text-main);
+}
+.visage .effect-btn.delete:hover {
+    color: var(--visage-color-danger);
+}
 
 .visage .effect-btn.active {
     background-color: var(--visage-accent-main);
@@ -2467,7 +2620,7 @@ li.context-item .visage-icon-domino {
     display: flex;
     align-items: center;
     gap: var(--visage-space-xs);
-    margin-block-start: var(--visage-space-l)
+    margin-block-start: var(--visage-space-l);
 }
 
 /* --- Transition Settings Bar --- */
@@ -2559,11 +2712,11 @@ li.context-item .visage-icon-domino {
     position: absolute;
     top: 50%;
     inset-inline-start: 50%;
-    transform: translate(-50%, -50%); 
+    transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 0;
     opacity: 0.6;
-    mix-blend-mode: screen; 
+    mix-blend-mode: screen;
     filter: blur(10px);
     border-radius: 50%;
 }
@@ -2588,7 +2741,7 @@ li.context-item .visage-icon-domino {
     border: 1px solid rgba(255, 255, 255, 0.3);
     margin-inline-start: 6px;
     vertical-align: middle;
-    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Ensure the meta text aligns nicely with the dot */
@@ -2617,12 +2770,18 @@ li.context-item .visage-icon-domino {
    Min scale = 1.0 - (0.2 * Intensity). Max dip is to 0.8.
 */
 @keyframes visage-pulse {
-    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-    50% { 
-        transform: translate(-50%, -50%) scale(calc(1 - (0.2 * var(--visage-intensity)))); 
-        opacity: calc(0.6 - (0.3 * var(--visage-intensity))); 
-    } 
-    100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(calc(1 - (0.2 * var(--visage-intensity))));
+        opacity: calc(0.6 - (0.3 * var(--visage-intensity)));
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+    }
 }
 .visage-light-overlay.anim-pulse {
     animation-name: visage-pulse;
@@ -2633,17 +2792,50 @@ li.context-item .visage-icon-domino {
    Intensity controls the variance in opacity.
 */
 @keyframes visage-torch {
-    0%   { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
-    10%  { opacity: calc(0.6 - (0.1 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(0.99); }
-    20%  { opacity: calc(0.6 + (0.1 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(1.01); }
-    30%  { opacity: calc(0.6 - (0.2 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(0.98); }
-    40%  { opacity: calc(0.6 + (0.15 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(1.02); }
-    50%  { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
-    60%  { opacity: calc(0.6 - (0.1 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(0.99); }
-    70%  { opacity: calc(0.6 + (0.1 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(1.01); }
-    80%  { opacity: calc(0.6 - (0.2 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(0.98); }
-    90%  { opacity: calc(0.6 + (0.1 * var(--visage-intensity))); transform: translate(-50%, -50%) scale(1.01); }
-    100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+    0% {
+        opacity: 0.6;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    10% {
+        opacity: calc(0.6 - (0.1 * var(--visage-intensity)));
+        transform: translate(-50%, -50%) scale(0.99);
+    }
+    20% {
+        opacity: calc(0.6 + (0.1 * var(--visage-intensity)));
+        transform: translate(-50%, -50%) scale(1.01);
+    }
+    30% {
+        opacity: calc(0.6 - (0.2 * var(--visage-intensity)));
+        transform: translate(-50%, -50%) scale(0.98);
+    }
+    40% {
+        opacity: calc(0.6 + (0.15 * var(--visage-intensity)));
+        transform: translate(-50%, -50%) scale(1.02);
+    }
+    50% {
+        opacity: 0.6;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    60% {
+        opacity: calc(0.6 - (0.1 * var(--visage-intensity)));
+        transform: translate(-50%, -50%) scale(0.99);
+    }
+    70% {
+        opacity: calc(0.6 + (0.1 * var(--visage-intensity)));
+        transform: translate(-50%, -50%) scale(1.01);
+    }
+    80% {
+        opacity: calc(0.6 - (0.2 * var(--visage-intensity)));
+        transform: translate(-50%, -50%) scale(0.98);
+    }
+    90% {
+        opacity: calc(0.6 + (0.1 * var(--visage-intensity)));
+        transform: translate(-50%, -50%) scale(1.01);
+    }
+    100% {
+        opacity: 0.6;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 .visage-light-overlay.anim-torch {
     animation-name: visage-torch;
@@ -2654,8 +2846,12 @@ li.context-item .visage-icon-domino {
    Speed controls rotation speed. Intensity is unused.
 */
 @keyframes visage-chroma {
-    0% { filter: blur(10px) hue-rotate(0deg); }
-    100% { filter: blur(10px) hue-rotate(360deg); }
+    0% {
+        filter: blur(10px) hue-rotate(0deg);
+    }
+    100% {
+        filter: blur(10px) hue-rotate(360deg);
+    }
 }
 .visage-light-overlay.anim-chroma {
     animation-name: visage-chroma;
@@ -2768,7 +2964,7 @@ li.context-item .visage-icon-domino {
 
 /* Class selector & Minimum Dimensions */
 .visage.visage-gallery {
-    min-width: 58rem !important; 
+    min-width: 58rem !important;
     min-height: 32rem !important;
     width: 78rem;
 }
@@ -2826,7 +3022,7 @@ li.context-item .visage-icon-domino {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    display: block; 
+    display: block;
     padding: var(--visage-space-l);
 }
 
@@ -2870,7 +3066,7 @@ li.context-item .visage-icon-domino {
     border: none;
 }
 
-:is(.visage-sidebar, .visage-token-panel) .search-bar { 
+:is(.visage-sidebar, .visage-token-panel) .search-bar {
     position: relative;
     display: flex;
 }
@@ -3022,7 +3218,9 @@ li.context-item .visage-icon-domino {
     scrollbar-width: none;
     padding-block-end: 2px;
 }
-.visage .filter-pills::-webkit-scrollbar { display: none; }
+.visage .filter-pills::-webkit-scrollbar {
+    display: none;
+}
 
 .visage .filter-divider {
     width: var(--visage-space-xxs);
@@ -3059,7 +3257,7 @@ li.context-item .visage-icon-domino {
     background: var(--visage-accent-main);
     color: var(--visage-text-inverse);
     border: 1px solid var(--visage-accent-main);
-    filter: brightness(1.1); 
+    filter: brightness(1.1);
     box-shadow: var(--visage-shadow-focus);
 }
 .visage-pill.active:hover i {
@@ -3121,7 +3319,7 @@ li.context-item .visage-icon-domino {
     background: var(--visage-bg-panel);
     border: 2px solid var(--visage-border-focus);
     border-radius: var(--visage-radius-medium);
-    overflow: visible; 
+    overflow: visible;
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -3130,13 +3328,13 @@ li.context-item .visage-icon-domino {
     position: relative; /* Context for z-index */
     z-index: 1; /* Base z-index */
 }
-.visage-card:hover { 
+.visage-card:hover {
     border-color: var(--visage-accent-main);
     z-index: 100; /* Bring to front on hover so menu overlaps neighbours */
 }
-.visage-card:has(.visage-popover-menu.active) { 
+.visage-card:has(.visage-popover-menu.active) {
     border-color: var(--visage-accent-main);
-    z-index: 200; 
+    z-index: 200;
 }
 
 .visage-card.mode-identity .card-zone-left,
@@ -3148,20 +3346,14 @@ li.context-item .visage-icon-domino {
 .visage-card.mode-overlay .card-zone-right {
     /* Create a subtle diagonal pinstripe */
     background-color: var(--visage-bg-panel);
-    background-image: repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 10px,
-        rgba(var(--visage-accent-rgb), 0.05) 10px,
-        rgba(var(--visage-accent-rgb), 0.05) 20px
-    );
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(var(--visage-accent-rgb), 0.05) 10px, rgba(var(--visage-accent-rgb), 0.05) 20px);
 }
 
 .visage .card-body {
     flex: 1;
     display: flex;
     flex-direction: row;
-    overflow: visible; 
+    overflow: visible;
     border-radius: var(--visage-radius-medium);
     border-block-end: none;
     padding: var(--visage-space-xs);
@@ -3254,7 +3446,7 @@ li.context-item .visage-icon-domino {
 }
 
 .visage .visual-target {
-    width: 120px; 
+    width: 120px;
     height: 120px;
     position: relative;
     flex-shrink: 0;
@@ -3305,7 +3497,7 @@ li.context-item .visage-icon-domino {
 .visage-ring-preview {
     position: absolute;
     inset: 0;
-    z-index: 1; 
+    z-index: 1;
     pointer-events: none;
     border-radius: 50%;
     background: color-mix(in srgb, var(--ring-bkg), black 60%);
@@ -3314,19 +3506,19 @@ li.context-item .visage-icon-domino {
 
 .visage-preview-content img,
 .visage-preview-content video {
-    position: relative; 
-    z-index: 2; 
+    position: relative;
+    z-index: 2;
     object-fit: contain;
-    width: 100%; 
+    width: 100%;
     height: 100%;
 }
 
 .visage-preview-content .fallback-icon {
     height: 3rem;
     width: 3rem;
-    color: var(--visage-text-muted); 
+    color: var(--visage-text-muted);
     opacity: 0.5;
-    position: relative; 
+    position: relative;
     z-index: 2;
 }
 
@@ -3337,51 +3529,69 @@ li.context-item .visage-icon-domino {
     border: 2px solid var(--ring-color);
     transform-origin: center;
 }
-.visage .ring-band.outer { inset: 0; }
-.visage .ring-band.inner { inset: 4px; }
+.visage .ring-band.outer {
+    inset: 0;
+}
+.visage .ring-band.inner {
+    inset: 4px;
+}
 
 @keyframes visage-ring-pulse-shadow {
-    0%, 100% { box-shadow: inset 0 0 0 2px var(--ring-color); }
-    50% { box-shadow: inset 0 0 0 2px #000; }
+    0%,
+    100% {
+        box-shadow: inset 0 0 0 2px var(--ring-color);
+    }
+    50% {
+        box-shadow: inset 0 0 0 2px #000;
+    }
 }
 .visage-ring-preview.pulse .ring-band {
     border: none;
-    animation: visage-ring-pulse-shadow 3s ease-in-out infinite, visage-spin 16s linear infinite;
+    animation:
+        visage-ring-pulse-shadow 3s ease-in-out infinite,
+        visage-spin 16s linear infinite;
 }
 
 .visage-ring-preview.gradient .ring-band {
-    border: none; 
-    background: conic-gradient(
-        var(--ring-color) 0deg 120deg, 
-        var(--ring-bkg) 180deg 300deg, 
-        var(--ring-color) 360deg 
-    );
+    border: none;
+    background: conic-gradient(var(--ring-color) 0deg 120deg, var(--ring-bkg) 180deg 300deg, var(--ring-color) 360deg);
     -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
     mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
     animation: visage-spin 16s linear infinite;
 }
 @keyframes visage-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .visage-ring-preview.gradient.pulse .ring-band {
     border: none;
     box-shadow: none;
     /* Combine the spin (from gradient) and opacity pulse */
-    animation: visage-spin 16s linear infinite, visage-ring-pulse-opacity 3s ease-in-out infinite;
+    animation:
+        visage-spin 16s linear infinite,
+        visage-ring-pulse-opacity 3s ease-in-out infinite;
 }
 
 @keyframes visage-ring-pulse-opacity {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.2; } /* Pulses to dark */
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.2;
+    } /* Pulses to dark */
 }
 
 .visage-ring-preview.wave::before,
 .visage-ring-preview.wave::after {
     content: "";
     position: absolute;
-    inset: 0; 
+    inset: 0;
     width: 100%;
     height: 100%;
     background: repeating-radial-gradient(circle, var(--ring-bkg), var(--ring-bkg) 6px, #000 10px, #000 16px);
@@ -3396,8 +3606,14 @@ li.context-item .visage-icon-domino {
 }
 
 @keyframes visage-ring-wave {
-    0% { transform: scale(0.3); opacity: 0.6; }
-    100% { transform: scale(1); opacity: 1.0; }
+    0% {
+        transform: scale(0.3);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .visage-preview-content.invisible img {
@@ -3439,7 +3655,9 @@ li.context-item .visage-icon-domino {
     border: 1px solid transparent;
     background: transparent;
     color: var(--visage-text-muted);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
     padding: 0;
@@ -3449,7 +3667,7 @@ li.context-item .visage-icon-domino {
     background: var(--visage-bg-hover);
     color: var(--visage-text-main);
     border-color: var(--visage-accent-main);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
     transform: translateY(-1px);
 }
 
@@ -3491,30 +3709,32 @@ li.context-item .visage-icon-domino {
 }
 
 .visage .card-title {
-    margin: 0; 
-    font-size: var(--visage-font-size-s); 
+    margin: 0;
+    font-size: var(--visage-font-size-s);
     font-weight: bold;
     font-family: var(--visage-font-family) !important;
     color: var(--visage-text-main) !important;
-    white-space: nowrap; 
-    overflow: hidden; 
+    white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .visage .card-tags {
     display: flex;
     gap: var(--visage-space-xs);
-    overflow-x: auto; 
-    scrollbar-width: none; 
+    overflow-x: auto;
+    scrollbar-width: none;
     padding-inline-end: var(--visage-space-xs);
 }
-.visage .card-tags::-webkit-scrollbar { display: none; }
+.visage .card-tags::-webkit-scrollbar {
+    display: none;
+}
 
 .visage .tag {
-    font-size: 0.65rem; 
-    padding: var(--visage-space-xxs) var(--visage-space-xs); 
+    font-size: 0.65rem;
+    padding: var(--visage-space-xxs) var(--visage-space-xs);
     border-radius: var(--visage-radius-medium);
-    background: var(--visage-bg-base); 
+    background: var(--visage-bg-base);
     color: var(--visage-text-muted);
     border: 1px solid var(--visage-translucent-overlay);
     white-space: nowrap;
@@ -3552,7 +3772,9 @@ li.context-item .visage-icon-domino {
     width: 0;
     opacity: 0;
     overflow: hidden;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
+    transition:
+        width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.2s;
     background: var(--visage-bg-panel);
     border-inline-start: 1px solid var(--visage-border-subtle);
     display: flex;
@@ -3570,7 +3792,7 @@ li.context-item .visage-icon-domino {
 }
 
 .visage-token-panel .token-panel-inner {
-    width: 22rem; 
+    width: 22rem;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -3647,13 +3869,12 @@ li.context-item .visage-icon-domino {
 }
 
 .visage-token-panel .effect-card .token-thumbnail {
-    width: var(--visage-font-size-xxl); 
-    height: var(--visage-font-size-xxl); 
-    border-radius: var(--visage-radius-small); 
-    object-fit: cover; 
+    width: var(--visage-font-size-xxl);
+    height: var(--visage-font-size-xxl);
+    border-radius: var(--visage-radius-small);
+    object-fit: cover;
     margin-inline-start: var(--visage-space-s);
 }
-
 
 /* ==========================================================================
    8. POPOUT MENU (Kebab Actions)
@@ -3670,7 +3891,7 @@ li.context-item .visage-icon-domino {
     position: absolute;
     top: 0;
     inset-inline-end: 3.5rem;
-    
+
     min-width: 10rem;
     background: var(--visage-bg-hover);
     border: 1px solid var(--visage-accent-main);
@@ -3682,12 +3903,14 @@ li.context-item .visage-icon-domino {
     flex-direction: column;
     padding: var(--visage-space-xs);
     gap: var(--visage-space-xxs);
-    
+
     /* Animation */
     opacity: 0;
     transform: translateX(calc(10px * var(--visage-dir-flip)));
     pointer-events: none;
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
 }
 
 .visage .visage-popover-menu.active {
@@ -3731,7 +3954,6 @@ li.context-item .visage-icon-domino {
     color: white;
 }
 
-
 /* ==========================================================================
    9. SCENE CONTROL INTEGRATION
    ========================================================================== */
@@ -3743,8 +3965,8 @@ li.context-item .visage-icon-domino {
     height: var(--visage-font-size-xl);
     margin: 0 auto;
     background-color: currentColor;
-    -webkit-mask: url('../icons/domino_mask.svg') no-repeat center;
-    mask: url('../icons/domino_mask.svg') no-repeat center;
+    -webkit-mask: url("../icons/domino_mask.svg") no-repeat center;
+    mask: url("../icons/domino_mask.svg") no-repeat center;
     -webkit-mask-size: contain;
     mask-size: contain;
 }
@@ -3765,7 +3987,6 @@ button.visage-tool-icon {
     height: 32px;
     padding: 1px;
 }
-
 
 /* ==========================================================================
    10. WELCOME CHAT CARD
@@ -3885,7 +4106,6 @@ button.visage-tool-icon {
     color: var(--visage-text-main) !important;
 }
 
-
 /* ==========================================================================
    12. APPLICATION: ATTRIBUTE PICKER
    ========================================================================== */
@@ -3984,9 +4204,18 @@ button.visage-tool-icon {
     color: var(--visage-text-muted);
 }
 
-.visage-attribute-list .type-badge.number { color: #64b5f6; border-color: #64b5f6; }
-.visage-attribute-list .type-badge.boolean { color: #81c784; border-color: #81c784; }
-.visage-attribute-list .type-badge.string { color: #ffb74d; border-color: #ffb74d; }
+.visage-attribute-list .type-badge.number {
+    color: #64b5f6;
+    border-color: #64b5f6;
+}
+.visage-attribute-list .type-badge.boolean {
+    color: #81c784;
+    border-color: #81c784;
+}
+.visage-attribute-list .type-badge.string {
+    color: #ffb74d;
+    border-color: #ffb74d;
+}
 
 .visage-attribute-list .current-value {
     font-family: monospace;
@@ -3996,7 +4225,6 @@ button.visage-tool-icon {
     flex: 0 0 auto;
     margin-inline-start: var(--visage-space-s);
 }
-
 
 /* ==========================================================================
    13. VISAGE TIMELINE HUD
@@ -4055,7 +4283,7 @@ button.visage-tool-icon {
     font-size: var(--visage-font-size-xs);
     color: var(--visage-text-muted);
     text-align: center;
-    direction: ltr; 
+    direction: ltr;
     unicode-bidi: isolate;
 }
 
@@ -4109,13 +4337,7 @@ button.visage-tool-icon {
 .visage-track-lanes {
     flex: 1;
     position: relative;
-    background: repeating-linear-gradient(
-        to bottom,
-        transparent,
-        transparent 34px,
-        var(--visage-bg-panel) 34px,
-        var(--visage-bg-panel) 35px
-    ); /* Creates subtle swimlane guide lines */
+    background: repeating-linear-gradient(to bottom, transparent, transparent 34px, var(--visage-bg-panel) 34px, var(--visage-bg-panel) 35px); /* Creates subtle swimlane guide lines */
     transition: height 0.2s ease;
 }
 
@@ -4152,7 +4374,7 @@ button.visage-tool-icon {
     border: 1px solid var(--visage-border-main);
 }
 .visage-timeline-block::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     bottom: 0;
@@ -4187,9 +4409,10 @@ button.visage-tool-icon {
     font-weight: bold;
     color: var(--visage-primary-100);
     pointer-events: none;
-    text-shadow: 0 0 3px var(--visage-primary-900), 0 0 5px var(--visage-primary-900);
+    text-shadow:
+        0 0 3px var(--visage-primary-900),
+        0 0 5px var(--visage-primary-900);
 }
-
 
 /* ==========================================================================
    14. AUTOMATION TOGGLES

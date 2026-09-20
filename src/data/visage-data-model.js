@@ -61,6 +61,10 @@ export class VisageDataModel extends foundry.abstract.DataModel {
         "flags.dylans-animated-tokens.animlist",
         "flags.dylans-animated-tokens.unlockedanchor",
         "flags.dylans-animated-tokens.unlockedfit",
+        "flags.rmu-lighting-vision.baseIllumination",
+        "flags.rmu-lighting-vision.isMagical",
+        "flags.rmu-lighting-vision.isUtter",
+        "flags.rmu-lighting-vision.isConstant",
     ];
 
     // 1. Define the Unified Schema (Everything a Visage represents)
@@ -286,6 +290,15 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                                 unlockedfit: new BooleanField({
                                     initial: false,
                                 }),
+                            },
+                            { required: false, nullable: true },
+                        ),
+                        "rmu-lighting-vision": new SchemaField(
+                            {
+                                baseIllumination: new StringField({ required: false, nullable: true }),
+                                isMagical: new BooleanField({ initial: false }),
+                                isUtter: new BooleanField({ initial: false }),
+                                isConstant: new BooleanField({ initial: false }),
                             },
                             { required: false, nullable: true },
                         ),

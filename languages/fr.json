@@ -581,6 +581,7 @@
     "VISAGE.Mode.OverlayHint": "Superpose le Visage au-dessus de l'Identité active (ou du pion de base) où il peut se combiner avec d'autres Visages de Superposition, parfait pour des changements mineurs ou temporaires (ex. altérations de taille, lumières, postures/attitudes).",
     "VISAGE.Directory.Tooltip.MissingDependencies": "Modules manquants",
     "VISAGE.Editor.Triggers.EventVisibility": "Masquer/Afficher le Pion",
+    "VISAGE.Editor.Light.RMUTitle": "Source Lumineuse RMU",
 
-    "_comment": "Updated to v5.10.0"
+    "_comment": "Updated to v5.11.0"
 }
