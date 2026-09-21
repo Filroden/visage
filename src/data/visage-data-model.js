@@ -295,12 +295,12 @@ export class VisageDataModel extends foundry.abstract.DataModel {
                         ),
                         "rmu-lighting-vision": new SchemaField(
                             {
-                                baseIllumination: new StringField({ required: false, nullable: true }),
-                                isMagical: new BooleanField({ initial: false }),
-                                isUtter: new BooleanField({ initial: false }),
-                                isConstant: new BooleanField({ initial: false }),
+                                baseIllumination: new StringField({ required: false, nullable: true, initial: null }),
+                                isMagical: new BooleanField({ required: false, nullable: true, initial: null }),
+                                isUtter: new BooleanField({ required: false, nullable: true, initial: null }),
+                                isConstant: new BooleanField({ required: false, nullable: true, initial: null }),
                             },
-                            { required: false, nullable: true },
+                            { required: false, nullable: true, initial: null },
                         ),
                     },
                     { required: false, nullable: true },
