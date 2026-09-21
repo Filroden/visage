@@ -972,14 +972,13 @@ export class VisageData {
 
         if (!source) return ui.notifications.warn("Visage | Source not found.");
 
-        const payload = {
-            label: source.label,
-            category: source.category,
-            tags: source.tags ? [...source.tags] : [],
-            mode: source.mode,
-            changes: foundry.utils.deepClone(source.changes),
-            automation: source.automation ? foundry.utils.deepClone(source.automation) : undefined,
-        };
+        // Deep clone to guarantee perfect preservation of all custom schema flags
+        const payload = foundry.utils.deepClone(source);
+        delete payload.id; // Force new ID creation for the global library
+
+        // Apply GM-friendly defaults
+        payload.public = true;
+        payload.label = `${source.label} (Promoted)`;
 
         await this._saveGlobal(payload);
         ui.notifications.info(
@@ -1112,9 +1111,9 @@ export class VisageData {
         const payload = {};
 
         // A. Handle simple root properties
-        const rootKeys = ["name", "width", "height", "depth", "alpha", "lockRotation", "disposition", "ring", "light", "effects"];
+        const rootKeys = ["name", "width", "height", "depth", "alpha", "lockRotation", "disposition", "ring", "light", "effects", "flags"];
         for (const key of rootKeys) {
-            if (c[key] !== null) payload[key] = c[key];
+            if (c[key] !== null && c[key] !== undefined) payload[key] = c[key];
         }
 
         // B. Handle basic texture properties

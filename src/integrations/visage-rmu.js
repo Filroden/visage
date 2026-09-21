@@ -25,6 +25,9 @@ export class VisageRMU {
 
         if (activeVisageFlags && Object.keys(activeVisageFlags).length > 0) {
             payload["flags.rmu-lighting-vision"] = activeVisageFlags;
+        } else if (document?.flags?.["rmu-lighting-vision"]) {
+            // Explicitly scrub the flag from the token if the active Visage no longer provides it
+            payload["flags.rmu-lighting-vision"] = new foundry.data.operators.ForcedDeletion();
         }
 
         return payload;
