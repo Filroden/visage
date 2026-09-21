@@ -336,6 +336,16 @@ Hooks.once("ready", async () => {
     } catch (err) {
         console.warn("Visage | Version check failed:", err);
     }
+
+    if (game.system.id === "rmu") {
+        const lvrmu = game.modules.get("rmu-lighting-vision");
+
+        // If it is installed and active, verify the version threshold
+        if (lvrmu?.active && foundry.utils.isNewerVersion("2.2.0", lvrmu.version)) {
+            ui.notifications.warn(game.i18n.localize("VISAGE.Notifications.LVRMUOutdated"));
+            console.warn("Visage | LVRMU version is outdated. Recommended: >= 2.2.0");
+        }
+    }
 });
 
 // Initialise application registry
