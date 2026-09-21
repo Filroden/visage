@@ -614,7 +614,12 @@ export class VisageData {
 
         // 5. Tooltips (Effects & Portraits)
         const activeEffects = (c.effects || []).filter((e) => !e.disabled);
-        const showEffectsBadge = activeEffects.length > 0 || (c.light && (c.light.dim > 0 || c.light.bright > 0)) || (c.delay !== undefined && c.delay !== 0);
+
+        // --- RMU Lighting Check ---
+        const rmu = c.flags?.["rmu-lighting-vision"];
+        const hasRmuLight = rmu && (rmu.baseIllumination !== "-1" || rmu.isMagical || rmu.isUtter || rmu.isConstant);
+
+        const showEffectsBadge = activeEffects.length > 0 || (c.light && (c.light.dim > 0 || c.light.bright > 0)) || (c.delay !== undefined && c.delay !== 0) || hasRmuLight;
 
         let portraitTooltip = "";
         if (c.portrait) {
@@ -834,8 +839,44 @@ export class VisageData {
     static _getTooltipContent(c, activeEffects) {
         let content = "";
 
+        const rmu = c.flags?.["rmu-lighting-vision"];
+        const hasRmuLight = rmu && (rmu.baseIllumination !== "-1" || rmu.isMagical || rmu.isUtter || rmu.isConstant);
+
         // A. Light (Top)
-        if (c.light && (c.light.dim > 0 || c.light.bright > 0)) {
+        if (hasRmuLight) {
+            const tierMap = {
+                "-1": "rmu.light.tiers.none",
+                0: "rmu.light.tiers.bright",
+                1: "rmu.light.tiers.uneven",
+                2: "rmu.light.tiers.dim",
+                3: "rmu.light.tiers.shadowy",
+                4: "rmu.light.tiers.dark",
+                5: "rmu.light.tiers.extremelyDark",
+                6: "rmu.light.tiers.pitchBlack",
+            };
+
+            let tierName = "Active"; // Fallback if no tier is set but magical/constant is checked
+            if (rmu.baseIllumination && tierMap[rmu.baseIllumination]) {
+                tierName = game.i18n.localize(tierMap[rmu.baseIllumination]);
+            }
+
+            // Append native Foundry animation data if present
+            let animLabel = "";
+            if (c.light?.animation?.type) {
+                const type = c.light.animation.type;
+                const key = `VISAGE.LightAnim.${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                const label = game.i18n.has(key) ? game.i18n.localize(key) : type;
+                animLabel = ` • ${label.replace(" (*)", "")}`;
+            }
+
+            content += `
+            <div class='visage-tooltip-row header'>
+                <i class='visage-icon light'></i> 
+                <span class='label'>${game.i18n.localize("VISAGE.Editor.Light.RMUTitle")}</span>
+                <span class='meta'>${tierName}${animLabel}</span>
+            </div>`;
+        } else if (c.light && (c.light.dim > 0 || c.light.bright > 0)) {
+            // Standard Light tooltip
             let animLabel = "";
             if (c.light.animation?.type) {
                 const type = c.light.animation.type;
@@ -931,14 +972,13 @@ export class VisageData {
 
         if (!source) return ui.notifications.warn("Visage | Source not found.");
 
-        const payload = {
-            label: source.label,
-            category: source.category,
-            tags: source.tags ? [...source.tags] : [],
-            mode: source.mode,
-            changes: foundry.utils.deepClone(source.changes),
-            automation: source.automation ? foundry.utils.deepClone(source.automation) : undefined,
-        };
+        // Deep clone to guarantee perfect preservation of all custom schema flags
+        const payload = foundry.utils.deepClone(source);
+        delete payload.id; // Force new ID creation for the global library
+
+        // Apply GM-friendly defaults
+        payload.public = true;
+        payload.label = `${source.label} (Promoted)`;
 
         await this._saveGlobal(payload);
         ui.notifications.info(
@@ -1071,9 +1111,9 @@ export class VisageData {
         const payload = {};
 
         // A. Handle simple root properties
-        const rootKeys = ["name", "width", "height", "depth", "alpha", "lockRotation", "disposition", "ring", "light", "effects"];
+        const rootKeys = ["name", "width", "height", "depth", "alpha", "lockRotation", "disposition", "ring", "light", "effects", "flags"];
         for (const key of rootKeys) {
-            if (c[key] !== null) payload[key] = c[key];
+            if (c[key] !== null && c[key] !== undefined) payload[key] = c[key];
         }
 
         // B. Handle basic texture properties

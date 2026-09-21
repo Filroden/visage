@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../core/visage-constants.js";
 import { VisageDAT } from "../integrations/visage-dat.js";
+import { VisageRMU } from "../integrations/visage-rmu.js";
 
 /**
  * @file Shared utility functions for the Visage module.
@@ -321,9 +322,15 @@ export class VisageUtilities {
 
         // Capture Third-Party Integration States
         const targetDocument = data.document || data;
+
         const datState = VisageDAT.extractState(targetDocument);
         if (datState) {
             rawChanges.flags["dylans-animated-tokens"] = datState;
+        }
+
+        const rmuState = VisageRMU.extractState(targetDocument);
+        if (rmuState) {
+            rawChanges.flags["rmu-lighting-vision"] = rmuState;
         }
 
         // Return the raw snapshot directly to protect core properties

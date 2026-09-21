@@ -24,6 +24,7 @@ import { VisageMediaTimeline } from "./helpers/visage-media-timeline.js";
 import { VisageTokenMagic } from "../integrations/visage-tmfx.js";
 import { VisageDataModel } from "../data/visage-data-model.js";
 import { VisageDAT } from "../integrations/visage-dat.js";
+import { VisageRMU } from "../integrations/visage-rmu.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -80,6 +81,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Sub-Data Containers for hidden UI components
         this._lightData = null;
         this._ringData = null;
+        this._rmuData = null;
         this._delayData = 0;
     }
 
@@ -333,6 +335,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 sheetstyle: datFlags?.sheetstyle ?? "dlru",
                 separateidle: datFlags?.separateidle ?? false,
             },
+
+            // RMU Context
+            isRMUActive: VisageRMU.isActive,
+            rmu: this._rmuData,
         };
     }
 
@@ -541,6 +547,41 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _onChangeForm(formConfig, event) {
         this._markDirty();
+        const targetName = event.target.name;
+
+        // --- RMU LIGHTING UX SYNC ---
+        if (VisageRMU.isActive && targetName?.startsWith("flags.rmu-lighting-vision")) {
+            const formData = new FormData(this.element);
+            const isMagical = formData.get("flags.rmu-lighting-vision.isMagical") === "on";
+            const isUtter = formData.get("flags.rmu-lighting-vision.isUtter") === "on";
+            const isConstant = formData.get("flags.rmu-lighting-vision.isConstant") === "on";
+
+            // Rule 1: Constant strips Magical and Utter
+            if (targetName.includes("isConstant") && isConstant) {
+                const magEl = this.element.querySelector('[name="flags.rmu-lighting-vision.isMagical"]');
+                const uttEl = this.element.querySelector('[name="flags.rmu-lighting-vision.isUtter"]');
+                if (magEl?.checked) magEl.checked = false;
+                if (uttEl?.checked) uttEl.checked = false;
+            }
+
+            // Rule 2: Constant cannot be enabled if Magical or Utter is checked
+            if ((targetName.includes("isMagical") || targetName.includes("isUtter")) && (isMagical || isUtter)) {
+                const conEl = this.element.querySelector('[name="flags.rmu-lighting-vision.isConstant"]');
+                if (conEl?.checked) conEl.checked = false;
+            }
+
+            // Rule 3: Utter implies Magical
+            if (targetName.includes("isUtter") && isUtter) {
+                const magEl = this.element.querySelector('[name="flags.rmu-lighting-vision.isMagical"]');
+                if (magEl && !magEl.checked) magEl.checked = true;
+            }
+
+            // Rule 4: Unchecking Magical strips Utter
+            if (targetName.includes("isMagical") && !isMagical) {
+                const uttEl = this.element.querySelector('[name="flags.rmu-lighting-vision.isUtter"]');
+                if (uttEl?.checked) uttEl.checked = false;
+            }
+        }
 
         // If the user changes an Inspector type/mode, fully re-render to swap the dynamic form fields
         const triggerNames = ["inspector.eventId", "inspector.dataType", "inspector.mode"];
@@ -615,6 +656,12 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                   })
                 : defaults;
             if (c.ring) this._ringData.enabled = !!c.ring.enabled;
+        }
+
+        // RMU Lighting Sync
+        if (this._rmuData === null) {
+            const defaultRmu = { baseIllumination: "-1", isMagical: false, isUtter: false, isConstant: false };
+            this._rmuData = c.flags?.["rmu-lighting-vision"] ? foundry.utils.mergeObject(defaultRmu, c.flags["rmu-lighting-vision"], { inplace: false }) : defaultRmu;
         }
 
         // Automation Sync
@@ -766,8 +813,56 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._syncEffectState(formData);
         this._syncRingState(formData);
         this._syncAutomationState(formData);
+        this._syncRMUState(formData);
 
-        // ENFORCE DAT ACTIVE STATE
+        // -----------------------------------------------------------
+        // THIRD-PARTY INTEGRATION ROUTING & PRESERVATION
+        // -----------------------------------------------------------
+
+        // Aggressively scrub HTML flat keys
+        // FormDataExtended generates flat keys (e.g. "flags.rmu-lighting-vision.baseIllumination").
+        // We must eradicate these before evaluation, otherwise they bypass our nested deletions
+        // and force ghost data into the DataModel payload.
+        for (const key of Object.keys(formData)) {
+            if (key.startsWith("flags.rmu-lighting-vision")) {
+                delete formData[key];
+            }
+        }
+
+        // RMU Lighting Preservation
+        if (VisageRMU.isActive && this._rmuData) {
+            // ONLY inject RMU flags if the Visage is actively asserting a Light override
+            if (this._lightData.active) {
+                const isRmuEmpty = this._rmuData.baseIllumination === "-1" && !this._rmuData.isMagical && !this._rmuData.isUtter && !this._rmuData.isConstant;
+
+                if (isRmuEmpty) {
+                    // Scrub the empty RMU data so it saves as a pure native Foundry light
+                    if (formData.flags) delete formData.flags["rmu-lighting-vision"];
+                } else {
+                    formData.flags = formData.flags || {};
+                    formData.flags["rmu-lighting-vision"] = this._rmuData;
+                }
+            } else {
+                // If light is disabled, ensure we don't accidentally push an empty RMU object
+                if (formData.flags) delete formData.flags["rmu-lighting-vision"];
+            }
+        } else if (!VisageRMU.isActive && this._preservedData?.changes?.flags?.["rmu-lighting-vision"]) {
+            // Module is disabled, but we have legacy data to preserve
+            formData.flags = formData.flags || {};
+            formData.flags["rmu-lighting-vision"] = this._preservedData.changes.flags["rmu-lighting-vision"];
+        }
+
+        // DAT Preservation
+        if (!VisageDAT.isActive && this._preservedData?.changes?.flags?.["dylans-animated-tokens"]) {
+            formData.flags = formData.flags || {};
+            formData.flags["dylans-animated-tokens"] = this._preservedData.changes.flags["dylans-animated-tokens"];
+
+            // Spoof the checkbox state so the cleanup block below ignores it
+            formData.dat_active = true;
+        }
+
+        // 2. Enforce Active States (UX Cleanup)
+        // If the UI is rendered and the user explicitly unchecks the activation box, scrub the data.
         if (!formData.dat_active && formData.flags?.["dylans-animated-tokens"]) {
             delete formData.flags["dylans-animated-tokens"];
         }
@@ -862,6 +957,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 this._lightData.animation.intensity = intensity;
             }
         }
+    }
+
+    /** @private */
+    _syncRMUState(formData) {
+        // If the inspector is closed, rely on the persistent memory cache
+        if (!formData.rmu_active) return;
+
+        // Safely expand the flat keys generated by FormDataExtended
+        const expanded = foundry.utils.expandObject(formData);
+        const rmuFlags = expanded.flags?.["rmu-lighting-vision"] || {};
+
+        this._rmuData.baseIllumination = rmuFlags.baseIllumination ?? "-1";
+        // Explicitly cast to boolean to handle FormData omitting unchecked boxes
+        this._rmuData.isMagical = !!rmuFlags.isMagical;
+        this._rmuData.isUtter = !!rmuFlags.isUtter;
+        this._rmuData.isConstant = !!rmuFlags.isConstant;
     }
 
     /** @private */
@@ -1150,6 +1261,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             effects: 0,
         };
         this._lightData.active = false;
+        this._rmuData = { baseIllumination: "-1", isMagical: false, isUtter: false, isConstant: false };
         this._editingRing = false;
         this._editingLight = false;
         this._effects = [];

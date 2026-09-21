@@ -667,5 +667,9 @@
 
     "_comment_V5_10_KEYS": "--- V5.10 KEYS ---",
     "VISAGE.Directory.Tooltip.MissingDependencies": "Missing Module(s)",
-    "VISAGE.Editor.Triggers.EventVisibility": "Hide/Show Token"
+    "VISAGE.Editor.Triggers.EventVisibility": "Hide/Show Token",
+
+    "_comment_V5_11_KEYS": "--- V5.11 KEYS ---",
+    "VISAGE.Editor.Light.RMUTitle": "RMU Light Source",
+    "VISAGE.Notifications.LVRMUOutdated": "Visage recommends updating 'Lighting and Vision for RMU' to version 2.2.0 or higher for full visual compatibility."
 }

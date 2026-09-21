@@ -248,12 +248,57 @@
 
             {{!-- LIGHT CONFIGURATION --}}
             {{#if (eq inspector.type 'light')}}
+
+                {{!-- RMU LIGHTING AND VISION INTEGRATION Part 1 --}}
+                {{#if @root.isRMUActive}}
+                <div class="form-group">
+                    <label data-tooltip="{{localize 'rmu.light.baseIlluminationHint'}}">{{localize "rmu.light.baseIllumination"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="hidden" name="rmu_active" value="true">
+                        <select name="flags.rmu-lighting-vision.baseIllumination">
+                            <option value="-1" {{visageSelected (eq @root.rmu.baseIllumination "-1")}}>{{localize "rmu.light.tiers.none"}}</option>
+                            <option value="0" {{visageSelected (eq @root.rmu.baseIllumination "0")}}>{{localize "rmu.light.tiers.bright"}}</option>
+                            <option value="1" {{visageSelected (eq @root.rmu.baseIllumination "1")}}>{{localize "rmu.light.tiers.uneven"}}</option>
+                            <option value="2" {{visageSelected (eq @root.rmu.baseIllumination "2")}}>{{localize "rmu.light.tiers.dim"}}</option>
+                            <option value="3" {{visageSelected (eq @root.rmu.baseIllumination "3")}}>{{localize "rmu.light.tiers.shadowy"}}</option>
+                            <option value="4" {{visageSelected (eq @root.rmu.baseIllumination "4")}}>{{localize "rmu.light.tiers.dark"}}</option>
+                            <option value="5" {{visageSelected (eq @root.rmu.baseIllumination "5")}}>{{localize "rmu.light.tiers.extremelyDark"}}</option>
+                            <option value="6" {{visageSelected (eq @root.rmu.baseIllumination "6")}}>{{localize "rmu.light.tiers.pitchBlack"}}</option>
+                        </select>
+                    </div>
+                </div>
+                {{/if}}
+
+                {{!-- DIM / BRIGHT RADIUS--}}
                 <div class="form-group fade-grid">
                     <label>{{localize "VISAGE.Editor.Light.Dim"}}</label>
                     <input type="number" name="light.dim" value="{{light.dim}}" step="0.5">
                     <label>{{localize "VISAGE.Editor.Light.Bright"}}</label>
                     <input type="number" name="light.bright" value="{{light.bright}}" step="0.5">
                 </div>
+
+                {{!-- RMU LIGHTING AND VISION INTEGRATION Part 2 --}}
+                {{#if @root.isRMUActive}}
+                <div class="form-group stacked">
+                    <label>RMU Modifiers</label>
+                    <div class="visage-form-fields stacked">
+                        <label class="checkbox" data-tooltip="{{localize 'rmu.light.isMagicalHint'}}">
+                            <input class="visage-checkbox" type="checkbox" name="flags.rmu-lighting-vision.isMagical" {{checked @root.rmu.isMagical}}>
+                            {{localize "rmu.light.isMagical"}}
+                        </label>
+                        <label class="checkbox" data-tooltip="{{localize 'rmu.light.isUtter.hint'}}">
+                            <input class="visage-checkbox" type="checkbox" name="flags.rmu-lighting-vision.isUtter" {{checked @root.rmu.isUtter}}>
+                            {{localize "rmu.light.isUtter.name"}}
+                        </label>
+                        <label class="checkbox" data-tooltip="{{localize 'rmu.light.isConstant.hint'}}">
+                            <input class="visage-checkbox" type="checkbox" name="flags.rmu-lighting-vision.isConstant" {{checked @root.rmu.isConstant}}>
+                            {{localize "rmu.light.isConstant.name"}}
+                        </label>
+                    </div>
+                </div>
+
+                <hr class="visage-divider">
+                {{/if}}
 
                 <div class="form-group">
                     <label>{{localize "VISAGE.Editor.Light.Color"}}</label>

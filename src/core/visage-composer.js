@@ -9,6 +9,7 @@ import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageSystems } from "../integrations/visage-systems.js";
 import { MODULE_ID } from "./visage-constants.js";
 import { VisageDAT } from "../integrations/visage-dat.js";
+import { VisageRMU } from "../integrations/visage-rmu.js";
 
 /**
  * The VisageComposer class handles the mathematical composition of token data.
@@ -70,6 +71,10 @@ export class VisageComposer {
         // Dylan's Automated Tokens compatibility
         const datPayload = VisageDAT.getUpdatePayload(token.document, state.finalData?.flags?.["dylans-animated-tokens"]);
         Object.assign(updateData, datPayload);
+
+        // RMU Lighting compatibility
+        const rmuPayload = VisageRMU.getUpdatePayload(token.document, state.finalData?.flags?.["rmu-lighting-vision"]);
+        Object.assign(updateData, rmuPayload);
 
         // Actively calculate and enforce DAT anchors
         if (VisageDAT.isActive) {
@@ -158,16 +163,30 @@ export class VisageComposer {
         if (c.ring?.enabled) state.finalData.ring = c.ring;
         if (c.light?.active) state.finalData.light = c.light;
 
-        this._applyThirdPartyFlags(state, c.flags?.["dylans-animated-tokens"], mode);
+        this._applyThirdPartyFlags(state, c, mode);
     }
 
-    static _applyThirdPartyFlags(state, datFlag, mode) {
+    static _applyThirdPartyFlags(state, c, mode) {
+        const datFlag = c.flags?.["dylans-animated-tokens"];
+        const rmuFlag = c.flags?.["rmu-lighting-vision"];
+
         if (!datFlag) {
             if (mode === "identity") delete state.finalData.flags["dylans-animated-tokens"];
-            return;
+        } else {
+            state.finalData.flags["dylans-animated-tokens"] = datFlag;
         }
 
-        state.finalData.flags["dylans-animated-tokens"] = datFlag;
+        if (!rmuFlag) {
+            if (mode === "identity") {
+                delete state.finalData.flags["rmu-lighting-vision"];
+            } else if (c.light?.active) {
+                // Overlay is asserting a native light without RMU properties.
+                // Suppress the base token's RMU flags AND inject the bypass flag.
+                state.finalData.flags["rmu-lighting-vision"] = { isVisageOverride: true, baseIllumination: "-1", isMagical: false, isUtter: false, isConstant: false };
+            }
+        } else {
+            state.finalData.flags["rmu-lighting-vision"] = rmuFlag;
+        }
     }
 
     /**
@@ -257,6 +276,11 @@ export class VisageComposer {
         // Dylan's Automated Tokens compatibility
         const datRestore = VisageDAT.getRestorePayload(original);
         Object.assign(updateData, datRestore);
+
+        // RMU Lighting compatibility
+        const rmuRestore = VisageRMU.getRestorePayload(original);
+        Object.assign(updateData, rmuRestore);
+
         delete updateData.flags; // Clean up our temporary data transfer object
 
         VisageSystems.process(updateData, original, context);
