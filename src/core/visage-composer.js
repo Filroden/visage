@@ -163,10 +163,13 @@ export class VisageComposer {
         if (c.ring?.enabled) state.finalData.ring = c.ring;
         if (c.light?.active) state.finalData.light = c.light;
 
-        this._applyThirdPartyFlags(state, c.flags?.["dylans-animated-tokens"], c.flags?.["rmu-lighting-vision"], mode);
+        this._applyThirdPartyFlags(state, c, mode);
     }
 
-    static _applyThirdPartyFlags(state, datFlag, rmuFlag, mode) {
+    static _applyThirdPartyFlags(state, c, mode) {
+        const datFlag = c.flags?.["dylans-animated-tokens"];
+        const rmuFlag = c.flags?.["rmu-lighting-vision"];
+
         if (!datFlag) {
             if (mode === "identity") delete state.finalData.flags["dylans-animated-tokens"];
         } else {
@@ -174,7 +177,13 @@ export class VisageComposer {
         }
 
         if (!rmuFlag) {
-            if (mode === "identity") delete state.finalData.flags["rmu-lighting-vision"];
+            if (mode === "identity") {
+                delete state.finalData.flags["rmu-lighting-vision"];
+            } else if (c.light?.active) {
+                // Overlay is asserting a native light without RMU properties.
+                // Suppress the base token's RMU flags AND inject the bypass flag.
+                state.finalData.flags["rmu-lighting-vision"] = { isVisageOverride: true, baseIllumination: "-1", isMagical: false, isUtter: false, isConstant: false };
+            }
         } else {
             state.finalData.flags["rmu-lighting-vision"] = rmuFlag;
         }

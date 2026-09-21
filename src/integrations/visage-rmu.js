@@ -18,17 +18,13 @@ export class VisageRMU {
 
     /**
      * Determines the update payload required to suppress or apply LVRMU flags.
-     * Injects a temporary bypass flag so LVRMU doesn't overwrite the base token.
      */
     static getUpdatePayload(document, activeVisageFlags = null) {
         const payload = {};
         if (!this.isActive) return payload;
 
         if (activeVisageFlags && Object.keys(activeVisageFlags).length > 0) {
-            payload["flags.rmu-lighting-vision"] = {
-                ...activeVisageFlags,
-                isVisageOverride: true, // Bypass flag for light-sync.js
-            };
+            payload["flags.rmu-lighting-vision"] = activeVisageFlags;
         }
 
         return payload;
