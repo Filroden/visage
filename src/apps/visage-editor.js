@@ -25,8 +25,12 @@ import { VisageTokenMagic } from "../integrations/visage-tmfx.js";
 import { VisageDataModel } from "../data/visage-data-model.js";
 import { VisageDAT } from "../integrations/visage-dat.js";
 import { VisageRMU } from "../integrations/visage-rmu.js";
+import { VisageRangeDisplay } from "../utils/visage-range-display.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+/** How long the preview waits after a slider stops moving before it refreshes, in milliseconds. */
+const SLIDER_PREVIEW_DEBOUNCE_MS = 50;
 
 // ============================================================================
 // MAIN APPLICATION: VISAGE EDITOR
@@ -82,7 +86,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._lightData = null;
         this._ringData = null;
         this._rmuData = null;
-        this._delayData = 0;
     }
 
     get isLocal() {
@@ -128,7 +131,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             editLight: VisageEditor.prototype._onEditLight,
             toggleRing: VisageEditor.prototype._onToggleRing,
             editRing: VisageEditor.prototype._onEditRing,
-            toggleDelayDirection: VisageEditor.prototype._onToggleDelayDirection,
             toggleAutomation: VisageEditor.prototype._onToggleAutomation,
             toggleLogic: VisageEditor.prototype._onToggleLogic,
             addCondition: VisageEditor.prototype._onAddCondition,
@@ -276,10 +278,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             automation: this._automationData,
             statusEffects: this._getStatusEffectOptions(),
             weatherEffects: this._getWeatherOptions(),
-            delay: {
-                value: Math.abs(this._delayData) / 1000,
-                direction: this._delayData >= 0 ? "after" : "before",
-            },
             scale: {
                 value: Math.round((c.scale ?? 1) * 100),
                 active: c.scale != null,
@@ -439,9 +437,25 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             // Text input debouncing
             const debouncedTextUpdate = foundry.utils.debounce(() => this._updatePreview(), 250);
             this.element.addEventListener("input", (e) => {
-                if (e.target.matches("input[type='text'], input[type='number'], color-picker, range-picker, textarea")) {
+                if (e.target.matches("input[type='text'], input[type='number'], color-picker, textarea")) {
                     debouncedTextUpdate();
                 }
+            });
+
+            // Range sliders. Delegated from the root element, which persists across re-renders,
+            // so these are bound once however often the editor re-renders. Keeping the slider's
+            // value chip, editable number and track fill in step is handled separately by the
+            // document-level listener registered in main.js (VisageRangeDisplay); this listener
+            // only covers the editor's own response. The preview is debounced because "input"
+            // fires continuously while a slider is dragged.
+            const debouncedSliderUpdate = foundry.utils.debounce(() => this._updatePreview(), SLIDER_PREVIEW_DEBOUNCE_MS);
+            this.element.addEventListener("input", (e) => {
+                if (!e.target.matches?.('input[type="range"]')) return;
+                this._markDirty();
+                debouncedSliderUpdate();
+            });
+            this.element.addEventListener("dblclick", (e) => {
+                if (e.target.matches?.(VisageRangeDisplay.SLIDER_SELECTOR)) this._resetSliderDefault(e.target);
             });
 
             this._rootListenersBound = true;
@@ -449,72 +463,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // --- 2. CHILD NODE BINDINGS (Execute Every Render) ---
 
-        const debouncedUpdate = foundry.utils.debounce(() => this._updatePreview(), 50);
-
-        // Setup Range Sliders
-        this.element.querySelectorAll('input[type="range"]').forEach((slider) => {
-            slider.addEventListener("input", () => {
-                this._markDirty();
-                debouncedUpdate();
-            });
-            slider.addEventListener("dblclick", (ev) => this._resetSliderDefault(ev));
-        });
-
-        // Synchronise boundless range sliders with number inputs
-        this.element.querySelectorAll(".range-wrapper").forEach((group) => {
-            const slider = group.querySelector(".visage-slider");
-            const number = group.querySelector(".visage-number");
-
-            if (slider && number) {
-                // Slider drives the number input
-                slider.addEventListener("input", (event) => {
-                    number.value = event.target.value;
-                    // Dispatch change so the global form listener captures the new value
-                    number.dispatchEvent(new Event("change", { bubbles: true }));
-                });
-
-                // Number input drives the slider (visually clamped)
-                number.addEventListener("input", (event) => {
-                    let val = Number(event.target.value);
-                    const min = Number(slider.min);
-                    const max = Number(slider.max);
-
-                    if (val < min) val = min;
-                    if (val > max) val = max;
-
-                    slider.value = val;
-                });
-            }
-        });
-
         // Bind Sub-systems
         this._bindTagInput();
-
-        // --- Global Drag & Drop for External Foundry Documents ---
-        this.element.addEventListener("dragover", (e) => e.preventDefault());
-        this.element.addEventListener(
-            "drop",
-            async (e) => {
-                try {
-                    const dragDataText = e.dataTransfer.getData("text/plain");
-                    if (!dragDataText) return;
-
-                    const data = JSON.parse(dragDataText);
-
-                    if (data?.type === "Macro" && data?.uuid) {
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        if (typeof this._onDropMacro === "function") {
-                            await this._onDropMacro(data.uuid);
-                        }
-                    }
-                } catch (err) {
-                    console.debug("Visage | Silently ignoring non-JSON drag data.", err);
-                }
-            },
-            { capture: true },
-        );
 
         // Viewport Init
         if (this._activeEffectId || this._editingLight || this._editingRing) {
@@ -1291,11 +1241,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             inputs = group.querySelectorAll('[data-group="datGroup"] input, [data-group="datGroup"] select');
         } else {
             group = target.closest(".form-group");
-            inputs = fieldName === "anchor" ? group.querySelectorAll('[name="anchorX"], [name="anchorY"]') : group.querySelectorAll(`[name="${fieldName}"]`);
+            // A slider row with an editable number chip leaves its slider unnamed (the number is
+            // the form field), so the row's slider is matched by class as well as by name
+            inputs = fieldName === "anchor" ? group.querySelectorAll('[name="anchorX"], [name="anchorY"]') : group.querySelectorAll(`[name="${fieldName}"], ${VisageRangeDisplay.SLIDER_SELECTOR}`);
         }
 
         // Apply the disabled state
         inputs.forEach((input) => (input.disabled = !target.checked));
+
+        // A slider row shows a dash in its value chip while it inherits from the stack
+        if (group?.matches(VisageRangeDisplay.WRAPPER_SELECTOR)) VisageRangeDisplay.refresh(group);
 
         // Handle file picker buttons if they exist
         const button = group?.querySelector("button.file-picker-button");
@@ -1389,15 +1344,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._activeEffectId = null;
         this._activeConditionId = null;
         this.render();
-    }
-
-    _onToggleDelayDirection(event, target) {
-        const btns = this.element.querySelectorAll(".delay-direction-toggle button");
-        btns.forEach((b) => b.classList.remove("active"));
-        target.classList.add("active");
-        const seconds = Number.parseFloat(this.element.querySelector('range-picker[name="delayValue"]').value) || 0;
-        this._delayData = Math.round(seconds * 1000) * (target.dataset.value === "after" ? 1 : -1);
-        this._markDirty();
     }
 
     _onToggleAutomation(event, target) {
@@ -2209,35 +2155,24 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    _resetSliderDefault(ev) {
-        let def = 0;
-        const slider = ev.target;
+    /**
+     * Restores a slider to its default value when it is double-clicked. The default comes from
+     * the slider's data-default attribute (set through the visage-range partial's default
+     * parameter), so each slider declares its own; a slider with no default is left alone.
+     *
+     * A bubbling "input" event is dispatched rather than updating anything directly, so the reset
+     * takes exactly the same path as dragging the slider: the editor's root listener marks the
+     * form dirty and refreshes the preview, and VisageRangeDisplay updates the value chip, the
+     * track fill and any editable number chip (which in turn notifies the form change handler).
+     *
+     * @param {HTMLInputElement} slider - The double-clicked range input.
+     */
+    _resetSliderDefault(slider) {
+        const defaultValue = slider.dataset.default;
+        if (slider.disabled || defaultValue === undefined || defaultValue === "") return;
 
-        // The offset range sliders lack a name attribute in the HBS, so we fallback to the sibling's name
-        const siblingNumber = slider.parentElement.querySelector(".visage-number");
-        const name = slider.name || siblingNumber?.name || "";
-
-        if (name.includes("scale")) def = 100;
-        if (name.includes("alpha") || name.includes("luminosity")) def = 0.5;
-        if (name.includes("speed") || name.includes("intensity")) def = 5;
-        if (name.includes("angle")) def = 360;
-        if (name.includes("Volume") || name.includes("Opacity") || name.includes("ringSubjectScale")) def = 1;
-        // offsets naturally fall through to def = 0
-
-        slider.value = def;
-
-        // Update legacy <output> displays
-        const display = slider.nextElementSibling;
-        if (display?.tagName === "OUTPUT") display.value = def;
-
-        // Update the decoupled number inputs and force a form update
-        if (siblingNumber) {
-            siblingNumber.value = def;
-            siblingNumber.dispatchEvent(new Event("change", { bubbles: true }));
-        }
-
-        this._markDirty();
-        this._updatePreview();
+        slider.value = defaultValue;
+        slider.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
     _getStatusEffectOptions() {

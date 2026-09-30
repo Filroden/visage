@@ -265,22 +265,31 @@
 
                 {{!-- Dynamic Fields: Elevation & Darkness (Math Operators) --}}
                 {{#if (or (eq inspector.condition.eventId 'elevation') (eq inspector.condition.eventId 'darkness'))}}
-                    <div class="form-group fade-grid">
+                    <div class="form-group">
                         <label>{{localize "VISAGE.Editor.Triggers.Operator"}}</label>
-                        <select name="inspector.operator">
-                            <option value="gt" {{visageSelected (eq inspector.condition.operator "gt")}}>{{localize "VISAGE.Editor.Triggers.OpGt"}} (>)</option>
-                            <option value="gte" {{visageSelected (eq inspector.condition.operator "gte")}}>{{localize "VISAGE.Editor.Triggers.OpGte"}} (>=)</option>
-                            <option value="lt" {{visageSelected (eq inspector.condition.operator "lt")}}>{{localize "VISAGE.Editor.Triggers.OpLt"}} (<)</option>
-                            <option value="lte" {{visageSelected (eq inspector.condition.operator "lte")}}>{{localize "VISAGE.Editor.Triggers.OpLte"}} (<=)</option>
-                            <option value="eq" {{visageSelected (eq inspector.condition.operator "eq")}}>{{localize "VISAGE.Editor.Triggers.OpEq"}} (==)</option>
-                            <option value="neq" {{visageSelected (eq inspector.condition.operator "neq")}}>{{localize "VISAGE.Editor.Triggers.OpNeq"}} (!=)</option>
-                        </select>
-
-                        <label>{{localize "VISAGE.Editor.Triggers.Value"}}</label>
-                        <input type="number" name="inspector.value" value="{{inspector.condition.value}}" 
-                               step="{{#if (eq inspector.condition.eventId 'darkness')}}0.05{{else}}1{{/if}}" 
-                               {{#if (eq inspector.condition.eventId 'darkness')}}min="0" max="1"{{/if}}>
+                        <div class="visage-form-fields">
+                            <select name="inspector.operator">
+                                <option value="gt" {{visageSelected (eq inspector.condition.operator "gt")}}>{{localize "VISAGE.Editor.Triggers.OpGt"}} (>)</option>
+                                <option value="gte" {{visageSelected (eq inspector.condition.operator "gte")}}>{{localize "VISAGE.Editor.Triggers.OpGte"}} (>=)</option>
+                                <option value="lt" {{visageSelected (eq inspector.condition.operator "lt")}}>{{localize "VISAGE.Editor.Triggers.OpLt"}} (<)</option>
+                                <option value="lte" {{visageSelected (eq inspector.condition.operator "lte")}}>{{localize "VISAGE.Editor.Triggers.OpLte"}} (<=)</option>
+                                <option value="eq" {{visageSelected (eq inspector.condition.operator "eq")}}>{{localize "VISAGE.Editor.Triggers.OpEq"}} (==)</option>
+                                <option value="neq" {{visageSelected (eq inspector.condition.operator "neq")}}>{{localize "VISAGE.Editor.Triggers.OpNeq"}} (!=)</option>
+                            </select>
+                        </div>
                     </div>
+
+                    {{#if (eq inspector.condition.eventId 'darkness')}}
+                        {{! Scene darkness always runs from 0 to 1 }}
+                        {{> "modules/visage/templates/parts/visage-range.hbs" name="inspector.value" label="VISAGE.Editor.Triggers.Value" value=inspector.condition.value min=0 max=1 step=0.05 default=0.5}}
+                    {{else}}
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.Triggers.Value"}}</label>
+                            <div class="visage-form-fields">
+                                <input type="number" name="inspector.value" value="{{inspector.condition.value}}" step="1">
+                            </div>
+                        </div>
+                    {{/if}}
                 {{/if}}
 
                 {{!-- Dynamic Fields: Region (ID & Entry/Exit) --}}
@@ -382,4 +391,4 @@
 
         </fieldset>
     </div>
-</div>
+</div>

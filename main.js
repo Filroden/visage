@@ -16,6 +16,7 @@ import { VisageAutomation } from "./src/core/visage-automation.js";
 import { VisageMassEdit } from "./src/integrations/visage-mass-edit.js";
 import { VisageSettings } from "./src/core/visage-settings.js";
 import { VisageInterceptor } from "./src/core/visage-interceptor.js";
+import { VisageRangeDisplay } from "./src/utils/visage-range-display.js";
 
 /**
  * Singleton instance of the global gallery when opened via Scene Controls.
@@ -85,6 +86,39 @@ function getActorIdFromElement(li) {
 /* -------------------------------------------- */
 
 /**
+ * Keeps every Visage range slider (templates/parts/visage-range.hbs) in step with its value chip
+ * and track fill, in every Visage window, including windows opened after this runs.
+ *
+ * A single document-level listener is used rather than one bound inside each application's
+ * _onRender, because listeners added on render are easily added again on every re-render, which
+ * multiplies the work done on each movement of a slider. Only inputs inside a .visage element
+ * are handled, so Foundry's own sliders and other modules' sliders are never touched.
+ *
+ * This only updates what the slider row displays. Anything an application does in response to a
+ * slider (such as the editor marking itself dirty and refreshing its preview) is handled by that
+ * application's own listener.
+ */
+function registerRangeSliderSync() {
+    document.addEventListener(
+        "input",
+        (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLInputElement) || !target.closest(".visage")) return;
+
+            if (target.matches(VisageRangeDisplay.SLIDER_SELECTOR)) VisageRangeDisplay.sync(target);
+            else if (target.matches(VisageRangeDisplay.NUMBER_SELECTOR)) VisageRangeDisplay.syncFromNumber(target);
+        },
+        { passive: true },
+    );
+
+    // Drawing or redrawing a window sets every chip, editable number and track fill from the
+    // values and disabled states the template wrote.
+    Hooks.on("renderApplicationV2", (_application, element) => {
+        if (element?.classList?.contains("visage")) VisageRangeDisplay.refreshAll(element);
+    });
+}
+
+/**
  * Initialization hook.
  * Sets up the API, registers Handlebars helpers, loads templates, and injects UI controls.
  */
@@ -131,9 +165,12 @@ Hooks.once("init", () => {
             "modules/visage/templates/parts/visage-active-stack.hbs",
             "modules/visage/templates/parts/visage-local-grid.hbs",
             "modules/visage/templates/parts/visage-token-list-item.hbs",
+            "modules/visage/templates/parts/visage-range.hbs",
             "modules/visage/templates/helpers/visage-attribute-picker.hbs",
             "modules/visage/templates/helpers/visage-media-timeline.hbs",
         ]);
+
+        registerRangeSliderSync();
 
         /**
          * Inject "Visage" option into the Actor Directory context menu.

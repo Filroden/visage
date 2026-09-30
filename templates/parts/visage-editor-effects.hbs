@@ -226,12 +226,9 @@
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label>{{localize "VISAGE.RingConfig.SubjectScale"}}</label>
-                    <div class="visage-form-fields">
-                        <range-picker name="ringSubjectScale" value="{{ring.subject.scale}}" min="0.5" max="3.0" step="0.1"></range-picker>
-                    </div>
-                </div>
+                {{!-- The subject scale has no upper limit, so the value chip is a number that accepts
+                      anything typed into it; the slider covers the common range --}}
+                {{> "modules/visage/templates/parts/visage-range.hbs" editable=true numberName="ringSubjectScale" label="VISAGE.RingConfig.SubjectScale" value=ring.subject.scale min=0.5 max=3 step=0.1 default=1}}
 
                 <div class="form-group stacked">
                     <label>{{localize "VISAGE.RingConfig.Effects.Label"}}</label>
@@ -307,39 +304,13 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                     <label>{{localize "VISAGE.Editor.Light.ColorIntensity"}}</label>
-                    <div class="visage-form-fields">
-                        <div class="range-wrapper">
-                            <input type="range" name="light.alpha" value="{{light.alpha}}" min="0" max="1" step="0.05" oninput="this.nextElementSibling.value = this.value">
-                            <output class="value-display">{{light.alpha}}</output>
-                        </div>
-                    </div>
-                </div>
+                {{> "modules/visage/templates/parts/visage-range.hbs" name="light.alpha" label="VISAGE.Editor.Light.ColorIntensity" value=light.alpha min=0 max=1 step=0.05 default=0.5}}
 
                 <hr class="visage-divider">
 
-                <div class="form-group">
-                    <label data-tooltip="{{localize 'VISAGE.Editor.Light.LuminosityHint'}}">
-                        {{localize "VISAGE.Editor.Light.Luminosity"}}
-                    </label>
-                    <div class="visage-form-fields">
-                        <div class="range-wrapper">
-                            <input type="range" name="light.luminosity" value="{{light.luminosity}}" min="-1" max="1" step="0.05" oninput="this.nextElementSibling.value = this.value">
-                            <output class="value-display">{{light.luminosity}}</output>
-                        </div>
-                    </div>
-                </div>
+                {{> "modules/visage/templates/parts/visage-range.hbs" name="light.luminosity" label="VISAGE.Editor.Light.Luminosity" hint="VISAGE.Editor.Light.LuminosityHint" value=light.luminosity min=-1 max=1 step=0.05 default=0.5}}
 
-                <div class="form-group">
-                    <label>{{localize "VISAGE.Editor.Light.Angle"}}</label>
-                    <div class="visage-form-fields">
-                         <div class="range-wrapper">
-                            <input type="range" name="light.angle" value="{{light.angle}}" min="0" max="360" step="1" oninput="this.nextElementSibling.value = this.value">
-                            <output class="value-display">{{light.angle}}°</output>
-                        </div>
-                    </div>
-                </div>
+                {{> "modules/visage/templates/parts/visage-range.hbs" name="light.angle" label="VISAGE.Editor.Light.Angle" value=light.angle min=0 max=360 step=1 default=360 unit="°"}}
 
                 <div class="form-group">
                     <label data-tooltip="{{localize 'VISAGE.Editor.Light.PriorityHint'}}">{{localize "VISAGE.Editor.Light.Priority"}}</label>
@@ -361,25 +332,9 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>{{localize "VISAGE.Editor.Light.Speed"}}</label>
-                    <div class="visage-form-fields">
-                        <div class="range-wrapper">
-                            <input type="range" name="light.animation.speed" value="{{light.animation.speed}}" min="1" max="10" step="1" oninput="this.nextElementSibling.value = this.value">
-                            <output class="value-display">{{light.animation.speed}}</output>
-                        </div>
-                    </div>
-                </div>
+                {{> "modules/visage/templates/parts/visage-range.hbs" name="light.animation.speed" label="VISAGE.Editor.Light.Speed" value=light.animation.speed min=1 max=10 step=1 default=5}}
 
-                <div class="form-group">
-                    <label>{{localize "VISAGE.Editor.Light.Intensity"}}</label>
-                    <div class="visage-form-fields">
-                        <div class="range-wrapper">
-                            <input type="range" name="light.animation.intensity" value="{{light.animation.intensity}}" min="1" max="10" step="1" oninput="this.nextElementSibling.value = this.value">
-                            <output class="value-display">{{light.animation.intensity}}</output>
-                        </div>
-                    </div>
-                </div>
+                {{> "modules/visage/templates/parts/visage-range.hbs" name="light.animation.intensity" label="VISAGE.Editor.Light.Intensity" value=light.animation.intensity min=1 max=10 step=1 default=5}}
             {{/if}}
 
             {{!-- VISUAL/AUDIO EFFECT CONFIGURATION --}}
@@ -445,29 +400,11 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label data-tooltip="{{localize 'VISAGE.Editor.Effects.OffsetHint'}}">
-                        {{localize "VISAGE.Editor.Effects.OffsetX"}} <i class="visage-icon info "></i>
-                    </label>
-                    <div class="visage-form-fields">
-                        <div class="range-wrapper">
-                            <input type="range" class="visage-slider" min="-2" max="2" step="0.1" value="{{inspector.offsetX}}">
-                            <input type="number" name="effectOffsetX" class="visage-number" step="0.1" value="{{inspector.offsetX}}" placeholder="0">
-                        </div>
-                    </div>
-                </div>
+                {{!-- Offsets can go beyond the slider's range, so the value chip is a number that
+                      accepts anything typed into it --}}
+                {{> "modules/visage/templates/parts/visage-range.hbs" editable=true numberName="effectOffsetX" label="VISAGE.Editor.Effects.OffsetX" hint="VISAGE.Editor.Effects.OffsetHint" value=inspector.offsetX min=-2 max=2 step=0.1 default=0}}
 
-                <div class="form-group">
-                    <label data-tooltip="{{localize 'VISAGE.Editor.Effects.OffsetHint'}}">
-                        {{localize "VISAGE.Editor.Effects.OffsetY"}} <i class="visage-icon info "></i>
-                    </label>
-                    <div class="visage-form-fields">
-                        <div class="range-wrapper">
-                            <input type="range" class="visage-slider" min="-2" max="2" step="0.1" value="{{inspector.offsetY}}">
-                            <input type="number" name="effectOffsetY" class="visage-number" step="0.1" value="{{inspector.offsetY}}" placeholder="0">
-                        </div>
-                    </div>
-                </div>
+                {{> "modules/visage/templates/parts/visage-range.hbs" editable=true numberName="effectOffsetY" label="VISAGE.Editor.Effects.OffsetY" hint="VISAGE.Editor.Effects.OffsetHint" value=inspector.offsetY min=-2 max=2 step=0.1 default=0}}
 
                 <div class="form-group">
                     <label data-tooltip="{{localize 'VISAGE.Editor.Effects.BindToSpriteHint'}}">
@@ -480,14 +417,7 @@
 
                 <hr class="visage-divider">
 
-                <div class="form-group">
-                    <label data-tooltip="{{localize 'VISAGE.Editor.Effects.RelativeOpacityHint'}}">
-                        {{localize "VISAGE.Config.Opacity.Label"}} <i class="visage-icon info "></i>
-                    </label>
-                    <div class="visage-form-fields">
-                        <range-picker name="effectOpacity" value="{{inspector.opacity}}" min="0" max="1" step="0.1"></range-picker>
-                    </div>
-                </div>
+                {{> "modules/visage/templates/parts/visage-range.hbs" name="effectOpacity" label="VISAGE.Config.Opacity.Label" hint="VISAGE.Editor.Effects.RelativeOpacityHint" value=inspector.opacity min=0 max=1 step=0.1 default=1}}
 
                 <div class="form-group">
                     <label>{{localize "VISAGE.Editor.Effects.BlendMode"}}</label>
@@ -600,12 +530,7 @@
                     <label>{{localize "VISAGE.Editor.Effects.FadeOut"}}</label>
                     <input type="number" name="effectFadeOut" value="{{inspector.fadeOut}}" step="100" placeholder="0">
                 </div>
-                <div class="form-group checkbox-input-group" style="grid-template-columns: 1fr max-content max-content;">
-                    <label>{{localize "VISAGE.Editor.Effects.Volume"}}</label>
-                    <div class="visage-form-fields">
-                        <range-picker name="effectVolume" value="{{inspector.opacity}}" min="0" max="1" step="0.1"></range-picker>
-                    </div>
-                </div>
+                {{> "modules/visage/templates/parts/visage-range.hbs" name="effectVolume" label="VISAGE.Editor.Effects.Volume" value=inspector.opacity min=0 max=1 step=0.1 default=1}}
             {{/if}}
 
             {{!-- TMFX SPECIFIC --}}
@@ -690,4 +615,4 @@
 
         </fieldset>
     </div>
-</div>
+</div>

@@ -11,21 +11,40 @@
 
     --visage-font-family: 'Roboto', 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', 'sans-serif';
 
-    --visage-font-size-xxs: 0.5rem;
-    --visage-font-size-xs:  0.75rem;
-    --visage-font-size-s:   0.9rem;
-    --visage-font-size-m:   1.0rem;
-    --visage-font-size-l:   1.2rem;
-    --visage-font-size-xl:  1.5rem;
-    --visage-font-size-xxl: 2rem;
+    /* Unified size scale. Each token is named after its size in pixels at the default 16px root
+       font size, but is expressed in rem so it follows the user's font size setting. Use these for
+       all spacing and font sizes in new CSS. */
+    --visage-size-1:  0.063rem;
+    --visage-size-2:  0.125rem;
+    --visage-size-4:  0.25rem;
+    --visage-size-6:  0.375rem;
+    --visage-size-8:  0.5rem;
+    --visage-size-10: 0.625rem;
+    --visage-size-12: 0.75rem;
+    --visage-size-14: 0.9rem;
+    --visage-size-16: 1rem;
+    --visage-size-20: 1.25rem;
+    --visage-size-24: 1.5rem;
+    --visage-size-32: 2rem;
 
-    --visage-space-xxs:     0.125rem;     /* 2px */
-    --visage-space-xs:      0.25rem;      /* 4px */
-    --visage-space-s:       0.5rem;       /* 8px */
-    --visage-space-m:       0.625rem;     /* 10px */
-    --visage-space-l:       1rem;         /* 16px */
-    --visage-space-xl:      1.5rem;       /* 24px */
-    --visage-space-xxl:     2rem;         /* 32px */  
+    /* Legacy font size and spacing tokens, kept as aliases of the unified scale so existing rules
+       keep working. Do not use them in new CSS; they will be removed once every rule has been
+       moved to the --visage-size-* names. */
+    --visage-font-size-xxs: var(--visage-size-8);
+    --visage-font-size-xs:  var(--visage-size-12);
+    --visage-font-size-s:   var(--visage-size-14);
+    --visage-font-size-m:   var(--visage-size-16);
+    --visage-font-size-l:   var(--visage-size-20);
+    --visage-font-size-xl:  var(--visage-size-24);
+    --visage-font-size-xxl: var(--visage-size-32);
+
+    --visage-space-xxs:     var(--visage-size-2);
+    --visage-space-xs:      var(--visage-size-4);
+    --visage-space-s:       var(--visage-size-8);
+    --visage-space-m:       var(--visage-size-10);
+    --visage-space-l:       var(--visage-size-16);
+    --visage-space-xl:      var(--visage-size-24);
+    --visage-space-xxl:     var(--visage-size-32);
 
     --visage-line-height-heading: 1.2;
     --visage-line-height-body:    1.4;
@@ -216,4 +235,4 @@
     --visage-shadow-focus:          0 0 5px var(--visage-accent-main);
     --visage-shadow-inset:          inset 0 0 10px var(--visage-primary-500);
     --visage-shadow-text:           0 2px 4px rgba(255, 255, 255, 0.8);
-}
+}

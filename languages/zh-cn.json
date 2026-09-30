@@ -86,7 +86,6 @@
     "VISAGE.Config.List.Width": "宽度",
     "VISAGE.Config.List.Height": "高度",
     "VISAGE.Config.Opacity.Label": "不透明度",
-    "VISAGE.Config.Opacity.LabelPercent": "不透明度 (%)",
     "VISAGE.Wildcard.Label": "通配符 (Wildcard)",
     "VISAGE.Random": "随机化",
     "VISAGE.Mirror.Label.Horizontal": "水平",

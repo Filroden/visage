@@ -144,14 +144,8 @@
             </div>
         </div>
 
-        {{! Scale }}
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="scale_active" data-action="toggleField" data-target="scale" {{checked scale.active}} />
-            <label>{{localize "VISAGE.Config.List.Scale"}}</label>
-            <div class="visage-form-fields">
-                <input type="number" name="scale" value="{{scale.value}}" step="1" {{disabled (not scale.active)}} />
-            </div>
-        </div>
+        {{! Scale (no upper limit, so the value chip is a number that accepts anything typed into it) }}
+        {{> "modules/visage/templates/parts/visage-range.hbs" toggle="scale" active=scale.active editable=true numberName="scale" label="VISAGE.Config.List.Scale" value=scale.value min=10 max=300 step=1 default=100}}
 
         {{! Anchors }}
         <div class="form-group checkbox-input-group">
@@ -168,13 +162,7 @@
         </div>
 
         {{! Opacity }}
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="alpha_active" data-action="toggleField" data-target="alpha" {{checked alpha.active}} />
-            <label>{{localize "VISAGE.Config.Opacity.LabelPercent"}}</label>
-            <div class="visage-form-fields">
-                <input type="number" name="alpha" value="{{alpha.value}}" min="0" max="100" step="1" {{disabled (not alpha.active)}} />
-            </div>
-        </div>
+        {{> "modules/visage/templates/parts/visage-range.hbs" toggle="alpha" active=alpha.active name="alpha" label="VISAGE.Config.Opacity.Label" value=alpha.value min=0 max=100 step=1 default=100 unit="%"}}
 
         <hr class="visage-divider" />
 
@@ -248,4 +236,4 @@
         </div>
 
     </div>
-</div>
+</div>

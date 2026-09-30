@@ -72,10 +72,6 @@
     display: none;
 }
 
-.visage input[type="range"] {
-    --range-thumb-border-color: var(--visage-accent-main);
-}
-
 /* ==========================================================================
    2. SHARED STYLES
    ========================================================================== */
@@ -1521,7 +1517,9 @@ li.context-item .visage-icon-domino {
 
 /* --- Form Elements & States --- */
 
-.visage.visage-editor input:disabled,
+/* Range sliders are left out because their track and thumb are drawn separately (see Range
+   Sliders below), and this rule's background and forced colours would paint a box behind them */
+.visage.visage-editor input:not([type="range"]):disabled,
 .visage.visage-editor select:disabled,
 .visage.visage-editor button:disabled {
     opacity: 0.5 !important;
@@ -1589,6 +1587,191 @@ li.context-item .visage-icon-domino {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--visage-space-xs);
+}
+
+/* --- Range Sliders ---
+   Built by templates/parts/visage-range.hbs and kept in step by VisageRangeDisplay
+   (src/utils/visage-range-display.js).
+
+   Layout: the name and value chip share a line, and the slider takes the full width beneath them.
+   A row with an "apply" checkbox (.has-toggle) adds a first column of the same width and gap as
+   .checkbox-input-group, so its checkbox and label sit exactly in line with the ordinary checkbox
+   rows around it. The slider starts under the label rather than under the checkbox, which keeps
+   the checkbox column visually unbroken.
+
+   Colour: the slider only uses the semantic accent tokens, so it follows the local (gold) or
+   global (teal) hue of the window it is in, and the light or dark theme. It never uses the other
+   hue, because the two hues identify local and global mode. The tokens are declared on the
+   wrapper rather than on .visage: a custom property holding var() is resolved on the element
+   that declares it, so declaring it here picks up the nearest hue class. */
+.visage .visage-range {
+    --visage-range-accent: var(--visage-accent-main);
+    --visage-range-accent-bright: var(--visage-accent-hover);
+    --visage-range-fill-color: color-mix(in srgb, var(--visage-range-accent) 30%, transparent);
+    --visage-range-glow: 0 0 5px var(--visage-range-accent);
+    --visage-range-track-height: 1.125rem;
+    --visage-range-thumb-size: 1rem;
+    --visage-range-border: 1px;
+}
+
+.visage .form-group.visage-range {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas:
+        "label value"
+        "slider slider";
+    column-gap: var(--visage-size-8);
+    row-gap: var(--visage-size-6);
+    align-items: center;
+    margin-block-end: var(--visage-size-8);
+}
+
+.visage .form-group.visage-range.has-toggle {
+    grid-template-columns: var(--visage-size-24) minmax(0, 1fr) max-content;
+    grid-template-areas:
+        "toggle label value"
+        ". slider slider";
+}
+
+.visage .visage-range > .visage-checkbox {
+    grid-area: toggle;
+}
+
+.visage .visage-range .visage-range-label {
+    grid-area: label;
+    min-width: 0;
+}
+
+/* A long name is cut short with an ellipsis rather than pushing the value chip off the line */
+.visage .visage-range-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.visage .visage-range .visage-range-value {
+    grid-area: value;
+    box-sizing: border-box;
+    min-width: 8ch;
+    text-align: center;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: var(--visage-size-12);
+    line-height: var(--visage-line-height-heading);
+    color: var(--visage-text-secondary);
+    white-space: nowrap;
+    background: var(--visage-bg-hover);
+    border: 1px solid var(--visage-border-subtle);
+    border-radius: 999px;
+    padding: var(--visage-size-2) var(--visage-size-6);
+}
+
+/* Editable chip: a real number input for values with no upper limit, where the slider only
+   covers the common range. It keeps the chip's look but needs a fixed width and to lose
+   Foundry's default input height. */
+.visage .visage-range input.visage-range-number {
+    width: 8ch;
+    height: auto;
+    min-height: 0;
+    text-align: end;
+}
+
+.visage .visage-range input.visage-range-number:focus-visible {
+    outline: 2px solid var(--visage-range-accent);
+    outline-offset: 1px;
+    box-shadow: none;
+}
+
+.visage .visage-range input.visage-range-number::placeholder {
+    color: var(--visage-text-muted);
+    text-align: center;
+}
+
+/* A row whose apply checkbox is cleared inherits its value from the stack: the chip shows a
+   dash and fades with the slider */
+.visage .visage-range:has(.visage-range-input:disabled) .visage-range-value {
+    opacity: 0.5;
+}
+
+/* The slider itself. The browser's own drawing is replaced (appearance: none), so the track and
+   thumb are drawn separately for Chromium (::-webkit-*) and Firefox (::-moz-*). The two sets must
+   stay in separate rules, because a browser drops a whole rule containing a selector it does not
+   recognise. Chromium cannot colour the filled portion of a native slider, so the track is
+   painted with a gradient whose stop is --visage-range-fill, a percentage kept up to date by
+   VisageRangeDisplay. Firefox draws the fill natively with ::-moz-range-progress. */
+.visage input[type="range"].visage-range-input {
+    grid-area: slider;
+    appearance: none;
+    width: 100%;
+    height: var(--visage-range-track-height);
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+/* Chromium */
+.visage input[type="range"].visage-range-input::-webkit-slider-runnable-track {
+    box-sizing: border-box;
+    height: var(--visage-range-track-height);
+    border: var(--visage-range-border) solid var(--visage-border-subtle);
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--visage-range-fill-color) 0 var(--visage-range-fill, 0%), var(--visage-bg-hover) var(--visage-range-fill, 0%));
+}
+
+/* In right-to-left layouts the slider's minimum is on the right, so the fill starts there */
+.visage input[type="range"].visage-range-input:dir(rtl)::-webkit-slider-runnable-track {
+    background: linear-gradient(to left, var(--visage-range-fill-color) 0 var(--visage-range-fill, 0%), var(--visage-bg-hover) var(--visage-range-fill, 0%));
+}
+
+.visage input[type="range"].visage-range-input::-webkit-slider-thumb {
+    appearance: none;
+    box-sizing: border-box;
+    width: var(--visage-range-thumb-size);
+    height: var(--visage-range-thumb-size);
+    /* Chromium places the thumb inside the track's border, so centre it within what is left */
+    margin-block-start: calc((var(--visage-range-track-height) - 2 * var(--visage-range-border) - var(--visage-range-thumb-size)) / 2);
+    border: 2px solid var(--visage-bg-base);
+    border-radius: 50%;
+    background: var(--visage-range-accent-bright);
+    box-shadow: var(--visage-range-glow);
+}
+
+/* Firefox */
+.visage input[type="range"].visage-range-input::-moz-range-track {
+    box-sizing: border-box;
+    height: var(--visage-range-track-height);
+    border: var(--visage-range-border) solid var(--visage-border-subtle);
+    border-radius: 999px;
+    background: var(--visage-bg-hover);
+}
+
+.visage input[type="range"].visage-range-input::-moz-range-progress {
+    box-sizing: border-box;
+    height: var(--visage-range-track-height);
+    border-radius: 999px;
+    background: var(--visage-range-fill-color);
+}
+
+.visage input[type="range"].visage-range-input::-moz-range-thumb {
+    box-sizing: border-box;
+    width: var(--visage-range-thumb-size);
+    height: var(--visage-range-thumb-size);
+    border: 2px solid var(--visage-bg-base);
+    border-radius: 50%;
+    background: var(--visage-range-accent-bright);
+    box-shadow: var(--visage-range-glow);
+}
+
+.visage input[type="range"].visage-range-input:focus-visible {
+    outline: 2px solid var(--visage-range-accent);
+    outline-offset: 2px;
+    border-radius: 999px;
+}
+
+.visage input[type="range"].visage-range-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* --- Tag Pills --- */
@@ -2652,14 +2835,6 @@ li.context-item .visage-icon-domino {
     border-block-end: 1px solid var(--visage-translucent-overlay); /* Subtle separator */
 }
 
-.visage .delay-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--visage-space-m);
-    width: 100%;
-}
-
 .visage .delay-direction-toggle {
     display: flex;
     background: var(--visage-bg-base);
@@ -2683,17 +2858,6 @@ li.context-item .visage-icon-domino {
 .visage .delay-btn.active {
     background: var(--visage-accent-main);
     color: var(--visage-text-inverse);
-}
-
-.visage .delay-slider-wrapper {
-    display: flex;
-    align-items: center;
-    gap: var(--visage-space-s);
-    flex: 1;
-}
-
-.visage .delay-slider-wrapper range-picker {
-    flex: 1;
 }
 
 /* --- Pinned Light Card --- */
@@ -2748,13 +2912,6 @@ li.context-item .visage-icon-domino {
 .visage .effect-card.pinned-light .effect-meta {
     display: flex;
     align-items: baseline;
-}
-
-.visage .effects-tab-container .visage-fieldset .range-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex: 1;
 }
 
 /* --- Light Animation Keyframes --- */
@@ -2952,10 +3109,6 @@ li.context-item .visage-icon-domino {
     color: var(--visage-color-success);
     border-inline-start: 3px solid var(--visage-color-success);
     padding-inline-start: 0.5rem;
-}
-
-.visage .visage-number {
-    width: 5ch;
 }
 
 /* ==========================================================================

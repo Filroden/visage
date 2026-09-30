@@ -86,7 +86,6 @@
     "VISAGE.Config.List.Width": "Leveys",
     "VISAGE.Config.List.Height": "Korkeus",
     "VISAGE.Config.Opacity.Label": "Läpinäkyvyys",
-    "VISAGE.Config.Opacity.LabelPercent": "Läpinäkyvyys (%)",
     "VISAGE.Wildcard.Label": "Jokeri",
     "VISAGE.Random": "Satunnaista",
     "VISAGE.Mirror.Label.Horizontal": "Vaaka",
