@@ -1605,13 +1605,13 @@ li.context-item .visage-icon-domino {
    wrapper rather than on .visage: a custom property holding var() is resolved on the element
    that declares it, so declaring it here picks up the nearest hue class. */
 .visage .visage-range {
-    --visage-range-accent: var(--visage-accent-main);
+    --visage-range-accent:        var(--visage-accent-main);
     --visage-range-accent-bright: var(--visage-accent-hover);
-    --visage-range-fill-color: color-mix(in srgb, var(--visage-range-accent) 30%, transparent);
-    --visage-range-glow: 0 0 5px var(--visage-range-accent);
-    --visage-range-track-height: 1.125rem;
-    --visage-range-thumb-size: 1rem;
-    --visage-range-border: 1px;
+    --visage-range-fill-color:    color-mix(in srgb, var(--visage-range-accent) 30%, transparent);
+    --visage-range-glow:          0 0 5px var(--visage-range-accent);
+    --visage-range-track-height:  1.125rem;
+    --visage-range-thumb-size:    1rem;
+    --visage-range-border:        1px;
 }
 
 .visage .form-group.visage-range {
@@ -1652,7 +1652,7 @@ li.context-item .visage-icon-domino {
 .visage .visage-range .visage-range-value {
     grid-area: value;
     box-sizing: border-box;
-    min-width: 8ch;
+    min-width: 5ch;
     text-align: center;
     font-family: "Consolas", "Courier New", monospace;
     font-size: var(--visage-size-12);
@@ -1662,7 +1662,7 @@ li.context-item .visage-icon-domino {
     background: var(--visage-bg-hover);
     border: 1px solid var(--visage-border-subtle);
     border-radius: 999px;
-    padding: var(--visage-size-2) var(--visage-size-6);
+    padding: var(--visage-size-1) var(--visage-size-6);
 }
 
 /* Editable chip: a real number input for values with no upper limit, where the slider only
@@ -1671,7 +1671,6 @@ li.context-item .visage-icon-domino {
 .visage .visage-range input.visage-range-number {
     width: 8ch;
     height: auto;
-    min-height: 0;
     text-align: end;
 }
 
@@ -1716,12 +1715,20 @@ li.context-item .visage-icon-domino {
     height: var(--visage-range-track-height);
     border: var(--visage-range-border) solid var(--visage-border-subtle);
     border-radius: 999px;
-    background: linear-gradient(to right, var(--visage-range-fill-color) 0 var(--visage-range-fill, 0%), var(--visage-bg-hover) var(--visage-range-fill, 0%));
+    background: linear-gradient(
+        to right,
+        var(--visage-range-fill-color) 0 var(--visage-range-fill, 0%),
+        var(--visage-bg-hover) var(--visage-range-fill, 0%)
+    );
 }
 
 /* In right-to-left layouts the slider's minimum is on the right, so the fill starts there */
 .visage input[type="range"].visage-range-input:dir(rtl)::-webkit-slider-runnable-track {
-    background: linear-gradient(to left, var(--visage-range-fill-color) 0 var(--visage-range-fill, 0%), var(--visage-bg-hover) var(--visage-range-fill, 0%));
+    background: linear-gradient(
+        to left,
+        var(--visage-range-fill-color) 0 var(--visage-range-fill, 0%),
+        var(--visage-bg-hover) var(--visage-range-fill, 0%)
+    );
 }
 
 .visage input[type="range"].visage-range-input::-webkit-slider-thumb {
