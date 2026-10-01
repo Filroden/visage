@@ -14,6 +14,14 @@
     <header class="visage-settings-header">
         <i class="visage-icon id-card"></i>
         <h3 class="visage-settings-title">{{localize "VISAGE.Editor.Layers.TokenAppearance"}}</h3>
+        {{!-- Copy buttons stay focusable while no token can be copied from, so their tooltip can say
+              why; the editor updates them as tokens are selected on the canvas --}}
+        <button type="button" class="visage-icon-btn visage-copy-btn" data-action="copyFromToken" data-layer="token" data-copy-hint="VISAGE.Editor.Copy.Token" aria-disabled="{{#if canCopyFromToken}}false{{else}}true{{/if}}" data-tooltip="{{#if canCopyFromToken}}{{localize 'VISAGE.Editor.Copy.Token'}}{{else}}{{localize 'VISAGE.Editor.Copy.NoToken'}}{{/if}}" aria-label="{{localize 'VISAGE.Editor.Copy.Token'}}">
+            <i class="visage-icon copy"></i>
+        </button>
+        <button type="button" class="visage-icon-btn visage-clear-btn" data-action="clearSettings" data-layer="token" data-tooltip="{{localize 'VISAGE.Editor.Clear.Token'}}" aria-label="{{localize 'VISAGE.Editor.Clear.Token'}}">
+            <i class="visage-icon layers-clear"></i>
+        </button>
         <button type="button" class="visage-icon-btn" data-action="toggleAllSections" data-tooltip="{{localize 'VISAGE.Editor.Sections.ToggleAll'}}" aria-label="{{localize 'VISAGE.Editor.Sections.ToggleAll'}}">
             <i class="visage-icon list"></i>
         </button>
@@ -24,6 +32,12 @@
             <span class="visage-section-heading">
                 <span class="visage-section-title">{{localize "VISAGE.Editor.Sections.Identity"}}</span>
                 <span class="visage-section-count" hidden></span>
+                <button type="button" class="visage-icon-btn visage-copy-btn" data-action="copyFromToken" data-layer="token" data-section="identity" data-copy-hint="VISAGE.Editor.Copy.Section" aria-disabled="{{#if canCopyFromToken}}false{{else}}true{{/if}}" data-tooltip="{{#if canCopyFromToken}}{{localize 'VISAGE.Editor.Copy.Section'}}{{else}}{{localize 'VISAGE.Editor.Copy.NoToken'}}{{/if}}" aria-label="{{localize 'VISAGE.Editor.Copy.Section'}}">
+                    <i class="visage-icon copy"></i>
+                </button>
+                <button type="button" class="visage-icon-btn visage-clear-btn" data-action="clearSettings" data-layer="token" data-section="identity" data-tooltip="{{localize 'VISAGE.Editor.Clear.Section'}}" aria-label="{{localize 'VISAGE.Editor.Clear.Section'}}">
+                    <i class="visage-icon layers-clear"></i>
+                </button>
             </span>
             <span class="visage-section-chips"></span>
         </summary>
@@ -134,6 +148,12 @@
             <span class="visage-section-heading">
                 <span class="visage-section-title">{{localize "VISAGE.Editor.Sections.SizeFit"}}</span>
                 <span class="visage-section-count" hidden></span>
+                <button type="button" class="visage-icon-btn visage-copy-btn" data-action="copyFromToken" data-layer="token" data-section="size" data-copy-hint="VISAGE.Editor.Copy.Section" aria-disabled="{{#if canCopyFromToken}}false{{else}}true{{/if}}" data-tooltip="{{#if canCopyFromToken}}{{localize 'VISAGE.Editor.Copy.Section'}}{{else}}{{localize 'VISAGE.Editor.Copy.NoToken'}}{{/if}}" aria-label="{{localize 'VISAGE.Editor.Copy.Section'}}">
+                    <i class="visage-icon copy"></i>
+                </button>
+                <button type="button" class="visage-icon-btn visage-clear-btn" data-action="clearSettings" data-layer="token" data-section="size" data-tooltip="{{localize 'VISAGE.Editor.Clear.Section'}}" aria-label="{{localize 'VISAGE.Editor.Clear.Section'}}">
+                    <i class="visage-icon layers-clear"></i>
+                </button>
             </span>
             <span class="visage-section-chips"></span>
         </summary>
@@ -200,6 +220,12 @@
             <span class="visage-section-heading">
                 <span class="visage-section-title">{{localize "VISAGE.Editor.Sections.Presentation"}}</span>
                 <span class="visage-section-count" hidden></span>
+                <button type="button" class="visage-icon-btn visage-copy-btn" data-action="copyFromToken" data-layer="token" data-section="presentation" data-copy-hint="VISAGE.Editor.Copy.Section" aria-disabled="{{#if canCopyFromToken}}false{{else}}true{{/if}}" data-tooltip="{{#if canCopyFromToken}}{{localize 'VISAGE.Editor.Copy.Section'}}{{else}}{{localize 'VISAGE.Editor.Copy.NoToken'}}{{/if}}" aria-label="{{localize 'VISAGE.Editor.Copy.Section'}}">
+                    <i class="visage-icon copy"></i>
+                </button>
+                <button type="button" class="visage-icon-btn visage-clear-btn" data-action="clearSettings" data-layer="token" data-section="presentation" data-tooltip="{{localize 'VISAGE.Editor.Clear.Section'}}" aria-label="{{localize 'VISAGE.Editor.Clear.Section'}}">
+                    <i class="visage-icon layers-clear"></i>
+                </button>
             </span>
             <span class="visage-section-chips"></span>
         </summary>

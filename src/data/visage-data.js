@@ -483,6 +483,28 @@ export class VisageData {
             sourceData = VisageUtilities.extractVisualState(tokenDoc);
         }
 
+        return this._stateAsVisage(tokenDoc, sourceData);
+    }
+
+    /**
+     * Captures how a Token looks right now as a virtual Visage object, including the changes of
+     * any Visages applied to it. This is what the token shows on the canvas.
+     * @param {TokenDocument} tokenDoc - The target token document.
+     * @returns {Object|null} A Visage data object representing the token's current appearance.
+     */
+    static getCurrentAsVisage(tokenDoc) {
+        if (!tokenDoc) return null;
+        return this._stateAsVisage(tokenDoc, VisageUtilities.extractVisualState(tokenDoc));
+    }
+
+    /**
+     * Builds a virtual Visage object from a snapshot of a token's visual state.
+     * @param {TokenDocument} tokenDoc - The token the snapshot was taken from.
+     * @param {Object} sourceData - The snapshot (from VisageUtilities.extractVisualState or the originalState flag).
+     * @returns {Object} A Visage data object.
+     * @private
+     */
+    static _stateAsVisage(tokenDoc, sourceData) {
         const src = sourceData.texture?.src || tokenDoc.texture.src;
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1;
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1;

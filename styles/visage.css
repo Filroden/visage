@@ -1467,6 +1467,9 @@ li.context-item .visage-icon-domino {
     --visage-icon-mask: url("../icons/stars.svg");
     color: var(--visage-accent-main);
 }
+.visage-icon.layers-clear {
+    --visage-icon-mask: url("../icons/layers_clear.svg");
+}
 
 #token-hud .control-icon .visage-icon,
 #token-hud .control-icon .visage-icon-domino {
@@ -5036,4 +5039,24 @@ button.visage-tool-icon {
 
 .visage .visage-automation-indicator.muted {
     color: var(--visage-text-muted);
+}
+
+/* ===================================================================
+   COPY FROM TOKEN
+   =================================================================== */
+
+/* Copy buttons are marked aria-disabled (not disabled) while there is no token to copy from, so
+   their tooltip can still explain what to do */
+.visage .visage-copy-btn[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* The copy button in a section heading sits just before the disclosure triangle */
+.visage .visage-section-heading .visage-copy-btn {
+    margin-inline-start: auto;
+}
+
+.visage .visage-section-heading:has(.visage-copy-btn)::after {
+    margin-inline-start: 0;
 }

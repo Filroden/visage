@@ -19,6 +19,7 @@ import { VisageData } from "../data/visage-data.js";
 import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageDragDropManager } from "./helpers/visage-drag-drop.js";
 import { VisageSettingsSections } from "./helpers/visage-settings-sections.js";
+import { VisageTokenCopy } from "./helpers/visage-token-copy.js";
 import { VisageMediaController } from "./helpers/visage-media-controller.js";
 import { VisageAttributePicker } from "./helpers/visage-attribute-picker.js";
 import { VisageMediaTimeline } from "./helpers/visage-media-timeline.js";
@@ -68,6 +69,35 @@ const CONDITION_FIELD_PREFIX = "condition.";
 
 /** Prefix the condition sync helpers expect, inherited from the single-condition inspector. */
 const CONDITION_SYNC_PREFIX = "inspector.";
+
+/** Light settings for a Visage that does not change the light (also what clearing it restores). */
+function defaultLightData() {
+    return {
+        dim: 0,
+        bright: 0,
+        color: "#ffffff",
+        alpha: 0.5,
+        angle: 360,
+        luminosity: 0.5,
+        priority: 0,
+        animation: { type: "", speed: 5, intensity: 5 },
+    };
+}
+
+/** Dynamic Ring settings for a Visage that does not change the ring. */
+function defaultRingData() {
+    return {
+        enabled: false,
+        colors: { ring: null, background: null },
+        subject: { texture: "", scale: 1 },
+        effects: 0,
+    };
+}
+
+/** Rolemaster Unified lighting settings for a Visage that does not change them. */
+function defaultRmuData() {
+    return { baseIllumination: "-1", isMagical: false, isUtter: false, isConstant: false };
+}
 
 // ============================================================================
 // MAIN APPLICATION: VISAGE EDITOR
@@ -165,6 +195,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             selectToken: VisageEditor.prototype._onSelectToken,
             setEditorView: VisageEditor.prototype._onSetEditorView,
             toggleAllSections: VisageEditor.prototype._onToggleAllSections,
+            copyFromToken: VisageEditor.prototype._onCopyFromToken,
+            clearSettings: VisageEditor.prototype._onClearSettings,
             deleteEffect: VisageEditor.prototype._onDeleteEffect,
             toggleEffect: VisageEditor.prototype._onToggleEffect,
             toggleLoop: VisageEditor.prototype._onToggleLoop,
@@ -214,12 +246,28 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     // 2. CORE LIFECYCLE
     // ==========================================
 
+    /**
+     * Captures the form before every re-render so unsaved edits survive it. A caller that has
+     * already captured the form and changed the captured data (such as copying from a token)
+     * sets _keepPreservedData so its changes are not overwritten by a fresh capture.
+     */
     async render(options) {
-        if (this.rendered) this._preservedData = this._prepareSaveData();
+        if (this.rendered && !this._keepPreservedData) this._preservedData = this._prepareSaveData();
+        this._keepPreservedData = false;
         return super.render(options);
     }
 
+    _onFirstRender(context, options) {
+        super._onFirstRender?.(context, options);
+
+        // The global editor copies from the one token selected on the canvas, so its copy
+        // buttons follow the canvas selection while the editor is open
+        this._controlTokenHook = Hooks.on("controlToken", () => this._refreshCopyButtons());
+    }
+
     async _onClose(options) {
+        if (this._controlTokenHook !== undefined) Hooks.off("controlToken", this._controlTokenHook);
+
         // 1. Audio preview cleanup
         if (this._mediaController) this._mediaController.stopAll();
 
@@ -290,6 +338,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             mode: data.mode || (this.isLocal ? "identity" : "overlay"),
             appId: this.id,
             isAutomationView: this._editorView === EDITOR_VIEWS.AUTOMATION,
+            canCopyFromToken: !!this._getCopySourceToken(),
             selectedLayer: this._selectedLayer,
             layers: this._buildLayersContext(),
             img: prep(rawImg, ""),
@@ -530,22 +579,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             if (data) this._currentLabel = data.label;
             return data;
         } else {
+            // New Visages start with nothing set, local and global alike, so they only change what
+            // the user chooses. "Copy from token" fills a layer from the token when wanted.
             this._currentLabel = "";
-            if (this.isLocal) {
-                const token = canvas.tokens.get(this.tokenId) || this.actor.prototypeToken;
-                const data = VisageData.getDefaultAsVisage(token.document || token);
-                data.label = "New Visage";
-                data.id = null;
-                return data;
-            } else {
-                return {
-                    label: game.i18n.localize("VISAGE.GlobalEditor.TitleNew.Global"),
-                    category: "",
-                    tags: [],
-                    changes: {},
-                    public: false,
-                };
-            }
+            return {
+                label: game.i18n.localize("VISAGE.Editor.DefaultLabel"),
+                category: "",
+                tags: [],
+                changes: {},
+                public: false,
+                mode: this.isLocal ? "identity" : "overlay",
+            };
         }
     }
 
@@ -557,27 +601,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Light Data Sync
         if (this._lightData === null) {
-            const defaultLight = {
-                dim: 0,
-                bright: 0,
-                color: "#ffffff",
-                alpha: 0.5,
-                angle: 360,
-                luminosity: 0.5,
-                priority: 0,
-                animation: { type: "", speed: 5, intensity: 5 },
-            };
+            const defaultLight = defaultLightData();
             this._lightData = c.light ? { active: !!this.visageId, ...defaultLight, ...c.light } : { active: false, ...defaultLight };
         }
 
         // Dynamic Ring Sync
         if (this._ringData === null) {
-            const defaults = {
-                enabled: false,
-                colors: { ring: null, background: null },
-                subject: { texture: "", scale: 1 },
-                effects: 0,
-            };
+            const defaults = defaultRingData();
             this._ringData = c.ring
                 ? foundry.utils.mergeObject(defaults, c.ring, {
                       inplace: false,
@@ -588,7 +618,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // RMU Lighting Sync
         if (this._rmuData === null) {
-            const defaultRmu = { baseIllumination: "-1", isMagical: false, isUtter: false, isConstant: false };
+            const defaultRmu = defaultRmuData();
             this._rmuData = c.flags?.["rmu-lighting-vision"] ? foundry.utils.mergeObject(defaultRmu, c.flags["rmu-lighting-vision"], { inplace: false }) : defaultRmu;
         }
 
@@ -686,9 +716,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             canLoop: LOOPABLE_EFFECT_TYPES.has(effect.type),
             disabled: !!effect.disabled,
             isOff: !!effect.disabled,
-            // A switched-off effect is left out when the Visage is saved (a soft delete), unlike
-            // the ring and light, which keep their settings while off
-            offNote: "VISAGE.Editor.Layers.EffectOffNote",
         };
     }
 
@@ -731,7 +758,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     bindToSprite: effect.bindToSprite ?? true,
                     offsetX: effect.offsetX ?? 0,
                     offsetY: effect.offsetY ?? 0,
-                    loop: effect.loop ?? false,
+                    loop: effect.loop ?? true,
                     delay: effect.delay || 0,
                     fadeIn: effect.fadeIn || 0,
                     fadeOut: effect.fadeOut || 0,
@@ -916,7 +943,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 animateTransition: formData.animateTransition === undefined || formData.animateTransition === "" ? null : formData.animateTransition === "true",
                 light: this._lightData,
                 ring: this._ringData,
-                effects: this._effects.filter((e) => !e.disabled),
+                // Switched-off effects are saved with disabled: true, so they keep their settings
+                // and can be switched on again later; playback and the effect summaries skip them
+                effects: this._effects,
             },
         };
 
@@ -1269,36 +1298,67 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    _onResetSettings() {
-        // Uncheck all intents
-        this.element.querySelectorAll('input[type="checkbox"][name$="_active"]').forEach((cb) => {
-            cb.checked = false;
-            this._onToggleField(null, cb);
+    /**
+     * Clears every design setting after asking for confirmation: unticks every Token appearance
+     * property, switches off and resets the Dynamic Ring and Light Source, and removes every
+     * effect. The label, category, tags, sharing, mode and automation are kept. Nothing is saved
+     * until the user presses Save.
+     */
+    async _onResetSettings() {
+        const confirmed = await foundry.applications.api.DialogV2.confirm({
+            window: { title: game.i18n.localize("VISAGE.Editor.Reset.ConfirmTitle") },
+            content: `<p>${game.i18n.localize("VISAGE.Editor.Reset.ConfirmContent")}</p>`,
+            modal: true,
         });
+        if (!confirmed) return;
 
-        // Clear Memory
-        this._ringData = {
-            enabled: false,
-            colors: { ring: "#ffffff", background: "#000000" },
-            subject: { texture: "", scale: 1 },
-            effects: 0,
-        };
-        this._lightData.active = false;
-        this._rmuData = { baseIllumination: "-1", isMagical: false, isUtter: false, isConstant: false };
+        // Read the form first, so the fields that are kept (label, category, tags and so on)
+        // carry their current values through the re-render
+        const data = this._prepareSaveData();
+        data.changes = {};
+
+        this._mediaController?.stopAll();
+        this._effects = [];
+        this._ringData = defaultRingData();
+        this._lightData = { active: false, ...defaultLightData() };
+        this._rmuData = defaultRmuData();
         this._editingRing = false;
         this._editingLight = false;
-        this._effects = [];
         this._activeEffectId = null;
 
-        // Reset DOM Inputs
-        this.element.querySelectorAll("select").forEach((s) => (s.value = ""));
-        const alphaInput = this.element.querySelector('input[name="alpha"]');
-        if (alphaInput) alphaInput.value = 100;
-
+        this._preservedData = data;
+        this._keepPreservedData = true;
         this._markDirty();
-        this._updatePreview();
         this.render();
         ui.notifications.info(game.i18n.localize("VISAGE.Notifications.SettingsReset"));
+    }
+
+    /**
+     * Clears one layer or one Token appearance section, from the clear button next to its copy
+     * button. Token appearance properties are unticked; the Dynamic Ring and Light Source go back
+     * to their default settings and are switched off. Other layers are left alone.
+     *
+     * @param {PointerEvent} event - The click.
+     * @param {HTMLElement} target - The clear button, with data-layer and optionally data-section.
+     */
+    _onClearSettings(event, target) {
+        event.preventDefault();
+
+        const data = this._prepareSaveData();
+        const layer = target.dataset.layer;
+        if (layer === LAYERS.RING) {
+            this._ringData = defaultRingData();
+        } else if (layer === LAYERS.LIGHT) {
+            this._lightData = { active: false, ...defaultLightData() };
+            this._rmuData = defaultRmuData();
+        } else {
+            VisageTokenCopy.clearAppearance(data.changes, target.dataset.section || null);
+        }
+
+        this._preservedData = data;
+        this._keepPreservedData = true;
+        this._markDirty();
+        this.render();
     }
 
     // ==========================================
@@ -1484,6 +1544,77 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * The token the "Copy from token" buttons read. The local editor uses its own token (or the
+     * actor's prototype token when opened from the actor). The global editor has no token of its
+     * own, so it uses the token selected on the canvas, and only when exactly one is selected, so
+     * it is never ambiguous which token is copied.
+     *
+     * @returns {TokenDocument|null}
+     * @private
+     */
+    _getCopySourceToken() {
+        if (this.isLocal) {
+            return canvas.tokens?.get(this.tokenId)?.document ?? this.actor?.prototypeToken ?? null;
+        }
+        const controlled = canvas.tokens?.controlled ?? [];
+        return controlled.length === 1 ? controlled[0].document : null;
+    }
+
+    /**
+     * Copies the token's current appearance into one layer (Token appearance, Dynamic Ring or
+     * Light Source) or one Token appearance section, as chosen by the button's data-layer and
+     * data-section.
+     *
+     * The form is captured first, so unsaved edits elsewhere are kept and the editor's in-memory
+     * ring and light data are up to date before the copy changes them. The captured data is then
+     * changed and handed to the re-render as is.
+     *
+     * Section buttons sit inside the section heading, so the click's default action (opening or
+     * closing the section) is prevented.
+     */
+    _onCopyFromToken(event, target) {
+        event.preventDefault();
+
+        const tokenDoc = this._getCopySourceToken();
+        if (!tokenDoc) return ui.notifications.warn(game.i18n.localize("VISAGE.Editor.Copy.NoToken"));
+
+        const source = VisageTokenCopy.readToken(tokenDoc);
+        if (!source) return;
+
+        const data = this._prepareSaveData();
+        const layer = target.dataset.layer;
+        if (layer === LAYERS.RING) {
+            VisageTokenCopy.copyRing(source, this._ringData);
+        } else if (layer === LAYERS.LIGHT) {
+            VisageTokenCopy.copyLight(source, this._lightData);
+            VisageTokenCopy.copyRmu(source, this._rmuData);
+        } else {
+            VisageTokenCopy.copyAppearance(source, data.changes, target.dataset.section || null);
+        }
+
+        this._preservedData = data;
+        this._keepPreservedData = true;
+        this._markDirty();
+        this.render();
+        ui.notifications.info(game.i18n.format("VISAGE.Editor.Copy.Done", { name: tokenDoc.name }));
+    }
+
+    /**
+     * Enables or disables the copy buttons, and sets their tooltips, to match whether there is a
+     * token to copy from. They are marked with aria-disabled rather than disabled so their
+     * tooltip still shows and explains what to do.
+     * @private
+     */
+    _refreshCopyButtons() {
+        if (!this.rendered) return;
+        const available = !!this._getCopySourceToken();
+        for (const button of this.element.querySelectorAll('[data-action="copyFromToken"]')) {
+            button.setAttribute("aria-disabled", String(!available));
+            button.dataset.tooltip = game.i18n.localize(available ? button.dataset.copyHint : "VISAGE.Editor.Copy.NoToken");
+        }
+    }
+
     /** Collapses every section in the settings panel, or expands them all if all are collapsed. */
     _onToggleAllSections(event, target) {
         const panel = target.closest(".visage-layer-settings");
@@ -1623,14 +1754,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             // Rotation
             rotation: 0,
             rotationRandom: false,
-            bindRotation: false,
+            bindRotation: true,
             // Position
             bindToSprite: true,
             offsetX: 0,
             offsetY: 0,
             // Lifecycle
             zOrder: "above",
-            loop: false,
+            loop: true,
             disabled: false,
             delay: 0,
         };
@@ -1647,7 +1778,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             label: "New Audio",
             path: "",
             opacity: 0.8,
-            loop: false,
+            loop: true,
             disabled: false,
             delay: 0,
             fadeIn: 0,
@@ -1821,7 +1952,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _onToggleLoop(event, target) {
         const effect = this._getEffectFromTarget(target);
         if (effect) {
-            effect.loop = !(effect.loop ?? false);
+            effect.loop = !(effect.loop ?? true);
             this._markDirty();
             this.render();
         }

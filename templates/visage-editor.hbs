@@ -236,11 +236,9 @@
             </div>
         </div>
 
-        {{#if isLocal}}
         <button type="button" class="visage-reset-btn" data-action="resetSettings" data-tooltip="{{localize 'VISAGE.GlobalEditor.ResetTooltip'}}">
             <i class="visage-icon undo"></i> {{localize "VISAGE.GlobalEditor.Reset"}}
         </button>
-        {{/if}}
 
         <button type="submit" class="visage-save {{#if isDirty}}dirty{{/if}}" data-action="save">
             <i class="visage-icon save-update"></i>

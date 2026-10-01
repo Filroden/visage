@@ -25,10 +25,22 @@
                 <i class="visage-icon delete"></i>
             </button>
         {{else if (eq inspector.type 'ring')}}
+            <button type="button" class="visage-icon-btn visage-copy-btn" data-action="copyFromToken" data-layer="ring" data-copy-hint="VISAGE.Editor.Copy.Ring" aria-disabled="{{#if canCopyFromToken}}false{{else}}true{{/if}}" data-tooltip="{{#if canCopyFromToken}}{{localize 'VISAGE.Editor.Copy.Ring'}}{{else}}{{localize 'VISAGE.Editor.Copy.NoToken'}}{{/if}}" aria-label="{{localize 'VISAGE.Editor.Copy.Ring'}}">
+                <i class="visage-icon copy"></i>
+            </button>
+            <button type="button" class="visage-icon-btn visage-clear-btn" data-action="clearSettings" data-layer="ring" data-tooltip="{{localize 'VISAGE.Editor.Clear.Ring'}}" aria-label="{{localize 'VISAGE.Editor.Clear.Ring'}}">
+                <i class="visage-icon layers-clear"></i>
+            </button>
             <button type="button" class="visage-icon-btn" data-action="toggleRing" aria-pressed="{{#if ring.active}}true{{else}}false{{/if}}" data-tooltip="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}" aria-label="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}">
                 <i class="visage-icon {{#if ring.active}}visible{{else}}visage-hidden{{/if}}"></i>
             </button>
         {{else if (eq inspector.type 'light')}}
+            <button type="button" class="visage-icon-btn visage-copy-btn" data-action="copyFromToken" data-layer="light" data-copy-hint="VISAGE.Editor.Copy.Light" aria-disabled="{{#if canCopyFromToken}}false{{else}}true{{/if}}" data-tooltip="{{#if canCopyFromToken}}{{localize 'VISAGE.Editor.Copy.Light'}}{{else}}{{localize 'VISAGE.Editor.Copy.NoToken'}}{{/if}}" aria-label="{{localize 'VISAGE.Editor.Copy.Light'}}">
+                <i class="visage-icon copy"></i>
+            </button>
+            <button type="button" class="visage-icon-btn visage-clear-btn" data-action="clearSettings" data-layer="light" data-tooltip="{{localize 'VISAGE.Editor.Clear.Light'}}" aria-label="{{localize 'VISAGE.Editor.Clear.Light'}}">
+                <i class="visage-icon layers-clear"></i>
+            </button>
             <button type="button" class="visage-icon-btn" data-action="toggleLight" aria-pressed="{{#if light.active}}true{{else}}false{{/if}}" data-tooltip="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}" aria-label="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}">
                 <i class="visage-icon {{#if light.active}}visible{{else}}visage-hidden{{/if}}"></i>
             </button>
@@ -39,10 +51,10 @@
         </button>
     </header>
 
-    {{!-- Explains what switching this layer off means: the ring and light keep their settings,
-          while a switched-off effect is not saved --}}
+    {{!-- Explains what switching this layer off means: every layer keeps its settings while it is
+          off, and is saved with the Visage, but has no effect until it is switched on again --}}
     {{#if inspector.isOff}}
-        <p class="visage-settings-note"><i class="visage-icon visage-hidden"></i> {{#if inspector.offNote}}{{localize inspector.offNote}}{{else}}{{localize "VISAGE.Editor.Layers.OffNote"}}{{/if}}</p>
+        <p class="visage-settings-note"><i class="visage-icon visage-hidden"></i> {{localize "VISAGE.Editor.Layers.OffNote"}}</p>
     {{/if}}
 
     {{!-- ================= DYNAMIC RING ================= --}}

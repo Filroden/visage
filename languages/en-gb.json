@@ -1,6 +1,5 @@
 {
     "_comment_EDITOR": "--- VISAGE EDITOR (WORKSTATION) ---",
-    "VISAGE.GlobalEditor.Hint": "Configure the appearance and behaviour of this visage.",
 
     "_comment_PROPERTIES": "--- TOKEN PROPERTIES ---",
     "VISAGE.Random": "Randomise",
