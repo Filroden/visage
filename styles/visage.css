@@ -1558,20 +1558,6 @@ li.context-item .visage-icon-domino {
     width: 100%;
 }
 
-.visage .visage-form-fields.mirroring-grid {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: var(--visage-space-s) var(--visage-space-m);
-    align-items: center;
-    width: 100%;
-}
-
-.visage .mirroring-grid label {
-    margin: 0;
-    text-align: end;
-    color: var(--visage-text-muted);
-}
-
 .visage .master-toggle {
     display: flex;
     align-items: center;
@@ -2366,7 +2352,7 @@ li.context-item .visage-icon-domino {
     line-height: var(--visage-line-height-body);
 }
 
-/* Fade Grid (Inspector) - Mimics .mirroring-grid */
+/* Fade Grid (Inspector): label and input pairs side by side */
 .visage .visage-form-fields.fade-grid {
     display: grid;
     grid-template-columns: max-content 1fr max-content 1fr; /* Label Input Label Input */

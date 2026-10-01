@@ -182,14 +182,23 @@
 
         <hr class="visage-divider" />
 
+        {{!
+            Rotation lock and mirroring are three-state values: forced on, forced off, or inherited
+            from the token (null). The checkbox chooses between overriding and inheriting; the select
+            only offers the two forced states. While the checkbox is cleared the select is disabled,
+            so it is left out of the form data and the editor saves null (inherit).
+        }}
+
         {{! Rotation Lock }}
-        <div class="visage-form-fields" style="display:grid; grid-template-columns: auto 1fr;">
+        <div class="form-group checkbox-input-group">
+            <input class="visage-checkbox" type="checkbox" name="lockRotation_active" data-action="toggleField" data-target="lockRotation" {{checked lockRotation.active}} />
             <label>{{localize "VISAGE.RotationLock.Label"}}</label>
-            <select name="lockRotation">
-                <option value="" {{visageSelected (eq lockRotation.value "")}}>{{localize "VISAGE.RotationLock.Unset"}}</option>
-                <option value="false" {{visageSelected (eq lockRotation.value "false")}}>{{localize "VISAGE.RotationLock.Off"}}</option>
-                <option value="true" {{visageSelected (eq lockRotation.value "true")}}>{{localize "VISAGE.RotationLock.On"}}</option>
-            </select>
+            <div class="visage-form-fields">
+                <select name="lockRotation" {{disabled (not lockRotation.active)}}>
+                    <option value="false" {{visageSelected (eq lockRotation.value "false")}}>{{localize "VISAGE.RotationLock.Off"}}</option>
+                    <option value="true" {{visageSelected (eq lockRotation.value "true")}}>{{localize "VISAGE.RotationLock.On"}}</option>
+                </select>
+            </div>
         </div>
 
         <hr class="visage-divider" />
@@ -198,20 +207,22 @@
         <fieldset class="visage-fieldset">
             <legend>{{localize "VISAGE.GlobalEditor.Mirroring"}}</legend>
 
-            <div class="form-group stacked">
-                <div class="visage-form-fields mirroring-grid">
-                    {{! Row 1: Horizontal }}
-                    <label>{{localize "VISAGE.Mirror.Label.Horizontal"}}</label>
-                    <select name="isFlippedX">
-                        <option value="" {{visageSelected (eq isFlippedX.value null)}}>{{localize "VISAGE.Mirror.Option.NoChange"}}</option>
+            <div class="form-group checkbox-input-group">
+                <input class="visage-checkbox" type="checkbox" name="isFlippedX_active" data-action="toggleField" data-target="isFlippedX" {{checked isFlippedX.active}} />
+                <label>{{localize "VISAGE.Mirror.Label.Horizontal"}}</label>
+                <div class="visage-form-fields">
+                    <select name="isFlippedX" {{disabled (not isFlippedX.active)}}>
                         <option value="false" {{visageSelected (eq isFlippedX.value false)}}>{{localize "VISAGE.Mirror.Option.Standard"}}</option>
                         <option value="true" {{visageSelected (eq isFlippedX.value true)}}>{{localize "VISAGE.Mirror.Option.Flipped"}}</option>
                     </select>
+                </div>
+            </div>
 
-                    {{! Row 2: Vertical }}
-                    <label>{{localize "VISAGE.Mirror.Label.Vertical"}}</label>
-                    <select name="isFlippedY">
-                        <option value="" {{visageSelected (eq isFlippedY.value null)}}>{{localize "VISAGE.Mirror.Option.NoChange"}}</option>
+            <div class="form-group checkbox-input-group">
+                <input class="visage-checkbox" type="checkbox" name="isFlippedY_active" data-action="toggleField" data-target="isFlippedY" {{checked isFlippedY.active}} />
+                <label>{{localize "VISAGE.Mirror.Label.Vertical"}}</label>
+                <div class="visage-form-fields">
+                    <select name="isFlippedY" {{disabled (not isFlippedY.active)}}>
                         <option value="false" {{visageSelected (eq isFlippedY.value false)}}>{{localize "VISAGE.Mirror.Option.Standard"}}</option>
                         <option value="true" {{visageSelected (eq isFlippedY.value true)}}>{{localize "VISAGE.Mirror.Option.Flipped"}}</option>
                     </select>

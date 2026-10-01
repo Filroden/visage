@@ -110,7 +110,6 @@
     "VISAGE.Mirror.Label.Vertical": "Vertical",
     "VISAGE.Mirror.Badge.H": "Horizontal",
     "VISAGE.Mirror.Badge.V": "Vertical",
-    "VISAGE.Mirror.Option.NoChange": "No Change",
     "VISAGE.Mirror.Option.Standard": "Standard",
     "VISAGE.Mirror.Option.Flipped": "Flipped",
 
@@ -119,9 +118,8 @@
     "VISAGE.RotationLock.Hint": "Prevents the token from rotating with its movement.",
     "VISAGE.RotationLock.Locked": "Locked",
     "VISAGE.RotationLock.Unlocked": "Unlocked",
-    "VISAGE.RotationLock.Unset": "Rotation Lock: Unset",
-    "VISAGE.RotationLock.Off": "Rotation Lock: Off",
-    "VISAGE.RotationLock.On": "Rotation Lock: On",
+    "VISAGE.RotationLock.Off": "Off",
+    "VISAGE.RotationLock.On": "On",
 
     "VISAGE.Disposition.Label": "Disposition",
     "VISAGE.Disposition.Friendly": "Friendly",
