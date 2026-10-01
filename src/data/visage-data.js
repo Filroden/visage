@@ -802,6 +802,8 @@ export class VisageData {
                     src: pathIcon,
                     cls: isFlippedX ? "visage-rotate-270" : "visage-rotate-90",
                     val: game.i18n.localize("VISAGE.Mirror.Badge.H"),
+                    flipped: isFlippedX,
+                    state: game.i18n.localize(isFlippedX ? "VISAGE.Mirror.Option.Flipped" : "VISAGE.Mirror.Option.Standard"),
                 },
             },
             y: {
@@ -812,6 +814,8 @@ export class VisageData {
                     src: pathIcon,
                     cls: isFlippedY ? "visage-rotate-180" : "visage-rotate-0",
                     val: game.i18n.localize("VISAGE.Mirror.Badge.V"),
+                    flipped: isFlippedY,
+                    state: game.i18n.localize(isFlippedY ? "VISAGE.Mirror.Option.Flipped" : "VISAGE.Mirror.Option.Standard"),
                 },
             },
         };

@@ -1,215 +1,248 @@
-<div class="tab appearance-tab-container {{#if inspector.active}}editing{{/if}} {{#if tabs.appearance.active}}active{{/if}}" data-tab="appearance" data-group="primary" data-tab="appearance">
-    <div class="visage-appearance-editor">
+{{!--
+    TOKEN APPEARANCE SETTINGS
+    Shown when the Token layer is selected. This panel is always rendered, even while another
+    layer is selected (it is only hidden), because the editor reads these fields from the form
+    every time it previews or saves.
 
-        {{! Name Override }}
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="nameOverride_active" data-action="toggleField" data-target="nameOverride" {{checked nameOverride.active}} />
-            <label>{{localize "VISAGE.GlobalEditor.NameOverride"}}</label>
-            <div class="visage-form-fields">
-                <input type="text" name="nameOverride" value="{{nameOverride.value}}" {{disabled (not nameOverride.active)}} placeholder="{{localize 'VISAGE.GlobalEditor.NameOverride'}}" />
-            </div>
-        </div>
+    Each property has an "apply" checkbox. A cleared checkbox disables its inputs, which leaves
+    them out of the form data, so the property is inherited from the token and other Visages.
 
-        {{! Image }}
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="img_active" data-action="toggleField" data-target="img" {{checked img.active}} />
-            <label>{{localize "VISAGE.GlobalEditor.TokenImage"}}</label>
+    Sections are collapsible. While a section is collapsed, its heading lists the properties it
+    changes (filled in by the editor), so collapsing everything gives an overview of the Visage.
+--}}
+<section class="visage-layer-settings visage-token-settings" data-layer="token" aria-label="{{localize 'VISAGE.Editor.Layers.TokenAppearance'}}" {{#unless (eq selectedLayer 'token')}}hidden{{/unless}}>
+    <header class="visage-settings-header">
+        <i class="visage-icon id-card"></i>
+        <h3 class="visage-settings-title">{{localize "VISAGE.Editor.Layers.TokenAppearance"}}</h3>
+        <button type="button" class="visage-icon-btn" data-action="toggleAllSections" data-tooltip="{{localize 'VISAGE.Editor.Sections.ToggleAll'}}" aria-label="{{localize 'VISAGE.Editor.Sections.ToggleAll'}}">
+            <i class="visage-icon list"></i>
+        </button>
+    </header>
 
-            <div class="visage-form-fields">
-                {{#if ringSubjectTexture.active}}
-                    {{! Warn only if the Ring Subject Texture is actively overriding the base image }}
-                    <span class="visage-ring-warning-message">
-                        <i class="visage-icon warning" data-tooltip="{{localize 'VISAGE.GlobalEditor.RingActiveWarning'}}"></i>
-                    </span>
-                {{/if}}
-                <input type="text" name="img" value="{{img.value}}" {{disabled (not img.active)}} placeholder="{{localize 'VISAGE.GlobalEditor.TokenImage'}}" />
-                <button type="button" class="file-picker-button" data-action="openFilePicker" data-tooltip="{{localize 'VISAGE.GlobalEditor.FilePicker'}}" {{disabled (not img.active)}}>
-                    <i class="visage-icon image-search"></i>
-                </button>
-            </div>
-        </div>
-
-        {{! Dylan's Animated Tokens (Conditional) }}
-        {{#if isDATActive}}
-            <fieldset class="visage-fieldset">
-                <legend>
-                    <div class="form-group checkbox-input-group">
-                        <input class="visage-checkbox" type="checkbox" name="dat_active" data-action="toggleField" data-target="datGroup" {{checked dat.active}} />
-                        <label>{{localize "VISAGE.Editor.DAT.Title"}}</label>
-                    </div>
-                </legend>
-
-                <div class="visage-column" data-group="datGroup">
-                    {{! Sprite Sheet Toggle }}
-                    <div class="form-group">
-                        <label>{{localize "VISAGE.Editor.DAT.SpriteSheet"}}</label>
-                        <div class="visage-form-fields">
-                            <input type="checkbox" class="visage-checkbox" name="flags.dylans-animated-tokens.spritesheet" {{checked dat.spritesheet}} {{disabled (not dat.active)}} />
-                        </div>
-                    </div>
-
-                    {{! Sprite Sheet Image }}
-                    <div class="form-group">
-                        <label>{{localize "VISAGE.Editor.DAT.SheetImage"}}</label>
-                        <div class="visage-form-fields">
-                            <input type="text" name="flags.dylans-animated-tokens.sheetsrc" value="{{dat.sheetsrc}}" {{disabled (not dat.active)}} />
-                            <button type="button" class="file-picker-button" data-action="openFilePicker" data-file-type="image" tabindex="-1" {{disabled (not dat.active)}}>
-                                <i class="visage-icon image-search"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    {{! Sheet Style Select }}
-                    <div class="form-group">
-                        <label>{{localize "VISAGE.Editor.DAT.SheetStyle"}}</label>
-                        <div class="visage-form-fields">
-                            <select name="flags.dylans-animated-tokens.sheetstyle" {{disabled (not dat.active)}}>
-                                <option value="dlru" {{visageSelected (eq dat.sheetstyle "dlru")}}>Down, Left, Right, Up (Default)</option>
-                                <option value="durlReduced" {{visageSelected (eq dat.sheetstyle "durlReduced")}}>Down, Up, Right, Left (Reduced)</option>
-                                <option value="eight" {{visageSelected (eq dat.sheetstyle "eight")}}>8-Directional</option>
-                                <option value="diagonal" {{visageSelected (eq dat.sheetstyle "diagonal")}}>Diagonal Only</option>
-                                <option value="nihey" {{visageSelected (eq dat.sheetstyle "nihey")}}>Nihey (3 Frames)</option>
-                                <option value="universalLPC" {{visageSelected (eq dat.sheetstyle "universalLPC")}}>Universal LPC</option>
-                                <option value="memao" {{visageSelected (eq dat.sheetstyle "memao")}}>Memao</option>
-                                <option value="tdsm3" {{visageSelected (eq dat.sheetstyle "tdsm3")}}>TDSM Gen 3</option>
-                                <option value="tdsm4" {{visageSelected (eq dat.sheetstyle "tdsm4")}}>TDSM Gen 4</option>
-                                <option value="tdsmpc" {{visageSelected (eq dat.sheetstyle "tdsmpc")}}>TDSM PixelCitizen</option>
-                                <option value="tdsmte" {{visageSelected (eq dat.sheetstyle "tdsmte")}}>TDSM Time Elements</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {{! Separate Idle Frame }}
-                    <div class="form-group">
-                        <label>{{localize "VISAGE.Editor.DAT.SeparateIdle"}}</label>
-                        <div class="visage-form-fields">
-                            <input type="checkbox" class="visage-checkbox" name="flags.dylans-animated-tokens.separateidle" {{checked dat.separateidle}} {{disabled (not dat.active)}} />
-                        </div>
-                    </div>
-                </div>
-            </fieldset>
-        {{/if}}
-
-        {{! Actor Portrait }}
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="portrait_active" data-action="toggleField" data-target="portrait" {{checked portrait.active}} />
-            <label>{{localize "VISAGE.GlobalEditor.ActorPortrait"}}</label>
-            <div class="visage-form-fields">
-                <input type="text" name="portrait" value="{{this.portrait.value}}" {{disabled (not portrait.active)}} placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}" />
-                <button type="button" class="file-picker-button" data-action="openFilePicker" {{disabled (not portrait.active)}}><i class="visage-icon image-search"></i></button>
-            </div>
-        </div>
-
-        <hr class="visage-divider" />
-
-        {{! Dimensions }}
-        <fieldset class="visage-fieldset">
-            <legend>{{localize "VISAGE.GlobalEditor.Dimensions"}}</legend>
-
+    <details class="visage-section" data-section="token-identity" open>
+        <summary class="visage-section-summary">
+            <span class="visage-section-heading">
+                <span class="visage-section-title">{{localize "VISAGE.Editor.Sections.Identity"}}</span>
+                <span class="visage-section-count" hidden></span>
+            </span>
+            <span class="visage-section-chips"></span>
+        </summary>
+        <div class="visage-section-body">
+            {{! Name Override }}
             <div class="form-group checkbox-input-group">
-                <input class="visage-checkbox" type="checkbox" name="width_active" data-action="toggleField" data-target="width" {{checked width.active}} />
-                <label>{{localize "VISAGE.Config.List.DimX"}}</label>
+                <input class="visage-checkbox" type="checkbox" name="nameOverride_active" data-action="toggleField" data-target="nameOverride" {{checked nameOverride.active}} />
+                <label>{{localize "VISAGE.GlobalEditor.NameOverride"}}</label>
                 <div class="visage-form-fields">
-                    <input type="number" name="width" value="{{width.value}}" {{disabled (not width.active)}} />
+                    <input type="text" name="nameOverride" value="{{nameOverride.value}}" {{disabled (not nameOverride.active)}} placeholder="{{localize 'VISAGE.GlobalEditor.NameOverride'}}" />
                 </div>
             </div>
 
+            {{! Image }}
             <div class="form-group checkbox-input-group">
-                <input class="visage-checkbox" type="checkbox" name="height_active" data-action="toggleField" data-target="height" {{checked height.active}} />
-                <label>{{localize "VISAGE.Config.List.DimY"}}</label>
+                <input class="visage-checkbox" type="checkbox" name="img_active" data-action="toggleField" data-target="img" {{checked img.active}} />
+                <label>{{localize "VISAGE.GlobalEditor.TokenImage"}}</label>
+
                 <div class="visage-form-fields">
-                    <input type="number" name="height" value="{{height.value}}" {{disabled (not height.active)}} />
+                    {{#if ringSubjectTexture.active}}
+                        {{! Warn only if the Ring Subject Texture is actively overriding the base image }}
+                        <span class="visage-ring-warning-message">
+                            <i class="visage-icon warning" data-tooltip="{{localize 'VISAGE.GlobalEditor.RingActiveWarning'}}"></i>
+                        </span>
+                    {{/if}}
+                    <input type="text" name="img" value="{{img.value}}" {{disabled (not img.active)}} placeholder="{{localize 'VISAGE.GlobalEditor.TokenImage'}}" />
+                    <button type="button" class="file-picker-button" data-action="openFilePicker" data-tooltip="{{localize 'VISAGE.GlobalEditor.FilePicker'}}" {{disabled (not img.active)}}>
+                        <i class="visage-icon image-search"></i>
+                    </button>
                 </div>
             </div>
 
+            {{! Dylan's Animated Tokens (Conditional) }}
+            {{#if isDATActive}}
+                <fieldset class="visage-fieldset">
+                    <legend>
+                        <div class="form-group checkbox-input-group">
+                            <input class="visage-checkbox" type="checkbox" name="dat_active" data-action="toggleField" data-target="datGroup" {{checked dat.active}} />
+                            <label>{{localize "VISAGE.Editor.DAT.Title"}}</label>
+                        </div>
+                    </legend>
+
+                    <div class="visage-column" data-group="datGroup">
+                        {{! Sprite Sheet Toggle }}
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.DAT.SpriteSheet"}}</label>
+                            <div class="visage-form-fields">
+                                <input type="checkbox" class="visage-checkbox" name="flags.dylans-animated-tokens.spritesheet" {{checked dat.spritesheet}} {{disabled (not dat.active)}} />
+                            </div>
+                        </div>
+
+                        {{! Sprite Sheet Image }}
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.DAT.SheetImage"}}</label>
+                            <div class="visage-form-fields">
+                                <input type="text" name="flags.dylans-animated-tokens.sheetsrc" value="{{dat.sheetsrc}}" {{disabled (not dat.active)}} />
+                                <button type="button" class="file-picker-button" data-action="openFilePicker" data-file-type="image" tabindex="-1" {{disabled (not dat.active)}}>
+                                    <i class="visage-icon image-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{! Sheet Style Select }}
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.DAT.SheetStyle"}}</label>
+                            <div class="visage-form-fields">
+                                <select name="flags.dylans-animated-tokens.sheetstyle" {{disabled (not dat.active)}}>
+                                    <option value="dlru" {{visageSelected (eq dat.sheetstyle "dlru")}}>Down, Left, Right, Up (Default)</option>
+                                    <option value="durlReduced" {{visageSelected (eq dat.sheetstyle "durlReduced")}}>Down, Up, Right, Left (Reduced)</option>
+                                    <option value="eight" {{visageSelected (eq dat.sheetstyle "eight")}}>8-Directional</option>
+                                    <option value="diagonal" {{visageSelected (eq dat.sheetstyle "diagonal")}}>Diagonal Only</option>
+                                    <option value="nihey" {{visageSelected (eq dat.sheetstyle "nihey")}}>Nihey (3 Frames)</option>
+                                    <option value="universalLPC" {{visageSelected (eq dat.sheetstyle "universalLPC")}}>Universal LPC</option>
+                                    <option value="memao" {{visageSelected (eq dat.sheetstyle "memao")}}>Memao</option>
+                                    <option value="tdsm3" {{visageSelected (eq dat.sheetstyle "tdsm3")}}>TDSM Gen 3</option>
+                                    <option value="tdsm4" {{visageSelected (eq dat.sheetstyle "tdsm4")}}>TDSM Gen 4</option>
+                                    <option value="tdsmpc" {{visageSelected (eq dat.sheetstyle "tdsmpc")}}>TDSM PixelCitizen</option>
+                                    <option value="tdsmte" {{visageSelected (eq dat.sheetstyle "tdsmte")}}>TDSM Time Elements</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {{! Separate Idle Frame }}
+                        <div class="form-group">
+                            <label>{{localize "VISAGE.Editor.DAT.SeparateIdle"}}</label>
+                            <div class="visage-form-fields">
+                                <input type="checkbox" class="visage-checkbox" name="flags.dylans-animated-tokens.separateidle" {{checked dat.separateidle}} {{disabled (not dat.active)}} />
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            {{/if}}
+
+            {{! Actor Portrait }}
             <div class="form-group checkbox-input-group">
-                <input class="visage-checkbox" type="checkbox" name="depth_active" data-action="toggleField" data-target="depth" {{checked depth.active}} />
-                <label>{{localize "VISAGE.Config.List.DimZ"}}</label>
+                <input class="visage-checkbox" type="checkbox" name="portrait_active" data-action="toggleField" data-target="portrait" {{checked portrait.active}} />
+                <label>{{localize "VISAGE.GlobalEditor.ActorPortrait"}}</label>
                 <div class="visage-form-fields">
-                    <input type="number" name="depth" value="{{depth.value}}" {{disabled (not depth.active)}} />
-                </div>
-            </div>
-        </fieldset>
-
-        {{! Image Fit Mode }}
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="fit_active" data-action="toggleField" data-target="fit" {{checked fit.active}} />
-            <label>{{localize "VISAGE.Config.List.Fit"}}</label>
-            <div class="visage-form-fields">
-                <select name="fit" {{disabled (not fit.active)}}>
-                    {{#each fitOptions as |label key|}}
-                        <option value="{{key}}" {{visageSelected (eq ../fit.value key)}}>{{label}}</option>
-                    {{/each}}
-                </select>
-            </div>
-        </div>
-
-        {{! Scale (no upper limit, so the value chip is a number that accepts anything typed into it) }}
-        {{> "modules/visage/templates/parts/visage-range.hbs" toggle="scale" active=scale.active editable=true numberName="scale" label="VISAGE.Config.List.Scale" value=scale.value min=10 max=300 step=1 default=100}}
-
-        {{! Anchors }}
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="anchor_active" data-action="toggleField" data-target="anchor" {{checked anchor.active}} />
-            <label>{{localize "VISAGE.Config.List.Anchor"}}</label>
-            <div class="visage-form-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; justify-items: flex-end;">
-                <div class="visage-input-wrapper" data-tooltip="X">
-                    <input type="number" name="anchorX" value="{{anchor.x}}" step="0.1" placeholder="0.5" {{disabled (not anchor.active)}} />
-                </div>
-                <div class="visage-input-wrapper" data-tooltip="Y">
-                    <input type="number" name="anchorY" value="{{anchor.y}}" step="0.1" placeholder="0.5" {{disabled (not anchor.active)}} />
+                    <input type="text" name="portrait" value="{{this.portrait.value}}" {{disabled (not portrait.active)}} placeholder="{{localize 'VISAGE.Config.Placeholder.Path'}}" />
+                    <button type="button" class="file-picker-button" data-action="openFilePicker" {{disabled (not portrait.active)}}><i class="visage-icon image-search"></i></button>
                 </div>
             </div>
         </div>
+    </details>
 
-        {{! Opacity }}
-        {{> "modules/visage/templates/parts/visage-range.hbs" toggle="alpha" active=alpha.active name="alpha" label="VISAGE.Config.Opacity.Label" value=alpha.value min=0 max=100 step=1 default=100 unit="%"}}
+    <details class="visage-section" data-section="token-size" open>
+        <summary class="visage-section-summary">
+            <span class="visage-section-heading">
+                <span class="visage-section-title">{{localize "VISAGE.Editor.Sections.SizeFit"}}</span>
+                <span class="visage-section-count" hidden></span>
+            </span>
+            <span class="visage-section-chips"></span>
+        </summary>
+        <div class="visage-section-body">
+            {{! Width, height and depth share a row; each keeps its own checkbox above its own box }}
+            <div class="visage-field-row">
+                <div class="form-group checkbox-input-group">
+                    <input class="visage-checkbox" type="checkbox" name="width_active" data-action="toggleField" data-target="width" {{checked width.active}} />
+                    <label>{{localize "VISAGE.Config.List.DimX"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="number" name="width" value="{{width.value}}" {{disabled (not width.active)}} />
+                    </div>
+                </div>
+                <div class="form-group checkbox-input-group">
+                    <input class="visage-checkbox" type="checkbox" name="height_active" data-action="toggleField" data-target="height" {{checked height.active}} />
+                    <label>{{localize "VISAGE.Config.List.DimY"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="number" name="height" value="{{height.value}}" {{disabled (not height.active)}} />
+                    </div>
+                </div>
+                <div class="form-group checkbox-input-group">
+                    <input class="visage-checkbox" type="checkbox" name="depth_active" data-action="toggleField" data-target="depth" {{checked depth.active}} />
+                    <label>{{localize "VISAGE.Config.List.DimZ"}}</label>
+                    <div class="visage-form-fields">
+                        <input type="number" name="depth" value="{{depth.value}}" {{disabled (not depth.active)}} />
+                    </div>
+                </div>
+            </div>
 
-        <hr class="visage-divider" />
+            {{! Image Fit Mode }}
+            <div class="form-group checkbox-input-group">
+                <input class="visage-checkbox" type="checkbox" name="fit_active" data-action="toggleField" data-target="fit" {{checked fit.active}} />
+                <label>{{localize "VISAGE.Config.List.Fit"}}</label>
+                <div class="visage-form-fields">
+                    <select name="fit" {{disabled (not fit.active)}}>
+                        {{#each fitOptions as |label key|}}
+                            <option value="{{key}}" {{visageSelected (eq ../fit.value key)}}>{{label}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+            </div>
 
-        {{! Disposition }}
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="disposition_active" data-action="toggleField" data-target="disposition" {{checked disposition.active}} />
-            <label>{{localize "VISAGE.Disposition.Label"}}</label>
-            <div class="visage-form-fields">
-                <select name="disposition" {{disabled (not disposition.active)}}>
-                    <option value="1" {{visageSelected (eq disposition.value 1)}}>{{localize "VISAGE.Disposition.Friendly"}}</option>
-                    <option value="0" {{visageSelected (eq disposition.value 0)}}>{{localize "VISAGE.Disposition.Neutral"}}</option>
-                    <option value="-1" {{visageSelected (eq disposition.value -1)}}>{{localize "VISAGE.Disposition.Hostile"}}</option>
-                    <option value="-2" {{visageSelected (eq disposition.value -2)}}>{{localize "VISAGE.Disposition.Secret"}}</option>
-                </select>
+            {{! Scale (no upper limit, so the value chip is a number that accepts anything typed into it) }}
+            {{> "modules/visage/templates/parts/visage-range.hbs" toggle="scale" active=scale.active editable=true numberName="scale" label="VISAGE.Config.List.Scale" value=scale.value min=10 max=300 step=1 default=100}}
+
+            {{! Anchors }}
+            <div class="form-group checkbox-input-group">
+                <input class="visage-checkbox" type="checkbox" name="anchor_active" data-action="toggleField" data-target="anchor" {{checked anchor.active}} />
+                <label>{{localize "VISAGE.Config.List.Anchor"}}</label>
+                <div class="visage-form-fields visage-anchor-fields">
+                    <div class="visage-input-wrapper" data-tooltip="X">
+                        <input type="number" name="anchorX" value="{{anchor.x}}" step="0.1" placeholder="0.5" {{disabled (not anchor.active)}} />
+                    </div>
+                    <div class="visage-input-wrapper" data-tooltip="Y">
+                        <input type="number" name="anchorY" value="{{anchor.y}}" step="0.1" placeholder="0.5" {{disabled (not anchor.active)}} />
+                    </div>
+                </div>
             </div>
         </div>
+    </details>
 
-        <hr class="visage-divider" />
+    <details class="visage-section" data-section="token-presentation" open>
+        <summary class="visage-section-summary">
+            <span class="visage-section-heading">
+                <span class="visage-section-title">{{localize "VISAGE.Editor.Sections.Presentation"}}</span>
+                <span class="visage-section-count" hidden></span>
+            </span>
+            <span class="visage-section-chips"></span>
+        </summary>
+        <div class="visage-section-body">
+            {{! Opacity }}
+            {{> "modules/visage/templates/parts/visage-range.hbs" toggle="alpha" active=alpha.active name="alpha" label="VISAGE.Config.Opacity.Label" value=alpha.value min=0 max=100 step=1 default=100 unit="%"}}
 
-        {{!
-            Rotation lock and mirroring are three-state values: forced on, forced off, or inherited
-            from the token (null). The checkbox chooses between overriding and inheriting; the select
-            only offers the two forced states. While the checkbox is cleared the select is disabled,
-            so it is left out of the form data and the editor saves null (inherit).
-        }}
-
-        {{! Rotation Lock }}
-        <div class="form-group checkbox-input-group">
-            <input class="visage-checkbox" type="checkbox" name="lockRotation_active" data-action="toggleField" data-target="lockRotation" {{checked lockRotation.active}} />
-            <label>{{localize "VISAGE.RotationLock.Label"}}</label>
-            <div class="visage-form-fields">
-                <select name="lockRotation" {{disabled (not lockRotation.active)}}>
-                    <option value="false" {{visageSelected (eq lockRotation.value "false")}}>{{localize "VISAGE.RotationLock.Off"}}</option>
-                    <option value="true" {{visageSelected (eq lockRotation.value "true")}}>{{localize "VISAGE.RotationLock.On"}}</option>
-                </select>
+            {{! Disposition }}
+            <div class="form-group checkbox-input-group">
+                <input class="visage-checkbox" type="checkbox" name="disposition_active" data-action="toggleField" data-target="disposition" {{checked disposition.active}} />
+                <label>{{localize "VISAGE.Disposition.Label"}}</label>
+                <div class="visage-form-fields">
+                    <select name="disposition" {{disabled (not disposition.active)}}>
+                        <option value="1" {{visageSelected (eq disposition.value 1)}}>{{localize "VISAGE.Disposition.Friendly"}}</option>
+                        <option value="0" {{visageSelected (eq disposition.value 0)}}>{{localize "VISAGE.Disposition.Neutral"}}</option>
+                        <option value="-1" {{visageSelected (eq disposition.value -1)}}>{{localize "VISAGE.Disposition.Hostile"}}</option>
+                        <option value="-2" {{visageSelected (eq disposition.value -2)}}>{{localize "VISAGE.Disposition.Secret"}}</option>
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <hr class="visage-divider" />
+            {{!
+                Rotation lock and mirroring are three-state values: forced on, forced off, or inherited
+                from the token (null). The checkbox chooses between overriding and inheriting; the select
+                only offers the two forced states. While the checkbox is cleared the select is disabled,
+                so it is left out of the form data and the editor saves null (inherit).
+            }}
 
-        {{! Mirroring }}
-        <fieldset class="visage-fieldset">
-            <legend>{{localize "VISAGE.GlobalEditor.Mirroring"}}</legend>
+            {{! Rotation Lock }}
+            <div class="form-group checkbox-input-group">
+                <input class="visage-checkbox" type="checkbox" name="lockRotation_active" data-action="toggleField" data-target="lockRotation" {{checked lockRotation.active}} />
+                <label>{{localize "VISAGE.RotationLock.Label"}}</label>
+                <div class="visage-form-fields">
+                    <select name="lockRotation" {{disabled (not lockRotation.active)}}>
+                        <option value="false" {{visageSelected (eq lockRotation.value "false")}}>{{localize "VISAGE.RotationLock.Off"}}</option>
+                        <option value="true" {{visageSelected (eq lockRotation.value "true")}}>{{localize "VISAGE.RotationLock.On"}}</option>
+                    </select>
+                </div>
+            </div>
 
             <div class="form-group checkbox-input-group">
                 <input class="visage-checkbox" type="checkbox" name="isFlippedX_active" data-action="toggleField" data-target="isFlippedX" {{checked isFlippedX.active}} />
-                <label>{{localize "VISAGE.Mirror.Label.Horizontal"}}</label>
+                <label>{{localize "VISAGE.Editor.Token.MirrorHorizontal"}}</label>
                 <div class="visage-form-fields">
                     <select name="isFlippedX" {{disabled (not isFlippedX.active)}}>
                         <option value="false" {{visageSelected (eq isFlippedX.value false)}}>{{localize "VISAGE.Mirror.Option.Standard"}}</option>
@@ -220,7 +253,7 @@
 
             <div class="form-group checkbox-input-group">
                 <input class="visage-checkbox" type="checkbox" name="isFlippedY_active" data-action="toggleField" data-target="isFlippedY" {{checked isFlippedY.active}} />
-                <label>{{localize "VISAGE.Mirror.Label.Vertical"}}</label>
+                <label>{{localize "VISAGE.Editor.Token.MirrorVertical"}}</label>
                 <div class="visage-form-fields">
                     <select name="isFlippedY" {{disabled (not isFlippedY.active)}}>
                         <option value="false" {{visageSelected (eq isFlippedY.value false)}}>{{localize "VISAGE.Mirror.Option.Standard"}}</option>
@@ -228,23 +261,31 @@
                     </select>
                 </div>
             </div>
-        </fieldset>
+        </div>
+    </details>
 
-        <hr class="visage-divider" />
-
-        <div class="form-group checkbox-input-group">
-            <input type="checkbox" name="animateTransition_active" class="visage-checkbox" data-action="toggleField" data-target="animateTransition" {{checked animateTransition.active}} />
-            <label>
-                {{localize "VISAGE.GlobalEditor.AnimateTransition"}}
-                <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.GlobalEditor.AnimateTransitionHint'}}"></i>
-            </label>
-            <div class="visage-form-fields">
-                <select name="animateTransition" {{disabled (not animateTransition.active)}}>
-                    <option value="true" {{visageSelected (eq animateTransition.value "true")}}>{{localize "VISAGE.GlobalEditor.Yes"}}</option>
-                    <option value="false" {{visageSelected (eq animateTransition.value "false")}}>{{localize "VISAGE.GlobalEditor.No"}}</option>
-                </select>
+    <details class="visage-section" data-section="token-transition" open>
+        <summary class="visage-section-summary">
+            <span class="visage-section-heading">
+                <span class="visage-section-title">{{localize "VISAGE.Editor.Sections.Transition"}}</span>
+                <span class="visage-section-count" hidden></span>
+            </span>
+            <span class="visage-section-chips"></span>
+        </summary>
+        <div class="visage-section-body">
+            <div class="form-group checkbox-input-group">
+                <input type="checkbox" name="animateTransition_active" class="visage-checkbox" data-action="toggleField" data-target="animateTransition" {{checked animateTransition.active}} />
+                <label>
+                    {{localize "VISAGE.GlobalEditor.AnimateTransition"}}
+                    <i class="visage-icon info" data-tooltip="{{localize 'VISAGE.GlobalEditor.AnimateTransitionHint'}}"></i>
+                </label>
+                <div class="visage-form-fields">
+                    <select name="animateTransition" {{disabled (not animateTransition.active)}}>
+                        <option value="true" {{visageSelected (eq animateTransition.value "true")}}>{{localize "VISAGE.GlobalEditor.Yes"}}</option>
+                        <option value="false" {{visageSelected (eq animateTransition.value "false")}}>{{localize "VISAGE.GlobalEditor.No"}}</option>
+                    </select>
+                </div>
             </div>
         </div>
-
-    </div>
-</div>
+    </details>
+</section>

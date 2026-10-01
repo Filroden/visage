@@ -27,5 +27,6 @@
     "VISAGE.Dialog.SanitizeSelected.Title": "Sanitise Selected Token Lights",
     "VISAGE.Dialog.SanitizeWorld.Title": "Sanitise ALL Token Lights",
 
-    "_comment": "Updated to v5.5.1"
+    "_comment": "Updated to v5.5.1",
+    "VISAGE.Editor.Sections.Colors": "Colours"
 }

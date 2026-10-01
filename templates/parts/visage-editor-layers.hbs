@@ -1,0 +1,140 @@
+{{!--
+    LAYERS LIST
+    Doubles as a summary of the Visage and as its navigation: selecting a row shows that layer's
+    settings in the panel on the right. Groups follow the order things are drawn on the canvas,
+    with audio and the layers that cannot be previewed at the end.
+
+    The token's own children (Dynamic Ring and Light Source) always exist and cannot be deleted;
+    their eye switches them on or off. The eye on an effect row is a quick way to switch it on or
+    off in the preview, and a disabled effect is not saved, so it also works as a soft delete.
+--}}
+<aside class="visage-layers-panel" aria-label="{{localize 'VISAGE.Editor.Layers.Title'}}">
+    <div class="visage-panel-header">
+        <span class="visage-panel-title">{{localize "VISAGE.Editor.Layers.Title"}}</span>
+
+        <button type="button" class="visage-icon-btn" data-action="openTimeline" data-tooltip="{{localize 'VISAGE.Editor.Timeline.Open'}}" aria-label="{{localize 'VISAGE.Editor.Timeline.Open'}}" {{#unless inspector.hasEffects}}disabled{{/unless}}>
+            <i class="visage-icon timeline"></i>
+        </button>
+
+        {{!-- Add menu. A details element opens and closes the list without any script; the editor
+              closes it again when a click lands outside it. --}}
+        <details class="visage-add-menu">
+            <summary class="visage-icon-btn" data-tooltip="{{localize 'VISAGE.Editor.Layers.Add'}}" aria-label="{{localize 'VISAGE.Editor.Layers.Add'}}">
+                <i class="visage-icon add"></i>
+            </summary>
+            <div class="visage-add-menu-list" role="menu">
+                {{#if hasSequencer}}
+                    <button type="button" role="menuitem" data-action="addVisual">
+                        <i class="visage-icon visual"></i> {{localize "VISAGE.Editor.Layers.AddVisual"}}
+                    </button>
+                {{/if}}
+                <button type="button" role="menuitem" data-action="addAudio">
+                    <i class="visage-icon audio"></i> {{localize "VISAGE.Editor.Layers.AddAudio"}}
+                </button>
+                {{#if hasTmfx}}
+                    <button type="button" role="menuitem" data-action="addTmfx">
+                        <i class="visage-icon filter-fx"></i> {{localize "VISAGE.Editor.Layers.AddTmfx"}}
+                    </button>
+                {{/if}}
+                <button type="button" role="menuitem" data-action="addMacro">
+                    <i class="visage-icon macro"></i> {{localize "VISAGE.Editor.Layers.AddMacro"}}
+                </button>
+                <p class="visage-add-menu-note">{{localize "VISAGE.Editor.Layers.AddNote"}}</p>
+            </div>
+        </details>
+    </div>
+
+    <div class="visage-layers-list visage-scrollable">
+
+        {{!-- Above the token --}}
+        {{#if layers.above.length}}
+            <div class="visage-layer-group" data-group="above">
+                <h3 class="visage-layer-group-title">{{localize "VISAGE.Editor.Effects.Above"}}</h3>
+                {{#each layers.above}}
+                    {{> "modules/visage/templates/parts/visage-effectCard.hbs" this}}
+                {{/each}}
+            </div>
+        {{/if}}
+
+        {{!-- The token and its children --}}
+        <div class="visage-layer-group" data-group="token">
+            <h3 class="visage-layer-group-title">{{localize "VISAGE.Editor.Layers.Token"}}</h3>
+
+            <div class="visage-layer visage-layer-token {{#if (eq selectedLayer 'token')}}selected{{/if}}" data-layer="token">
+                <button type="button" class="visage-layer-select" data-action="selectToken" aria-pressed="{{#if (eq selectedLayer 'token')}}true{{else}}false{{/if}}">
+                    <i class="visage-icon id-card visage-layer-icon"></i>
+                    <span class="visage-layer-text">
+                        <span class="visage-layer-name">{{localize "VISAGE.Editor.Layers.TokenAppearance"}}</span>
+                        {{!-- Filled in by the editor from the ticked properties --}}
+                        <span class="visage-layer-meta visage-token-override-count"></span>
+                    </span>
+                </button>
+            </div>
+
+            <div class="visage-layer visage-layer-child {{#if (eq selectedLayer 'ring')}}selected{{/if}} {{#unless ring.active}}visage-disabled{{/unless}}" data-layer="ring">
+                <button type="button" class="visage-layer-select" data-action="editRing" aria-pressed="{{#if (eq selectedLayer 'ring')}}true{{else}}false{{/if}}">
+                    <i class="visage-icon ring visage-layer-icon"></i>
+                    <span class="visage-layer-text">
+                        <span class="visage-layer-name">{{localize "VISAGE.Editor.Tabs.Ring"}}</span>
+                        <span class="visage-layer-meta">{{#unless ring.active}}{{localize "VISAGE.Editor.Layers.Off"}}{{/unless}}</span>
+                    </span>
+                </button>
+                <button type="button" class="visage-layer-eye" data-action="toggleRing" aria-pressed="{{#if ring.active}}true{{else}}false{{/if}}" data-tooltip="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}" aria-label="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}">
+                    <i class="visage-icon {{#if ring.active}}visible{{else}}visage-hidden{{/if}}"></i>
+                </button>
+            </div>
+
+            <div class="visage-layer visage-layer-child {{#if (eq selectedLayer 'light')}}selected{{/if}} {{#unless light.active}}visage-disabled{{/unless}}" data-layer="light">
+                <button type="button" class="visage-layer-select" data-action="editLight" aria-pressed="{{#if (eq selectedLayer 'light')}}true{{else}}false{{/if}}">
+                    <i class="visage-icon light visage-layer-icon"></i>
+                    <span class="visage-layer-text">
+                        <span class="visage-layer-name">{{localize "VISAGE.Editor.Light.Title"}}</span>
+                        <span class="visage-layer-meta">
+                            {{#if light.active}}
+                                {{light.dim}} / {{light.bright}}
+                            {{else}}
+                                {{localize "VISAGE.Editor.Layers.Off"}}
+                            {{/if}}
+                        </span>
+                    </span>
+                    {{#if light.active}}<span class="visage-color-dot" style="background-color: {{light.color}};"></span>{{/if}}
+                </button>
+                <button type="button" class="visage-layer-eye" data-action="toggleLight" aria-pressed="{{#if light.active}}true{{else}}false{{/if}}" data-tooltip="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}" aria-label="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}">
+                    <i class="visage-icon {{#if light.active}}visible{{else}}visage-hidden{{/if}}"></i>
+                </button>
+            </div>
+        </div>
+
+        {{!-- Below the token --}}
+        {{#if layers.below.length}}
+            <div class="visage-layer-group" data-group="below">
+                <h3 class="visage-layer-group-title">{{localize "VISAGE.Editor.Effects.Below"}}</h3>
+                {{#each layers.below}}
+                    {{> "modules/visage/templates/parts/visage-effectCard.hbs" this}}
+                {{/each}}
+            </div>
+        {{/if}}
+
+        {{!-- Audio (previewed in the editor) --}}
+        {{#if layers.audio.length}}
+            <div class="visage-layer-group" data-group="audio">
+                <h3 class="visage-layer-group-title">{{localize "VISAGE.Editor.Layers.Audio"}}</h3>
+                {{#each layers.audio}}
+                    {{> "modules/visage/templates/parts/visage-effectCard.hbs" this}}
+                {{/each}}
+            </div>
+        {{/if}}
+
+        {{!-- TokenMagic filters and macros (not shown in the preview) --}}
+        {{#if layers.hidden.length}}
+            <div class="visage-layer-group" data-group="hidden">
+                <h3 class="visage-layer-group-title">{{localize "VISAGE.Editor.Layers.NotPreviewed"}}</h3>
+                {{#each layers.hidden}}
+                    {{> "modules/visage/templates/parts/visage-effectCard.hbs" this}}
+                {{/each}}
+            </div>
+        {{/if}}
+
+        <p class="visage-layers-hint">{{localize "VISAGE.Editor.Layers.DropMacroHint"}}</p>
+    </div>
+</aside>

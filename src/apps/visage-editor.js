@@ -18,6 +18,7 @@
 import { VisageData } from "../data/visage-data.js";
 import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageDragDropManager } from "./helpers/visage-drag-drop.js";
+import { VisageSettingsSections } from "./helpers/visage-settings-sections.js";
 import { VisageMediaController } from "./helpers/visage-media-controller.js";
 import { VisageAttributePicker } from "./helpers/visage-attribute-picker.js";
 import { VisageMediaTimeline } from "./helpers/visage-media-timeline.js";
@@ -31,6 +32,29 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /** How long the preview waits after a slider stops moving before it refreshes, in milliseconds. */
 const SLIDER_PREVIEW_DEBOUNCE_MS = 50;
+
+/** Multiplier between a 0 to 1 fraction and a percentage. */
+const PERCENT = 100;
+
+/** The two views of the editor's workstation. */
+const EDITOR_VIEWS = Object.freeze({ DESIGN: "design", AUTOMATION: "automation" });
+
+/** The layers that can be selected in the Layers list. */
+const LAYERS = Object.freeze({ TOKEN: "token", RING: "ring", LIGHT: "light", EFFECT: "effect" });
+
+/** Effect types whose playback can loop. */
+const LOOPABLE_EFFECT_TYPES = new Set(["visual", "audio"]);
+
+/** Icon class for each effect type in the Layers list and the settings header. */
+const EFFECT_ICONS = Object.freeze({
+    visual: "visage-icon visual",
+    audio: "visage-icon audio",
+    tmfx: "visage-icon filter-fx",
+    macro: "visage-icon macro",
+});
+
+/** Form fields whose change has to re-render the editor (they change which fields or rows exist). */
+const RERENDER_FIELDS = new Set(["inspector.eventId", "inspector.dataType", "inspector.mode", "effectZIndex"]);
 
 // ============================================================================
 // MAIN APPLICATION: VISAGE EDITOR
@@ -70,8 +94,14 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
         this._dragDropManager = new VisageDragDropManager(this);
         this._mediaController = new VisageMediaController();
+        this._sections = new VisageSettingsSections();
 
-        // Data Persistence & Inspector State
+        // Which view the workstation shows: "design" (layers, stage and settings) or
+        // "automation" (automation and stage). Kept here so it survives re-renders.
+        this._editorView = EDITOR_VIEWS.DESIGN;
+
+        // Data Persistence & Layer Selection State. At most one of these selects a layer; when
+        // none does, the Token layer is selected (see _selectedLayer).
         this._preservedData = null;
         this._effects = null;
         this._activeEffectId = null;
@@ -106,8 +136,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             minimizable: true,
             contentClasses: ["standard-form"],
         },
-        position: { width: 960, height: "auto" },
-        tabGroups: { primary: "appearance" },
+        position: { width: 1200, height: "auto" },
         form: { handler: VisageEditor, submitOnChange: false, closeOnSubmit: false },
         actions: {
             save: VisageEditor.prototype._onSave,
@@ -121,7 +150,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             addVisual: VisageEditor.prototype._onAddVisual,
             addAudio: VisageEditor.prototype._onAddAudio,
             editEffect: VisageEditor.prototype._onEditEffect,
-            closeEffectInspector: VisageEditor.prototype._onCloseEffectInspector,
+            selectToken: VisageEditor.prototype._onSelectToken,
+            setEditorView: VisageEditor.prototype._onSetEditorView,
+            toggleAllSections: VisageEditor.prototype._onToggleAllSections,
             deleteEffect: VisageEditor.prototype._onDeleteEffect,
             toggleEffect: VisageEditor.prototype._onToggleEffect,
             toggleLoop: VisageEditor.prototype._onToggleLoop,
@@ -149,7 +180,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     static PARTS = {
         form: {
             template: "modules/visage/templates/visage-editor.hbs",
-            scrollable: [".visage-editor-grid"],
+            // Scroll positions kept across re-renders, so selecting a layer does not jump the lists
+            scrollable: [".visage-layers-list", ".visage-inspector-panel", ".visage-automation-panel .view-list .visage-effect-list", ".visage-automation-panel .view-inspector"],
         },
     };
 
@@ -239,8 +271,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._automationData.conditions.forEach((c) => this._formatConditionSummary(c));
         }
 
-        const activeTab = this.tabGroups?.primary || "appearance";
-
         return {
             ...context,
             isEdit: !!this.visageId,
@@ -254,11 +284,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             tagsString: (data.tags || []).join(","),
             mode: data.mode || (this.isLocal ? "identity" : "overlay"),
             appId: this.id,
-            tabs: {
-                appearance: { active: activeTab === "appearance" },
-                effects: { active: activeTab === "effects" },
-                triggers: { active: activeTab === "triggers" },
-            },
+            isAutomationView: this._editorView === EDITOR_VIEWS.AUTOMATION,
+            selectedLayer: this._selectedLayer,
+            layers: this._buildLayersContext(),
             img: prep(rawImg, ""),
             portrait: prep(c.portrait, ""),
             light: {
@@ -407,6 +435,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // --- 1. ROOT EVENT DELEGATION (Execute Once) ---
         if (!this._rootListenersBound) {
             this._dragDropManager.bind(this.element);
+            this._sections.bind(this.element);
+            this._bindAddMenuDismissal();
 
             // --- Global Drag & Drop for External Foundry Documents ---
             this.element.addEventListener("dragover", (e) => e.preventDefault());
@@ -466,10 +496,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Bind Sub-systems
         this._bindTagInput();
 
+        // Settings panel: restore which sections were collapsed and fill in their summaries
+        this._sections.restore(this.element);
+        this._refreshOverrideSummaries();
+
         // Viewport Init
-        if (this._activeEffectId || this._editingLight || this._editingRing) {
-            this.element.querySelector(".effects-tab-container")?.classList.add("editing");
-        }
         if (this._activeConditionId) {
             this.element.querySelector(".triggers-tab-container")?.classList.add("editing");
         }
@@ -533,15 +564,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // If the user changes an Inspector type/mode, fully re-render to swap the dynamic form fields
-        const triggerNames = ["inspector.eventId", "inspector.dataType", "inspector.mode"];
-        if (triggerNames.includes(event.target.name)) {
+        // Some fields change which form fields or layer rows exist (an automation condition's
+        // type, or which side of the token an effect is drawn), so the editor re-renders
+        if (RERENDER_FIELDS.has(event.target.name)) {
             this.render();
             return;
         }
 
-        // For all other standard changes, fast-update the preview
+        // For all other standard changes, fast-update the preview and the section summaries
         this._updatePreview();
+        this._refreshOverrideSummaries();
     }
 
     // --- Private Context Builders ---
@@ -620,41 +652,109 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * The layer whose settings are shown: the ring, the light, an effect, or (when none of
+     * those is selected) the token itself. An effect id that no longer exists, for example after
+     * the effect was deleted, falls back to the token.
+     *
+     * @returns {string} One of LAYERS.
+     */
+    get _selectedLayer() {
+        if (this._editingRing) return LAYERS.RING;
+        if (this._editingLight) return LAYERS.LIGHT;
+        if (this._activeEffectId && this._effects?.some((e) => e.id === this._activeEffectId)) return LAYERS.EFFECT;
+        return LAYERS.TOKEN;
+    }
+
+    /**
+     * Selects a layer, clearing every other selection, and re-renders.
+     *
+     * @param {string} layer - One of LAYERS.
+     * @param {string|null} [effectId=null] - The effect to select when layer is LAYERS.EFFECT.
+     */
+    _selectLayer(layer, effectId = null) {
+        this._editingRing = layer === LAYERS.RING;
+        this._editingLight = layer === LAYERS.LIGHT;
+        this._activeEffectId = layer === LAYERS.EFFECT ? effectId : null;
+        this._editorView = EDITOR_VIEWS.DESIGN;
+        this.render();
+    }
+
+    /**
+     * Groups the effects for the Layers list in the order they are drawn: above the token, below
+     * the token, then audio, then the layers that cannot be previewed (TokenMagic filters and
+     * macros). Within a group, effects keep their order in the effect array.
+     *
+     * @returns {{above: object[], below: object[], audio: object[], hidden: object[]}}
+     */
+    _buildLayersContext() {
+        const rows = (this._effects || []).map((e) => this._formatEffectRow(e));
+        return {
+            above: rows.filter((row) => row.group === "above"),
+            below: rows.filter((row) => row.group === "below"),
+            audio: rows.filter((row) => row.group === "audio"),
+            hidden: rows.filter((row) => row.group === "hidden"),
+        };
+    }
+
+    /**
+     * Prepares one effect for its row in the Layers list.
+     * @private
+     */
+    _formatEffectRow(effect) {
+        return {
+            ...effect,
+            group: this._getEffectGroup(effect),
+            icon: EFFECT_ICONS[effect.type] ?? EFFECT_ICONS.visual,
+            metaLabel: this._getEffectMetaText(effect),
+            selected: effect.id === this._activeEffectId,
+        };
+    }
+
+    /**
+     * The Layers list group an effect belongs to.
+     * @private
+     */
+    _getEffectGroup(effect) {
+        if (effect.type === "visual") return effect.zOrder === "below" ? "below" : "above";
+        if (effect.type === "audio") return "audio";
+        return "hidden";
+    }
+
+    /**
+     * The title, icon and header controls of the settings panel for the selected layer.
+     * @private
+     */
+    _buildSettingsHeaderContext(effect) {
+        if (this._editingRing) {
+            return { icon: "visage-icon ring", title: game.i18n.localize("VISAGE.Editor.Tabs.Ring"), isOff: !this._ringData.enabled };
+        }
+        if (this._editingLight) {
+            return { icon: "visage-icon light", title: game.i18n.localize("VISAGE.Editor.Light.Title"), isOff: !this._lightData.active };
+        }
+        if (!effect) return {};
+
+        return {
+            icon: EFFECT_ICONS[effect.type] ?? EFFECT_ICONS.visual,
+            title: effect.label || game.i18n.localize("VISAGE.Editor.Effects.SettingsTitle"),
+            canLoop: LOOPABLE_EFFECT_TYPES.has(effect.type),
+            disabled: !!effect.disabled,
+            isOff: !!effect.disabled,
+            // A switched-off effect is left out when the Visage is saved (a soft delete), unlike
+            // the ring and light, which keep their settings while off
+            offNote: "VISAGE.Editor.Layers.EffectOffNote",
+        };
+    }
+
     _buildInspectorContext() {
-        const getEffectIcon = (type) => {
-            if (type === "audio") return "visage-icon audio";
-            if (type === "macro") return "visage-icon macro";
-            if (type === "tmfx") return "visage-icon magic-wand";
-            return "visage-icon visual";
-        };
-
-        const formatEffect = (e) => {
-            let metaLabel;
-            if (e.type === "audio") {
-                metaLabel = `${game.i18n.localize("VISAGE.Editor.Effects.Volume")}: ${Math.round((e.opacity ?? 1) * 100)}%`;
-            } else if (e.type === "macro") {
-                metaLabel = e.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID");
-            } else if (e.type === "tmfx") {
-                metaLabel = e.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset");
-            } else {
-                metaLabel = `${e.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above")} • ${Math.round((e.scale ?? 1) * 100)}%`;
-            }
-            return {
-                ...e,
-                icon: getEffectIcon(e.type),
-                metaLabel,
-            };
-        };
-
         const inspectorData = {
+            // Enables the timeline button: there is something with timing to show
             hasEffects: this._effects.length > 0 || this._lightData.active || this._ringData.enabled,
-            effectsAbove: this._effects.filter((e) => e.type === "visual" && e.zOrder === "above").map(formatEffect),
-            effectsBelow: this._effects.filter((e) => e.type === "visual" && e.zOrder === "below").map(formatEffect),
-            effectsAudio: this._effects.filter((e) => e.type === "audio").map(formatEffect),
-            effectsMacro: this._effects.filter((e) => e.type === "macro").map(formatEffect),
-            effectsTmfx: this._effects.filter((e) => e.type === "tmfx").map(formatEffect), // <-- ADD THIS LINE
             type: null,
         };
+
+        const selectedEffect = this._editingRing || this._editingLight ? null : this._effects.find((e) => e.id === this._activeEffectId);
+        Object.assign(inspectorData, this._buildSettingsHeaderContext(selectedEffect));
 
         if (this._editingRing) inspectorData.type = "ring";
         else if (this._editingLight) {
@@ -1258,6 +1358,38 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this._markDirty();
         this._updatePreview();
+        this._refreshOverrideSummaries();
+    }
+
+    /**
+     * Updates the section counts and chips in the Token settings, and the number of changes
+     * shown on the Token row of the Layers list.
+     * @private
+     */
+    _refreshOverrideSummaries() {
+        const tokenPanel = this.element.querySelector('.visage-layer-settings[data-layer="token"]');
+        if (!tokenPanel) return;
+
+        this._sections.refresh(tokenPanel);
+
+        const count = VisageSettingsSections.countOverrides(tokenPanel);
+        const label = this.element.querySelector(".visage-token-override-count");
+        if (label) {
+            label.textContent = count ? game.i18n.format("VISAGE.Editor.Layers.Changes", { count }) : game.i18n.localize("VISAGE.Editor.Layers.NoChanges");
+        }
+    }
+
+    /**
+     * Closes the Layers list's add menu when a click lands outside it. Bound once on the root
+     * element. The menu is a details element, which otherwise stays open until its own toggle is
+     * clicked again.
+     * @private
+     */
+    _bindAddMenuDismissal() {
+        this.element.addEventListener("click", (event) => {
+            const menu = this.element.querySelector(".visage-add-menu[open]");
+            if (menu && !menu.contains(event.target)) menu.open = false;
+        });
     }
 
     async _onOpenFilePicker(event, target) {
@@ -1309,25 +1441,19 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     // -- Sub-Editors --
+    /**
+     * Switches the Dynamic Ring on or off. The ring always exists as a layer, so switching it off
+     * keeps its settings and leaves it selectable.
+     */
     _onToggleRing() {
         if (!this._ringData) return;
         this._ringData.enabled = !this._ringData.enabled;
-
-        if (!this._ringData.enabled && this._editingRing) {
-            this._editingRing = false;
-            this._onCloseEffectInspector();
-        } else {
-            this._markDirty();
-            this.render();
-        }
+        this._markDirty();
+        this.render();
     }
 
     _onEditRing() {
-        this._editingRing = true;
-        this._editingLight = false;
-        this._activeEffectId = null;
-        this._activeConditionId = null;
-        this.render();
+        this._selectLayer(LAYERS.RING);
     }
 
     _onToggleLight() {
@@ -1339,11 +1465,47 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onEditLight() {
-        this._editingLight = true;
-        this._editingRing = false;
-        this._activeEffectId = null;
-        this._activeConditionId = null;
-        this.render();
+        this._selectLayer(LAYERS.LIGHT);
+    }
+
+    _onSelectToken() {
+        this._selectLayer(LAYERS.TOKEN);
+    }
+
+    /**
+     * Switches the workstation between the Design view (layers, stage and settings) and the
+     * Automation view (automation and stage). Only classes change, without a re-render: both
+     * views stay in the form, so nothing needs rebuilding.
+     */
+    _onSetEditorView(event, target) {
+        const view = target.dataset.view === EDITOR_VIEWS.AUTOMATION ? EDITOR_VIEWS.AUTOMATION : EDITOR_VIEWS.DESIGN;
+        if (view === this._editorView) return;
+
+        this._editorView = view;
+        this._applyEditorView();
+    }
+
+    /**
+     * Brings the container class and the view switch buttons in line with _editorView.
+     * @private
+     */
+    _applyEditorView() {
+        const isAutomation = this._editorView === EDITOR_VIEWS.AUTOMATION;
+        const container = this.element.querySelector(".visage-editor-container");
+        container?.classList.toggle("mode-automation", isAutomation);
+        container?.classList.toggle("mode-design", !isAutomation);
+
+        for (const button of this.element.querySelectorAll('[data-action="setEditorView"]')) {
+            const isCurrent = button.dataset.view === this._editorView;
+            button.classList.toggle("active", isCurrent);
+            button.setAttribute("aria-pressed", String(isCurrent));
+        }
+    }
+
+    /** Collapses every section in the settings panel, or expands them all if all are collapsed. */
+    _onToggleAllSections(event, target) {
+        const panel = target.closest(".visage-layer-settings");
+        if (panel) this._sections.toggleAll(panel);
     }
 
     _onToggleAutomation(event, target) {
@@ -1385,10 +1547,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         this._automationData.conditions.push(newCondition);
+        this._editorView = EDITOR_VIEWS.AUTOMATION;
         this._activeConditionId = newCondition.id;
-        this._activeEffectId = null;
-        this._editingLight = false;
-        this._editingRing = false;
 
         // Ensure UI focuses the inspector
         this.element.querySelector(".triggers-tab-container")?.classList.add("editing");
@@ -1399,9 +1559,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onEditCondition(event, target) {
         this._activeConditionId = target.closest(".effect-card").dataset.id;
-        this._activeEffectId = null;
-        this._editingLight = false;
-        this._editingRing = false;
         this.render();
     }
 
@@ -1510,10 +1667,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
 
         this._effects.push(newEffect);
-        this._activeEffectId = newEffect.id;
-        this._activeConditionId = null;
         this._markDirty();
-        this.render();
+        this._selectLayer(LAYERS.EFFECT, newEffect.id);
     }
 
     _onAddAudio() {
@@ -1530,10 +1685,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             fadeOut: 0,
         };
         this._effects.push(newEffect);
-        this._activeEffectId = newEffect.id;
-        this._activeConditionId = null;
         this._markDirty();
-        this.render();
+        this._selectLayer(LAYERS.EFFECT, newEffect.id);
     }
 
     _onAddTmfx() {
@@ -1547,12 +1700,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             disabled: false,
         };
         this._effects.push(newEffect);
-        this._activeEffectId = newEffect.id;
-        this._activeConditionId = null;
-        this._editingLight = false;
-        this._editingRing = false;
         this._markDirty();
-        this.render();
+        this._selectLayer(LAYERS.EFFECT, newEffect.id);
     }
 
     _onFormatTmfxPayload(_event, _target) {
@@ -1648,12 +1797,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             disabled: false,
         };
         this._effects.push(newEffect);
-        this._activeEffectId = newEffect.id;
-        this._activeConditionId = null;
-        this._editingLight = false;
-        this._editingRing = false;
         this._markDirty();
-        this.render();
+        this._selectLayer(LAYERS.EFFECT, newEffect.id);
     }
 
     async _onDropMacro(uuid) {
@@ -1674,29 +1819,29 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         };
 
         this._effects.push(newEffect);
-        this._activeEffectId = newEffect.id;
-        this._activeConditionId = null;
-        this._editingLight = false;
-        this._editingRing = false;
-
-        this.changeTab("effects", "primary");
-
         this._markDirty();
-        this.render({ force: true });
+        this._selectLayer(LAYERS.EFFECT, newEffect.id);
 
         ui.notifications.info(`Visage | Added Macro: ${macroDoc.name}`);
     }
 
+    /**
+     * The effect a layer row or settings header control belongs to. Controls carry the effect id
+     * in data-effect-id; anything inside a layer row can also find it on the row.
+     * @private
+     */
+    _getEffectFromTarget(target) {
+        const id = target.dataset.effectId || target.closest("[data-id]")?.dataset.id;
+        return this._effects.find((e) => e.id === id) ?? null;
+    }
+
     _onEditEffect(event, target) {
-        this._activeEffectId = target.closest(".effect-card").dataset.id;
-        this._editingLight = false;
-        this._editingRing = false;
-        this._activeConditionId = null;
-        this.render();
+        const effect = this._getEffectFromTarget(target);
+        if (effect) this._selectLayer(LAYERS.EFFECT, effect.id);
     }
 
     _onToggleEffect(event, target) {
-        const effect = this._effects.find((e) => e.id === target.closest(".effect-card").dataset.id);
+        const effect = this._getEffectFromTarget(target);
         if (effect) {
             effect.disabled = !effect.disabled;
             this._markDirty();
@@ -1705,7 +1850,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onToggleLoop(event, target) {
-        const effect = this._effects.find((e) => e.id === target.closest(".effect-card").dataset.id);
+        const effect = this._getEffectFromTarget(target);
         if (effect) {
             effect.loop = !(effect.loop ?? false);
             this._markDirty();
@@ -1714,7 +1859,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async _onDeleteEffect(event, target) {
-        const id = target.closest(".effect-card").dataset.id;
+        const id = this._getEffectFromTarget(target)?.id;
+        if (!id) return;
         const confirm = await foundry.applications.api.DialogV2.confirm({
             window: {
                 title: game.i18n.localize("VISAGE.Dialog.Destroy.Title"),
@@ -1735,14 +1881,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this._markDirty();
         this.render();
-    }
-
-    async _onCloseEffectInspector() {
-        this.element.querySelector(".effects-tab-container")?.classList.remove("editing");
-        this._activeEffectId = null;
-        this._editingLight = false;
-        this._editingRing = false;
-        await this.render();
     }
 
     _onReplayPreview(event, target) {
@@ -1799,11 +1937,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 return effect.uuid || game.i18n.localize("VISAGE.Editor.Effects.NoUUID");
             case "tmfx":
                 return effect.tmfxPreset || game.i18n.localize("VISAGE.Editor.Effects.TmfxPreset");
-            default: {
-                // Visual
-                const orderText = effect.zOrder === "below" ? game.i18n.localize("VISAGE.Editor.Effects.Below") : game.i18n.localize("VISAGE.Editor.Effects.Above");
-                return `${orderText} • ${Math.round((effect.scale ?? 1) * 100)}%`;
-            }
+            default:
+                // Visual. Above or below the token is shown by the row's group, so only the scale here.
+                return `${Math.round((effect.scale ?? 1) * PERCENT)}%`;
         }
     }
 
@@ -1814,10 +1950,11 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._lightData = { ...this._lightData, ...changes.light };
         if (!this._lightData.active) return;
 
-        const meta = this.element.querySelector('.effect-card.pinned-light[data-action="editLight"] .effect-meta');
-        if (meta) {
-            meta.textContent = `${this._lightData.dim} / ${this._lightData.bright} • ${this._lightData.color}`;
-        }
+        const row = this.element.querySelector('.visage-layer[data-layer="light"]');
+        const meta = row?.querySelector(".visage-layer-meta");
+        if (meta) meta.textContent = `${this._lightData.dim} / ${this._lightData.bright}`;
+        const dot = row?.querySelector(".visage-color-dot");
+        if (dot) dot.style.backgroundColor = this._lightData.color;
     }
 
     /** @private */
@@ -1827,14 +1964,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const activeEffect = this._effects.find((e) => e.id === this._activeEffectId);
         if (!activeEffect) return;
 
-        const card = this.element.querySelector(`.effect-card[data-id="${activeEffect.id}"]`);
-        if (card) {
-            const nameEl = card.querySelector(".effect-name");
+        const row = this.element.querySelector(`.visage-layer[data-id="${activeEffect.id}"]`);
+        if (row) {
+            const nameEl = row.querySelector(".visage-layer-name");
             if (nameEl) nameEl.textContent = activeEffect.label;
 
-            const metaEl = card.querySelector(".effect-meta");
+            const metaEl = row.querySelector(".visage-layer-meta");
             if (metaEl) metaEl.textContent = this._getEffectMetaText(activeEffect);
         }
+
+        // The settings header shows the effect's label as its title
+        const title = this.element.querySelector('.visage-layer-settings:not([data-layer="token"]) .visage-settings-title');
+        if (title && activeEffect.label) title.textContent = activeEffect.label;
     }
 
     async _buildPreviewTemplateData(changes) {
@@ -2005,6 +2146,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (img) {
                     if (slotData.src) img.src = slotData.src;
                     if (slotData.cls !== undefined) img.className = `visage-icon-nav ${slotData.cls}`;
+                }
+
+                // Whether this axis is flipped, as well as whether it is set at all
+                const state = container.querySelector(".visage-mirror-state");
+                if (state) {
+                    state.textContent = slotData.state ?? "";
+                    state.classList.toggle("flipped", !!slotData.flipped);
                 }
             }
         };

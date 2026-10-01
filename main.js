@@ -161,6 +161,7 @@ Hooks.once("init", () => {
             "modules/visage/templates/parts/visage-tile.hbs",
             "modules/visage/templates/parts/visage-editor-appearance.hbs",
             "modules/visage/templates/parts/visage-editor-effects.hbs",
+            "modules/visage/templates/parts/visage-editor-layers.hbs",
             "modules/visage/templates/parts/visage-editor-triggers.hbs",
             "modules/visage/templates/parts/visage-active-stack.hbs",
             "modules/visage/templates/parts/visage-local-grid.hbs",

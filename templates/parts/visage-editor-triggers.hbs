@@ -1,4 +1,4 @@
-<div class="tab triggers-tab-container {{#if inspector.active}}editing{{/if}} {{#if tabs.triggers.active}}active{{/if}}" data-tab="triggers" data-group="primary">
+<div class="triggers-tab-container {{#if inspector.conditionId}}editing{{/if}}">
     
     {{!-- VIEW 1: THE CONDITION LIST --}}
     <div class="visage-view view-list">
@@ -29,11 +29,11 @@
 
         {{!-- Actions & Logic Toggle --}}
         <div class="effects-actions {{#unless automation.enabled}}disabled-look{{/unless}}">
-            <div class="logic-toggle delay-direction-toggle" data-tooltip="VISAGE.Editor.Triggers.LogicHint">
-                <button type="button" class="delay-btn {{#if (eq automation.logic 'AND')}}active{{/if}}" data-action="toggleLogic" data-value="AND">
+            <div class="logic-toggle" data-tooltip="VISAGE.Editor.Triggers.LogicHint">
+                <button type="button" class="logic-toggle-btn {{#if (eq automation.logic 'AND')}}active{{/if}}" data-action="toggleLogic" data-value="AND">
                     {{localize "VISAGE.Editor.Triggers.LogicAnd"}}
                 </button>
-                <button type="button" class="delay-btn {{#if (eq automation.logic 'OR')}}active{{/if}}" data-action="toggleLogic" data-value="OR">
+                <button type="button" class="logic-toggle-btn {{#if (eq automation.logic 'OR')}}active{{/if}}" data-action="toggleLogic" data-value="OR">
                     {{localize "VISAGE.Editor.Triggers.LogicOr"}}
                 </button>
             </div>

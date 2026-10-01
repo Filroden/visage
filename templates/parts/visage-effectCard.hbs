@@ -1,37 +1,24 @@
-<div class="effect-card {{#if (eq activeId this.id)}}active{{/if}} {{#if this.disabled}}visage-disabled{{/if}}" 
-     data-id="{{this.id}}" 
+{{!--
+    One effect row in the Layers list. Selecting the row shows the effect's settings; loop and
+    delete live in that settings panel. The eye stays on the row so an effect can be switched on
+    or off in the preview without leaving the current layer.
+
+    Rows can be dragged to change their order within their own group. Moving an effect above or
+    below the token is done with the Layer setting instead, so dragging never changes that.
+--}}
+<div class="visage-layer {{#if this.selected}}selected{{/if}} {{#if this.disabled}}visage-disabled{{/if}}"
+     data-id="{{this.id}}"
      data-type="{{this.type}}"
+     data-group="{{this.group}}"
      draggable="true">
-    
-    {{!-- Drag Handle --}}
-    <div class="drag-handle"><i class="visage-icon kebab"></i></div>
-
-    <div class="effect-info" data-action="editEffect" data-effect-id="{{this.id}}">
-        <span class="effect-name">{{this.label}}</span>
-        <span class="effect-meta">
-            {{this.metaLabel}}
+    <button type="button" class="visage-layer-select" data-action="editEffect" data-effect-id="{{this.id}}" aria-pressed="{{#if this.selected}}true{{else}}false{{/if}}">
+        <i class="{{this.icon}} visage-layer-icon"></i>
+        <span class="visage-layer-text">
+            <span class="visage-layer-name">{{this.label}}</span>
+            <span class="visage-layer-meta">{{this.metaLabel}}</span>
         </span>
-    </div>
-
-    <div class="effect-controls">
-        {{!-- Loop Toggle (Hidden for Macros) --}}
-        {{#unless (or (eq this.type 'macro') (eq this.type 'tmfx'))}}
-            <button type="button" class="effect-btn {{#if this.loop}}active{{/if}}" 
-                    data-action="toggleLoop" 
-                    data-effect-id="{{this.id}}"
-                    data-tooltip="VISAGE.Editor.Effects.Loop">
-                <i class="visage-icon repeat"></i>
-            </button>
-        {{/unless}}
-        
-        {{!-- Visibility Toggle --}}
-        <button type="button" class="effect-btn toggle-visibility" data-action="toggleEffect" data-effect-id="{{this.id}}">
-            <i class="visage-icon {{#if this.disabled}}visage-hidden{{else}}visible{{/if}}"></i>
-        </button>
-        
-        {{!-- Delete --}}
-        <button type="button" class="effect-btn delete" data-action="deleteEffect" data-effect-id="{{this.id}}">
-            <i class="visage-icon delete"></i>
-        </button>
-    </div>
+    </button>
+    <button type="button" class="visage-layer-eye" data-action="toggleEffect" data-effect-id="{{this.id}}" aria-pressed="{{#if this.disabled}}false{{else}}true{{/if}}" data-tooltip="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}" aria-label="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}">
+        <i class="visage-icon {{#if this.disabled}}visage-hidden{{else}}visible{{/if}}"></i>
+    </button>
 </div>
