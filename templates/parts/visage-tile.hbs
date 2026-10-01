@@ -100,7 +100,7 @@
             {{#if this.automation.conditions.length}}
             <div class="visage-sidebar-glyph visage-automation-indicator {{#unless this.automation.enabled}}muted{{/unless}}" 
                 data-action="toggleAutomation"
-                data-tooltip="{{localize 'VISAGE.Editor.Triggers.AutomationTooltip'}}">
+                data-tooltip="{{this.meta.automationSummary}} {{localize 'VISAGE.Automation.Text.ClickToToggle'}}">
                 <i class="visage-icon power"></i>
             </div>
             {{/if}}
@@ -164,4 +164,4 @@
     {{!-- 3. LABEL --}}
     <span class="visage-tile-name" data-tooltip="{{this.label}}">{{this.label}}</span>
 
-</div>
+</div>

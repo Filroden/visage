@@ -26,6 +26,7 @@ import { VisageTokenMagic } from "../integrations/visage-tmfx.js";
 import { VisageDataModel } from "../data/visage-data-model.js";
 import { VisageDAT } from "../integrations/visage-dat.js";
 import { VisageRMU } from "../integrations/visage-rmu.js";
+import { VisageAutomationText } from "../core/visage-automation-text.js";
 import { VisageRangeDisplay } from "../utils/visage-range-display.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -54,7 +55,19 @@ const EFFECT_ICONS = Object.freeze({
 });
 
 /** Form fields whose change has to re-render the editor (they change which fields or rows exist). */
-const RERENDER_FIELDS = new Set(["inspector.eventId", "inspector.dataType", "inspector.mode", "effectZIndex"]);
+const RERENDER_FIELDS = new Set(["effectZIndex"]);
+
+/**
+ * Automation condition fields whose change has to re-render the editor: they change which other
+ * fields the condition's sentence needs. Condition fields are named condition.<id>.<field>.
+ */
+const RERENDER_CONDITION_FIELD = /^condition\.[^.]+\.(eventId|dataType|mode)$/;
+
+/** Prefix of every automation condition field name. */
+const CONDITION_FIELD_PREFIX = "condition.";
+
+/** Prefix the condition sync helpers expect, inherited from the single-condition inspector. */
+const CONDITION_SYNC_PREFIX = "inspector.";
 
 // ============================================================================
 // MAIN APPLICATION: VISAGE EDITOR
@@ -110,7 +123,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Automation Trackers
         this._automationData = null;
-        this._activeConditionId = null;
 
         // Sub-Data Containers for hidden UI components
         this._lightData = null;
@@ -165,9 +177,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleAutomation: VisageEditor.prototype._onToggleAutomation,
             toggleLogic: VisageEditor.prototype._onToggleLogic,
             addCondition: VisageEditor.prototype._onAddCondition,
-            editCondition: VisageEditor.prototype._onEditCondition,
             deleteCondition: VisageEditor.prototype._onDeleteCondition,
-            closeConditionInspector: VisageEditor.prototype._onCloseConditionInspector,
             openAttributePicker: VisageEditor.prototype._onOpenAttributePicker,
             toggleCondition: VisageEditor.prototype._onToggleCondition,
             openTimeline: VisageEditor.prototype._onOpenTimeline,
@@ -181,7 +191,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         form: {
             template: "modules/visage/templates/visage-editor.hbs",
             // Scroll positions kept across re-renders, so selecting a layer does not jump the lists
-            scrollable: [".visage-layers-list", ".visage-inspector-panel", ".visage-automation-panel .view-list .visage-effect-list", ".visage-automation-panel .view-inspector"],
+            scrollable: [".visage-layers-list", ".visage-inspector-panel", ".visage-automation-body"],
         },
     };
 
@@ -266,11 +276,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         // Extract DAT Flags
         const datFlags = c.flags?.["dylans-animated-tokens"];
 
-        // Format Condition Summaries
-        if (this._automationData?.conditions) {
-            this._automationData.conditions.forEach((c) => this._formatConditionSummary(c));
-        }
-
         return {
             ...context,
             isEdit: !!this.visageId,
@@ -304,6 +309,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             },
             inspector: inspectorData,
             automation: this._automationData,
+            automationConditions: this._buildConditionsContext(),
+            automationSummary: VisageAutomationText.describe(this._automationData),
             statusEffects: this._getStatusEffectOptions(),
             weatherEffects: this._getWeatherOptions(),
             scale: {
@@ -366,65 +373,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             isRMUActive: VisageRMU.isActive,
             rmu: this._rmuData,
         };
-    }
-
-    /**
-     * Formats the summary text for a given automation condition.
-     * @private
-     */
-    _formatConditionSummary(c) {
-        c.typeKey = `VISAGE.Editor.Triggers.Type${c.type.charAt(0).toUpperCase() + c.type.slice(1)}`;
-
-        if (c.type === "attribute") {
-            const opMap = { lte: "<=", gte: ">=", eq: "==", neq: "!=", lt: "<", gt: ">", includes: "contains" };
-            const modeStr = c.mode === "percent" ? "%" : "";
-            const displayValue = c.value !== null && c.value !== undefined ? c.value : 0;
-            c.summary = `${c.path || "..."} ${opMap[c.operator] || ""} ${displayValue}${modeStr}`;
-            return;
-        }
-
-        if (c.type === "status") {
-            c.summary = `${c.statusId || "..."} (${c.operator === "active" ? "Applied" : "Removed"})`;
-            return;
-        }
-
-        if (c.type === "event") {
-            this._formatEventConditionSummary(c);
-        }
-    }
-
-    /**
-     * Formats the summary text specifically for event-based conditions.
-     * @private
-     */
-    _formatEventConditionSummary(c) {
-        const id = c.eventId;
-        const isActive = c.operator === "active";
-
-        switch (id) {
-            case "elevation":
-            case "darkness": {
-                const opMap = { gt: ">", lt: "<", eq: "==" };
-                const op = opMap[c.operator] || "==";
-                c.summary = `${id} ${op} ${c.value || 0}`;
-                break;
-            }
-            case "region":
-                c.summary = `Region: ${c.regionId || "?"} (${isActive ? "Inside" : "Outside"})`;
-                break;
-            case "time":
-                c.summary = `${isActive ? "Between" : "Not Between"} ${c.startTime || "00:00"} & ${c.endTime || "00:00"}`;
-                break;
-            case "weather":
-                c.summary = `Weather: ${c.customWeather || c.weatherId || "?"} (${isActive ? "Active" : "Inactive"})`;
-                break;
-            case "facing":
-                c.summary = `Facing: ${c.startAngle}° to ${c.endAngle}° (${isActive ? "Inside" : "Outside"})`;
-                break;
-            default:
-                c.summary = `${id} (${isActive ? "Active" : "Inactive"})`;
-                break;
-        }
     }
 
     _onRender(context, _options) {
@@ -500,11 +448,6 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._sections.restore(this.element);
         this._refreshOverrideSummaries();
 
-        // Viewport Init
-        if (this._activeConditionId) {
-            this.element.querySelector(".triggers-tab-container")?.classList.add("editing");
-        }
-
         const tmfxArea = this.element.querySelector('textarea[name="effectTmfxPayload"]');
         if (tmfxArea && context.inspector?.tmfxPayload) {
             tmfxArea.value = context.inspector.tmfxPayload;
@@ -566,14 +509,17 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Some fields change which form fields or layer rows exist (an automation condition's
         // type, or which side of the token an effect is drawn), so the editor re-renders
-        if (RERENDER_FIELDS.has(event.target.name)) {
+        const name = event.target.name ?? "";
+        if (RERENDER_FIELDS.has(name) || RERENDER_CONDITION_FIELD.test(name)) {
             this.render();
             return;
         }
 
-        // For all other standard changes, fast-update the preview and the section summaries
-        this._updatePreview();
+        // For all other standard changes, fast-update the preview and the summaries. The preview
+        // reads the form back into the editor's data, so the automation sentence is rebuilt after it.
+        await this._updatePreview();
         this._refreshOverrideSummaries();
+        this._refreshAutomationSummary();
     }
 
     // --- Private Context Builders ---
@@ -809,14 +755,22 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                     inspectorData.scaleIn !== ""
                 );
             }
-        } else if (this._activeConditionId) {
-            const condition = this._automationData.conditions.find((c) => c.id === this._activeConditionId);
-            if (condition) {
-                inspectorData.conditionId = condition.id;
-                inspectorData.condition = condition;
-            }
         }
         return inspectorData;
+    }
+
+    /**
+     * The automation conditions prepared for their cards. Each gets the localisation key of its
+     * type for the card heading; the conditions themselves are left untouched, so nothing extra is
+     * saved with them.
+     *
+     * @returns {object[]}
+     */
+    _buildConditionsContext() {
+        return (this._automationData?.conditions ?? []).map((c) => ({
+            ...c,
+            typeKey: `VISAGE.Editor.Triggers.Type${c.type.charAt(0).toUpperCase()}${c.type.slice(1)}`,
+        }));
     }
 
     _buildStagePreviewContext(c, context) {
@@ -1115,7 +1069,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     _syncAutomationState(formData) {
         if (!this._automationData) return;
 
-        this._automationData.enabled = formData["automation.enabled"] ?? false;
+        // automation.enabled is not a form field: the power toggle changes it directly
+        // (_onToggleAutomation), so it is left alone here
 
         if (!this._automationData.onEnter) this._automationData.onEnter = { action: "apply", priority: 0 };
 
@@ -1127,11 +1082,29 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             this._automationData.onEnter.priority = formData["automation.onEnter.priority"];
         }
 
-        const renderedConditionId = formData["inspector.conditionId"];
-        if (!renderedConditionId) return;
+        // Every condition is edited in place, so each one is read back from its own fields
+        for (const cond of this._automationData.conditions) {
+            const fields = this._extractConditionFields(formData, cond.id);
+            if (fields) this._syncConditionState(cond, fields);
+        }
+    }
 
-        const cond = this._automationData.conditions.find((c) => c.id === renderedConditionId);
-        if (cond) this._syncConditionState(cond, formData);
+    /**
+     * Collects one condition's fields (named condition.<id>.<field>) under the names the
+     * condition sync helpers read (inspector.<field>), so those helpers serve every card.
+     *
+     * @param {object} formData - The flat form data.
+     * @param {string} id - The condition's id.
+     * @returns {object|null} The condition's fields, or null if none are in the form.
+     * @private
+     */
+    _extractConditionFields(formData, id) {
+        const prefix = `${CONDITION_FIELD_PREFIX}${id}.`;
+        const fields = {};
+        for (const [name, value] of Object.entries(formData)) {
+            if (name.startsWith(prefix)) fields[`${CONDITION_SYNC_PREFIX}${name.slice(prefix.length)}`] = value;
+        }
+        return Object.keys(fields).length ? fields : null;
     }
 
     /** @private */
@@ -1380,6 +1353,15 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
+     * Rewrites the automation "In words" sentence from the editor's current automation data.
+     * @private
+     */
+    _refreshAutomationSummary() {
+        const summary = this.element.querySelector(".visage-automation-summary-text");
+        if (summary) summary.textContent = VisageAutomationText.describe(this._automationData);
+    }
+
+    /**
      * Closes the Layers list's add menu when a click lands outside it. Bound once on the root
      * element. The menu is a details element, which otherwise stays open until its own toggle is
      * clicked again.
@@ -1508,9 +1490,13 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         if (panel) this._sections.toggleAll(panel);
     }
 
-    _onToggleAutomation(event, target) {
+    /**
+     * Switches automation on or off with the power toggle in the automation header. The rule
+     * itself stays editable either way.
+     */
+    _onToggleAutomation() {
         if (!this._automationData) return;
-        this._automationData.enabled = target.checked;
+        this._automationData.enabled = !this._automationData.enabled;
         this._markDirty();
         this.render();
     }
@@ -1548,35 +1534,18 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this._automationData.conditions.push(newCondition);
         this._editorView = EDITOR_VIEWS.AUTOMATION;
-        this._activeConditionId = newCondition.id;
-
-        // Ensure UI focuses the inspector
-        this.element.querySelector(".triggers-tab-container")?.classList.add("editing");
 
         this._markDirty();
-        this.render();
-    }
-
-    _onEditCondition(event, target) {
-        this._activeConditionId = target.closest(".effect-card").dataset.id;
         this.render();
     }
 
     _onDeleteCondition(event, target) {
-        event.stopPropagation(); // Prevent _onEditCondition from firing
-        const id = target.closest(".effect-card").dataset.id;
+        const id = target.closest("[data-condition-id]")?.dataset.conditionId;
+        if (!id) return;
 
         this._automationData.conditions = this._automationData.conditions.filter((c) => c.id !== id);
-        if (this._activeConditionId === id) this._activeConditionId = null;
-
         this._markDirty();
         this.render();
-    }
-
-    async _onCloseConditionInspector() {
-        this.element.querySelector(".triggers-tab-container")?.classList.remove("editing");
-        this._activeConditionId = null;
-        await this.render();
     }
 
     _onOpenAttributePicker(event, target) {
@@ -1629,7 +1598,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onToggleCondition(event, target) {
-        const id = target.closest(".effect-card").dataset.id;
+        const id = target.closest("[data-condition-id]")?.dataset.conditionId;
         const condition = this._automationData.conditions.find((c) => c.id === id);
 
         if (condition) {

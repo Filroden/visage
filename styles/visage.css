@@ -2319,10 +2319,10 @@ li.context-item .visage-icon-domino {
     border-radius: var(--visage-radius-small);
 }
 
-/* Mirroring rows: the arrow turns to show the direction, and a flipped axis is highlighted */
-.visage .mirror-sub-slot img {
-    transform-origin: center;
-    transition: transform 0.2s ease;
+/* Mirroring rows: the vertical axis uses the mirror icon turned a quarter, and a flipped axis
+   is highlighted */
+.visage .mirror-sub-slot .visage-flip-vertical {
+    transform: rotate(90deg);
 }
 
 .visage .visage-mirror-state.flipped {
@@ -2340,15 +2340,6 @@ li.context-item .visage-icon-domino {
     overflow-y: auto;
     background: var(--visage-bg-base);
     border-inline-start: 1px solid var(--visage-border-focus);
-}
-
-/* Clean up fieldsets inside inspector */
-.visage .inspector-fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
-    background: transparent;
-    box-shadow: none;
 }
 
 .visage .visage-missing-dependency {
@@ -2994,144 +2985,203 @@ li.context-item .visage-icon-domino {
     border-inline-end: 1px solid var(--visage-border-focus);
 }
 
-.visage .triggers-tab-container {
-    position: relative;
-    display: flex;
-    width: 100%;
-    height: 100%;
-    overflow: hidden; /* Hide the slide-out content */
-}
-
-.visage-view {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: var(--visage-space-m);
-    overflow-y: hidden;
-    scrollbar-gutter: stable;
-    background: var(--visage-bg-base);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.visage-effect-list {
-    padding: var(--visage-space-s);
-    overflow-y: auto;
-}
-
-/* State: Default (List visible, Inspector hidden to right) */
-.visage .view-list {
-    transform: translateX(0);
-    z-index: 1;
-}
-.visage .view-inspector {
-    transform: translateX(100%);
-    z-index: 2;
-    overflow-y: auto;
-}
-
-/* State: Editing (List hidden to left, Inspector visible) */
-.visage .triggers-tab-container.editing .view-list {
-    transform: translateX(-30%);
-    opacity: 0;
-}
-
-.visage .triggers-tab-container.editing .view-inspector {
-    transform: translateX(0);
-}
-
-/* --- View 1: Effect Stack --- */
-
-.visage .effect-group {
-    margin-block-end: var(--visage-space-m);
-    position: relative;
-    transition:
-        background-color 0.2s,
-        border-color 0.2s;
-    border-radius: var(--visage-radius-medium);
-    padding: var(--visage-space-xxs); /* Padding for the outline */
-    border: 1px solid transparent;
-}
-
-.visage .group-header {
-    display: flex;
-    align-items: center;
-    gap: var(--visage-space-s);
-
-    font-family: var(--visage-font-family);
-    font-size: var(--visage-font-size-xs);
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: var(--visage-letter-spacing-wide);
-    color: var(--visage-accent-main);
-
-    /* Background must be opaque for sticky behavior to hide content behind it */
-    background: var(--visage-bg-panel);
-    box-shadow: var(--visage-shadow-window);
-
-    margin: 0;
-    margin-block-end: var(--visage-space-m);
-    padding: var(--visage-space-xs) var(--visage-space-s);
-    border-block-end: 2px solid var(--visage-border-focus);
-    border-radius: var(--visage-radius-small);
-}
-
-/* Sticky positioning logic */
-.visage .group-header.sticky {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-}
-
-/* Icon styling within the header */
-.visage .group-header i {
-    color: var(--visage-accent-main);
-    font-size: 1.1em;
-}
-
-.visage .effects-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: var(--visage-space-s);
-    margin-block-end: var(--visage-space-m);
-    flex: 0 0 auto;
-}
-
-/* Target only direct children buttons (Add Visual, Add Attribute, etc) */
-.visage .effects-actions > button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: var(--visage-font-size-xs);
-}
-
-/* Automation Logic Toggle (Spans full width above the add buttons) */
-.visage .effects-actions .logic-toggle {
-    grid-column: 1 / -1;
-    width: 100%;
-}
-
-/* Make the AND / OR buttons share the toggle pill equally */
-.visage .effects-actions .logic-toggle button {
+/* The automation rule: a header with the on/off switch and priority, the lead sentence, one card
+   per condition, the add buttons and the rule in words */
+.visage .visage-automation {
     flex: 1;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
 }
 
-.visage .empty-placeholder {
+.visage .visage-automation-header {
     display: flex;
-    gap: var(--visage-space-s);
     align-items: center;
+    gap: var(--visage-size-8);
+    padding: var(--visage-size-10) var(--visage-size-16);
+    border-block-end: 1px solid var(--visage-border-main);
+    background: var(--visage-bg-panel);
 }
 
-.visage .effect-stack-list {
+.visage .visage-automation-enable {
+    font-size: var(--visage-size-16);
+    font-weight: bold;
+    color: var(--visage-text-main);
+    text-transform: none;
+}
+
+.visage .visage-automation-priority {
+    display: flex;
+    align-items: center;
+    gap: var(--visage-size-4);
+    margin: 0;
+}
+
+.visage .visage-automation-body {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: var(--visage-space-xs);
+    gap: var(--visage-size-10);
+    padding: var(--visage-size-16);
+    overflow-y: auto;
 }
+
+/* The power toggle reuses the Gallery card button (.visage-card-effect-indicator.automation);
+   these reset the general button styles and Foundry's own button sizing on it */
+.visage .visage-automation-header .visage-automation-toggle {
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 0;
+    line-height: 1;
+}
+
+.visage .visage-automation-off-note {
+    margin: var(--visage-size-10) var(--visage-size-16) 0;
+}
+
+.visage .visage-automation-lead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--visage-size-8);
+    margin: 0;
+    font-size: var(--visage-size-14);
+    line-height: var(--visage-line-height-body);
+    color: var(--visage-text-main);
+}
+
+.visage .visage-condition-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--visage-size-8);
+}
+
+.visage .visage-condition-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--visage-size-6);
+    padding: var(--visage-size-8) var(--visage-size-10);
+    border: 1px solid var(--visage-border-main);
+    border-radius: var(--visage-radius-medium);
+    background: var(--visage-bg-panel);
+}
+
+.visage .visage-condition-card.visage-disabled .visage-condition-sentence {
+    opacity: 0.5;
+}
+
+.visage .visage-condition-head {
+    display: flex;
+    align-items: center;
+    gap: var(--visage-size-6);
+}
+
+.visage .visage-condition-head > i {
+    color: var(--visage-accent-main);
+}
+
+.visage .visage-condition-type {
+    flex: 1;
+    font-size: var(--visage-size-12);
+    font-weight: bold;
+    letter-spacing: var(--visage-letter-spacing-wide);
+    text-transform: uppercase;
+    color: var(--visage-text-muted);
+}
+
+/* The condition itself: words and inline fields that wrap like a sentence */
+.visage .visage-condition-sentence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--visage-size-6) var(--visage-size-8);
+    font-size: var(--visage-size-14);
+    color: var(--visage-text-main);
+}
+
+.visage .visage-condition-sentence > select {
+    width: auto;
+    max-width: 100%;
+}
+
+.visage .visage-condition-sentence > input[type="text"] {
+    flex: 1 1 10rem;
+    min-width: 8rem;
+}
+
+.visage .visage-sentence-word {
+    white-space: nowrap;
+}
+
+/* A path field with its picker button, kept together when the sentence wraps */
+.visage .visage-sentence-field {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--visage-size-4);
+}
+
+.visage .visage-sentence-field.wide {
+    flex: 1 1 14rem;
+    min-width: 12rem;
+}
+
+.visage .visage-sentence-field.wide input {
+    flex: 1;
+    min-width: 0;
+}
+
+.visage input.visage-sentence-number {
+    width: 7ch;
+}
+
+/* A field that needs a whole line, such as the scene darkness slider */
+.visage .visage-sentence-block {
+    flex: 1 0 100%;
+}
+
+.visage .visage-condition-add {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--visage-size-8);
+}
+
+.visage .visage-condition-add button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--visage-size-4);
+    width: auto;
+    padding-inline: var(--visage-size-10);
+}
+
+.visage .visage-automation-hint {
+    margin: 0;
+    align-items: flex-start;
+}
+
+.visage .visage-automation-hint i {
+    flex: 0 0 auto;
+    margin-block-start: var(--visage-size-2);
+}
+
+.visage .visage-automation-summary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--visage-size-4);
+    padding: var(--visage-size-10) var(--visage-size-16);
+    border-block-start: 1px solid var(--visage-border-main);
+    background: var(--visage-bg-panel);
+}
+
+.visage .visage-automation-summary-text {
+    margin: 0;
+    font-size: var(--visage-size-14);
+    line-height: var(--visage-line-height-body);
+    color: var(--visage-text-main);
+}
+
+/* --- Cards and Panel Headers Shared with the Gallery's Token List --- */
 
 .visage .effect-card {
     display: flex;
@@ -3153,17 +3203,6 @@ li.context-item .visage-icon-domino {
 .visage .effect-card.visage-disabled {
     opacity: 0.5;
     background: var(--visage-bg-base);
-}
-
-.visage .effect-icon {
-    width: var(--visage-font-size-xxl);
-    height: var(--visage-font-size-xxl);
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: var(--visage-radius-small);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--visage-accent-main);
 }
 
 .visage .effect-info {
@@ -3222,15 +3261,6 @@ li.context-item .visage-icon-domino {
     color: var(--visage-text-inverse);
 }
 
-.visage .group-drop-zone {
-    min-height: var(--visage-font-size-m);
-    display: flex;
-    flex-direction: column;
-    gap: var(--visage-space-xs);
-}
-
-/* --- View 2: Inspector --- */
-
 .visage .inspector-header {
     display: flex;
     align-items: center;
@@ -3278,38 +3308,9 @@ li.context-item .visage-icon-domino {
     margin-block-start: var(--visage-space-l);
 }
 
-/* --- Transition Settings Bar --- */
-
-.visage .transition-settings-bar {
-    display: flex;
-    flex-direction: column;
-    gap: var(--visage-space-s);
-    background: var(--visage-bg-panel);
-    padding: var(--visage-space-s) var(--visage-space-m);
-    border-radius: var(--visage-radius-medium);
-    margin-block-end: var(--visage-space-m);
-    border: 1px solid var(--visage-border-focus);
-}
-
-.visage .transition-settings-bar.disabled-look {
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-.visage .transition-settings-bar label {
-    display: flex;
-    align-items: center;
-    gap: var(--visage-space-s);
-    color: var(--visage-accent-main); /* Highlight the header */
-    font-size: var(--visage-font-size-xs);
-    font-weight: bold;
-    width: 100%;
-    border-block-end: 1px solid var(--visage-translucent-overlay); /* Subtle separator */
-}
-
-/* AND / OR pill toggle for the automation logic: the active option is filled with the accent */
+/* All / any switch inside the automation lead sentence: the active option is filled with the accent */
 .visage .logic-toggle {
-    display: flex;
+    display: inline-flex;
     background: var(--visage-bg-base);
     padding: var(--visage-space-xxs);
     border-radius: var(--visage-radius-small);
@@ -3346,17 +3347,6 @@ li.context-item .visage-icon-domino {
     border-radius: 50%;
 }
 
-/* Align the static icon exactly where the drag handle was */
-.visage .effect-card.pinned-light .static-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px; /* Matches .drag-handle width */
-    color: #ffcc00;
-    cursor: default;
-    opacity: 0.8;
-}
-
 /* The Color Indicator */
 .visage-color-dot {
     display: inline-block;
@@ -3367,12 +3357,6 @@ li.context-item .visage-icon-domino {
     margin-inline-start: 6px;
     vertical-align: middle;
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
-}
-
-/* Ensure the meta text aligns nicely with the dot */
-.visage .effect-card.pinned-light .effect-meta {
-    display: flex;
-    align-items: baseline;
 }
 
 /* --- Light Animation Keyframes --- */
@@ -3474,48 +3458,6 @@ li.context-item .visage-icon-domino {
 .visage-light-overlay.anim-chroma {
     animation-name: visage-chroma;
     animation-timing-function: linear;
-}
-
-/* --- Behaviors Grid (Triggers Tab) --- */
-
-.visage .behaviors-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--visage-space-m);
-    background: var(--visage-bg-panel);
-    padding: var(--visage-space-s) var(--visage-space-m);
-    border-radius: var(--visage-radius-medium);
-    margin-block-end: var(--visage-space-m);
-    border: 1px solid var(--visage-border-focus);
-}
-
-.visage .behaviors-grid.disabled-look {
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-.visage .behaviors-grid .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--visage-space-xs);
-    margin: 0;
-}
-
-.visage .behaviors-grid .form-group select {
-    width: 100%;
-}
-
-.visage .visage-warning-banner {
-    background: var(--visage-bg-panel);
-    border-inline-start: 3px solid var(--visage-color-warning);
-    padding: var(--visage-space-m);
-    margin-block-end: var(--visage-space-l);
-}
-
-.visage .visage-warning-banner p {
-    margin: 0;
-    font-size: var(--visage-font-size-xs);
-    color: var(--visage-text-main);
 }
 
 /* --- Custom TMFX Payload Layout --- */

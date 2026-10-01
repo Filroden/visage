@@ -1,0 +1,177 @@
+{{!--
+    One automation condition, edited in place as a sentence. The editor reads every condition's
+    fields from the form on each preview and save: fields are named condition.<id>.<field>, and
+    the editor maps them back onto the condition with that id.
+
+    Changing an attribute's data type or value mode, or an event's type, re-renders the editor,
+    because those change which fields the sentence needs.
+
+    Context: one condition (this), with @root for the editor's lists of statuses and weather.
+--}}
+<div class="visage-condition-card {{#if this.disabled}}visage-disabled{{/if}}" data-condition-id="{{this.id}}">
+    <div class="visage-condition-head">
+        {{#if (eq this.type "attribute")}}<i class="visage-icon attribute-picker"></i>{{/if}}
+        {{#if (eq this.type "status")}}<i class="visage-icon stars"></i>{{/if}}
+        {{#if (eq this.type "event")}}<i class="visage-icon timer"></i>{{/if}}
+        <span class="visage-condition-type">{{localize this.typeKey}}</span>
+        <button type="button" class="visage-icon-btn" data-action="toggleCondition" aria-pressed="{{#if this.disabled}}false{{else}}true{{/if}}" data-tooltip="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}" aria-label="{{localize 'VISAGE.Editor.Layers.ToggleVisibility'}}">
+            <i class="visage-icon {{#if this.disabled}}visage-hidden{{else}}visible{{/if}}"></i>
+        </button>
+        <button type="button" class="visage-icon-btn danger" data-action="deleteCondition" data-tooltip="{{localize 'VISAGE.Automation.Editor.Delete'}}" aria-label="{{localize 'VISAGE.Automation.Editor.Delete'}}">
+            <i class="visage-icon delete"></i>
+        </button>
+    </div>
+
+    <div class="visage-condition-sentence">
+
+        {{!-- ================= ATTRIBUTE ================= --}}
+        {{#if (eq this.type "attribute")}}
+            <span class="visage-sentence-field wide">
+                <input type="text" name="condition.{{this.id}}.path" value="{{this.path}}" placeholder="system.attributes.hp.value" aria-label="{{localize 'VISAGE.Editor.Triggers.DataPath'}}" data-tooltip="{{localize 'VISAGE.Editor.Triggers.DataPathHint'}}">
+                <button type="button" class="visage-icon-btn" data-action="openAttributePicker" data-target="condition.{{this.id}}.path" data-tooltip="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}" aria-label="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}">
+                    <i class="visage-icon attribute-picker"></i>
+                </button>
+            </span>
+            <span class="visage-sentence-word">{{localize "VISAGE.Automation.Editor.ReadAs"}}</span>
+            <select name="condition.{{this.id}}.dataType" aria-label="{{localize 'VISAGE.Editor.Triggers.DataType'}}">
+                <option value="number" {{visageSelected (or (eq this.dataType "number") (not this.dataType))}}>{{localize "VISAGE.Automation.Editor.TypeNumber"}}</option>
+                <option value="string" {{visageSelected (eq this.dataType "string")}}>{{localize "VISAGE.Automation.Editor.TypeText"}}</option>
+                <option value="boolean" {{visageSelected (eq this.dataType "boolean")}}>{{localize "VISAGE.Automation.Editor.TypeBoolean"}}</option>
+            </select>
+
+            {{#if (eq this.dataType "boolean")}}
+                <span class="visage-sentence-word">{{localize "VISAGE.Automation.Editor.Is"}}</span>
+                <select name="condition.{{this.id}}.value" aria-label="{{localize 'VISAGE.Editor.Triggers.Value'}}">
+                    <option value="true" {{visageSelected (eq this.value true)}}>{{localize "VISAGE.Automation.Editor.True"}}</option>
+                    <option value="false" {{visageSelected (eq this.value false)}}>{{localize "VISAGE.Automation.Editor.False"}}</option>
+                </select>
+            {{else if (eq this.dataType "string")}}
+                <select name="condition.{{this.id}}.operator" aria-label="{{localize 'VISAGE.Editor.Triggers.Operator'}}">
+                    <option value="eq" {{visageSelected (eq this.operator "eq")}}>{{localize "VISAGE.Automation.Editor.StrEq"}}</option>
+                    <option value="neq" {{visageSelected (eq this.operator "neq")}}>{{localize "VISAGE.Automation.Editor.StrNeq"}}</option>
+                    <option value="includes" {{visageSelected (eq this.operator "includes")}}>{{localize "VISAGE.Automation.Editor.StrIncludes"}}</option>
+                </select>
+                <input type="text" name="condition.{{this.id}}.value" value="{{this.value}}" aria-label="{{localize 'VISAGE.Editor.Triggers.Value'}}">
+            {{else}}
+                <span class="visage-sentence-word">{{localize "VISAGE.Automation.Editor.Is"}}</span>
+                {{> "modules/visage/templates/parts/visage-condition-operator.hbs" id=this.id operator=this.operator}}
+                <input type="number" step="any" class="visage-sentence-number" name="condition.{{this.id}}.value" value="{{this.value}}" aria-label="{{localize 'VISAGE.Editor.Triggers.Value'}}">
+                <select name="condition.{{this.id}}.mode" aria-label="{{localize 'VISAGE.Editor.Triggers.Mode'}}">
+                    <option value="absolute" {{visageSelected (eq this.mode "absolute")}}>{{localize "VISAGE.Automation.Editor.ModeAbsolute"}}</option>
+                    <option value="percent" {{visageSelected (eq this.mode "percent")}}>{{localize "VISAGE.Automation.Editor.ModePercent"}}</option>
+                </select>
+                {{#if (eq this.mode "percent")}}
+                    <span class="visage-sentence-word">{{localize "VISAGE.Automation.Editor.Of"}}</span>
+                    <span class="visage-sentence-field wide">
+                        <input type="text" name="condition.{{this.id}}.denominatorPath" value="{{this.denominatorPath}}" placeholder="{{localize 'VISAGE.Automation.Editor.ItsMaximum'}}" aria-label="{{localize 'VISAGE.Editor.Triggers.DenominatorPath'}}" data-tooltip="{{localize 'VISAGE.Editor.Triggers.DenominatorHint'}}">
+                        <button type="button" class="visage-icon-btn" data-action="openAttributePicker" data-target="condition.{{this.id}}.denominatorPath" data-tooltip="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}" aria-label="{{localize 'VISAGE.Editor.Triggers.AttributePicker'}}">
+                            <i class="visage-icon attribute-picker"></i>
+                        </button>
+                    </span>
+                {{/if}}
+            {{/if}}
+        {{/if}}
+
+        {{!-- ================= STATUS / ACTIVE EFFECT ================= --}}
+        {{#if (eq this.type "status")}}
+            <select name="condition.{{this.id}}.statusId" aria-label="{{localize 'VISAGE.Editor.Triggers.StatusId'}}">
+                <option value="">{{localize "VISAGE.Editor.Triggers.CustomOrNoneStatus"}}</option>
+                {{#each @root.statusEffects as |status|}}
+                    <option value="{{status.value}}" {{visageSelected (eq ../this.statusId status.value)}}>{{status.label}}</option>
+                {{/each}}
+            </select>
+            <span class="visage-sentence-word">{{localize "VISAGE.Automation.Editor.Or"}}</span>
+            <input type="text" name="condition.{{this.id}}.customStatus" value="{{this.customStatus}}" placeholder="{{localize 'VISAGE.Editor.Triggers.CustomStatusPlaceholder'}}" aria-label="{{localize 'VISAGE.Editor.Triggers.CustomStatusName'}}">
+            <span class="visage-sentence-word">{{localize "VISAGE.Automation.Editor.Is"}}</span>
+            <select name="condition.{{this.id}}.operator" aria-label="{{localize 'VISAGE.Editor.Triggers.State'}}">
+                <option value="active" {{visageSelected (eq this.operator "active")}}>{{localize "VISAGE.Automation.Editor.Applied"}}</option>
+                <option value="inactive" {{visageSelected (eq this.operator "inactive")}}>{{localize "VISAGE.Automation.Editor.NotApplied"}}</option>
+            </select>
+        {{/if}}
+
+        {{!-- ================= EVENT ================= --}}
+        {{#if (eq this.type "event")}}
+            <select name="condition.{{this.id}}.eventId" aria-label="{{localize 'VISAGE.Editor.Triggers.EventId'}}">
+                <option value="combat" {{visageSelected (eq this.eventId "combat")}}>{{localize "VISAGE.Editor.Triggers.EventCombat"}}</option>
+                <option value="elevation" {{visageSelected (eq this.eventId "elevation")}}>{{localize "VISAGE.Editor.Triggers.EventElevation"}}</option>
+                <option value="facing" {{visageSelected (eq this.eventId "facing")}}>{{localize "VISAGE.Editor.Triggers.EventFacing"}}</option>
+                <option value="darkness" {{visageSelected (eq this.eventId "darkness")}}>{{localize "VISAGE.Editor.Triggers.EventDarkness"}}</option>
+                <option value="globalLight" {{visageSelected (eq this.eventId "globalLight")}}>{{localize "VISAGE.Editor.Triggers.EventGlobalLight"}}</option>
+                <option value="region" {{visageSelected (eq this.eventId "region")}}>{{localize "VISAGE.Editor.Triggers.EventRegion"}}</option>
+                <option value="targeted" {{visageSelected (eq this.eventId "targeted")}}>{{localize "VISAGE.Editor.Triggers.EventTargeted"}}</option>
+                <option value="time" {{visageSelected (eq this.eventId "time")}}>{{localize "VISAGE.Editor.Triggers.EventTime"}}</option>
+                <option value="weather" {{visageSelected (eq this.eventId "weather")}}>{{localize "VISAGE.Editor.Triggers.EventWeather"}}</option>
+                <option value="visibility" {{visageSelected (eq this.eventId "visibility")}}>{{localize "VISAGE.Editor.Triggers.EventVisibility"}}</option>
+            </select>
+
+            {{!-- On or off events: the option text is the whole clause --}}
+            {{#if (or (eq this.eventId "combat") (or (eq this.eventId "targeted") (or (eq this.eventId "visibility") (eq this.eventId "globalLight"))))}}
+                <span class="visage-sentence-word">:</span>
+                <select name="condition.{{this.id}}.operator" aria-label="{{localize 'VISAGE.Editor.Triggers.State'}}">
+                    <option value="active" {{visageSelected (eq this.operator "active")}}>{{localize (concat "VISAGE.Automation.Text.Event." this.eventId ".Active")}}</option>
+                    <option value="inactive" {{visageSelected (eq this.operator "inactive")}}>{{localize (concat "VISAGE.Automation.Text.Event." this.eventId ".Inactive")}}</option>
+                </select>
+            {{/if}}
+
+            {{!-- Token elevation: a number with no fixed range --}}
+            {{#if (eq this.eventId "elevation")}}
+                <span class="visage-sentence-word">{{localize "VISAGE.Automation.Editor.Is"}}</span>
+                {{> "modules/visage/templates/parts/visage-condition-operator.hbs" id=this.id operator=this.operator}}
+                <input type="number" step="1" class="visage-sentence-number" name="condition.{{this.id}}.value" value="{{this.value}}" aria-label="{{localize 'VISAGE.Editor.Triggers.Value'}}">
+            {{/if}}
+
+            {{!-- Scene darkness: always 0 to 1, so a slider on its own line --}}
+            {{#if (eq this.eventId "darkness")}}
+                <span class="visage-sentence-word">{{localize "VISAGE.Automation.Editor.Is"}}</span>
+                {{> "modules/visage/templates/parts/visage-condition-operator.hbs" id=this.id operator=this.operator}}
+                <div class="visage-sentence-block">
+                    {{> "modules/visage/templates/parts/visage-range.hbs" name=(concat "condition." this.id ".value") label="VISAGE.Editor.Triggers.Value" value=this.value min=0 max=1 step=0.05 default=0.5}}
+                </div>
+            {{/if}}
+
+            {{#if (eq this.eventId "region")}}
+                <select name="condition.{{this.id}}.operator" aria-label="{{localize 'VISAGE.Editor.Triggers.State'}}">
+                    <option value="active" {{visageSelected (eq this.operator "active")}}>{{localize "VISAGE.Editor.Triggers.RegionEnter"}}</option>
+                    <option value="inactive" {{visageSelected (eq this.operator "inactive")}}>{{localize "VISAGE.Editor.Triggers.RegionExit"}}</option>
+                </select>
+                <input type="text" name="condition.{{this.id}}.regionId" value="{{this.regionId}}" placeholder="{{localize 'VISAGE.Editor.Triggers.RegionId'}}" aria-label="{{localize 'VISAGE.Editor.Triggers.RegionId'}}">
+            {{/if}}
+
+            {{#if (eq this.eventId "time")}}
+                <select name="condition.{{this.id}}.operator" aria-label="{{localize 'VISAGE.Editor.Triggers.State'}}">
+                    <option value="active" {{visageSelected (eq this.operator "active")}}>{{localize "VISAGE.Editor.Triggers.TimeInside"}}</option>
+                    <option value="inactive" {{visageSelected (eq this.operator "inactive")}}>{{localize "VISAGE.Editor.Triggers.TimeOutside"}}</option>
+                </select>
+                <input type="time" name="condition.{{this.id}}.startTime" value="{{this.startTime}}" aria-label="{{localize 'VISAGE.Editor.Triggers.StartTime'}}">
+                <span class="visage-sentence-word">{{localize "VISAGE.Automation.Editor.And"}}</span>
+                <input type="time" name="condition.{{this.id}}.endTime" value="{{this.endTime}}" aria-label="{{localize 'VISAGE.Editor.Triggers.EndTime'}}">
+            {{/if}}
+
+            {{#if (eq this.eventId "weather")}}
+                <select name="condition.{{this.id}}.weatherId" aria-label="{{localize 'VISAGE.Editor.Triggers.WeatherId'}}">
+                    <option value="">{{localize "VISAGE.Editor.Triggers.SelectWeather"}}</option>
+                    {{#each @root.weatherEffects as |weather|}}
+                        <option value="{{weather.value}}" {{visageSelected (eq ../this.weatherId weather.value)}}>{{weather.label}}</option>
+                    {{/each}}
+                </select>
+                <span class="visage-sentence-word">{{localize "VISAGE.Automation.Editor.Or"}}</span>
+                <input type="text" name="condition.{{this.id}}.customWeather" value="{{this.customWeather}}" placeholder="{{localize 'VISAGE.Editor.Triggers.CustomWeatherPlaceholder'}}" aria-label="{{localize 'VISAGE.Editor.Triggers.CustomWeather'}}">
+                <select name="condition.{{this.id}}.operator" aria-label="{{localize 'VISAGE.Editor.Triggers.State'}}">
+                    <option value="active" {{visageSelected (eq this.operator "active")}}>{{localize "VISAGE.Editor.Triggers.WeatherActive"}}</option>
+                    <option value="inactive" {{visageSelected (eq this.operator "inactive")}}>{{localize "VISAGE.Editor.Triggers.WeatherInactive"}}</option>
+                </select>
+            {{/if}}
+
+            {{#if (eq this.eventId "facing")}}
+                <select name="condition.{{this.id}}.operator" aria-label="{{localize 'VISAGE.Editor.Triggers.State'}}">
+                    <option value="active" {{visageSelected (eq this.operator "active")}}>{{localize "VISAGE.Editor.Triggers.FacingInside"}}</option>
+                    <option value="inactive" {{visageSelected (eq this.operator "inactive")}}>{{localize "VISAGE.Editor.Triggers.FacingOutside"}}</option>
+                </select>
+                <input type="number" min="0" max="359" class="visage-sentence-number" name="condition.{{this.id}}.startAngle" value="{{this.startAngle}}" placeholder="0" aria-label="{{localize 'VISAGE.Editor.Triggers.AngleStart'}}">
+                <span class="visage-sentence-word">° {{localize "VISAGE.Automation.Editor.And"}}</span>
+                <input type="number" min="0" max="359" class="visage-sentence-number" name="condition.{{this.id}}.endAngle" value="{{this.endAngle}}" placeholder="359" aria-label="{{localize 'VISAGE.Editor.Triggers.AngleEnd'}}">
+                <span class="visage-sentence-word">°</span>
+            {{/if}}
+        {{/if}}
+    </div>
+</div>

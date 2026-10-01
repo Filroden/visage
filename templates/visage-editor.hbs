@@ -155,16 +155,17 @@
                         <span class="visage-disposition-text {{preview.slots.disposition.class}}">{{preview.slots.disposition.val}}</span>
                     </div>
 
-                    {{!-- Mirroring: one row per axis. The row lights up when the Visage sets that axis;
-                          the value says whether it is flipped, and the arrow turns to match. --}}
+                    {{!-- Mirroring: one row per axis, each with the mirror icon (turned a quarter for the
+                          vertical axis). The row lights up when the Visage sets that axis, and the
+                          value says whether it is flipped. --}}
                     <div class="meta-item mirror-sub-slot horizontal {{#unless preview.slots.flipH.active}}inactive{{/unless}}">
-                        <img src="{{preview.slots.flipH.src}}" class="visage-icon-nav {{preview.slots.flipH.cls}}" alt="" />
+                        <i class="visage-icon flip"></i>
                         <span class="meta-label">{{localize "VISAGE.Editor.Token.MirrorHorizontal"}}</span>
                         <span class="meta-value visage-mirror-state {{#if preview.slots.flipH.flipped}}flipped{{/if}}">{{preview.slots.flipH.state}}</span>
                     </div>
 
                     <div class="meta-item mirror-sub-slot vertical {{#unless preview.slots.flipV.active}}inactive{{/unless}}">
-                        <img src="{{preview.slots.flipV.src}}" class="visage-icon-nav {{preview.slots.flipV.cls}}" alt="" />
+                        <i class="visage-icon flip visage-flip-vertical"></i>
                         <span class="meta-label">{{localize "VISAGE.Editor.Token.MirrorVertical"}}</span>
                         <span class="meta-value visage-mirror-state {{#if preview.slots.flipV.flipped}}flipped{{/if}}">{{preview.slots.flipV.state}}</span>
                     </div>

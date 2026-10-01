@@ -1,6 +1,7 @@
 import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageDataModel } from "./visage-data-model.js";
 import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
+import { VisageAutomationText } from "../core/visage-automation-text.js";
 
 /**
  * The primary data controller class for Visage.
@@ -651,6 +652,8 @@ export class VisageData {
 
             meta: {
                 hasAutomation: data.automation?.enabled ?? false,
+                // The automation rule in words, for the automation button's tooltip
+                automationSummary: VisageAutomationText.describe(data.automation),
                 hasRing: ringCtx.enabled,
                 hasPulse: ringCtx.hasPulse,
                 hasGradient: ringCtx.hasGradient,
