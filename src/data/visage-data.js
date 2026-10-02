@@ -1007,7 +1007,7 @@ export class VisageData {
 
         // Apply GM-friendly defaults
         payload.public = true;
-        payload.label = `${source.label} (Promoted)`;
+        payload.label = game.i18n.format("VISAGE.Gallery.PromotedLabel", { label: source.label });
 
         await this._saveGlobal(payload);
         ui.notifications.info(

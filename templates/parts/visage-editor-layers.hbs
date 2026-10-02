@@ -5,8 +5,8 @@
     with audio and the layers that cannot be previewed at the end.
 
     The token's own children (Dynamic Ring and Light Source) always exist and cannot be deleted;
-    their eye switches them on or off. The eye on an effect row is a quick way to switch it on or
-    off in the preview, and a disabled effect is not saved, so it also works as a soft delete.
+    their eye switches them on or off. The eye on an effect row switches the effect on or off; a
+    switched-off effect is still saved (with disabled set) but is skipped by playback.
 --}}
 <aside class="visage-layers-panel" aria-label="{{localize 'VISAGE.Editor.Layers.Title'}}">
     <div class="visage-panel-header">

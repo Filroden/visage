@@ -510,6 +510,12 @@
     "VISAGE.Editor.Layers.AddAudio": "Effet audio",
     "VISAGE.Editor.Layers.AddTmfx": "Filtre TokenMagic",
     "VISAGE.Editor.Layers.AddMacro": "Macro",
+    "VISAGE.Editor.Effects.NewVisual": "Nouvel effet visuel",
+    "VISAGE.Editor.Effects.NewAudio": "Nouvel effet audio",
+    "VISAGE.Editor.Effects.NewTmfx": "Nouveau filtre TMFX",
+    "VISAGE.Editor.Effects.NewMacro": "Nouvelle macro",
+    "VISAGE.Editor.Triggers.ActiveOnActor": "{name} (actif sur l'acteur)",
+    "VISAGE.Gallery.PromotedLabel": "{label} (promu)",
     "VISAGE.Editor.Layers.AddNote": "L'Anneau Dynamique et la Source Lumineuse font toujours partie du pion. Utilisez leur icône en forme d'œil pour les activer.",
     "VISAGE.Editor.Layers.Token": "Pion",
     "VISAGE.Editor.Layers.TokenAppearance": "Apparence du Pion",
@@ -623,6 +629,7 @@
     "VISAGE.Automation.Editor.ItsMaximum": "son maximum (trouvé automatiquement)",
     "VISAGE.Automation.Editor.Applied": "appliqué",
     "VISAGE.Automation.Editor.NotApplied": "non appliqué",
+    "VISAGE.Editor.Effects.ScaleIn": "Mise à l'Échelle (Entrée)",
 
     "_comment": "Updated to v5.12.0"
 }

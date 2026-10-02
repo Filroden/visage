@@ -1744,7 +1744,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const newEffect = {
             id: foundry.utils.randomID(16),
             type: "visual",
-            label: "New Visual",
+            label: game.i18n.localize("VISAGE.Editor.Effects.NewVisual"),
             path: "",
             // Core Visuals
             scale: 1,
@@ -1775,7 +1775,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const newEffect = {
             id: foundry.utils.randomID(16),
             type: "audio",
-            label: "New Audio",
+            label: game.i18n.localize("VISAGE.Editor.Effects.NewAudio"),
             path: "",
             opacity: 0.8,
             loop: true,
@@ -1793,7 +1793,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const newEffect = {
             id: foundry.utils.randomID(16),
             type: "tmfx",
-            label: "New TMFX Filter",
+            label: game.i18n.localize("VISAGE.Editor.Effects.NewTmfx"),
             tmfxPreset: "",
             tmfxPayload: "",
             delay: 0,
@@ -1891,7 +1891,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         const newEffect = {
             id: foundry.utils.randomID(16),
             type: "macro",
-            label: "New Macro",
+            label: game.i18n.localize("VISAGE.Editor.Effects.NewMacro"),
             uuid: "", // The Foundry UUID of the macro
             delay: 0,
             disabled: false,
@@ -2443,7 +2443,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (name && !effects.some((existing) => existing.value.toLowerCase() === name.toLowerCase())) {
                     effects.push({
                         value: name,
-                        label: `${name} (Active on Actor)`,
+                        label: game.i18n.format("VISAGE.Editor.Triggers.ActiveOnActor", { name }),
                     });
                 }
             });

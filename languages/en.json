@@ -587,6 +587,12 @@
 
     "_comment_V5_12_KEYS": "--- V5.12 KEYS ---",
     "VISAGE.GlobalEditor.FilePicker": "Browse Files",
+    "VISAGE.Editor.Effects.NewVisual": "New Visual",
+    "VISAGE.Editor.Effects.NewAudio": "New Audio",
+    "VISAGE.Editor.Effects.NewTmfx": "New TMFX Filter",
+    "VISAGE.Editor.Effects.NewMacro": "New Macro",
+    "VISAGE.Editor.Triggers.ActiveOnActor": "{name} (Active on Actor)",
+    "VISAGE.Gallery.PromotedLabel": "{label} (Promoted)",
     "VISAGE.Editor.Effects.DatabaseInstructions": "Visage | Click an entry in the Sequencer Database to copy its path, then paste it into the effect's file field.",
     "VISAGE.Notifications.DefaultSwapped": "Visage | {label} is now the default appearance.",
     "VISAGE.Notifications.Imported": "Visage | Imported {count} Visages.",
@@ -712,5 +718,6 @@
     "VISAGE.Automation.Editor.ModePercent": "percent",
     "VISAGE.Automation.Editor.ItsMaximum": "its maximum (found automatically)",
     "VISAGE.Automation.Editor.Applied": "applied",
-    "VISAGE.Automation.Editor.NotApplied": "not applied"
+    "VISAGE.Automation.Editor.NotApplied": "not applied",
+    "VISAGE.Editor.Effects.ScaleIn": "Scale In"
 }

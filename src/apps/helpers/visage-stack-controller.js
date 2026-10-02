@@ -1,6 +1,5 @@
 import { Visage } from "../../core/visage.js";
 import { VisageData } from "../../data/visage-data.js";
-import { VisageComposer } from "../../core/visage-composer.js";
 import { DATA_NAMESPACE } from "../../core/visage-constants.js";
 
 /**
