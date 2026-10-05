@@ -65,7 +65,7 @@
                 {{#if this.automation.conditions.length}}
                     <div class="visage-card-effect-indicator automation {{#unless this.automation.enabled}}muted{{/unless}}" 
                          data-action="toggleAutomation" 
-                         data-tooltip="{{localize 'VISAGE.Editor.Triggers.Enable'}}">
+                         data-tooltip="{{this.meta.automationSummary}} {{localize 'VISAGE.Automation.Text.ClickToToggle'}}">
                         <i class="visage-icon power"></i>
                     </div>
                 {{/if}}
@@ -227,4 +227,4 @@
             </div>
         </div>
     </div>
-</div>
+</div>

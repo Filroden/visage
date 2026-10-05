@@ -1,6 +1,7 @@
 import { VisageUtilities } from "../utils/visage-utilities.js";
 import { VisageDataModel } from "./visage-data-model.js";
 import { MODULE_ID, DATA_NAMESPACE } from "../core/visage-constants.js";
+import { VisageAutomationText } from "../core/visage-automation-text.js";
 
 /**
  * The primary data controller class for Visage.
@@ -482,6 +483,28 @@ export class VisageData {
             sourceData = VisageUtilities.extractVisualState(tokenDoc);
         }
 
+        return this._stateAsVisage(tokenDoc, sourceData);
+    }
+
+    /**
+     * Captures how a Token looks right now as a virtual Visage object, including the changes of
+     * any Visages applied to it. This is what the token shows on the canvas.
+     * @param {TokenDocument} tokenDoc - The target token document.
+     * @returns {Object|null} A Visage data object representing the token's current appearance.
+     */
+    static getCurrentAsVisage(tokenDoc) {
+        if (!tokenDoc) return null;
+        return this._stateAsVisage(tokenDoc, VisageUtilities.extractVisualState(tokenDoc));
+    }
+
+    /**
+     * Builds a virtual Visage object from a snapshot of a token's visual state.
+     * @param {TokenDocument} tokenDoc - The token the snapshot was taken from.
+     * @param {Object} sourceData - The snapshot (from VisageUtilities.extractVisualState or the originalState flag).
+     * @returns {Object} A Visage data object.
+     * @private
+     */
+    static _stateAsVisage(tokenDoc, sourceData) {
         const src = sourceData.texture?.src || tokenDoc.texture.src;
         const scaleX = sourceData.texture?.scaleX ?? sourceData.scaleX ?? 1;
         const scaleY = sourceData.texture?.scaleY ?? sourceData.scaleY ?? 1;
@@ -651,6 +674,8 @@ export class VisageData {
 
             meta: {
                 hasAutomation: data.automation?.enabled ?? false,
+                // The automation rule in words, for the automation button's tooltip
+                automationSummary: VisageAutomationText.describe(data.automation),
                 hasRing: ringCtx.enabled,
                 hasPulse: ringCtx.hasPulse,
                 hasGradient: ringCtx.hasGradient,
@@ -802,6 +827,8 @@ export class VisageData {
                     src: pathIcon,
                     cls: isFlippedX ? "visage-rotate-270" : "visage-rotate-90",
                     val: game.i18n.localize("VISAGE.Mirror.Badge.H"),
+                    flipped: isFlippedX,
+                    state: game.i18n.localize(isFlippedX ? "VISAGE.Mirror.Option.Flipped" : "VISAGE.Mirror.Option.Standard"),
                 },
             },
             y: {
@@ -812,6 +839,8 @@ export class VisageData {
                     src: pathIcon,
                     cls: isFlippedY ? "visage-rotate-180" : "visage-rotate-0",
                     val: game.i18n.localize("VISAGE.Mirror.Badge.V"),
+                    flipped: isFlippedY,
+                    state: game.i18n.localize(isFlippedY ? "VISAGE.Mirror.Option.Flipped" : "VISAGE.Mirror.Option.Standard"),
                 },
             },
         };
@@ -978,7 +1007,7 @@ export class VisageData {
 
         // Apply GM-friendly defaults
         payload.public = true;
-        payload.label = `${source.label} (Promoted)`;
+        payload.label = game.i18n.format("VISAGE.Gallery.PromotedLabel", { label: source.label });
 
         await this._saveGlobal(payload);
         ui.notifications.info(

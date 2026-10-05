@@ -1,6 +1,5 @@
 {
     "_comment_EDITOR": "--- VISAGE EDITOR (WORKSTATION) ---",
-    "VISAGE.GlobalEditor.Hint": "Configure the appearance and behaviour of this visage.",
 
     "_comment_PROPERTIES": "--- TOKEN PROPERTIES ---",
     "VISAGE.Random": "Randomise",
@@ -27,5 +26,6 @@
     "VISAGE.Dialog.SanitizeSelected.Title": "Sanitise Selected Token Lights",
     "VISAGE.Dialog.SanitizeWorld.Title": "Sanitise ALL Token Lights",
 
-    "_comment": "Updated to v5.5.1"
+    "_comment": "Updated to v5.5.1",
+    "VISAGE.Editor.Sections.Colors": "Colours"
 }

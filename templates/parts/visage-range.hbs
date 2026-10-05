@@ -1,0 +1,54 @@
+{{!--
+    A labelled range slider: the name, an optional info icon and the value chip sit on one line,
+    and the slider takes the full width beneath them.
+
+    Parameters (all passed as hash arguments to the partial):
+      name: the slider's form field name (ignored when editable is set, see below)
+      label: localisation key for the slider's name
+      hint: optional localisation key for the info icon's tooltip
+      value: the current value
+      min, max, step: the slider's range
+      default: optional value restored when the slider is double-clicked
+      unit: optional text shown after the value in the chip, such as "%" or "°" (written to the
+            chip's data-unit so VisageRangeDisplay can add it again as the slider moves)
+      toggle: optional field name for an "apply" checkbox. The checkbox is named {{toggle}}_active
+              and uses the toggleField action, like every other checkbox row in the editor. While
+              it is cleared, the slider is disabled (so it is left out of the form data and the
+              value is inherited from the stack) and the chip shows a dash.
+      active: the checkbox's state; only used when toggle is set
+      editable: when set, the chip is a number input named numberName instead of a read-only
+                <output>, and the slider is left unnamed so the number is the only form field.
+                Use this for values with no upper limit: the slider covers the common range, and
+                the number accepts anything typed into it.
+      numberName: the number input's form field name when editable is set
+      class: optional extra classes for the wrapper
+
+    The slider's min, max and step are written before its value so that the value is never
+    checked against the default 0 to 100 range while the element is being built.
+
+    The wrapper keeps the form-group class because the toggleField action finds the inputs it
+    enables and disables through the checkbox's closest .form-group.
+
+    The chip, the editable number and the slider's filled portion are kept in step by
+    VisageRangeDisplay (src/utils/visage-range-display.js), which finds them through the
+    .visage-range wrapper. The dash shown for an inherited value must match its EMPTY_MARK.
+--}}
+<div class="form-group visage-range{{#if toggle}} has-toggle{{/if}}{{#if class}} {{class}}{{/if}}">
+    {{#if toggle}}
+        <input class="visage-checkbox" type="checkbox" name="{{toggle}}_active" data-action="toggleField" data-target="{{toggle}}" {{checked active}} />
+    {{/if}}
+    <label class="visage-range-label">
+        <span class="visage-range-name">{{localize label}}</span>
+        {{#if hint}}<i class="visage-icon info" data-tooltip="{{localize hint}}"></i>{{/if}}
+    </label>
+    {{#if editable}}
+        {{#if (and toggle (not active))}}
+            <input type="number" class="visage-range-value visage-range-number" name="{{numberName}}" value="" data-held-value="{{value}}" step="{{step}}" placeholder="—" aria-label="{{localize label}}" disabled />
+        {{else}}
+            <input type="number" class="visage-range-value visage-range-number" name="{{numberName}}" value="{{value}}" step="{{step}}" aria-label="{{localize label}}" />
+        {{/if}}
+    {{else}}
+        <output class="visage-range-value" data-unit="{{unit}}">{{#if (and toggle (not active))}}—{{else}}{{value}}{{unit}}{{/if}}</output>
+    {{/if}}
+    <input type="range" class="visage-range-input" {{#unless editable}}name="{{name}}"{{/unless}} min="{{min}}" max="{{max}}" step="{{step}}" value="{{value}}" data-default="{{default}}" aria-label="{{localize label}}" {{#if toggle}}{{disabled (not active)}}{{/if}} />
+</div>

@@ -37,7 +37,6 @@ copyFiles(
         "pl.json",
         "pt-br.json",
         "pt-pt.json",
-        "ro.json",
         "ru.json",
         "sv.json",
         "tr.json",

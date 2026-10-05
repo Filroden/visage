@@ -1,153 +1,120 @@
 /**
  * VISAGE DRAG & DROP MANAGER
  * -------------------------------------------------------------------
- * A dedicated controller for handling HTML5 drag-and-drop interactions
- * within the Visage Editor interface.
- * * ARCHITECTURAL OVERVIEW:
- * This class manages the complex event bindings required to reorder
- * the Effect Stack (Visual and Audio layers). It intercepts drag events,
- * updates the UI to reflect valid drop zones, and computes the resulting
- * array mutations and z-order changes when a drop occurs.
- * * Note: This class holds a reference to the parent `VisageEditor` instance
- * to trigger state updates and re-renders when the underlying data mutates.
+ * Lets the user reorder effect rows in the Visage Editor's Layers list by dragging them.
+ *
+ * ARCHITECTURAL OVERVIEW:
+ * A row can only be dropped onto another row in the same group (Above token, Below token, Audio
+ * or Not shown in preview). Whether a visual effect sits above or below the token is set with
+ * its Layer setting instead, so dragging never changes what an effect is, only its order.
+ *
+ * All listeners are delegated from the application's root element and bound once. The root
+ * element persists across re-renders while the rows themselves are replaced, so listeners bound
+ * to the rows would be lost on the first re-render.
+ *
+ * The dragged row's id travels in a module-specific data type rather than "text/plain", so the
+ * editor's drop handler for Foundry documents (macros dragged from the sidebar) ignores it.
  */
 
-/**
- * Handles HTML5 drag-and-drop interactions for the Effect Stack.
- */
+/** Data type carrying the dragged row's effect id. */
+const DRAG_DATA_TYPE = "application/x-visage-layer";
+
+/** Selector for a draggable effect row. */
+const ROW_SELECTOR = '.visage-layer[draggable="true"]';
+
 export class VisageDragDropManager {
+    /**
+     * @param {VisageEditor} editor - The editor that owns the effect list.
+     */
     constructor(editor) {
         this.editor = editor;
+        /** @type {HTMLElement|null} The row being dragged. */
         this.dragSource = null;
     }
 
     /**
-     * Binds HTML5 drag-and-drop listeners to Effect Cards and Groups.
-     * @param {HTMLElement} html - The rendered application root.
+     * Binds the delegated drag listeners. Call once per application.
+     *
+     * @param {HTMLElement} root - The application's root element.
      */
-    bind(html) {
-        // 1. Bind Cards (Draggables)
-        const cards = html.querySelectorAll(".effect-card");
-        cards.forEach((card) => {
-            if (card.classList.contains("pinned-light") || card.dataset.action === "editRing") return;
-
-            card.addEventListener("dragstart", (ev) => {
-                this.dragSource = card;
-                ev.dataTransfer.effectAllowed = "move";
-                ev.dataTransfer.setData("text/plain", card.dataset.id);
-                ev.dataTransfer.setData("type", card.dataset.type);
-                card.classList.add("dragging");
-            });
-
-            card.addEventListener("dragend", () => {
-                card.classList.remove("dragging");
-                this.dragSource = null;
-                html.querySelectorAll(".drag-over, .group-drag-over").forEach((el) => {
-                    el.classList.remove("drag-over", "group-drag-over");
-                });
-            });
-
-            card.addEventListener("dragenter", (ev) => ev.preventDefault());
-            card.addEventListener("dragover", (ev) => {
-                ev.preventDefault();
-                const sourceType = this.dragSource?.dataset.type;
-
-                // Allow Visuals to sort with Visuals, and Macros to sort with Macros
-                if (sourceType === card.dataset.type) {
-                    card.classList.add("drag-over");
-                }
-            });
-
-            card.addEventListener("dragleave", () => card.classList.remove("drag-over"));
-            card.addEventListener("drop", (ev) => this._onDrop(ev, card.closest(".effect-group").dataset.group, card.dataset.id));
-        });
-
-        // 2. Bind Groups (Drop Zones for appending)
-        const groups = html.querySelectorAll(".effect-group");
-        groups.forEach((group) => {
-            if (group.dataset.group === "light" || group.dataset.group === "ring") return;
-
-            group.addEventListener("dragenter", (ev) => ev.preventDefault());
-            group.addEventListener("dragover", (ev) => {
-                ev.preventDefault();
-                const sourceType = this.dragSource?.dataset.type;
-                const targetGroup = group.dataset.group;
-
-                if (sourceType === "audio" && targetGroup !== "audio") return;
-                if (sourceType === "visual" && targetGroup === "audio") return;
-                if (sourceType === "macro" && targetGroup !== "macro") return;
-                if (sourceType !== "macro" && targetGroup === "macro") return;
-
-                group.classList.add("group-drag-over");
-            });
-
-            group.addEventListener("dragleave", () => group.classList.remove("group-drag-over"));
-            group.addEventListener("drop", (ev) => this._onDrop(ev, group.dataset.group, null));
-        });
+    bind(root) {
+        root.addEventListener("dragstart", (event) => this._onDragStart(event));
+        root.addEventListener("dragend", () => this._clearDragState(root));
+        root.addEventListener("dragover", (event) => this._onDragOver(event, root));
+        root.addEventListener("drop", (event) => this._onDrop(event, root));
     }
 
-    /**
-     * Handles the logic when a drag-and-drop action completes, updating z-orders.
-     */
-    async _onDrop(ev, targetGroup, targetId) {
-        ev.preventDefault();
-        ev.stopPropagation();
+    /** Starts dragging an effect row. */
+    _onDragStart(event) {
+        const row = event.target.closest?.(ROW_SELECTOR);
+        if (!row) return;
 
-        const draggedId = ev.dataTransfer.getData("text/plain");
-        if (!draggedId || draggedId === targetId) return;
+        this.dragSource = row;
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData(DRAG_DATA_TYPE, row.dataset.id);
+        row.classList.add("dragging");
+    }
 
-        const effects = this.editor._effects;
-        const draggedIndex = effects.findIndex((e) => e.id === draggedId);
-        if (draggedIndex === -1) return;
+    /** Marks the row under the pointer as a valid drop target when it is in the same group. */
+    _onDragOver(event, root) {
+        const target = this._getValidTarget(event);
+        root.querySelectorAll(".drag-over").forEach((el) => el !== target && el.classList.remove("drag-over"));
+        if (!target) return;
 
-        const draggedEffect = effects[draggedIndex];
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        target.classList.add("drag-over");
+    }
 
-        // Type Validation Guard
-        if (targetGroup === "audio" && draggedEffect.type !== "audio") return;
+    /** Moves the dragged effect in front of the row it was dropped on. */
+    async _onDrop(event, root) {
+        const target = this._getValidTarget(event);
+        if (!target) return;
 
-        // 1. Update Internal State
-        this._updateZOrder(draggedEffect, targetGroup);
+        event.preventDefault();
+        event.stopPropagation();
 
-        // 2. Reorder Array
-        effects.splice(draggedIndex, 1);
+        const draggedId = event.dataTransfer.getData(DRAG_DATA_TYPE);
+        this._clearDragState(root);
+        if (!this._moveEffect(draggedId, target.dataset.id)) return;
 
-        if (targetId) {
-            const targetIndex = effects.findIndex((e) => e.id === targetId);
-            effects.splice(targetIndex, 0, draggedEffect);
-        } else {
-            const insertIndex = this._calculateGroupInsertIndex(effects, targetGroup);
-            effects.splice(insertIndex, 0, draggedEffect);
-        }
-
-        // 3. Trigger UI Updates
         this.editor._markDirty();
-        this.editor._updatePreview();
         await this.editor.render();
     }
 
     /**
-     * Updates the Z-Order of visual effects based on the target drop group.
-     * @private
+     * The row under the pointer, if the current drag may be dropped on it: another effect row in
+     * the same group as the dragged row.
      */
-    _updateZOrder(effect, targetGroup) {
-        if (effect.type === "visual" && (targetGroup === "above" || targetGroup === "below")) {
-            effect.zOrder = targetGroup;
-        }
+    _getValidTarget(event) {
+        if (!this.dragSource) return null;
+
+        const target = event.target.closest?.(ROW_SELECTOR);
+        if (!target || target === this.dragSource) return null;
+        return target.dataset.group === this.dragSource.dataset.group ? target : null;
     }
 
     /**
-     * Calculates the correct insertion index when dropping an effect into a group container.
-     * @private
+     * Moves an effect in front of another in the editor's effect array. The groups in the list
+     * are filtered views of that one array, so this changes the order within the group.
+     *
+     * @returns {boolean} True if the array changed.
      */
-    _calculateGroupInsertIndex(effects, targetGroup) {
-        let lastIdx = -1;
+    _moveEffect(draggedId, targetId) {
+        const effects = this.editor._effects;
+        const fromIndex = effects.findIndex((e) => e.id === draggedId);
+        if (fromIndex === -1 || draggedId === targetId) return false;
 
-        if (targetGroup === "above" || targetGroup === "below") {
-            lastIdx = effects.findLastIndex((e) => e.type === "visual" && e.zOrder === targetGroup);
-        } else if (targetGroup === "audio" || targetGroup === "macro") {
-            lastIdx = effects.findLastIndex((e) => e.type === targetGroup);
-        }
+        const [dragged] = effects.splice(fromIndex, 1);
+        const targetIndex = effects.findIndex((e) => e.id === targetId);
+        effects.splice(targetIndex === -1 ? effects.length : targetIndex, 0, dragged);
+        return true;
+    }
 
-        return lastIdx === -1 ? effects.length : lastIdx + 1;
+    /** Clears the drag source and every drag highlight. */
+    _clearDragState(root) {
+        this.dragSource?.classList.remove("dragging");
+        this.dragSource = null;
+        root.querySelectorAll(".drag-over").forEach((el) => el.classList.remove("drag-over"));
     }
 }

@@ -1,20 +1,40 @@
-<div class="visage-editor-container workstation-layout">
-    
-    {{!-- 1. GLOBAL HEADER --}}
+{{!--
+    VISAGE EDITOR
+    Three areas share the workstation grid: the Layers list, the preview stage and the settings
+    for the selected layer (Design view), or the automation panel and the stage (Automation view).
+    Every panel stays in the DOM in both views and is only hidden with CSS, because the editor
+    reads the whole form when it saves: a panel removed from the DOM would drop its values.
+--}}
+<div class="visage-editor-container workstation-layout {{#if isAutomationView}}mode-automation{{else}}mode-design{{/if}}">
+
+    {{!-- 1. HEADER --}}
     <header class="visage-editor-header">
-        
-        {{!-- Label Group --}}
+
+        {{!-- Label --}}
         <div class="header-form-group label-group">
-            <label>{{localize "VISAGE.GlobalEditor.Label"}}</label>
-            <input type="text" name="label" value="{{label}}" placeholder="{{localize 'VISAGE.GlobalEditor.DefaultLabel'}}" required>
+            <label for="visage-label-{{appId}}">{{localize "VISAGE.GlobalEditor.Label"}}</label>
+            <input type="text" id="visage-label-{{appId}}" name="label" value="{{label}}" placeholder="{{localize 'VISAGE.GlobalEditor.DefaultLabel'}}" required>
         </div>
 
-        {{!-- Visibility Group (Global Only) --}}
-        {{!-- Visibility Group --}}
+        {{!-- Design / Automation view switch --}}
+        <div class="header-form-group view-group">
+            <span class="visage-group-label">{{localize "VISAGE.Editor.View.Label"}}</span>
+            <div class="visage-segmented" role="group" aria-label="{{localize 'VISAGE.Editor.View.Label'}}">
+                <button type="button" class="{{#unless isAutomationView}}active{{/unless}}" data-action="setEditorView" data-view="design" aria-pressed="{{#if isAutomationView}}false{{else}}true{{/if}}">
+                    <i class="visage-icon stacks"></i> {{localize "VISAGE.Editor.View.Design"}}
+                </button>
+                <button type="button" class="{{#if isAutomationView}}active{{/if}}" data-action="setEditorView" data-view="automation" aria-pressed="{{#if isAutomationView}}true{{else}}false{{/if}}">
+                    <i class="visage-icon power"></i> {{localize "VISAGE.Editor.Tabs.Triggers"}}
+                </button>
+            </div>
+        </div>
+
+        <span class="visage-header-spacer"></span>
+
+        {{!-- Visibility --}}
         <div class="header-form-group visibility-group">
-            <label>{{localize "VISAGE.GlobalEditor.Visibility"}}</label>
+            <span class="visage-group-label">{{localize "VISAGE.GlobalEditor.Visibility"}}</span>
             <div class="visage-mode-toggle">
-                
                 {{#if isLocal}}
                     {{#if isGM}}
                         <input type="radio" name="playerVisibility" id="vis-visible-{{appId}}" value="visible" {{checked (visageEq playerVisibility "visible")}}>
@@ -43,13 +63,12 @@
                         {{localize "VISAGE.GlobalEditor.Public"}}
                     </label>
                 {{/if}}
-
             </div>
         </div>
 
-        {{!-- Mode Group --}}
+        {{!-- Mode --}}
         <div class="header-form-group mode-group">
-            <label>{{localize "VISAGE.GlobalEditor.Mode"}}</label>
+            <span class="visage-group-label">{{localize "VISAGE.GlobalEditor.Mode"}}</span>
             <div class="visage-mode-toggle">
                 <input type="radio" name="mode" id="mode-identity-{{appId}}" value="identity" {{checked (visageEq mode "identity")}}>
                 <label class="visage-btn-first" for="mode-identity-{{appId}}" data-tooltip="VISAGE.Mode.IdentityHint">
@@ -62,184 +81,167 @@
                 </label>
             </div>
         </div>
-        
-        {{!-- Category Group --}}
-        <div class="header-form-group category-group">
-            <label>{{localize "VISAGE.GlobalEditor.Category"}}</label>
-            <input type="text" name="category" value="{{category}}" list="visage-categories" placeholder="{{localize 'VISAGE.GlobalEditor.CategoryPlaceholder'}}">
-            <datalist id="visage-categories">
-                {{#each categories}}
-                <option value="{{this}}"></option>
-                {{/each}}
-            </datalist>
-        </div>
-
-        {{!-- Tags Group --}}
-        <div class="header-form-group tags-group">
-            <label>{{localize "VISAGE.GlobalEditor.Tags"}}</label>
-            <div class="visage-tag-container compact">
-                <div class="visage-tag-pills">
-                    {{!-- Pills injected by JS --}}
-                </div>
-                <input type="text" class="visage-tag-input" list="visage-all-tags" placeholder="{{localize 'VISAGE.GlobalEditor.TagsHint'}}">
-                <input type="hidden" name="tags" value="{{tagsString}}">
-            </div>
-            <datalist id="visage-all-tags">
-                {{#each allTags}}
-                <option value="{{this}}"></option>
-                {{/each}}
-            </datalist>
-        </div>
-
     </header>
 
+    {{!-- 2. WORKSTATION --}}
     <div class="visage-workstation">
-        
-        {{!-- 2. LEFT PANEL: STAGE & STATS --}}
+
+        {{!-- A. LAYERS (Design view) --}}
+        {{> "modules/visage/templates/parts/visage-editor-layers.hbs"}}
+
+        {{!-- B. STAGE (both views) --}}
         <div class="visage-stage-panel">
-            
-            {{!-- A. THE STAGE --}}
             <div class="visage-live-preview-stage">
                 <div class="preview-injection-target">
-                    {{> "modules/visage/templates/parts/visage-preview.hbs" 
-                        resolvedPath=preview.img 
+                    {{> "modules/visage/templates/parts/visage-preview.hbs"
+                        resolvedPath=preview.img
                         name=preview.name
                         hasCheckerboard=true
                         alpha=preview.alpha
                         isVideo=preview.isVideo
-                        
-                        hasRing=preview.hasRing 
+
+                        hasRing=preview.hasRing
                         hasInvisibility=preview.hasInvisibility
                         hasPulse=preview.hasPulse
                         hasGradient=preview.hasGradient
                         hasWave=preview.hasWave
                         ringColor=preview.ringColor
                         ringBkg=preview.ringBkg
-                        
+
                         hasLight=preview.hasLight
                         lightColor=preview.lightColor
                         lightDim=preview.lightDim
                         lightBright=preview.lightBright
-                        
+
                         forceFlipX=preview.flipX
                         forceFlipY=preview.flipY
                         wrapperClass="visage-preview-content stage-mode"
                     }}
                 </div>
-                 
+
                 <div class="stage-overlay-name">{{preview.name}}</div>
                 <div class="visage-stage-hint">{{localize "VISAGE.Editor.StageHint"}}</div>
 
+                {{!-- Applied values. Most of these cannot be seen in the preview itself, so they sit
+                      over the stage. Values this Visage does not change are faded. --}}
+                <div class="metadata-grid visage-stage-meta" aria-label="{{localize 'VISAGE.Editor.Stage.AppliedValues'}}">
+                    <div class="meta-item {{#unless preview.slots.scale.active}}inactive{{/unless}}">
+                        <i class="visage-icon scale"></i>
+                        <span class="meta-label">{{localize 'VISAGE.Directory.Tooltip.Scale'}}</span>
+                        <span class="meta-value">{{preview.slots.scale.val}}</span>
+                    </div>
+
+                    <div class="meta-item {{#unless preview.slots.dim.active}}inactive{{/unless}}">
+                        <i class="visage-icon dimensions"></i>
+                        <span class="meta-label">{{localize 'VISAGE.Config.List.DimensionsXYZ'}}</span>
+                        <span class="meta-value">{{preview.slots.dim.val}}</span>
+                    </div>
+
+                    <div class="meta-item {{#unless preview.slots.lock.active}}inactive{{/unless}}">
+                        <i class="visage-icon lock"></i>
+                        <span class="meta-label">{{localize 'VISAGE.RotationLock.Label'}}</span>
+                        <span class="meta-value">{{preview.slots.lock.val}}</span>
+                    </div>
+
+                    <div class="meta-item {{#unless preview.slots.wildcard.active}}inactive{{/unless}}">
+                        <i class="visage-icon wildcard"></i>
+                        <span class="meta-label">{{localize 'VISAGE.Wildcard.Label'}}</span>
+                        <span class="meta-value">{{preview.slots.wildcard.val}}</span>
+                    </div>
+
+                    <div class="meta-item disposition-item">
+                        <i class="visage-icon domino"></i>
+                        <span class="meta-label">{{localize "VISAGE.Disposition.Label"}}</span>
+                        <span class="visage-disposition-text {{preview.slots.disposition.class}}">{{preview.slots.disposition.val}}</span>
+                    </div>
+
+                    {{!-- Mirroring: one row per axis, each with the mirror icon (turned a quarter for the
+                          vertical axis). The row lights up when the Visage sets that axis, and the
+                          value says whether it is flipped. --}}
+                    <div class="meta-item mirror-sub-slot horizontal {{#unless preview.slots.flipH.active}}inactive{{/unless}}">
+                        <i class="visage-icon flip"></i>
+                        <span class="meta-label">{{localize "VISAGE.Editor.Token.MirrorHorizontal"}}</span>
+                        <span class="meta-value visage-mirror-state {{#if preview.slots.flipH.flipped}}flipped{{/if}}">{{preview.slots.flipH.state}}</span>
+                    </div>
+
+                    <div class="meta-item mirror-sub-slot vertical {{#unless preview.slots.flipV.active}}inactive{{/unless}}">
+                        <i class="visage-icon flip visage-flip-vertical"></i>
+                        <span class="meta-label">{{localize "VISAGE.Editor.Token.MirrorVertical"}}</span>
+                        <span class="meta-value visage-mirror-state {{#if preview.slots.flipV.flipped}}flipped{{/if}}">{{preview.slots.flipV.state}}</span>
+                    </div>
+                </div>
+
                 {{!-- Stage Controls HUD --}}
                 <div class="visage-zoom-controls">
-                    <button type="button" data-action="toggleGrid" data-tooltip="{{localize 'VISAGE.Editor.ToggleGrid'}}">
+                    <button type="button" data-action="toggleGrid" data-tooltip="{{localize 'VISAGE.Editor.ToggleGrid'}}" aria-label="{{localize 'VISAGE.Editor.ToggleGrid'}}">
                         <i class="visage-icon grid-on"></i>
                     </button>
-                    <div class="visage-divider-vertical" style="width:1px; background:var(--visage-translucent-overlay); margin: 0 4px;"></div>
-                    <button type="button" data-action="zoomOut" data-tooltip="{{localize 'VISAGE.Editor.ZoomOut'}}">
+                    <span class="visage-divider-vertical"></span>
+                    <button type="button" data-action="zoomOut" data-tooltip="{{localize 'VISAGE.Editor.ZoomOut'}}" aria-label="{{localize 'VISAGE.Editor.ZoomOut'}}">
                         <i class="visage-icon zoom-out"></i>
                     </button>
-                    <button type="button" data-action="resetZoom" data-tooltip="{{localize 'VISAGE.Editor.ResetView'}}">
+                    <button type="button" data-action="resetZoom" data-tooltip="{{localize 'VISAGE.Editor.ResetView'}}" aria-label="{{localize 'VISAGE.Editor.ResetView'}}">
                         <i class="visage-icon center-focus"></i>
                     </button>
-                    <button type="button" data-action="zoomIn" data-tooltip="{{localize 'VISAGE.Editor.ZoomIn'}}">
+                    <button type="button" data-action="zoomIn" data-tooltip="{{localize 'VISAGE.Editor.ZoomIn'}}" aria-label="{{localize 'VISAGE.Editor.ZoomIn'}}">
                         <i class="visage-icon zoom-in"></i>
                     </button>
-                    <div class="visage-divider-vertical" style="width:1px; background:var(--visage-translucent-overlay); margin: 0 4px;"></div>
-                    <button type="button" data-action="replayPreview" data-tooltip="{{localize 'VISAGE.Editor.Replay'}}">
+                    <span class="visage-divider-vertical"></span>
+                    <button type="button" data-action="replayPreview" data-tooltip="{{localize 'VISAGE.Editor.Replay'}}" aria-label="{{localize 'VISAGE.Editor.Replay'}}">
                         <i class="visage-icon refresh"></i>
                     </button>
                 </div>
             </div>
+        </div>
 
-            {{!-- B. METADATA GRID --}}
-            <div class="metadata-grid">
-                {{!-- Row 1: Scale --}}
-                <div class="meta-item {{#unless preview.slots.scale.active}}inactive{{/unless}}">
-                    <i class="visage-icon scale"></i>
-                    <span class="meta-label">{{localize 'VISAGE.Directory.Tooltip.Scale'}}:</span>
-                    <span class="meta-value">{{preview.slots.scale.val}}</span>
-                </div>
+        {{!-- C. SETTINGS FOR THE SELECTED LAYER (Design view) --}}
+        <div class="visage-inspector-panel visage-scrollable">
+            {{> "modules/visage/templates/parts/visage-editor-appearance.hbs"}}
+            {{> "modules/visage/templates/parts/visage-editor-effects.hbs"}}
+        </div>
 
-                {{!-- Row 1: Dimensions --}}
-                <div class="meta-item {{#unless preview.slots.dim.active}}inactive{{/unless}}">
-                    <i class="visage-icon dimensions"></i>
-                    <span class="meta-label">{{localize 'VISAGE.Config.List.DimensionsXYZ'}}:</span>
-                    <span class="meta-value">{{preview.slots.dim.val}}</span>
-                </div>
-                
-                {{!-- Row 2: Rotation Lock --}}
-                <div class="meta-item {{#unless preview.slots.lock.active}}inactive{{/unless}}">
-                    <i class="visage-icon lock"></i>
-                    <span class="meta-label">{{localize 'VISAGE.RotationLock.Label'}}:</span>
-                    <span class="meta-value">{{preview.slots.lock.val}}</span>
-                </div>
+        {{!-- D. AUTOMATION (Automation view) --}}
+        <div class="visage-automation-panel">
+            {{> "modules/visage/templates/parts/visage-editor-triggers.hbs"}}
+        </div>
+    </div>
 
-                {{!-- Row 2: Wildcard --}}
-                <div class="meta-item {{#unless preview.slots.wildcard.active}}inactive{{/unless}}">
-                    <i class="visage-icon wildcard"></i>
-                    <span class="meta-label">{{localize 'VISAGE.Wildcard.Label'}}:</span>
-                    <span class="meta-value">{{preview.slots.wildcard.val}}</span>
-                </div>
+    {{!-- 3. FOOTER --}}
+    <footer class="visage-editor-footer">
+        <div class="visage-footer-meta">
+            <div class="header-form-group category-group">
+                <label for="visage-category-{{appId}}">{{localize "VISAGE.GlobalEditor.Category"}}</label>
+                <input type="text" id="visage-category-{{appId}}" name="category" value="{{category}}" list="visage-categories" placeholder="{{localize 'VISAGE.GlobalEditor.CategoryPlaceholder'}}">
+                <datalist id="visage-categories">
+                    {{#each categories}}
+                    <option value="{{this}}"></option>
+                    {{/each}}
+                </datalist>
+            </div>
 
-                {{!-- Row 3: Disposition --}}
-                <div class="meta-item disposition-item">
-                     <i class="visage-icon domino"></i>
-                     <span class="meta-label">{{localize "VISAGE.Disposition.Label"}}:</span>
-                     <span class="visage-disposition-text {{preview.slots.disposition.class}}">{{preview.slots.disposition.val}}</span>
-                </div>
-
-                {{!-- Row 3: Mirroring --}}
-                <div class="meta-item mirror-split">
-                    <div class="mirror-sub-slot horizontal {{#unless preview.slots.flipH.active}}inactive{{/unless}}" title="{{localize 'VISAGE.Mirror.Horizontal.Label'}}">
-                        <img src="{{preview.slots.flipH.src}}" class="visage-icon-nav {{preview.slots.flipH.cls}}"/>
-                        <span class="meta-value">{{localize "VISAGE.Mirror.Badge.H"}}</span>
+            <div class="header-form-group tags-group">
+                <span class="visage-group-label">{{localize "VISAGE.GlobalEditor.Tags"}}</span>
+                <div class="visage-tag-container compact">
+                    <div class="visage-tag-pills">
+                        {{!-- Pills injected by JS --}}
                     </div>
-                    <div class="mirror-sub-slot vertical {{#unless preview.slots.flipV.active}}inactive{{/unless}}" title="{{localize 'VISAGE.Mirror.Vertical.Label'}}">
-                        <img src="{{preview.slots.flipV.src}}" class="visage-icon-nav {{preview.slots.flipV.cls}}"/>
-                        <span class="meta-value">{{localize "VISAGE.Mirror.Badge.V"}}</span>
-                    </div>
+                    <input type="text" class="visage-tag-input" list="visage-all-tags" placeholder="{{localize 'VISAGE.GlobalEditor.TagsHint'}}" aria-label="{{localize 'VISAGE.GlobalEditor.Tags'}}">
+                    <input type="hidden" name="tags" value="{{tagsString}}">
                 </div>
+                <datalist id="visage-all-tags">
+                    {{#each allTags}}
+                    <option value="{{this}}"></option>
+                    {{/each}}
+                </datalist>
             </div>
         </div>
 
-        {{!-- 3. RIGHT PANEL: INSPECTOR --}}
-        <div class="visage-inspector-panel">
-            
-            {{!-- TABS NAVIGATION --}}
-            <nav class="visage-tabs tabs" aria-label="{{localize 'VISAGE.NavLabel'}}">
-                <a class="item {{#if tabs.appearance.active}}active{{/if}}" data-action="tab" data-group="primary" data-tab="appearance">{{localize "VISAGE.Editor.Tabs.Appearance"}}</a>
-                <a class="item {{#if tabs.effects.active}}active{{/if}}" data-action="tab" data-group="primary" data-tab="effects">{{localize "VISAGE.Editor.Tabs.Effects"}}</a>
-                <a class="item {{#if tabs.triggers.active}}active{{/if}}" data-action="tab" data-group="primary" data-tab="triggers">{{localize "VISAGE.Editor.Tabs.Triggers"}}</a>
-            </nav>
-
-            {{!-- TAB CONTENT --}}
-            <section class="visage-tab-content visage-scrollable">
-                
-                {{!-- TAB 1: APPEARANCE --}}
-                {{> "modules/visage/templates/parts/visage-editor-appearance.hbs"}}
-
-                {{!-- TAB 2: EFFECTS (Combined Visual, Audio, Light, Ring) --}}
-                {{> "modules/visage/templates/parts/visage-editor-effects.hbs"}}
-
-                {{!-- TAB 3: TRIGGERS --}}
-                {{> "modules/visage/templates/parts/visage-editor-triggers.hbs"}}
-
-            </section>
-        </div>
-
-    </div>
-
-    {{!-- FOOTER --}}
-    <footer class="visage-editor-footer">
-        {{#if isLocal}}
         <button type="button" class="visage-reset-btn" data-action="resetSettings" data-tooltip="{{localize 'VISAGE.GlobalEditor.ResetTooltip'}}">
             <i class="visage-icon undo"></i> {{localize "VISAGE.GlobalEditor.Reset"}}
         </button>
-        {{/if}}
 
         <button type="submit" class="visage-save {{#if isDirty}}dirty{{/if}}" data-action="save">
-            <i class="visage-icon save-update"></i> 
+            <i class="visage-icon save-update"></i>
             {{#if isLocal}}
                 {{localize "VISAGE.GlobalEditor.Save.Local"}}
             {{else}}

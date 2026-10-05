@@ -1,0 +1,15 @@
+{{!--
+    The comparison operator for a number condition (attributes, token elevation, scene
+    darkness). The option text uses the same words as the automation summary sentence, so the
+    editor and the sentence read alike.
+
+    Parameters: id (the condition id), operator (the current operator).
+--}}
+<select name="condition.{{id}}.operator" aria-label="{{localize 'VISAGE.Editor.Triggers.Operator'}}">
+    <option value="lte" {{visageSelected (eq operator "lte")}}>{{localize "VISAGE.Automation.Text.Op.lte"}}</option>
+    <option value="lt" {{visageSelected (eq operator "lt")}}>{{localize "VISAGE.Automation.Text.Op.lt"}}</option>
+    <option value="eq" {{visageSelected (eq operator "eq")}}>{{localize "VISAGE.Automation.Text.Op.eq"}}</option>
+    <option value="neq" {{visageSelected (eq operator "neq")}}>{{localize "VISAGE.Automation.Text.Op.neq"}}</option>
+    <option value="gt" {{visageSelected (eq operator "gt")}}>{{localize "VISAGE.Automation.Text.Op.gt"}}</option>
+    <option value="gte" {{visageSelected (eq operator "gte")}}>{{localize "VISAGE.Automation.Text.Op.gte"}}</option>
+</select>

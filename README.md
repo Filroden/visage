@@ -1,7 +1,7 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-5.11.0-blue)
-![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v13_%7C_v14-orange)
+![Latest Version](https://img.shields.io/badge/Version-5.12.0-blue)
+![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v14-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
 ![RTL Support](https://img.shields.io/badge/RTL-Supported-green)
@@ -64,7 +64,7 @@ Visage was built with User Experience in mind, offering three distinct tools:
 
    ![Visage Local Library](https://github.com/Filroden/visage/blob/main/images/local_library.png)
 
-2. **The Visage Editor:** A powerful workstation to build Visages. It features a live preview stage so you can see your token's appearance and effects before you ever save or apply them.
+2. **The Visage Editor:** A powerful workstation to build Visages. A Layers list shows everything the Visage contains, a live preview stage shows the token's appearance and effects before you ever save or apply them, and the settings of the selected layer sit alongside. Automation rules are written as plain sentences in their own view.
 
    ![Visage Global Editor](https://github.com/Filroden/visage/blob/main/images/global_editor.png)
 
