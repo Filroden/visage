@@ -1,6 +1,6 @@
 # Visage
 
-![Latest Version](https://img.shields.io/badge/Version-5.12.0-blue)
+![Latest Version](https://img.shields.io/badge/Version-5.13.0-blue)
 ![Foundry Version](https://img.shields.io/badge/Foundry_VTT-v14-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![System Agnostic](https://img.shields.io/badge/System-Agnostic-green)
@@ -16,10 +16,10 @@
 
 Please install the correct version of the module:
 
-- **v4.x is compatible with v13 of FoundryVTT:** This version is only being updated for bug fixes and will not contain features added to v5.
+- **v4.x is compatible with v13 of FoundryVTT:** This version is no longer maintained. Its last release, v4.6.3, remains available to install for v13.
 - **v5.x is compatible with v14 of FoundryVTT.**
 
-![Visage](https://github.com/Filroden/visage/blob/main/images/apply_visages.gif)
+![Visage](https://raw.githubusercontent.com/wiki/Filroden/visage/images/apply_visages.gif)
 
 ### The Brass Tacks
 
@@ -62,15 +62,15 @@ Visage was built with User Experience in mind, offering three distinct tools:
 
 1. **The Visage Library:** The central hub for browsing, filtering, and organising Visages. GMs manage the world's "Global Library," while players manage their personal "Local Library."
 
-   ![Visage Local Library](https://github.com/Filroden/visage/blob/main/images/local_library.png)
+   ![Visage Local Library](https://raw.githubusercontent.com/wiki/Filroden/visage/images/local_library.png)
 
 2. **The Visage Editor:** A powerful workstation to build Visages. A Layers list shows everything the Visage contains, a live preview stage shows the token's appearance and effects before you ever save or apply them, and the settings of the selected layer sit alongside. Automation rules are written as plain sentences in their own view.
 
-   ![Visage Global Editor](https://github.com/Filroden/visage/blob/main/images/global_editor.png)
+   ![Visage Global Editor](https://raw.githubusercontent.com/wiki/Filroden/visage/images/global_editor.png)
 
 3. **The Selector HUD:** A transient quick-menu that appears next to a token on the canvas. It allows players to quickly swap their active Visages, toggle visibility, reorder their active stack via drag-and-drop and create **Quick Visages**. The HUD includes a **Pin toggle**, allowing you to switch it from a floating panel to a standard, resizable window.
 
-   ![Visage Selector HUD](https://github.com/Filroden/visage/blob/main/images/visage_selector_hud.png)
+   ![Visage Selector HUD](https://raw.githubusercontent.com/wiki/Filroden/visage/images/visage_selector_hud.png)
 
 > **Note:** The UI colour theme shows whether you have a Global or Local Library or Visage Editor open. Global libraries and editors are shown in blue; local libraries and editors are shown in gold.
 
@@ -103,6 +103,7 @@ To get the absolute most out of Visage, I highly recommend installing the follow
 - **[JB2A - Jules & Ben's Animated Assets](https://foundryvtt.com/packages/JB2A_DnD5e)**: Provides a massive library of visual assets pre-registered into the Sequencer Database.
 - **[PSFX - Peri's Sound Effects](https://foundryvtt.com/packages/psfx)**: The audio equivalent to JB2A. Amazing sound effects perfectly formatted for VTT use.
 - **[FA Nexus](https://foundryvtt.com/packages/fa-nexus)**: An in-game asset browser for Forgotten Adventures' extensive top-down token library.
+- **[Tokenizer 2](https://foundryvtt.com/packages/tokenizer-2)**: Make token images and portraits (with frames, masks and Dynamic Ring support) straight from the Visage Editor. The saved images go into the Visage automatically.
 
 ## Translations
 

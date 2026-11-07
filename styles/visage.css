@@ -999,7 +999,7 @@ li.context-item .visage-icon-domino {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: max(24px, var(--visage-space-xl)) var(--visage-space-l);
     width: 100%;
-    margin-block-start: var(--visage-space-l);
+    padding: var(--visage-space-l);
 }
 
 .visage.visage-selector-window .visage-selector {
@@ -1339,6 +1339,9 @@ li.context-item .visage-icon-domino {
 }
 .visage-icon.image-search {
     --visage-icon-mask: url("../icons/image_search.svg");
+}
+.visage-icon.tokenizer {
+    --visage-icon-mask: url("../icons/account_circle.svg");
 }
 .visage-icon.undo {
     --visage-icon-mask: url("../icons/undo.svg");
@@ -2764,6 +2767,12 @@ li.context-item .visage-icon-domino {
     border: 1px solid var(--visage-border-subtle);
     border-radius: var(--visage-radius-medium);
     background: var(--visage-bg-panel);
+}
+
+/* Hide background and border for the selector HUD grids */
+.visage :is(.identity-section, .overlay-section) {
+    border: none;
+    background: transparent;
 }
 
 .visage .visage-section-summary {
@@ -5059,4 +5068,26 @@ button.visage-tool-icon {
 
 .visage .visage-section-heading:has(.visage-copy-btn)::after {
     margin-inline-start: 0;
+}
+
+/* ===================================================================
+   TOKENIZER 2
+   =================================================================== */
+
+/* When present, the Tokenizer button leads the heading's button group, so it takes over the
+   push to the end edge from the copy button */
+.visage .visage-section-heading .visage-tokenizer-btn {
+    margin-inline-start: auto;
+}
+
+.visage .visage-section-heading .visage-tokenizer-btn ~ .visage-copy-btn {
+    margin-inline-start: 0;
+}
+
+/* A thin upright rule between the Tokenizer button and the copy and clear buttons, which act on
+   the token's existing settings rather than making new images */
+.visage .visage-heading-divider {
+    align-self: stretch;
+    margin-block: var(--visage-size-2);
+    border-inline-start: 1px solid var(--visage-border-main);
 }
