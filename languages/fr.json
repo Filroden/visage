@@ -630,6 +630,10 @@
     "VISAGE.Automation.Editor.Applied": "appliqué",
     "VISAGE.Automation.Editor.NotApplied": "non appliqué",
     "VISAGE.Editor.Effects.ScaleIn": "Mise à l'Échelle (Entrée)",
+    "VISAGE.Tokenizer.Open": "Créer dans Tokenizer 2",
+    "VISAGE.Tokenizer.DefaultName": "Visage",
+    "VISAGE.Tokenizer.NothingSaved": "Aucune image n'a été sauvegardée dans Tokenizer 2.",
+    "VISAGE.Tokenizer.StillOpen": "Tokenizer 2 est toujours ouvert. Sauvegardez ou fermez-le d'abord pour que ses images puissent être ajoutées à ce Visage.",
 
-    "_comment": "Updated to v5.12.0"
+    "_comment": "Updated to v5.13.0"
 }
