@@ -16,7 +16,7 @@
 
 Please install the correct version of the module:
 
-- **v4.x is compatible with v13 of FoundryVTT:** This version is only being updated for bug fixes and will not contain features added to v5.
+- **v4.x is compatible with v13 of FoundryVTT:** This version is no longer maintained. Its last release, v4.6.3, remains available to install for v13.
 - **v5.x is compatible with v14 of FoundryVTT.**
 
 ![Visage](https://raw.githubusercontent.com/wiki/Filroden/visage/images/apply_visages.gif)
