@@ -999,7 +999,7 @@ li.context-item .visage-icon-domino {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: max(24px, var(--visage-space-xl)) var(--visage-space-l);
     width: 100%;
-    margin-block-start: var(--visage-space-l);
+    padding: var(--visage-space-l);
 }
 
 .visage.visage-selector-window .visage-selector {
@@ -2764,6 +2764,12 @@ li.context-item .visage-icon-domino {
     border: 1px solid var(--visage-border-subtle);
     border-radius: var(--visage-radius-medium);
     background: var(--visage-bg-panel);
+}
+
+/* Hide background and border for the selector HUD grids */
+.visage :is(.identity-section, .overlay-section) {
+    border: none;
+    background: transparent;
 }
 
 .visage .visage-section-summary {
