@@ -27,6 +27,7 @@ import { VisageTokenMagic } from "../integrations/visage-tmfx.js";
 import { VisageDataModel } from "../data/visage-data-model.js";
 import { VisageDAT } from "../integrations/visage-dat.js";
 import { VisageRMU } from "../integrations/visage-rmu.js";
+import { VisageTokenizer } from "../integrations/visage-tokenizer.js";
 import { VisageAutomationText } from "../core/visage-automation-text.js";
 import { VisageRangeDisplay } from "../utils/visage-range-display.js";
 
@@ -158,6 +159,9 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._lightData = null;
         this._ringData = null;
         this._rmuData = null;
+
+        // True while a Tokenizer 2 editor opened from here is still open
+        this._tokenizerBusy = false;
     }
 
     get isLocal() {
@@ -184,6 +188,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             save: VisageEditor.prototype._onSave,
             toggleField: VisageEditor.prototype._onToggleField,
             openFilePicker: VisageEditor.prototype._onOpenFilePicker,
+            openTokenizer: VisageEditor.prototype._onOpenTokenizer,
             resetSettings: VisageEditor.prototype._onResetSettings,
             zoomIn: VisageEditor.prototype._onZoomIn,
             zoomOut: VisageEditor.prototype._onZoomOut,
@@ -265,6 +270,16 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this._controlTokenHook = Hooks.on("controlToken", () => this._refreshCopyButtons());
     }
 
+    /**
+     * Keeps the editor open while Tokenizer 2 is open from it (see _warnIfTokenizerOpen). Every
+     * way of closing (the header button, Escape, closing after a save) passes through here.
+     * options.force closes it anyway, for callers that must not be refused.
+     */
+    async close(options = {}) {
+        if (!options.force && this._warnIfTokenizerOpen()) return this;
+        return super.close(options);
+    }
+
     async _onClose(options) {
         if (this._controlTokenHook !== undefined) Hooks.off("controlToken", this._controlTokenHook);
 
@@ -282,7 +297,8 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     async _prepareContext(_options) {
         // 1. Fetch & Initialise Base Data
         const baseData = this._getInitialData();
-        if (!baseData) return this.close();
+        // The Visage no longer exists, so there is nothing to keep the editor open for
+        if (!baseData) return this.close({ force: true });
 
         // PREVENT ZOMBIE DATA: The snapshot's 'changes' object is the single source
         // of truth for the form state. Overwrite the merged changes completely
@@ -421,6 +437,10 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             // RMU Context
             isRMUActive: VisageRMU.isActive,
             rmu: this._rmuData,
+
+            // Tokenizer 2 Context
+            isTokenizerAvailable: VisageTokenizer.isAvailable,
+            isTokenizerBusy: this._tokenizerBusy,
         };
     }
 
@@ -1260,6 +1280,7 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _onSave(event) {
         event.preventDefault();
+        if (this._warnIfTokenizerOpen()) return;
 
         try {
             const payload = this._prepareSaveData();
@@ -1467,6 +1488,99 @@ export class VisageEditor extends HandlebarsApplicationMixin(ApplicationV2) {
             },
         });
         fp.render(true);
+    }
+
+    /**
+     * Opens Tokenizer 2 from the Identity section heading and, when it closes, fills the Visage
+     * with what was saved there: a token image fills Token image (with the ring and scale that
+     * go with it), a portrait fills Portrait, so one trip can fill both. The button works whether
+     * or not those fields are ticked, because saving ticks the fields it fills.
+     *
+     * The button sits inside the section heading, so the click's default action (opening or
+     * closing the section) is prevented.
+     *
+     * The Visage Editor stays usable while Tokenizer 2 is open, so the form is captured only
+     * after Tokenizer 2 closes, and edits made in the meantime are kept. The editor cannot be
+     * closed or saved until then (see close), so the result always has a Visage to go into.
+     */
+    async _onOpenTokenizer(event, _target) {
+        event.preventDefault();
+        if (!VisageTokenizer.isAvailable || this._tokenizerBusy) return;
+
+        const sourceImage = this._getTokenizerSeed();
+        const label = this.element.querySelector('[name="label"]')?.value;
+
+        this._setTokenizerBusy(true);
+        let result;
+        try {
+            result = await VisageTokenizer.open({ label, sourceImage, actor: this.isLocal ? this.actor : null });
+        } finally {
+            this._setTokenizerBusy(false);
+        }
+        if (!this.rendered) return;
+
+        const read = VisageTokenizer.readResult(result);
+        if (!read) return ui.notifications.info(game.i18n.localize("VISAGE.Tokenizer.NothingSaved"));
+        this._applyTokenizerResult(read);
+    }
+
+    /**
+     * Writes a Tokenizer 2 result into the Visage, using the same capture-change-render steps
+     * as copying from a token: the form is captured first so unsaved edits elsewhere are kept
+     * and the ring data is current, then the captured data is changed and handed to the
+     * re-render as is.
+     * @param {object} read - From VisageTokenizer.readResult.
+     * @private
+     */
+    _applyTokenizerResult(read) {
+        const data = this._prepareSaveData();
+        VisageTokenizer.applyResult(read, data.changes, this._ringData);
+
+        this._preservedData = data;
+        this._keepPreservedData = true;
+        this._markDirty();
+        this.render();
+    }
+
+    /**
+     * The image Tokenizer 2 starts from: the Token image if it is ticked and set, otherwise the
+     * Portrait if it is, otherwise none (Tokenizer 2 opens empty). An unticked field is ignored
+     * because the Visage does not use its value.
+     * @returns {string|null}
+     * @private
+     */
+    _getTokenizerSeed() {
+        for (const field of ["img", "portrait"]) {
+            const active = this.element.querySelector(`[name="${field}_active"]`)?.checked;
+            const value = this.element.querySelector(`[name="${field}"]`)?.value;
+            if (active && value) return value;
+        }
+        return null;
+    }
+
+    /**
+     * Records whether Tokenizer 2 is open, and disables the Tokenizer button while it is, so a
+     * second click cannot open another one. Re-renders read the same state from the context.
+     * @param {boolean} busy
+     * @private
+     */
+    _setTokenizerBusy(busy) {
+        this._tokenizerBusy = busy;
+        if (!this.rendered) return;
+        for (const button of this.element.querySelectorAll('button[data-action="openTokenizer"]')) button.disabled = busy;
+    }
+
+    /**
+     * Warns, and returns true, while a Tokenizer 2 editor opened from here is still open.
+     * Closing or saving the Visage Editor then would lose the images Tokenizer 2 is about to
+     * hand back, and the GM would have to find them in Tokenizer 2's folder by hand.
+     * @returns {boolean}
+     * @private
+     */
+    _warnIfTokenizerOpen() {
+        if (!this._tokenizerBusy) return false;
+        ui.notifications.warn(game.i18n.localize("VISAGE.Tokenizer.StillOpen"));
+        return true;
     }
 
     async _onOpenTimeline(_event, _target) {

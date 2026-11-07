@@ -719,5 +719,11 @@
     "VISAGE.Automation.Editor.ItsMaximum": "its maximum (found automatically)",
     "VISAGE.Automation.Editor.Applied": "applied",
     "VISAGE.Automation.Editor.NotApplied": "not applied",
-    "VISAGE.Editor.Effects.ScaleIn": "Scale In"
+    "VISAGE.Editor.Effects.ScaleIn": "Scale In",
+
+    "_comment_V5_13_KEYS": "--- V5.13 KEYS ---",
+    "VISAGE.Tokenizer.Open": "Make in Tokenizer 2",
+    "VISAGE.Tokenizer.DefaultName": "Visage",
+    "VISAGE.Tokenizer.NothingSaved": "No image was saved in Tokenizer 2.",
+    "VISAGE.Tokenizer.StillOpen": "Tokenizer 2 is still open. Save or close it first, so its images can be added to this Visage."
 }

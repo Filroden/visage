@@ -32,6 +32,12 @@
             <span class="visage-section-heading">
                 <span class="visage-section-title">{{localize "VISAGE.Editor.Sections.Identity"}}</span>
                 <span class="visage-section-count" hidden></span>
+                {{#if isTokenizerAvailable}}
+                    <button type="button" class="visage-icon-btn visage-tokenizer-btn" data-action="openTokenizer" data-tooltip="{{localize 'VISAGE.Tokenizer.Open'}}" aria-label="{{localize 'VISAGE.Tokenizer.Open'}}" {{disabled isTokenizerBusy}}>
+                        <i class="visage-icon tokenizer"></i>
+                    </button>
+                    <span class="visage-heading-divider" aria-hidden="true"></span>
+                {{/if}}
                 <button type="button" class="visage-icon-btn visage-copy-btn" data-action="copyFromToken" data-layer="token" data-section="identity" data-copy-hint="VISAGE.Editor.Copy.Section" aria-disabled="{{#if canCopyFromToken}}false{{else}}true{{/if}}" data-tooltip="{{#if canCopyFromToken}}{{localize 'VISAGE.Editor.Copy.Section'}}{{else}}{{localize 'VISAGE.Editor.Copy.NoToken'}}{{/if}}" aria-label="{{localize 'VISAGE.Editor.Copy.Section'}}">
                     <i class="visage-icon copy"></i>
                 </button>
